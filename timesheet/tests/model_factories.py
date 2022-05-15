@@ -22,9 +22,9 @@ class TaskFactory(factory.django.DjangoModelFactory):
     name = factory.Sequence(lambda n: 'Task %s' % n)
 
 
-class TimesheetFactory(factory.django.DjangoModelFactory):
+class TimelogFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = Timesheet
+        model = Timelog
 
     user = factory.SubFactory(UserFactory)
     start_time = factory.LazyFunction(datetime.datetime.now)

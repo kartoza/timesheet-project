@@ -4,15 +4,15 @@ from http import HTTPStatus
 from django.test import TestCase, Client
 from rest_framework.test import APIClient
 
-from timesheet.models import Timesheet
-from timesheet.tests.model_factories import TaskFactory, TimesheetFactory, UserFactory
+from timesheet.models import Timelog
+from timesheet.tests.model_factories import TaskFactory, TimelogFactory, UserFactory
 
 
 class TestOnlineUserApiView(TestCase):
     def setUp(self) -> None:
         self.task = TaskFactory.create()
         self.timesheet = (
-            TimesheetFactory.create(
+            TimelogFactory.create(
                 task=self.task,
                 end_time=None
             )
@@ -61,7 +61,7 @@ class TestOnlineUserApiView(TestCase):
     def test_update_timesheet_authenticated(self):
         client = APIClient()
         client.force_authenticate(user=self.user)
-        timesheet = TimesheetFactory.create(
+        timesheet = TimelogFactory.create(
             user=self.user
         )
         data = json.dumps({})
@@ -75,7 +75,7 @@ class TestOnlineUserApiView(TestCase):
             int(HTTPStatus.OK)
         )
 
-        timesheet = Timesheet.objects.get(
+        timesheet = Timelog.objects.get(
             id=timesheet.id
         )
         self.assertIsNotNone(

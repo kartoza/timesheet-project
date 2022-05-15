@@ -3,7 +3,7 @@ from django.utils import timezone
 from rest_framework import serializers, viewsets
 from rest_framework.permissions import IsAuthenticated
 
-from timesheet.models import Timesheet, Task
+from timesheet.models import Timelog, Task
 
 
 class UserSerializer(serializers.Serializer):
@@ -24,7 +24,7 @@ class TimesheetSerializer(serializers.ModelSerializer):
     task = TaskSerializer(required=False)
 
     class Meta:
-        model = Timesheet
+        model = Timelog
         fields = [
             'user', 'start_time', 'end_time', 'task'
         ]
@@ -41,13 +41,17 @@ class TimesheetSerializer(serializers.ModelSerializer):
 
         user = get_user_model().objects.get(id=user.get('id'))
         task = Task.objects.get(id=task.get('id'))
-        Timesheet.objects.filter(
+
+        # Set existing timesheet end_time to now
+        Timelog.objects.filter(
             user=user,
             end_time__isnull=True
         ).update(
             end_time=timezone.now()
         )
-        timesheet = Timesheet.objects.create(
+
+        # Create a new timesheet
+        timesheet = Timelog.objects.create(
             user=user,
             task=task,
         )
@@ -55,7 +59,7 @@ class TimesheetSerializer(serializers.ModelSerializer):
 
 
 class TimesheetViewSet(viewsets.ModelViewSet):
-    queryset = Timesheet.objects.filter(
+    queryset = Timelog.objects.filter(
         end_time__isnull=True)
     serializer_class = TimesheetSerializer
 

@@ -4,13 +4,13 @@ from timesheet.tests.model_factories import *
 
 
 # Create your tests here.
-class TestTimesheetModel(TestCase):
+class TestTimelogModel(TestCase):
     def setUp(self) -> None:
         pass
 
     def test_Timesheet_create(self):
 
-        model = TimesheetFactory.create()
+        model = TimelogFactory.create()
 
         self.assertTrue(
             str(model),

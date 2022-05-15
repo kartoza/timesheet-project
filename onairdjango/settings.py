@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-i-)n0o_90g6j*r1m@4vc7&^sd!0otorm2hxs4-#p8e$658x4!-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['10.0.2.2', 'localhost']
 
 
 # Application definition
@@ -137,3 +137,5 @@ REST_FRAMEWORK = {
     ]
 }
 
+ERPNEXT_TOKEN = os.getenv('ERPNEXT_TOKEN', '')
+ERPNEXT_SITE_LOCATION = os.getenv('ERPNEXT_SITE_LOCATION', '')

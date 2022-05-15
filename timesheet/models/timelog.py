@@ -1,8 +1,9 @@
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
-class Timesheet(models.Model):
+class Timelog(models.Model):
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -16,8 +17,20 @@ class Timesheet(models.Model):
         on_delete=models.CASCADE
     )
 
+    activity = models.ForeignKey(
+        'timesheet.Activity',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
+
+    description = models.TextField(
+        null=True,
+        blank=True
+    )
+
     start_time = models.DateTimeField(
-        auto_now_add=True
+        default=timezone.now
     )
 
     end_time = models.DateTimeField(
