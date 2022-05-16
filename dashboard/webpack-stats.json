@@ -1,0 +1,14 @@
+{
+  "status": "done",
+  "assets": {
+    "App.js": {
+      "name": "App.js",
+      "path": "/home/dimas/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/App.js"
+    }
+  },
+  "chunks": {
+    "App": [
+      "App.js"
+    ]
+  }
+}
