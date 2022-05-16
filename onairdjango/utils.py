@@ -4,9 +4,8 @@ import os
 
 # Absolute filesystem path to the Django project directory:
 DJANGO_ROOT = os.path.dirname(
-    os.path.dirname(
-        os.path.dirname(os.path.abspath(__file__))
-    ))
+    os.path.dirname(os.path.abspath(__file__))
+)
 
 
 def absolute_path(*args):

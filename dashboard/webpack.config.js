@@ -11,7 +11,7 @@ const filename = isDev ? "[name]" : "[name].[hash]";
 module.exports = {
   context: __dirname,
   entry: {
-      App: ['./src/App.tsx'],
+      App: ['./src/index.tsx'],
   },
   output: {
     path: path.resolve('./assets/webpack_bundles/'),
@@ -36,9 +36,16 @@ module.exports = {
         ],
       },
       {
-        test: /\.svg$/,
-        loader: 'svg-inline-loader'
-      }
+        test: /\.(png|jp(e*)g|svg|gif)$/,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name: 'images/[hash]-[name].[ext]',
+            },
+          },
+        ],
+      },
     ],
   },
   plugins: [

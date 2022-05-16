@@ -1,26 +1,47 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, {useEffect, useState} from 'react';
 import './App.scss';
+import {
+    Container,
+    Autocomplete,
+    TextField, Stack
+} from "@mui/material";
+
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    const [activityResults, setActivityResults] = useState([])
+
+    useEffect(() => {
+        fetch('/activity-list/').then(
+            response => response.json()
+        ).then(
+            json => setActivityResults(json)
+        )
+    }, [])
+
+    return (
+        <div className="App">
+            <Container maxWidth="xl">
+                <div className="App-header">
+                    <Stack sx={{ width: 800, margin: 'auto'}} style={{ display: 'flex', flexDirection: 'row'}}>
+                        <Autocomplete
+                            disablePortal
+                            id="combo-box-demo"
+                            options={activityResults}
+                            sx={{width: 250}}
+                            renderInput={(params) => <TextField {...params} label="Activity"/>}
+                        />
+                        <Autocomplete
+                            disablePortal
+                            id="combo-box-demo"
+                            options={[]}
+                            sx={{width: 250}}
+                            renderInput={(params) => <TextField {...params} label="Project"/>}
+                        />
+                    </Stack>
+                </div>
+            </Container>
+        </div>
+    );
 }
 
 export default App;

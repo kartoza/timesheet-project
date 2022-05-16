@@ -3,12 +3,18 @@
   "assets": {
     "App.js": {
       "name": "App.js",
-      "path": "/home/dimas/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/App.js"
+      "path": "/home/dimasciputra/Documents/Projects/onairdjango/dashboard/assets/webpack_bundles/App.js"
+    },
+    "node_modules_web-vitals_dist_web-vitals_js.js": {
+      "name": "node_modules_web-vitals_dist_web-vitals_js.js",
+      "path": "/home/dimasciputra/Documents/Projects/onairdjango/dashboard/assets/webpack_bundles/node_modules_web-vitals_dist_web-vitals_js.js"
     }
   },
   "chunks": {
     "App": [
       "App.js"
     ]
-  }
+  },
+  "error": "Error",
+  "message": "[tsl] ERROR in /home/dimasciputra/Documents/Projects/onairdjango/dashboard/src/App.tsx(26,21)\n      TS1003: Identifier expected."
 }

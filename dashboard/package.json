@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@emotion/react": "^11.9.0",
+    "@emotion/styled": "^11.8.1",
+    "@mui/material": "^5.7.0",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.2.0",
     "@testing-library/user-event": "^13.5.0",
@@ -19,6 +22,7 @@
   },
   "scripts": {
     "dev": "webpack --mode development",
+    "dev-watch": "webpack --mode development --watch",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
