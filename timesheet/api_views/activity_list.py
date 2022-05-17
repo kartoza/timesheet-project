@@ -1,3 +1,4 @@
+from django.db.models import F
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -10,4 +11,7 @@ class ActivityList(APIView):
 
     def get(self, request, format=None):
         return Response(
-            self.queryset.values_list('name', flat=True))
+            self.queryset.annotate(label=F('name')).values(
+                'id', 'label'
+            )
+        )

@@ -16,5 +16,5 @@
     ]
   },
   "error": "Error",
-  "message": "[tsl] ERROR in /home/dimasciputra/Documents/Projects/onairdjango/dashboard/src/App.tsx(26,21)\n      TS1003: Identifier expected."
+  "message": "[tsl] ERROR in /home/dimasciputra/Documents/Projects/onairdjango/dashboard/src/App.tsx(24,70)\n      TS2322: Type '\"f\"' is not assignable to type '\"standard\" | \"filled\" | \"outlined\" | undefined'."
 }
