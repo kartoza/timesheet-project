@@ -1,0 +1,29 @@
+.time-log-row {
+  text-align: left;
+  min-height: 3em;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+
+  margin-left: -16px !important;
+  width: 72em !important;
+  padding-left: 15px;
+
+  .time-log-item {
+    padding-top: 0 !important;
+  }
+
+  .left-item {
+    padding-left: 1em !important;
+  }
+
+  .center-item {
+    padding-left: 0 !important;
+    text-align: center;
+  }
+
+}
+
+.MuiCardContent-root:last-child {
+  padding-bottom: 0 !important;
+}

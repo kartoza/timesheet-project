@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import './App.scss';
+import './styles/App.scss';
 import {
     Container,
     Autocomplete,
@@ -8,6 +8,9 @@ import {
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import TimeLogTable from "./components/TimeLogTable";
+import { theme } from "./utils/Theme";
+import {ThemeProvider} from "@mui/material/styles";
 
 
 function TimeCard() {
@@ -24,7 +27,9 @@ function TimeCard() {
                     <TextField id="hour" type="number" label="Hours" variant="standard" sx={{ width: 200 }} />
                 </CardContent>
                 <CardActions sx={{ justifyContent: "center" }}>
-                    <Button variant="contained" size="small" sx={{ width: 200, marginTop: -1 }}>Add</Button>
+                    <ThemeProvider theme={theme}>
+                        <Button color="main" variant="contained" size="small" sx={{ width: 200, marginTop: -1 }} disableElevation>Add</Button>
+                    </ThemeProvider>
                 </CardActions>
             </div>
         </LocalizationProvider>
@@ -176,6 +181,10 @@ function App() {
                     </Box>
                 </div>
             </Container>
+
+            <TimeLogTable/>
+            <div style={{ height: "20px" }}></div>
+            <TimeLogTable/>
         </div>
     );
 }
