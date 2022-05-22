@@ -1,0 +1,20 @@
+{
+  "status": "done",
+  "assets": {
+    "App.js": {
+      "name": "App.js",
+      "path": "/home/dimasciputra/Documents/Projects/onairdjango/dashboard/assets/webpack_bundles/App.js"
+    },
+    "node_modules_web-vitals_dist_web-vitals_js.js": {
+      "name": "node_modules_web-vitals_dist_web-vitals_js.js",
+      "path": "/home/dimasciputra/Documents/Projects/onairdjango/dashboard/assets/webpack_bundles/node_modules_web-vitals_dist_web-vitals_js.js"
+    }
+  },
+  "chunks": {
+    "App": [
+      "App.js"
+    ]
+  },
+  "error": "Error",
+  "message": "[tsl] ERROR in /home/dimasciputra/Documents/Projects/onairdjango/dashboard/src/App.tsx(155,51)\n      TS2339: Property 'id' does not exist on type 'never'."
+}

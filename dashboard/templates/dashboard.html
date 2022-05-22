@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load render_bundle from webpack_loader %}
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <script>
+        const csrfToken = "{{ csrf_token }}";
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+    {% render_bundle 'App' %}
+</body>
+</html>

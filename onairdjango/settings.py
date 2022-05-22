@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import os
 from pathlib import Path
+from onairdjango.utils import *
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'rest_framework'
+    'rest_framework',
+    'webpack_loader'
 ]
 
 MIDDLEWARE = [
@@ -126,16 +128,38 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 INSTALLED_APPS += [
-    'timesheet'
+    'dashboard',
+    'timesheet',
 ]
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+        'rest_framework.permissions.IsAuthenticated',
     ]
 }
 
 ERPNEXT_TOKEN = os.getenv('ERPNEXT_TOKEN', '')
 ERPNEXT_SITE_LOCATION = os.getenv('ERPNEXT_SITE_LOCATION', '')
+
+# List of finder classes that know how to find static files in
+# various locations.
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+)
+
+# Additional locations of static files
+STATICFILES_DIRS = (
+    absolute_path('dashboard', 'assets'),
+)
+
+WEBPACK_LOADER = {
+  'DEFAULT': {
+    'CACHE': not DEBUG,
+    'STATS_FILE': os.path.join(BASE_DIR, 'dashboard', 'webpack-stats.json'),
+    'POLL_INTERVAL': 0.1,
+    'IGNORE': [r'.+\.hot-update.js', r'.+\.map'],
+  }
+}
