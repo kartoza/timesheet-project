@@ -1,32 +1,39 @@
 from django.contrib.auth import get_user_model
+from django.http import Http404
 from django.utils import timezone
 from rest_framework import serializers, viewsets
 from rest_framework.permissions import IsAuthenticated
 
-from timesheet.models import Timelog, Task
+from timesheet.models import Timelog, Task, Activity
 
 
 class UserSerializer(serializers.Serializer):
-    id = serializers.CharField(max_length=100)
-    email = serializers.EmailField(required=False)
-    username = serializers.CharField(
+    id = serializers.CharField(
         max_length=100, required=False)
 
 
 class TaskSerializer(serializers.Serializer):
     id = serializers.CharField(max_length=100)
-    name = serializers.CharField(
-        max_length=256, required=False)
+
+
+class ActivitySerializer(serializers.Serializer):
+    id = serializers.CharField(max_length=100)
 
 
 class TimesheetSerializer(serializers.ModelSerializer):
     user = UserSerializer(required=False)
-    task = TaskSerializer(required=False)
+    task = TaskSerializer(required=True)
+    activity = ActivitySerializer(required=True)
 
     class Meta:
         model = Timelog
         fields = [
-            'user', 'start_time', 'end_time', 'task'
+            'description',
+            'start_time',
+            'end_time',
+            'user',
+            'task',
+            'activity',
         ]
 
     def update(self, instance, validated_data):
@@ -36,11 +43,21 @@ class TimesheetSerializer(serializers.ModelSerializer):
         return instance
 
     def create(self, validated_data):
-        user = validated_data.pop('user')
+        user = validated_data.pop('user', None)
         task = validated_data.pop('task')
+        start_time = validated_data.pop('start_time')
+        end_time = validated_data.pop('end_time')
+        activity = validated_data.pop('activity')
+        description = validated_data.pop('description', '')
 
-        user = get_user_model().objects.get(id=user.get('id'))
+        if not user:
+            if self.context['request'].user.is_anonymous:
+                raise Http404('User not found')
+            user = self.context['request'].user
+        else:
+            user = get_user_model().objects.get(id=user.get('id'))
         task = Task.objects.get(id=task.get('id'))
+        activity = Activity.objects.get(id=activity.get('id'))
 
         # Set existing timesheet end_time to now
         Timelog.objects.filter(
@@ -54,6 +71,10 @@ class TimesheetSerializer(serializers.ModelSerializer):
         timesheet = Timelog.objects.create(
             user=user,
             task=task,
+            activity=activity,
+            start_time=start_time,
+            end_time=end_time,
+            description=description
         )
         return timesheet
 
@@ -62,6 +83,16 @@ class TimesheetViewSet(viewsets.ModelViewSet):
     queryset = Timelog.objects.filter(
         end_time__isnull=True)
     serializer_class = TimesheetSerializer
+
+    def get_serializer_context(self):
+        """
+        Extra context provided to the serializer class.
+        """
+        context = super(TimesheetViewSet, self).get_serializer_context()
+        context.update({
+            'request': self.request
+        })
+        return context
 
     def get_permissions(self):
         """

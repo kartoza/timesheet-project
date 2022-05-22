@@ -3,7 +3,7 @@ import './styles/App.scss';
 import {
     Container,
     Autocomplete,
-    TextField, Stack, CircularProgress, Button, Grid, CardContent, Typography, CardActions, Box, Card
+    TextField, CircularProgress, Button, Grid, CardContent, CardActions, Box
 } from "@mui/material";
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -11,24 +11,98 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import TimeLogTable from "./components/TimeLogTable";
 import { theme } from "./utils/Theme";
 import {ThemeProvider} from "@mui/material/styles";
+import {useAddTimesheetMutation} from "./services/api";
 
+function addHours(numOfHours: any, date = new Date()) {
+    let numOfSeconds = numOfHours / 3600
+    date.setTime(date.getTime() + numOfSeconds * 60 * 60 * 60 * 60 * 1000);
+    return date;
+}
 
-function TimeCard() {
-    const [value, setValue] = React.useState<Date | null>(new Date());
+function formatTime(date = new Date()) {
+    return (
+        `${date.getFullYear()}-${("0" + date.getMonth()).slice(-2)}-${("0" + date.getDate()).slice(-2)} ` +
+        `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+    )
+}
+
+interface TimeCardProps {
+    task?: any | null,
+    activity?: any | null,
+    description?: String | '',
+    clearAllFields?: any
+}
+
+function TimeCard({ task, activity, description, clearAllFields } : TimeCardProps) {
+    const [startTime, setStartTime] = React.useState<Date | null>(new Date());
+    const [hours, setHours] = React.useState<Number | null>(null);
+    const [buttonDisabled, setButtonDisabled] = React.useState(true);
+
+    const [addTimesheet, { isLoading: isUpdating, isSuccess, isError }] = useAddTimesheetMutation();
+
+    useEffect(() => {
+        setButtonDisabled(startTime == null || hours == null || !task || !activity)
+    }, [startTime, hours, task])
+
+    useEffect(() => {
+        if (isSuccess) {
+            setHours(null)
+            clearAllFields()
+        }
+    }, [isSuccess])
+
+    const addButtonClicked = async () => {
+        // Calculate start-time and end-time
+        let endTime = null
+        if (hours && startTime) {
+            let startTimeCopy = new Date(startTime.toISOString())
+            endTime = addHours(hours, startTimeCopy)
+        }
+        if (!endTime || !startTime || !task || !activity) {
+            return
+        }
+        let startTimeStr = formatTime(startTime)
+        let endTimeStr = formatTime(endTime)
+        addTimesheet({
+            start_time: startTimeStr,
+            end_time: endTimeStr,
+            task: {
+                'id': task.id
+            },
+            activity: {
+                'id': activity.id
+            },
+            description: description
+        })
+    }
+
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
             <div>
                 <CardContent sx={{ paddingLeft: 0, paddingRight: 0 }}>
                     <DateTimePicker
-                        value={value}
-                        onChange={(newValue) => setValue(newValue)}
+                        value={startTime}
+                        onChange={(newValue) => setStartTime(newValue)}
                         renderInput={(params) => <TextField {...params} variant="standard" sx={{ width: 200 }} />}
                     />
-                    <TextField id="hour" type="number" label="Hours" variant="standard" sx={{ width: 200 }} />
+                    <TextField
+                        value={hours !== null ? hours : ''}
+                        onChange={(event) => (
+                            setHours(event.target.value !== '' ? parseFloat(event.target.value) : null)
+                        )}
+                        id="hour"
+                        type="number"
+                        InputProps={{
+                            inputProps: { min: 0 }
+                        }}
+                        label="Hours" variant="standard" sx={{ width: 200 }} />
                 </CardContent>
                 <CardActions sx={{ justifyContent: "center" }}>
                     <ThemeProvider theme={theme}>
-                        <Button color="main" variant="contained" size="small" sx={{ width: 200, marginTop: -1 }} disableElevation>Add</Button>
+                        <Button color="main" variant="contained" size="small" sx={{ width: 200, marginTop: -1 }}
+                                onClick={addButtonClicked}
+                                disabled={buttonDisabled || isUpdating}
+                                disableElevation>{isUpdating ? <CircularProgress color="inherit" size={20} /> : "Add" }</Button>
                     </ThemeProvider>
                 </CardActions>
             </div>
@@ -39,12 +113,14 @@ function TimeCard() {
 
 function App() {
     const [activities, setActivities] = useState([])
+    const [selectedActivity, setSelectedActivity] = useState<String | null>(null)
     const [projectInput, setProjectInput] = useState('')
     const [projects, setProjects] = useState([])
     const [projectLoading, setProjectLoading] = useState(false)
     const [selectedProject, setSelectedProject] = useState(null)
     const [selectedTask, setSelectedTask] = useState(null)
     const [tasks, setTasks] = useState([])
+    const [description, setDescription] = useState('')
 
     useEffect(() => {
         fetch('/activity-list/').then(
@@ -76,7 +152,7 @@ function App() {
 
     useEffect(() => {
         if (selectedProject) {
-            fetch('/task-list/' + selectedProject + '/').then(
+            fetch('/task-list/' + selectedProject['id'] + '/').then(
                 response => response.json()
             ).then(
                 json => {
@@ -87,6 +163,14 @@ function App() {
             setTasks([])
         }
     }, [selectedProject])
+
+    // Clear activity, task, project, and description
+    const clearAllFields = () => {
+        setSelectedProject(null)
+        setSelectedActivity(null)
+        setSelectedTask(null)
+        setDescription('')
+    }
 
     return (
         <div className="App">
@@ -99,19 +183,25 @@ function App() {
                                 id="combo-box-demo"
                                 options={activities}
                                 loading={activities.length > 0}
+                                onChange={(event: any, value: any) => {
+                                    if (value) {
+                                        setSelectedActivity(value)
+                                    }
+                                }}
+                                value={selectedActivity}
                                 renderInput={(params) => (
                                     <TextField {...params}
-                                               label="Activity"
-                                               InputProps={{
-                                                   ...params.InputProps,
-                                                   endAdornment: (
-                                                       <React.Fragment>
-                                                           { setActivities.length == 0 ?
-                                                               <CircularProgress color="inherit" size={20} /> : null }
-                                                           { params.InputProps.endAdornment }
-                                                       </React.Fragment>
-                                                   )
-                                               }}
+                                       label="Activity"
+                                       InputProps={{
+                                           ...params.InputProps,
+                                           endAdornment: (
+                                               <React.Fragment>
+                                                   { setActivities.length == 0 ?
+                                                       <CircularProgress color="inherit" size={20} /> : null }
+                                                   { params.InputProps.endAdornment }
+                                               </React.Fragment>
+                                           )
+                                       }}
                                     />
                                 )
                                 }
@@ -126,12 +216,13 @@ function App() {
                                 isOptionEqualToValue={(option, value) => option['id'] == value['id']}
                                 onChange={(event: any, value: any) => {
                                     if (value) {
-                                        setSelectedProject(value.id)
+                                        setSelectedProject(value)
                                     } else {
                                         setSelectedProject(null)
                                         setSelectedTask(null)
                                     }
                                 }}
+                                value={selectedProject}
                                 onInputChange={(event, newInputValue) => {
                                     setProjectInput(newInputValue)
                                 }}
@@ -173,11 +264,11 @@ function App() {
                             />
                         </Grid>
                         <Grid item xs={12}>
-                            <TextField style={{ width: "100%" }} label="Description" variant="outlined" />
+                            <TextField style={{ width: "100%" }} label="Description" variant="outlined" value={description} onChange={e => setDescription(e.target.value)} />
                         </Grid>
                     </Grid>
                     <Box className="time-box">
-                        <TimeCard/>
+                        <TimeCard task={selectedTask} activity={selectedActivity} description={description} clearAllFields={clearAllFields}/>
                     </Box>
                 </div>
             </Container>
