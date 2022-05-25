@@ -2,7 +2,7 @@ from rest_framework import serializers
 from timesheet.models import Timelog
 
 
-class TimesheetSerializer(serializers.ModelSerializer):
+class TimelogSerializer(serializers.ModelSerializer):
     owner = serializers.SerializerMethodField()
     project_name = serializers.SerializerMethodField()
     project = serializers.SerializerMethodField()
@@ -47,6 +47,7 @@ class TimesheetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Timelog
         fields = [
+            'id',
             'description',
             'activity_type',
             'owner',

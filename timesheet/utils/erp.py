@@ -6,7 +6,7 @@ from django.conf import settings
 
 from timesheet.enums.doctype import DocType
 from timesheet.models import Timelog
-from timesheet.serializers.timesheet import TimesheetSerializer
+from timesheet.serializers.timesheet import TimelogSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ def get_erp_data(doctype: DocType) -> list:
 
 
 def push_timesheet_to_erp(queryset: Timelog.objects):
-    serializer = TimesheetSerializer(queryset, many=True)
+    serializer = TimelogSerializer(queryset, many=True)
     timesheet_data = {
         'title': 'Dimas Test',
         'time_logs': serializer.data

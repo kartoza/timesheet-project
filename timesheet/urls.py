@@ -1,12 +1,13 @@
 from django.urls import path, include
 from rest_framework import routers
-from timesheet.api_views.timesheet import TimesheetViewSet
+from timesheet.api_views.timesheet import TimesheetModelViewSet, TimesheetViewSet
 from timesheet.api_views.activity_list import ActivityList
 from timesheet.api_views.project import ProjectAutocomplete
 from timesheet.api_views.task import TaskAutocomplete
 
 router = routers.DefaultRouter()
-router.register(r'timesheet', TimesheetViewSet)
+router.register(r'timesheet', TimesheetModelViewSet)
+router.register(r'timelog', TimesheetViewSet, basename='timelog')
 
 urlpatterns = [
     path('api/', include(router.urls)),

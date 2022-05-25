@@ -22,8 +22,24 @@
     text-align: center;
   }
 
+  .activity-type {
+    display: inline-block;
+    font-size: 0.8em;
+    padding-right: 1em;
+    padding-left: 1em;
+    margin-left: 1em;
+    background-color: #EA836D;
+    color: white;
+    border-radius: 0.5em;
+  }
 }
 
 .MuiCardContent-root:last-child {
   padding-bottom: 0 !important;
+}
+
+.timelog-card-header {
+  .MuiCardHeader-content {
+    display: flex !important;
+  }
 }

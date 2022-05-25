@@ -11,7 +11,7 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import TimeLogTable from "./components/TimeLogTable";
 import { theme } from "./utils/Theme";
 import {ThemeProvider} from "@mui/material/styles";
-import {useAddTimesheetMutation} from "./services/api";
+import {TimeLog, useAddTimesheetMutation, useGetTimeLogsQuery} from "./services/api";
 
 function addHours(numOfHours: any, date = new Date()) {
     let numOfSeconds = numOfHours / 3600
@@ -107,6 +107,30 @@ function TimeCard({ task, activity, description, clearAllFields } : TimeCardProp
                 </CardActions>
             </div>
         </LocalizationProvider>
+    )
+}
+
+
+const TimeLogs = () => {
+    const { data: timelogs, isLoading } = useGetTimeLogsQuery()
+
+    if (isLoading) {
+        return <div>Loading</div>
+    }
+
+    if (!timelogs) {
+        return <div>No data</div>
+    }
+    return (
+        <div>
+            {
+                Object.keys(timelogs).map((key: any) =>
+                    <div style={{ marginBottom: 10 }}>
+                        <TimeLogTable data={timelogs[key]} date={key}/>
+                    </div>
+                )
+            }
+        </div>
     )
 }
 
@@ -272,10 +296,7 @@ function App() {
                     </Box>
                 </div>
             </Container>
-
-            <TimeLogTable/>
-            <div style={{ height: "20px" }}></div>
-            <TimeLogTable/>
+            <TimeLogs/>
         </div>
     );
 }

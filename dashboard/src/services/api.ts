@@ -9,6 +9,19 @@ const apiHeaders = {
     "X-CSRFToken": Cookies.get('csrftoken')
 }
 
+export interface TimeLog {
+    id: string
+    description: string
+    task: string
+    activity_type: string
+    hours: string
+    project_name: string
+    from_time: string
+    to_time: string
+}
+
+type TimeLogResponse = TimeLog[]
+
 const baseQueryWithInterceptor = async (args: any, api: any, extraOptions: any) => {
     let results = await baseQuery(args, api, extraOptions)
     if (results.error && results.error.status == 401) {
@@ -19,8 +32,34 @@ const baseQueryWithInterceptor = async (args: any, api: any, extraOptions: any) 
 
 export const timesheetApi = createApi({
     baseQuery: baseQueryWithInterceptor,
-    tagTypes: ['Timesheet'],
+    tagTypes: ['TimeLog'],
     endpoints: (build) => ({
+        getTimeLogs: build.query<TimeLogResponse, void>({
+            query: () => 'api/timelog/',
+            transformResponse: (response: TimeLogResponse) => {
+                let groupByDate: any = {}
+                for (let data of response) {
+                    let date = new Date(data.from_time).toDateString();
+                    if (groupByDate.hasOwnProperty(date)) {
+                        groupByDate[date].push(data)
+                    } else {
+                        groupByDate[date] = [
+                            data
+                        ]
+                    }
+                }
+                return groupByDate
+            },
+            providesTags: (result) => {
+                if (result) {
+                    return [
+                        ...Object.keys(result).map(( id ) => ({ type: 'TimeLog' as const, id })),
+                        { type: 'TimeLog', id: 'LIST' },
+                    ]
+                }
+                return [{ type: 'TimeLog', id: 'LIST' }]
+            }
+        }),
         addTimesheet: build.mutation({
             query: (body) => ({
                 url: '/api/timesheet/',
@@ -30,7 +69,7 @@ export const timesheetApi = createApi({
             }),
             // Pick out data and prevent nested properties in a hook or selector
             transformResponse: (response: { data: any }, meta, arg) => response.data,
-            invalidatesTags: ['Timesheet'],
+            invalidatesTags: ['TimeLog'],
             // onQueryStarted is useful for optimistic updates
             // The 2nd parameter is the destructured `MutationLifecycleApi`
             async onQueryStarted(
@@ -54,4 +93,4 @@ export const timesheetApi = createApi({
     })
 })
 
-export const { useAddTimesheetMutation } = timesheetApi
+export const { useAddTimesheetMutation, useGetTimeLogsQuery } = timesheetApi

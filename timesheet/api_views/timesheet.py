@@ -3,8 +3,10 @@ from django.http import Http404
 from django.utils import timezone
 from rest_framework import serializers, viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from timesheet.models import Timelog, Task, Activity
+from timesheet.serializers.timesheet import TimelogSerializer
 
 
 class UserSerializer(serializers.Serializer):
@@ -79,7 +81,7 @@ class TimesheetSerializer(serializers.ModelSerializer):
         return timesheet
 
 
-class TimesheetViewSet(viewsets.ModelViewSet):
+class TimesheetModelViewSet(viewsets.ModelViewSet):
     queryset = Timelog.objects.filter(
         end_time__isnull=True)
     serializer_class = TimesheetSerializer
@@ -88,7 +90,7 @@ class TimesheetViewSet(viewsets.ModelViewSet):
         """
         Extra context provided to the serializer class.
         """
-        context = super(TimesheetViewSet, self).get_serializer_context()
+        context = super(TimesheetModelViewSet, self).get_serializer_context()
         context.update({
             'request': self.request
         })
@@ -103,3 +105,16 @@ class TimesheetViewSet(viewsets.ModelViewSet):
         if self.action == 'create':
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
+
+
+class TimesheetViewSet(viewsets.ViewSet):
+    """
+    A ViewSet for listing time logs
+    """
+    def list(self, request):
+        queryset = Timelog.objects.filter(
+            user=self.request.user,
+            submitted=False
+        ).order_by('start_time')
+        serializer = TimelogSerializer(queryset, many=True)
+        return Response(serializer.data)
