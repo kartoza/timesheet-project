@@ -3,13 +3,14 @@ import './styles/App.scss';
 import {
     Container,
     Autocomplete,
-    TextField, CircularProgress, Button, Grid, CardContent, CardActions, Box
+    TextField, CircularProgress, Button, Grid, CardContent, CardActions, Box, createStyles, Theme
 } from "@mui/material";
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import TimeLogTable from "./components/TimeLogTable";
 import { theme } from "./utils/Theme";
+import SendIcon from '@mui/icons-material/Send';
 import {ThemeProvider} from "@mui/material/styles";
 import {TimeLog, useAddTimesheetMutation, useGetTimeLogsQuery} from "./services/api";
 
@@ -198,105 +199,137 @@ function App() {
 
     return (
         <div className="App">
-            <Container maxWidth="lg">
-                <div className="App-header">
-                    <Grid container spacing={2}>
-                        <Grid item xs={4}>
-                            <Autocomplete
-                                disablePortal
-                                id="combo-box-demo"
-                                options={activities}
-                                loading={activities.length > 0}
-                                onChange={(event: any, value: any) => {
-                                    if (value) {
-                                        setSelectedActivity(value)
+            <div className="App-header">
+                <Container maxWidth="lg" style={{ display: 'flex' }}>
+                    <div className="app-title">
+                        Timesheet Logger
+                    </div>
+                </Container>
+                <Container maxWidth="lg" style={{ marginTop: "50px" }}>
+                    <Grid container spacing={1}>
+                        <Grid container xs={9.5} spacing={1} style={{ marginRight: 20 }}>
+                            <Grid item xs={4}>
+                                <Autocomplete
+                                    disablePortal
+                                    id="combo-box-demo"
+                                    options={activities}
+                                    loading={activities.length > 0}
+                                    onChange={(event: any, value: any) => {
+                                        if (value) {
+                                            setSelectedActivity(value)
+                                        }
+                                    }}
+                                    value={selectedActivity}
+                                    renderInput={(params) => (
+                                        <TextField {...params}
+                                           label="Activity"
+                                           variant="filled"
+                                           className="headerInput"
+                                           InputProps={{
+                                               ...params.InputProps,
+                                               disableUnderline: true,
+                                               endAdornment: (
+                                                   <React.Fragment>
+                                                       { setActivities.length == 0 ?
+                                                           <CircularProgress color="inherit" size={20} /> : null }
+                                                       { params.InputProps.endAdornment }
+                                                   </React.Fragment>
+                                               )
+                                           }}
+                                        />
+                                    )
                                     }
-                                }}
-                                value={selectedActivity}
-                                renderInput={(params) => (
-                                    <TextField {...params}
-                                       label="Activity"
-                                       InputProps={{
-                                           ...params.InputProps,
-                                           endAdornment: (
-                                               <React.Fragment>
-                                                   { setActivities.length == 0 ?
-                                                       <CircularProgress color="inherit" size={20} /> : null }
-                                                   { params.InputProps.endAdornment }
-                                               </React.Fragment>
-                                           )
-                                       }}
-                                    />
-                                )
-                                }
-                            />
-                        </Grid>
-                        <Grid item xs={4}>
-                            <Autocomplete
-                                disablePortal
-                                id="combo-box-demo"
-                                options={projects}
-                                getOptionLabel={ options => (options['label'])}
-                                isOptionEqualToValue={(option, value) => option['id'] == value['id']}
-                                onChange={(event: any, value: any) => {
-                                    if (value) {
-                                        setSelectedProject(value)
-                                    } else {
-                                        setSelectedProject(null)
-                                        setSelectedTask(null)
+                                />
+                            </Grid>
+                            <Grid item xs={4}>
+                                <Autocomplete
+                                    disablePortal
+                                    id="combo-box-demo"
+                                    options={projects}
+                                    getOptionLabel={ options => (options['label'])}
+                                    isOptionEqualToValue={(option, value) => option['id'] == value['id']}
+                                    onChange={(event: any, value: any) => {
+                                        if (value) {
+                                            setSelectedProject(value)
+                                        } else {
+                                            setSelectedProject(null)
+                                            setSelectedTask(null)
+                                        }
+                                    }}
+                                    value={selectedProject}
+                                    onInputChange={(event, newInputValue) => {
+                                        setProjectInput(newInputValue)
+                                    }}
+                                    loading={projectLoading}
+                                    renderInput={(params) => (
+                                        <TextField {...params}
+                                                   label="Project"
+                                                   variant="filled"
+                                                   className="headerInput"
+                                                   InputProps={{
+                                                       ...params.InputProps,
+                                                       disableUnderline: true,
+                                                       endAdornment: (
+                                                           <React.Fragment>
+                                                               { projectLoading ?
+                                                                   <CircularProgress color="inherit" size={20} /> : null }
+                                                               { params.InputProps.endAdornment }
+                                                           </React.Fragment>
+                                                       )
+                                                   }}
+                                        />
+                                    )
                                     }
-                                }}
-                                value={selectedProject}
-                                onInputChange={(event, newInputValue) => {
-                                    setProjectInput(newInputValue)
-                                }}
-                                loading={projectLoading}
-                                renderInput={(params) => (
-                                    <TextField {...params}
-                                               label="Project"
-                                               InputProps={{
-                                                   ...params.InputProps,
-                                                   endAdornment: (
-                                                       <React.Fragment>
-                                                           { projectLoading ?
-                                                               <CircularProgress color="inherit" size={20} /> : null }
-                                                           { params.InputProps.endAdornment }
-                                                       </React.Fragment>
-                                                   )
-                                               }}
-                                    />
-                                )
-                                }
-                            />
+                                />
+                            </Grid>
+                            <Grid item xs={4}>
+                                <Autocomplete
+                                    disablePortal
+                                    id="combo-box-demo"
+                                    options={tasks}
+                                    getOptionLabel={ options => (options['label'])}
+                                    isOptionEqualToValue={(option, value) => option['id'] == value['id']}
+                                    onChange={(event: any, value: any) => {
+                                        if (value) {
+                                            setSelectedTask(value)
+                                        } else {
+                                            setSelectedTask(null)
+                                        }
+                                    }}
+                                    value={selectedTask}
+                                    renderInput={(params) => <TextField
+                                        {...params}
+                                        label="Task"
+                                        variant="filled"
+                                        className="headerInput"
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            disableUnderline: true,
+                                        }}
+                                    />}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField style={{ width: "100%" }} label="Description" variant="filled" className="headerInput" value={description} onChange={e => setDescription(e.target.value)}
+                                           InputProps={{
+                                               disableUnderline: true,
+                                           }}
+                                />
+                            </Grid>
                         </Grid>
-                        <Grid item xs={4}>
-                            <Autocomplete
-                                disablePortal
-                                id="combo-box-demo"
-                                options={tasks}
-                                getOptionLabel={ options => (options['label'])}
-                                isOptionEqualToValue={(option, value) => option['id'] == value['id']}
-                                onChange={(event: any, value: any) => {
-                                    if (value) {
-                                        setSelectedTask(value)
-                                    } else {
-                                        setSelectedTask(null)
-                                    }
-                                }}
-                                value={selectedTask}
-                                renderInput={(params) => <TextField {...params} label="Task"/>}
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField style={{ width: "100%" }} label="Description" variant="outlined" value={description} onChange={e => setDescription(e.target.value)} />
+                        <Grid container xs={2.2}>
+                            <Box className="time-box">
+                                <TimeCard task={selectedTask} activity={selectedActivity} description={description} clearAllFields={clearAllFields}/>
+                            </Box>
                         </Grid>
                     </Grid>
-                    <Box className="time-box">
-                        <TimeCard task={selectedTask} activity={selectedActivity} description={description} clearAllFields={clearAllFields}/>
-                    </Box>
-                </div>
-            </Container>
+                </Container>
+            </div>
             <TimeLogs/>
+
+            <Button variant="contained" endIcon={<SendIcon />} className="send-erpnext-btn">
+                Send To Erpnext
+            </Button>
         </div>
     );
 }

@@ -38,9 +38,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
     'rest_framework',
-    'webpack_loader'
+    'webpack_loader',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
 ]
 
 MIDDLEWARE = [
@@ -152,6 +157,7 @@ STATICFILES_FINDERS = (
 
 # Additional locations of static files
 STATICFILES_DIRS = (
+    absolute_path('timesheet', 'static'),
     absolute_path('dashboard', 'assets'),
 )
 
@@ -163,3 +169,12 @@ WEBPACK_LOADER = {
     'IGNORE': [r'.+\.hot-update.js', r'.+\.map'],
   }
 }
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+SITE_ID = 1
+
+LOGIN_REDIRECT_URL = '/'

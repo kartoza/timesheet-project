@@ -15,6 +15,8 @@
   min-width: 200px;
   padding-bottom: 10px;
   border-radius: 5px;
+  margin-top: -8px;
+  margin-bottom: 8px;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -24,12 +26,35 @@
 }
 
 .App-header {
-  margin-top: 2em;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
+  margin-bottom: 20px;
+  background-color: #FFC300;
+
+  .MuiGrid-root {
+    margin-left: -2px;
+    padding-left: 0;
+  }
+
+  .MuiOutlinedInput-root {
+    background-color: white;
+  }
+
+  .headerInput {
+    border-radius: 4px;
+    background-color: white;
+  }
+
+  .app-title {
+    color: #1d575c;
+    margin-top: 20px;
+    margin-bottom: -30px;
+    font-weight: bolder;
+    font-size: 25px;
+  }
 }
 
 .App-link {
@@ -43,4 +68,15 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.send-erpnext-btn {
+  margin-top: 20px !important;
+  background: #39C25D !important;
+  padding-left: 35px !important;
+  padding-right: 35px !important;
+  font-size: 15px !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+  letter-spacing: 2px !important;
 }
