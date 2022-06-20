@@ -11,13 +11,15 @@ from timesheet.serializers.timesheet import TimelogSerializer
 logger = logging.getLogger(__name__)
 
 
-def get_erp_data(doctype: DocType) -> list:
+def get_erp_data(doctype: DocType, erpnext_token: str = None) -> list:
     url = (
         f'{settings.ERPNEXT_SITE_LOCATION}/api/'
         f'resource/{doctype.value}/?limit_page_length=None&fields=["*"]'
     )
+    if not erpnext_token:
+        erpnext_token = settings.ERPNEXT_TOKEN
     headers = {
-        'Authorization': 'token {}'.format(settings.ERPNEXT_TOKEN)
+        'Authorization': 'token {}'.format(erpnext_token)
     }
     response = requests.request(
         'GET',
