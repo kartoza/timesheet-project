@@ -39,11 +39,11 @@ export const timesheetApi = createApi({
             transformResponse: (response: TimeLogResponse) => {
                 let groupByDate: any = {}
                 for (let data of response) {
-                    let date = new Date(data.from_time).toDateString();
-                    if (groupByDate.hasOwnProperty(date)) {
-                        groupByDate[date].push(data)
+                    let dateString = data.from_time.split(' ')[0];
+                    if (groupByDate.hasOwnProperty(dateString)) {
+                        groupByDate[dateString].push(data)
                     } else {
-                        groupByDate[date] = [
+                        groupByDate[dateString] = [
                             data
                         ]
                     }

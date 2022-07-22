@@ -21,10 +21,9 @@ function addHours(numOfHours: any, date = new Date()) {
 }
 
 function formatTime(date = new Date()) {
-    return (
-        `${date.getFullYear()}-${("0" + date.getMonth()).slice(-2)}-${("0" + date.getDate()).slice(-2)} ` +
-        `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
-    )
+    let tzOffset = (new Date()).getTimezoneOffset() * 60000;
+    let localISOTime = (new Date(date.getTime() - tzOffset)).toISOString().slice(0, -1);
+    return localISOTime.replace('T', ' ').split('.')[0]
 }
 
 interface TimeCardProps {
