@@ -7,12 +7,13 @@ from timesheet.models import Timelog, Task, Project, Activity
 from timesheet.utils.erp import push_timesheet_to_erp, get_erp_data
 from timesheet.models.profile import Profile
 from timesheet.models.user_project import UserProject
+from timesheet.forms import ProfileForm
 
 
 @admin.action(description='Push to ERP')
 def push_to_erp(modeladmin, request, queryset: Timelog.objects):
     queryset = queryset.filter(submitted=False)
-    push_timesheet_to_erp(queryset)
+    push_timesheet_to_erp(queryset, request.user)
 
 
 @admin.action(description='Pull projects')
@@ -32,6 +33,29 @@ def pull_projects(modeladmin, request, queryset: get_user_model()):
             UserProject.objects.get_or_create(
                 user=user,
                 project=_project
+            )
+        tasks = get_erp_data(
+            DocType.TASK, user.profile.token
+        )
+        for task in tasks:
+            try:
+                project = Project.objects.get(name=task['project'])
+            except Project.DoesNotExist:
+                continue
+            Task.objects.get_or_create(
+                project=project,
+                name=task['subject'],
+                erp_id=task['name']
+            )
+
+        activities = get_erp_data(
+            DocType.ACTIVITY, user.profile.token)
+
+        for activity in activities:
+            if 'name' not in activity:
+                continue
+            Activity.objects.get_or_create(
+                name=activity['name']
             )
 
 
@@ -73,6 +97,7 @@ class ActivityAdmin(admin.ModelAdmin):
 
 class ProfileInLine(admin.StackedInline):
     model = Profile
+    form = ProfileForm
 
 
 class UserAdmin(DjangoUserAdmin):

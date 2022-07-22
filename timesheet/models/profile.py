@@ -10,7 +10,13 @@ class Profile(models.Model):
         on_delete=models.CASCADE
     )
 
-    token = models.CharField(
+    api_secret = models.CharField(
+        max_length=128,
+        null=True,
+        blank=True
+    )
+
+    api_key = models.CharField(
         max_length=128,
         null=True,
         blank=True

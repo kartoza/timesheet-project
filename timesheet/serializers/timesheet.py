@@ -13,6 +13,7 @@ class TimelogSerializer(serializers.ModelSerializer):
     hours = serializers.SerializerMethodField()
     doctype = serializers.SerializerMethodField()
     is_billable = serializers.SerializerMethodField()
+    owner_name = serializers.SerializerMethodField()
 
     def get_is_billable(self, obj):
         return 0
@@ -28,6 +29,11 @@ class TimelogSerializer(serializers.ModelSerializer):
 
     def get_project(self, obj: Timelog):
         return obj.task.project.name
+
+    def get_owner_name(self, obj):
+        if obj.user.first_name:
+            return f'{obj.user.first_name} {obj.user.last_name}'
+        return obj.user.username
 
     def get_owner(self, obj):
         return obj.user.email
@@ -59,5 +65,6 @@ class TimelogSerializer(serializers.ModelSerializer):
             'to_time',
             'hours',
             'doctype',
-            'is_billable'
+            'is_billable',
+            'owner_name'
         ]
