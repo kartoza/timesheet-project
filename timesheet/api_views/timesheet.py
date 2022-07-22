@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.http import Http404
 from django.utils import timezone
 from rest_framework import serializers, viewsets
+from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -118,3 +119,13 @@ class TimesheetViewSet(viewsets.ViewSet):
         ).order_by('start_time')
         serializer = TimelogSerializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class TimeLogDeleteAPIView(APIView):
+    def post(self, request):
+        timelog_id = request.data.get('id', '')
+        timelog = Timelog.objects.get(
+            id=timelog_id
+        )
+        timelog.delete()
+        return Response(status=200)

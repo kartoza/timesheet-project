@@ -22,6 +22,10 @@ class Profile(models.Model):
         blank=True
     )
 
+    @property
+    def token(self):
+        return f'{self.api_key}:{self.api_secret}'
+
 
 @receiver(post_save, sender=get_user_model())
 def create_profile(sender, instance, created, **kwargs):

@@ -4,6 +4,7 @@ from timesheet.api_views.timesheet import TimesheetModelViewSet, TimesheetViewSe
 from timesheet.api_views.activity_list import ActivityList
 from timesheet.api_views.project import ProjectAutocomplete
 from timesheet.api_views.task import TaskAutocomplete
+from timesheet.api_views.timesheet import TimeLogDeleteAPIView
 
 router = routers.DefaultRouter()
 router.register(r'timesheet', TimesheetModelViewSet)
@@ -17,6 +18,9 @@ urlpatterns = [
     path('project-list/',
          ProjectAutocomplete.as_view(),
          name='project-list'),
+    path('api/delete-time-log/',
+         TimeLogDeleteAPIView.as_view(),
+         name='delete-time-log'),
     path('task-list/<int:task_id>/',
          TaskAutocomplete.as_view(),
          name='task-list')

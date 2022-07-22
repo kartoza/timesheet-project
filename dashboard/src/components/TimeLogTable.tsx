@@ -3,7 +3,7 @@ import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import {Box, Card, CardContent, CardHeader, Container, Divider, Grid, IconButton, Typography} from "@mui/material";
 import {theme} from "../utils/Theme";
 import {ThemeProvider} from "@mui/material/styles";
-import { TimeLog } from "../services/api";
+import {TimeLog, useDeleteTimeLogMutation} from "../services/api";
 import moment from "moment";
 
 const bull = (
@@ -46,7 +46,7 @@ function TimeLogItem(prop : TimeLog) {
             <Grid className="time-log-item center-item" item xs={0.6}>
                 <ThemeProvider theme={theme}>
                     <IconButton color="secondary" aria-label="upload picture" component="span">
-                        <DeleteSweepIcon />
+                        <DeleteSweepIcon onClick={prop.deleteTimeLog}/>
                     </IconButton>
                 </ThemeProvider>
             </Grid>
@@ -56,6 +56,7 @@ function TimeLogItem(prop : TimeLog) {
 
 function TimeLogTable(props: any) {
     const { data, date } = props;
+    const [deleteTimeLog, { isLoading: isUpdating, isSuccess, isError }] = useDeleteTimeLogMutation();
 
     const totalHours = () => {
         let _totalHours = 0;
@@ -63,6 +64,12 @@ function TimeLogTable(props: any) {
             _totalHours += parseFloat(timeLogData.hours)
         }
         return _totalHours;
+    }
+
+    const deleteTimeLogClicked = (timeLogData: TimeLog) => {
+        deleteTimeLog({
+            'id': timeLogData.id
+        })
     }
 
     return (
@@ -92,7 +99,7 @@ function TimeLogTable(props: any) {
                 <CardContent sx={{padding: 0}}>
                     {data.map((timeLogData: TimeLog) => (
                         <div>
-                            <TimeLogItem {...timeLogData} />
+                            <TimeLogItem {...timeLogData} deleteTimeLog={() => deleteTimeLogClicked(timeLogData)} />
                             <Divider sx={{marginBottom: 1}}/>
                         </div>
                     ))}

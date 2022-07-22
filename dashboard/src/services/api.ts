@@ -18,6 +18,7 @@ export interface TimeLog {
     project_name: string
     from_time: string
     to_time: string
+    deleteTimeLog: any
 }
 
 type TimeLogResponse = TimeLog[]
@@ -60,6 +61,15 @@ export const timesheetApi = createApi({
                 return [{ type: 'TimeLog', id: 'LIST' }]
             }
         }),
+        deleteTimeLog: build.mutation({
+            query: (body) => ({
+                url: '/api/delete-time-log/',
+                method: 'POST',
+                headers: apiHeaders,
+                body
+            }),
+            invalidatesTags: ['TimeLog']
+        }),
         addTimesheet: build.mutation({
             query: (body) => ({
                 url: '/api/timesheet/',
@@ -93,4 +103,4 @@ export const timesheetApi = createApi({
     })
 })
 
-export const { useAddTimesheetMutation, useGetTimeLogsQuery } = timesheetApi
+export const { useAddTimesheetMutation, useGetTimeLogsQuery, useDeleteTimeLogMutation } = timesheetApi

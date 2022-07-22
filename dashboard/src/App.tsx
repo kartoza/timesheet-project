@@ -12,7 +12,7 @@ import TimeLogTable from "./components/TimeLogTable";
 import { theme } from "./utils/Theme";
 import SendIcon from '@mui/icons-material/Send';
 import {ThemeProvider} from "@mui/material/styles";
-import {TimeLog, useAddTimesheetMutation, useGetTimeLogsQuery} from "./services/api";
+import {useAddTimesheetMutation, useGetTimeLogsQuery} from "./services/api";
 
 function addHours(numOfHours: any, date = new Date()) {
     let numOfSeconds = numOfHours / 3600
