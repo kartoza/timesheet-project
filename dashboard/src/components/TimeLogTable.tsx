@@ -1,10 +1,13 @@
 import '../styles/TimeLogTable.scss';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
+import CircularProgress from '@mui/material/CircularProgress';
+import Fab from '@mui/material/Fab';
 import {Box, Card, CardContent, CardHeader, Container, Divider, Grid, IconButton, Typography} from "@mui/material";
 import {theme} from "../utils/Theme";
 import {ThemeProvider} from "@mui/material/styles";
 import {TimeLog, useDeleteTimeLogMutation} from "../services/api";
 import moment from "moment";
+import {useEffect, useState} from "react";
 
 const bull = (
     <Box
@@ -16,9 +19,26 @@ const bull = (
 );
 
 function TimeLogItem(prop : TimeLog) {
+    const [deleteTimeLog, { isLoading: isUpdating, isSuccess, isError }] = useDeleteTimeLogMutation();
+    const [loading, setLoading] = useState(false);
 
     const getTime = ( date : string ) => {
         return moment(date, 'YYYY-MM-DD hh:mm').format('hh:mm A')
+    }
+
+    useEffect(() => {
+        if (isUpdating) {
+            setLoading(true)
+        }
+        if (isSuccess) {
+            setLoading(false)
+        }
+    }, [isUpdating, isSuccess])
+
+    const deleteTimeLogClicked = () => {
+        deleteTimeLog({
+            'id': prop.id
+        })
     }
 
     return (
@@ -45,9 +65,23 @@ function TimeLogItem(prop : TimeLog) {
             <Divider orientation="vertical" variant="middle" flexItem />
             <Grid className="time-log-item center-item" item xs={0.6}>
                 <ThemeProvider theme={theme}>
-                    <IconButton color="secondary" aria-label="upload picture" component="span">
-                        <DeleteSweepIcon onClick={prop.deleteTimeLog}/>
-                    </IconButton>
+                    <Fab
+                        aria-label="delete"
+                        color="warning"
+                        size={"small"}
+                        onClick={deleteTimeLogClicked}
+                        sx={{ marginLeft: '20px' }}
+                        disabled={loading}
+                    >
+                        <DeleteSweepIcon/>
+                    </Fab>
+                    { loading ?
+                    <CircularProgress size={45} sx={{
+                        position: 'absolute',
+                        marginTop: -5.3,
+                        marginLeft: -1.4,
+                        zIndex: 99,
+                    }} /> : null }
                 </ThemeProvider>
             </Grid>
         </Grid>
@@ -56,7 +90,6 @@ function TimeLogItem(prop : TimeLog) {
 
 function TimeLogTable(props: any) {
     const { data, date } = props;
-    const [deleteTimeLog, { isLoading: isUpdating, isSuccess, isError }] = useDeleteTimeLogMutation();
 
     const totalHours = () => {
         let _totalHours = 0;
@@ -64,12 +97,6 @@ function TimeLogTable(props: any) {
             _totalHours += parseFloat(timeLogData.hours)
         }
         return _totalHours;
-    }
-
-    const deleteTimeLogClicked = (timeLogData: TimeLog) => {
-        deleteTimeLog({
-            'id': timeLogData.id
-        })
     }
 
     return (
@@ -99,7 +126,7 @@ function TimeLogTable(props: any) {
                 <CardContent sx={{padding: 0}}>
                     {data.map((timeLogData: TimeLog) => (
                         <div>
-                            <TimeLogItem {...timeLogData} deleteTimeLog={() => deleteTimeLogClicked(timeLogData)} />
+                            <TimeLogItem {...timeLogData} />
                             <Divider sx={{marginBottom: 1}}/>
                         </div>
                     ))}
