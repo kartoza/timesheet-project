@@ -1,10 +1,14 @@
 from django.urls import path, include
 from rest_framework import routers
-from timesheet.api_views.timesheet import TimesheetModelViewSet, TimesheetViewSet
+from timesheet.api_views.timesheet import (
+    TimesheetModelViewSet,
+    TimesheetViewSet,
+    TimeLogDeleteAPIView,
+    SubmitTimeLogsAPIView
+)
 from timesheet.api_views.activity_list import ActivityList
 from timesheet.api_views.project import ProjectAutocomplete
 from timesheet.api_views.task import TaskAutocomplete
-from timesheet.api_views.timesheet import TimeLogDeleteAPIView
 
 router = routers.DefaultRouter()
 router.register(r'timesheet', TimesheetModelViewSet)
@@ -21,6 +25,9 @@ urlpatterns = [
     path('api/delete-time-log/',
          TimeLogDeleteAPIView.as_view(),
          name='delete-time-log'),
+    path('api/submit-timesheet/',
+         SubmitTimeLogsAPIView.as_view(),
+         name='submit-timesheet'),
     path('task-list/<int:task_id>/',
          TaskAutocomplete.as_view(),
          name='task-list')

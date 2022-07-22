@@ -3,7 +3,7 @@ import './styles/App.scss';
 import {
     Container,
     Autocomplete,
-    TextField, CircularProgress, Button, Grid, CardContent, CardActions, Box, createStyles, Theme
+    TextField, CircularProgress, Button, Grid, CardContent, CardActions, Box, createStyles, Theme, Backdrop
 } from "@mui/material";
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -12,7 +12,12 @@ import TimeLogTable from "./components/TimeLogTable";
 import { theme } from "./utils/Theme";
 import SendIcon from '@mui/icons-material/Send';
 import {ThemeProvider} from "@mui/material/styles";
-import {useAddTimesheetMutation, useGetTimeLogsQuery} from "./services/api";
+import {
+    useAddTimesheetMutation,
+    useDeleteTimeLogMutation,
+    useGetTimeLogsQuery,
+    useSubmitTimesheetMutation
+} from "./services/api";
 
 function addHours(numOfHours: any, date = new Date()) {
     let numOfSeconds = numOfHours / 3600
@@ -145,6 +150,8 @@ function App() {
     const [selectedTask, setSelectedTask] = useState(null)
     const [tasks, setTasks] = useState([])
     const [description, setDescription] = useState('')
+    const [loading, setLoading] = useState(false)
+    const [submitTimesheet, { isLoading: isUpdating, isSuccess, isError }] = useSubmitTimesheetMutation();
 
     useEffect(() => {
         fetch('/activity-list/').then(
@@ -155,6 +162,16 @@ function App() {
             }
         )
     }, [])
+
+    useEffect(() => {
+        if (isUpdating) {
+            setLoading(true)
+        }
+        if (isSuccess || isError) {
+            setLoading(false)
+        }
+
+    }, [isUpdating, isSuccess])
 
     useEffect(() => {
         setProjectLoading(true)
@@ -196,8 +213,19 @@ function App() {
         setDescription('')
     }
 
+    const submitTimesheetClicked = () => {
+        submitTimesheet({})
+    }
+
     return (
         <div className="App">
+            <Backdrop
+                sx={{ color: '#fff', zIndex: 9999, display: 'flex', flexDirection: 'column' }}
+                open={loading}
+            >
+                <CircularProgress color="inherit" />
+                <div>Sending data to ERPNext...</div>
+            </Backdrop>
             <div className="App-header">
                 <Container maxWidth="lg" style={{ display: 'flex' }}>
                     <div className="app-title">
@@ -326,7 +354,7 @@ function App() {
             </div>
             <TimeLogs/>
 
-            <Button variant="contained" endIcon={<SendIcon />} className="send-erpnext-btn">
+            <Button variant="contained" endIcon={<SendIcon />} className="send-erpnext-btn" onClick={submitTimesheetClicked}>
                 Send To Erpnext
             </Button>
         </div>

@@ -8,6 +8,7 @@ from rest_framework.response import Response
 
 from timesheet.models import Timelog, Task, Activity
 from timesheet.serializers.timesheet import TimelogSerializer
+from timesheet.utils.erp import push_timesheet_to_erp
 
 
 class UserSerializer(serializers.Serializer):
@@ -128,4 +129,14 @@ class TimeLogDeleteAPIView(APIView):
             id=timelog_id
         )
         timelog.delete()
+        return Response(status=200)
+
+
+class SubmitTimeLogsAPIView(APIView):
+    def post(self, request):
+        queryset = Timelog.objects.filter(
+            user=self.request.user,
+            submitted=False
+        )
+        push_timesheet_to_erp(queryset, request.user)
         return Response(status=200)

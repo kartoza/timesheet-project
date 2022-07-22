@@ -14,6 +14,10 @@ class TimelogSerializer(serializers.ModelSerializer):
     doctype = serializers.SerializerMethodField()
     is_billable = serializers.SerializerMethodField()
     owner_name = serializers.SerializerMethodField()
+    task_name = serializers.SerializerMethodField()
+
+    def get_task_name(self, obj: Timelog):
+        return obj.task.name
 
     def get_is_billable(self, obj):
         return 0
@@ -60,6 +64,7 @@ class TimelogSerializer(serializers.ModelSerializer):
             'project_name',
             'project',
             'task',
+            'task_name',
             'activity_type',
             'from_time',
             'to_time',

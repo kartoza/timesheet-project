@@ -72,7 +72,7 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
 
     url = f'{settings.ERPNEXT_SITE_LOCATION}/api/resource/Timesheet'
     headers = {
-        'Authorization': 'token {}'.format(settings.ERPNEXT_TOKEN)
+        'Authorization': 'token {}'.format(user.profile.token)
     }
 
     submitted_timelogs = []

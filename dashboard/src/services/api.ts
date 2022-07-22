@@ -13,6 +13,7 @@ export interface TimeLog {
     id: string
     description: string
     task: string
+    task_name: string
     activity_type: string
     hours: string
     project_name: string
@@ -70,6 +71,14 @@ export const timesheetApi = createApi({
             }),
             invalidatesTags: ['TimeLog']
         }),
+        submitTimesheet: build.mutation({
+            query: () => ({
+                url: '/api/submit-timesheet/',
+                method: 'POST',
+                headers: apiHeaders,
+            }),
+            invalidatesTags: ['TimeLog']
+        }),
         addTimesheet: build.mutation({
             query: (body) => ({
                 url: '/api/timesheet/',
@@ -103,4 +112,4 @@ export const timesheetApi = createApi({
     })
 })
 
-export const { useAddTimesheetMutation, useGetTimeLogsQuery, useDeleteTimeLogMutation } = timesheetApi
+export const { useAddTimesheetMutation, useGetTimeLogsQuery, useDeleteTimeLogMutation, useSubmitTimesheetMutation } = timesheetApi

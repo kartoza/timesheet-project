@@ -44,12 +44,17 @@ function TimeLogItem(prop : TimeLog) {
     return (
         <Grid container spacing={1} className="time-log-row">
             <Grid className="time-log-item left-item" item xs={8.5}>
-                { prop.description ? prop.description : '-' }
+                <div>
+                    <Typography variant={"subtitle2"} color="text.secondary" sx={{ display: "inline-block" }}>
+                        { prop.task_name }
+                    </Typography>
+                    <Typography className="activity-type" color="text.primary">
+                        { prop.activity_type }
+                    </Typography>
+                </div>
+                <Typography sx={{ display: "inline-block", fontWeight: "bold"}}>{ prop.description ? prop.description : '-' }</Typography>
                 <Typography sx={{ display: "inline-block", paddingLeft: 1 }} color="text.secondary">
                     {bull} { prop.project_name }
-                </Typography>
-                <Typography className="activity-type" color="text.primary">
-                    { prop.activity_type }
                 </Typography>
             </Grid>
             <Divider orientation="vertical" variant="middle" flexItem />
