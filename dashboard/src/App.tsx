@@ -337,7 +337,13 @@ function App() {
                                 />
                             </Grid>
                             <Grid item xs={12}>
-                                <TextField style={{ width: "100%" }} label="Description" variant="filled" className="headerInput" value={description} onChange={e => setDescription(e.target.value)}
+                                <TextField style={{ width: "100%", minHeight: '20px' }}
+                                           label="Description"
+                                           multiline
+                                           rows={2}
+                                           minRows={1}
+                                           maxRows={5}
+                                           variant="filled" className="headerInput" value={description} onChange={e => setDescription(e.target.value)}
                                            InputProps={{
                                                disableUnderline: true,
                                            }}

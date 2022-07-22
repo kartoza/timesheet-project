@@ -17,7 +17,9 @@ class TimelogSerializer(serializers.ModelSerializer):
     task_name = serializers.SerializerMethodField()
 
     def get_task_name(self, obj: Timelog):
-        return obj.task.name
+        if obj.task:
+            return obj.task.name
+        return ''
 
     def get_is_billable(self, obj):
         return 0
@@ -26,13 +28,19 @@ class TimelogSerializer(serializers.ModelSerializer):
         return 'Timelog Detail'
 
     def get_task(self, obj: Timelog):
-        return obj.task.erp_id
+        if obj.task:
+            return obj.task.erp_id
+        return ''
 
     def get_project_name(self, obj: Timelog):
-        return obj.task.project.name
+        if obj.task:
+            return obj.task.project.name
+        return 'Kartoza'
 
     def get_project(self, obj: Timelog):
-        return obj.task.project.name
+        if obj.task:
+            return obj.task.project.name
+        return ''
 
     def get_owner_name(self, obj):
         if obj.user.first_name:

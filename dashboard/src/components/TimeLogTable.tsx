@@ -52,10 +52,13 @@ function TimeLogItem(prop : TimeLog) {
                         { prop.activity_type }
                     </Typography>
                 </div>
-                <Typography sx={{ display: "inline-block", fontWeight: "bold"}}>{ prop.description ? prop.description : '-' }</Typography>
-                <Typography sx={{ display: "inline-block", paddingLeft: 1 }} color="text.secondary">
-                    {bull} { prop.project_name }
-                </Typography>
+                <div style={{display: "flex"}}>
+                    <Typography sx={{ display: "inline-block", fontWeight: "bold", whiteSpace: "pre-line"}}>
+                        { prop.description ? prop.description : '-' }</Typography>
+                    <Typography sx={{ display: "inline-block", paddingLeft: 1 }} color="text.secondary">
+                        {bull} { prop.project_name }
+                    </Typography>
+                </div>
             </Grid>
             <Divider orientation="vertical" variant="middle" flexItem />
             <Grid className="time-log-item center-item"  item xs={1.8} sx={{ fontSize: "0.85em", letterSpacing: 0.8 }}>
