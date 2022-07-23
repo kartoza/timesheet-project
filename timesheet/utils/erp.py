@@ -7,7 +7,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from timesheet.enums.doctype import DocType
-from timesheet.models import Timelog
+from timesheet.models import Timelog, Project, Task, Activity
+from timesheet.models.user_project import UserProject
 from timesheet.serializers.timesheet import TimelogSerializer
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,45 @@ def get_erp_data(doctype: DocType, erpnext_token: str = None) -> list:
         logger.error('Data not found')
         return []
     return response_data['data']
+
+
+def pull_projects_from_erp(user: get_user_model()):
+    projects = get_erp_data(
+        DocType.PROJECT, user.profile.token)
+    for project in projects:
+        _project, _ = Project.objects.get_or_create(
+            name=project['name'],
+            defaults={
+                'is_active': project['is_active'] == 'Yes'
+            }
+        )
+        UserProject.objects.get_or_create(
+            user=user,
+            project=_project
+        )
+    tasks = get_erp_data(
+        DocType.TASK, user.profile.token
+    )
+    for task in tasks:
+        try:
+            project = Project.objects.get(name=task['project'])
+        except Project.DoesNotExist:
+            continue
+        Task.objects.get_or_create(
+            project=project,
+            name=task['subject'],
+            erp_id=task['name']
+        )
+
+    activities = get_erp_data(
+        DocType.ACTIVITY, user.profile.token)
+
+    for activity in activities:
+        if 'name' not in activity:
+            continue
+        Activity.objects.get_or_create(
+            name=activity['name']
+        )
 
 
 def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):

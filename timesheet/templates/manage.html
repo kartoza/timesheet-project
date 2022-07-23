@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage</title>
+</head>
+<body>
+<div class="container">
+    <form method="post" action="/manage/">
+        {% csrf_token %}
+        <input name="api_key" type="text" placeholder="API key" value="{{ api_key }}">
+        <input name="api_secret" type="password" placeholder="API Secret">
+        <button type="submit">Submit</button>
+    </form>
+    <button id="pull-data" onclick="pullData()">Pull Data From Erpnext</button>
+
+    <button onclick="window.location.replace('/')">Timesheet</button>
+</div>
+</body>
+<script>
+    let csrftoken = "{{ csrf_token }}";
+    function pullData() {
+        let btn = document.getElementById('pull-data');
+        btn.innerHTML = 'Fetching data...';
+        btn.disabled = true;
+        fetch('/api/pull-projects/', {
+            credentials: 'include',
+            method: 'POST', // include, *same-origin, omit
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+        }).then(response => response.json()).then(result => {
+            console.log('SUCCESS');
+            alert('Data retrieved successfully!')
+        }).catch(error => {
+            alert('There was an error retrieving data from erpnext. Please check your keys.');
+            console.log(error);
+        }).finally(() => {
+            btn.innerHTML = 'Pull Data From Erpnext';
+            btn.disabled = false;
+        })
+    }
+</script>
+</html>

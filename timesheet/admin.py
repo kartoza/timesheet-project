@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
 from timesheet.enums.doctype import DocType
 from timesheet.models import Timelog, Task, Project, Activity
-from timesheet.utils.erp import push_timesheet_to_erp, get_erp_data
+from timesheet.utils.erp import push_timesheet_to_erp, pull_projects_from_erp
 from timesheet.models.profile import Profile
 from timesheet.models.user_project import UserProject
 from timesheet.forms import ProfileForm
@@ -21,42 +21,7 @@ def pull_projects(modeladmin, request, queryset: get_user_model()):
     for user in queryset:
         if not user.profile.token:
             continue
-        projects = get_erp_data(
-            DocType.PROJECT, user.profile.token)
-        for project in projects:
-            _project, _ = Project.objects.get_or_create(
-                name=project['name'],
-                defaults={
-                    'is_active': project['is_active'] == 'Yes'
-                }
-            )
-            UserProject.objects.get_or_create(
-                user=user,
-                project=_project
-            )
-        tasks = get_erp_data(
-            DocType.TASK, user.profile.token
-        )
-        for task in tasks:
-            try:
-                project = Project.objects.get(name=task['project'])
-            except Project.DoesNotExist:
-                continue
-            Task.objects.get_or_create(
-                project=project,
-                name=task['subject'],
-                erp_id=task['name']
-            )
-
-        activities = get_erp_data(
-            DocType.ACTIVITY, user.profile.token)
-
-        for activity in activities:
-            if 'name' not in activity:
-                continue
-            Activity.objects.get_or_create(
-                name=activity['name']
-            )
+        pull_projects_from_erp(user)
 
 
 class TimelogAdmin(admin.ModelAdmin):

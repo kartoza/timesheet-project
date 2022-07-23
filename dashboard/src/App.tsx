@@ -11,6 +11,7 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import TimeLogTable from "./components/TimeLogTable";
 import { theme } from "./utils/Theme";
 import SendIcon from '@mui/icons-material/Send';
+import SettingsIcon from '@mui/icons-material/Settings';
 import {ThemeProvider} from "@mui/material/styles";
 import {
     useAddTimesheetMutation,
@@ -230,6 +231,12 @@ function App() {
                 <Container maxWidth="lg" style={{ display: 'flex' }}>
                     <div className="app-title">
                         Timesheet Logger
+                        <div>
+                            <SettingsIcon
+                                style={{ paddingTop: '7px', paddingLeft: '5px', cursor: 'pointer' }}
+                                onClick={() => window.location.href = '/manage/'}
+                            />
+                        </div>
                     </div>
                 </Container>
                 <Container maxWidth="lg" style={{ marginTop: "50px" }}>

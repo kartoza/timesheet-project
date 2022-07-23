@@ -1,8 +1,20 @@
 from django.db.models import F
+from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from timesheet.models import Project
+from timesheet.utils.erp import pull_projects_from_erp
+
+
+class PullProjects(APIView):
+
+    def post(self, request, *args):
+        if not request.user.profile.token:
+            raise Http404()
+        pull_projects_from_erp(request.user)
+
+        return Response({'success': True})
 
 
 class ProjectAutocomplete(APIView):
