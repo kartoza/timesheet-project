@@ -47,7 +47,7 @@ function TimeCard({ task, activity, description, clearAllFields } : TimeCardProp
     const [addTimesheet, { isLoading: isUpdating, isSuccess, isError }] = useAddTimesheetMutation();
 
     useEffect(() => {
-        setButtonDisabled(startTime == null || hours == null || !task || !activity)
+        setButtonDisabled(startTime == null || hours == null || !activity)
     }, [startTime, hours, task])
 
     useEffect(() => {
