@@ -18,6 +18,19 @@ export const theme = createTheme({
     },
 });
 
+export const generateColor = (id: string) => {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+        hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    let colour = '#';
+    for (let i = 0; i < 3; i++) {
+        let value = (hash >> (i * 8)) & 0xFF;
+        colour += ('00' + value.toString(16)).substr(-2);
+    }
+    return colour
+}
+
 declare module '@mui/material/styles' {
     interface Palette {
         neutral: Palette['primary'];

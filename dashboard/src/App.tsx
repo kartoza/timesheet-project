@@ -3,16 +3,17 @@ import './styles/App.scss';
 import {
     Container,
     Autocomplete,
-    TextField, CircularProgress, Button, Grid, CardContent, CardActions, Box, createStyles, Theme, Backdrop
+    TextField, CircularProgress, Button, Grid, CardContent, CardActions, Box, createStyles, Theme, Backdrop, Typography
 } from "@mui/material";
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import TimeLogTable from "./components/TimeLogTable";
-import { theme } from "./utils/Theme";
+import { theme, generateColor } from "./utils/Theme";
 import SendIcon from '@mui/icons-material/Send';
 import SettingsIcon from '@mui/icons-material/Settings';
 import {ThemeProvider} from "@mui/material/styles";
+import Chip from '@mui/material/Chip';
 import {
     useAddTimesheetMutation,
     useDeleteTimeLogMutation,
@@ -64,16 +65,21 @@ function TimeCard({ task, activity, description, clearAllFields } : TimeCardProp
             let startTimeCopy = new Date(startTime.toISOString())
             endTime = addHours(hours, startTimeCopy)
         }
-        if (!endTime || !startTime || !task || !activity) {
+        if (!endTime || !startTime || !activity) {
             return
         }
+        let task_id = '-'
+        if (task) {
+            task_id = task.id
+        }
+        setStartTime(endTime)
         let startTimeStr = formatTime(startTime)
         let endTimeStr = formatTime(endTime)
         addTimesheet({
             start_time: startTimeStr,
             end_time: endTimeStr,
             task: {
-                'id': task.id
+                'id': task_id
             },
             activity: {
                 'id': activity.id
@@ -118,7 +124,9 @@ function TimeCard({ task, activity, description, clearAllFields } : TimeCardProp
 
 
 const TimeLogs = () => {
-    const { data: timelogs, isLoading } = useGetTimeLogsQuery()
+    const { data: timelogs, isLoading, isSuccess } = useGetTimeLogsQuery()
+    let totalDraftHours = 0
+    const totalPerProject: any = {}
 
     if (isLoading) {
         return <div>Loading</div>
@@ -127,8 +135,36 @@ const TimeLogs = () => {
     if (!timelogs) {
         return <div>No data</div>
     }
+
+    if (isSuccess) {
+        Object.keys(timelogs).map((key: any) => {
+          // @ts-ignore
+            for (let timeLogData of timelogs[key]) {
+              totalDraftHours += timeLogData['hours']
+              let projectName = timeLogData['project_name']
+              if (!totalPerProject.hasOwnProperty(projectName)) {
+                  totalPerProject[projectName] = timeLogData['hours']
+              } else {
+                  totalPerProject[projectName] += timeLogData['hours']
+              }
+          }
+        })
+        console.log(totalPerProject);
+    }
     return (
         <div>
+
+            <div className={'timelogs-info'}>
+                {
+                    Object.keys(totalPerProject).map((key: any) =>
+                        <Chip label={`${key} : ${totalPerProject[key]}`}
+                            style={{ backgroundColor: generateColor(key) }} />
+                    )
+                }
+                <Chip label={`Total Draft : ${totalDraftHours}`}
+                    style={{ backgroundColor: '#dcdcdc'}}
+                ></Chip>
+            </div>
             {
                 Object.keys(timelogs).map((key: any) =>
                     <div style={{ marginBottom: 10 }}>
@@ -367,7 +403,7 @@ function App() {
             </div>
             <TimeLogs/>
 
-            <Button variant="contained" endIcon={<SendIcon />} className="send-erpnext-btn" onClick={submitTimesheetClicked}>
+            <Button variant="contained" endIcon={<SendIcon />} className="send-erpnext-btn" onClick={submitTimesheetClicked} style={{ marginBottom: 50 }}>
                 Send To Erpnext
             </Button>
         </div>

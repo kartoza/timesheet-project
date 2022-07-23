@@ -3,11 +3,12 @@ import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import CircularProgress from '@mui/material/CircularProgress';
 import Fab from '@mui/material/Fab';
 import {Box, Card, CardContent, CardHeader, Container, Divider, Grid, IconButton, Typography} from "@mui/material";
-import {theme} from "../utils/Theme";
+import Chip from '@mui/material/Chip';
+import {theme, generateColor} from "../utils/Theme";
 import {ThemeProvider} from "@mui/material/styles";
 import {TimeLog, useDeleteTimeLogMutation} from "../services/api";
 import moment from "moment";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 
 const bull = (
     <Box
@@ -55,7 +56,7 @@ function TimeLogItem(prop : TimeLog) {
                 <div style={{display: "flex"}}>
                     <Typography sx={{ display: "inline-block", fontWeight: "bold", whiteSpace: "pre-line"}}>
                         { prop.description ? prop.description : '-' }</Typography>
-                    <Typography sx={{ display: "inline-block", paddingLeft: 1 }} color="text.secondary">
+                    <Typography sx={{ display: "inline-block", paddingLeft: 1, color: generateColor(prop.project_name) }}>
                         {bull} { prop.project_name }
                     </Typography>
                 </div>

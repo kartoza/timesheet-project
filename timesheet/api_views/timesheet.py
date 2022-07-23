@@ -60,7 +60,11 @@ class TimesheetSerializer(serializers.ModelSerializer):
             user = self.context['request'].user
         else:
             user = get_user_model().objects.get(id=user.get('id'))
-        task = Task.objects.get(id=task.get('id'))
+        task_id = task.get('id')
+        if task_id != '-':
+            task = Task.objects.get(id=task.get('id'))
+        else:
+            task = None
         activity = Activity.objects.get(id=activity.get('id'))
 
         # Set existing timesheet end_time to now
