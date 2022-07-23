@@ -121,7 +121,7 @@ class TimesheetViewSet(viewsets.ViewSet):
         queryset = Timelog.objects.filter(
             user=self.request.user,
             submitted=False
-        ).order_by('start_time')
+        ).order_by('-start_time')
         serializer = TimelogSerializer(queryset, many=True)
         return Response(serializer.data)
 

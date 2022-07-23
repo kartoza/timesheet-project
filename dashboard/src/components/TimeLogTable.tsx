@@ -108,11 +108,15 @@ function TimeLogTable(props: any) {
         return _totalHours;
     }
 
+    const dateString = () => {
+        return new Date(Date.parse(date)).toDateString()
+    }
+
     return (
         <Container maxWidth="lg">
             <Card>
                 <CardHeader
-                    title={ date }
+                    title={ dateString() }
                     subheader={ 'Total: ' + totalHours() }
                     className={ 'timelog-card-header' }
                     sx={{
