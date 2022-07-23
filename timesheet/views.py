@@ -15,7 +15,9 @@ class ManageView(LoginRequiredMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         profile = request.user.profile
         profile.api_key = request.POST.get('api_key', '')
-        profile.api_secret = request.POST.get('api_secret', '')
+        api_secret = request.POST.get('api_secret', '')
+        if api_secret:
+            profile.api_secret = api_secret
         profile.save()
         return HttpResponseRedirect(
             reverse_lazy('manage')

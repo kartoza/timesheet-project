@@ -2,27 +2,88 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Manage</title>
+    <title>User Admin</title>
+
+    <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Rubik:400,700'>
 </head>
 <body>
 <div class="container">
-    <form method="post" action="/manage/">
+    <h3>Admin</h3>
+    <form method="post" action="/manage/" class="form">
         {% csrf_token %}
+        <label>Api Key</label>
         <input name="api_key" type="text" placeholder="API key" value="{{ api_key }}">
-        <input name="api_secret" type="password" placeholder="API Secret">
-        <button type="submit">Submit</button>
-    </form>
-    <button id="pull-data" onclick="pullData()">Pull Data From Erpnext</button>
 
-    <button onclick="window.location.replace('/')">Timesheet</button>
+        <label>Api Secret</label>
+        <input name="api_secret" type="password" placeholder="API Secret">
+        <button id="submit" type="submit">Submit</button>
+    </form>
+    <div class="divider">
+        <hr/>
+    </div>
+    <div class="action-buttons">
+        <button id="pull-data" onclick="pullData()">Pull Data From Erpnext</button>
+        <button id="timesheet" onclick="window.location.replace('/')">Timesheet</button>
+    </div>
+
 </div>
 </body>
+<style>
+
+    body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #5ba1ca;
+        font-family: 'Rubik', sans-serif;
+        -webkit-font-smoothing: antialiased;
+    }
+    h3 {
+        margin-top: 0;
+    }
+    .container {
+        padding: 20px;
+        background-color: #f1f1f1;
+    }
+    .container label {
+        font-size: 12px;
+        margin-left: 2px;
+        margin-bottom: 2px;
+    }
+    input {
+        min-width: 300px;
+        margin-bottom: 10px;
+        height: 30px;
+        border: 0;
+        padding-left: 10px;
+    }
+    .form, .action-buttons {
+        display: flex;
+        flex-direction: column;
+    }
+    button {
+        height: 30px;
+        margin-bottom: 5px;
+        margin-top: 5px;
+        background: #3c4d6d;
+        color: #fff;
+        border: 0;
+    }
+    button:disabled {
+        background: #d8d8d8;
+        color: #777;
+    }
+</style>
 <script>
     let csrftoken = "{{ csrf_token }}";
     function pullData() {
         let btn = document.getElementById('pull-data');
+        let timesheetBtn = document.getElementById('timesheet');
+        let submitBtn = document.getElementById('submit');
         btn.innerHTML = 'Fetching data...';
         btn.disabled = true;
+        timesheetBtn.disabled = true;
+        submitBtn.disabled = true;
         fetch('/api/pull-projects/', {
             credentials: 'include',
             method: 'POST', // include, *same-origin, omit
@@ -40,6 +101,8 @@
         }).finally(() => {
             btn.innerHTML = 'Pull Data From Erpnext';
             btn.disabled = false;
+            timesheetBtn.disabled = false;
+            submitBtn.disabled = false;
         })
     }
 </script>
