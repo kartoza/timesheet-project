@@ -9,7 +9,8 @@ class ManageView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super(ManageView, self).get_context_data(**kwargs)
-        ctx['api_key'] = self.request.user.profile.api_key
+        api_key = self.request.user.profile.api_key
+        ctx['api_key'] = api_key if api_key else ''
         return ctx
 
     def post(self, request, *args, **kwargs):
