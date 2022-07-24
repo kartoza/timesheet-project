@@ -7,8 +7,44 @@
     {% endblock %}
 
     <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Rubik:400,700'>
-    <link rel="stylesheet" href={% static 'css/auth_style.css' %}>
+    <link rel="stylesheet" href={% static "css/auth_style.css" %}>
+    <style>
+        body {
+            display: flex;
+            margin-top: 50px;
+            flex-direction: column;
+            align-items: center;
+        }
 
+        label {
+            font-size: 14px;
+        }
+
+        input[type=text], input[type=password], input[type=email] {
+            display: -webkit-flex;
+            width: 100%;
+            min-width: 250px;
+            height: 30px;
+            border: 0;
+            margin-bottom: 10px;
+            padding-left: 10px;
+        }
+
+        .errorlist {
+            max-width: 300px;
+            font-size: 14px;
+            color: rgb(106, 2, 2);
+            list-style: none;
+        }
+
+        button[type=submit] {
+            width: 100%;
+            text-transform: uppercase;
+            height: 50px;
+            border: 0;
+            background: rgb(222, 222, 222);
+        }
+    </style>
 </head>
 <body>
 {% block body %}

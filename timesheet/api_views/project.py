@@ -24,10 +24,11 @@ class ProjectAutocomplete(APIView):
     def get(self, request, format=None):
         query = request.GET.get('q', '')
 
-        if not query or len(query) < 2:
+        if not query or len(query) < 1:
             return Response([])
 
         self.queryset = self.queryset.filter(
+            userproject__user=self.request.user,
             name__icontains=query
         )
 

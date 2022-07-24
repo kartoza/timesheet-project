@@ -6,6 +6,7 @@
     <title>Dashboard</title>
     <script>
         const csrfToken = "{{ csrf_token }}";
+        window.hasKeys = {% if has_keys %}true{% else %}false{% endif %}
     </script>
     <style>
         @font-face {

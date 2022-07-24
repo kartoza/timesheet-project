@@ -302,6 +302,7 @@ function App() {
                                 onClick={() => window.location.href = '/manage/'}
                             />
                         </div>
+                        {/*{ window.hasKeys ? <div> Test </div> : <div> Test2 </div>}*/}
                     </div>
                 </Container>
                 <Container maxWidth="lg" style={{ marginTop: "50px" }}>
