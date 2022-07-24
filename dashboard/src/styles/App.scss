@@ -90,3 +90,20 @@
   margin-bottom: 10px;
   margin-top: -10px;
 }
+
+.quote-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 50px;
+}
+
+.quote {
+  font-family: 'noto_serif_italic', serif !important;
+  max-width: 400px;
+}
+
+.quote-author {
+  font-family: 'noto_serif', serif !important;
+  padding-top: 10px;
+}

@@ -149,7 +149,6 @@ const TimeLogs = () => {
               }
           }
         })
-        console.log(totalPerProject);
     }
     return (
         <div>
@@ -161,9 +160,10 @@ const TimeLogs = () => {
                             style={{ backgroundColor: generateColor(key) }} />
                     )
                 }
+                { totalDraftHours > 0 ?
                 <Chip label={`Total Draft : ${totalDraftHours}`}
                     style={{ backgroundColor: '#dcdcdc'}}
-                ></Chip>
+                ></Chip> : null }
             </div>
             {
                 Object.keys(timelogs).map((key: any) =>
@@ -178,6 +178,8 @@ const TimeLogs = () => {
 
 
 function App() {
+
+    const { data: timelogs, isLoading: isFetchingTimelogs, isSuccess: isSuccessFetching } = useGetTimeLogsQuery()
     const [activities, setActivities] = useState([])
     const [selectedActivity, setSelectedActivity] = useState<String | null>(null)
     const [projectInput, setProjectInput] = useState('')
@@ -188,7 +190,21 @@ function App() {
     const [tasks, setTasks] = useState([])
     const [description, setDescription] = useState('')
     const [loading, setLoading] = useState(false)
+    const [quote, setQuote] = useState<any>({})
     const [submitTimesheet, { isLoading: isUpdating, isSuccess, isError }] = useSubmitTimesheetMutation();
+
+    useEffect(() => {
+        if (typeof timelogs !== 'undefined') {
+            if (Object.keys(timelogs).length === 0) {
+                fetch('https://api.quotable.io/random?tags=wisdom|future|humor').then(response => response.json()).then(
+                    data => setQuote(data)
+                );
+            } else {
+                setQuote(undefined)
+            }
+        }
+
+    }, [timelogs])
 
     useEffect(() => {
         fetch('/activity-list/').then(
@@ -198,6 +214,8 @@ function App() {
                 setActivities(json)
             }
         )
+
+
     }, [])
 
     useEffect(() => {
@@ -254,6 +272,12 @@ function App() {
         submitTimesheet({})
     }
 
+    const isEmpty = () => {
+        if (typeof timelogs === "undefined") return true
+        if (Object.keys(timelogs).length === 0 && Object.keys(quote).length === 0) return true
+        return false
+    }
+
     return (
         <div className="App">
             <Backdrop
@@ -267,9 +291,10 @@ function App() {
                 <Container maxWidth="lg" style={{ display: 'flex' }}>
                     <div className="app-title">
                         Timesheet Logger
-                        <div>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
                             <SettingsIcon
-                                style={{ paddingTop: '7px', paddingLeft: '5px', cursor: 'pointer' }}
+                                fontSize={'small'}
+                                style={{ paddingLeft: '5px', cursor: 'pointer' }}
                                 onClick={() => window.location.href = '/manage/'}
                             />
                         </div>
@@ -402,10 +427,19 @@ function App() {
                 </Container>
             </div>
             <TimeLogs/>
-
+            { isEmpty() ? <CircularProgress style={{ marginTop: '50px' }} /> : null }
+            { quote ?
+                <div className='quote-container'>
+                    <Typography className='quote'>{quote['content']}</Typography>
+                    {quote['author'] ?
+                        <Typography className='quote-author'> — {quote['author']}</Typography>
+                        : ''
+                    }
+                </div> :
             <Button variant="contained" endIcon={<SendIcon />} className="send-erpnext-btn" onClick={submitTimesheetClicked} style={{ marginBottom: 50 }}>
                 Send To Erpnext
             </Button>
+            }
         </div>
     );
 }
