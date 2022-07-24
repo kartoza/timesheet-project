@@ -274,7 +274,11 @@ function App() {
 
     const isEmpty = () => {
         if (typeof timelogs === "undefined") return true
-        if (Object.keys(timelogs).length === 0 && Object.keys(quote).length === 0) return true
+        if (Object.keys(timelogs).length === 0) {
+            if (typeof quote === 'undefined' || Object.keys(quote).length === 0) {
+                return true
+            }
+        }
         return false
     }
 
@@ -427,7 +431,7 @@ function App() {
                 </Container>
             </div>
             <TimeLogs/>
-            { isEmpty() ? <CircularProgress style={{ marginTop: '50px' }} /> : null }
+            { isEmpty() ? <div><CircularProgress style={{ marginTop: '50px' }} /></div> : null }
             { quote ?
                 <div className='quote-container'>
                     <Typography className='quote'>{quote['content']}</Typography>
