@@ -3,6 +3,10 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+import pytz
+
+TIMEZONES = tuple(zip(pytz.all_timezones, pytz.all_timezones))
+
 
 class Profile(models.Model):
     user = models.OneToOneField(
@@ -20,6 +24,12 @@ class Profile(models.Model):
         max_length=128,
         null=True,
         blank=True
+    )
+
+    timezone = models.CharField(
+        max_length=100,
+        choices=TIMEZONES,
+        default='UTC'
     )
 
     @property
