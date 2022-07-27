@@ -27,6 +27,11 @@ function TimeLogItem(prop : TimeLog) {
         return moment(date, 'YYYY-MM-DD hh:mm').format('hh:mm A')
     }
 
+    const calculateHours = (fromTime: string) => {
+        let fromTimeObj = moment(fromTime, 'YYYY-MM-DD hh:mm')
+        return moment.duration(moment().diff(fromTimeObj)).asHours().toFixed(2)
+    }
+
     useEffect(() => {
         if (isUpdating) {
             setLoading(true)
@@ -63,12 +68,12 @@ function TimeLogItem(prop : TimeLog) {
             </Grid>
             <Divider orientation="vertical" variant="middle" flexItem />
             <Grid className="time-log-item center-item"  item xs={1.8} sx={{ fontSize: "0.85em", letterSpacing: 0.8 }}>
-                { getTime(prop.from_time) } - { getTime(prop.to_time) }
+                { getTime(prop.from_time) } { !prop.running ? '- ' + getTime(prop.to_time) : '' }
             </Grid>
             <Divider orientation="vertical" variant="middle" flexItem />
             <Grid className="time-log-item center-item" item xs={1}>
                 <Typography sx={{ fontSize: "1.1em", textWeight: "bold" }} color="text.primary" variant="button">
-                    { prop.hours }
+                    { !prop.running ? prop.hours : calculateHours(prop.from_time) }
                 </Typography>
             </Grid>
             <Divider orientation="vertical" variant="middle" flexItem />

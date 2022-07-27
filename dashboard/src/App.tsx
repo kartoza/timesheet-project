@@ -15,8 +15,8 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import {ThemeProvider} from "@mui/material/styles";
 import Chip from '@mui/material/Chip';
 import {
+    TimeLog,
     useAddTimesheetMutation,
-    useDeleteTimeLogMutation,
     useGetTimeLogsQuery,
     useSubmitTimesheetMutation
 } from "./services/api";
@@ -140,13 +140,15 @@ const TimeLogs = () => {
         Object.keys(timelogs).map((key: any) => {
           // @ts-ignore
             for (let timeLogData of timelogs[key]) {
-              totalDraftHours += timeLogData['hours']
-              let projectName = timeLogData['project_name']
-              if (!totalPerProject.hasOwnProperty(projectName)) {
-                  totalPerProject[projectName] = timeLogData['hours']
-              } else {
-                  totalPerProject[projectName] += timeLogData['hours']
-              }
+                if (!timeLogData['running']) {
+                    totalDraftHours += timeLogData['hours']
+                    let projectName = timeLogData['project_name']
+                    if (!totalPerProject.hasOwnProperty(projectName)) {
+                        totalPerProject[projectName] = timeLogData['hours']
+                    } else {
+                        totalPerProject[projectName] += timeLogData['hours']
+                    }
+                }
           }
         })
     }
@@ -183,15 +185,71 @@ function App() {
     const [activities, setActivities] = useState([])
     const [selectedActivity, setSelectedActivity] = useState<String | null>(null)
     const [projectInput, setProjectInput] = useState('')
-    const [projects, setProjects] = useState([])
+    const [projects, setProjects] = useState<any>([])
     const [projectLoading, setProjectLoading] = useState(false)
     const [selectedProject, setSelectedProject] = useState(null)
     const [selectedTask, setSelectedTask] = useState(null)
-    const [tasks, setTasks] = useState([])
+    const [tasks, setTasks] = useState<any>([])
     const [description, setDescription] = useState('')
     const [loading, setLoading] = useState(false)
     const [quote, setQuote] = useState<any>({})
+    const [runningTimeLog, setRunningTimeLog] = useState<TimeLog | null>(null)
     const [submitTimesheet, { isLoading: isUpdating, isSuccess, isError }] = useSubmitTimesheetMutation();
+
+    useEffect(() => {
+        let runningTime: any = null
+        if (timelogs) {
+            Object.keys(timelogs).map((key: any) => {
+                // @ts-ignore
+                for (let timeLogData of timelogs[key]) {
+                    if (timeLogData['running']) {
+                        runningTime = timeLogData
+                    }
+                }
+            })
+        }
+        if (runningTime) {
+            setRunningTimeLog(runningTime)
+        }
+    }, [isSuccessFetching])
+
+    useEffect(() => {
+        if (runningTimeLog) {
+            setSelectedActivity(runningTimeLog.activity_type)
+            setDescription(runningTimeLog.description)
+
+            setProjects([{
+                id: runningTimeLog.project_id,
+                label: runningTimeLog.project_name,
+                running: true
+            }])
+            setTasks([{
+                id: runningTimeLog.task_id,
+                label: runningTimeLog.task_name,
+                running: true
+            }])
+        }
+    }, [runningTimeLog])
+
+    useEffect(() => {
+        if (tasks && runningTimeLog) {
+            for (let task of tasks) {
+                if (task.running) {
+                    setSelectedTask(task)
+                }
+            }
+        }
+    }, [tasks])
+
+    useEffect(() => {
+        if (projects && runningTimeLog) {
+            for (let project of projects) {
+                if (project.running) {
+                    setSelectedProject(project)
+                }
+            }
+        }
+    }, [projects])
 
     useEffect(() => {
         if (typeof timelogs !== 'undefined') {
@@ -230,7 +288,8 @@ function App() {
 
     useEffect(() => {
         setProjectLoading(true)
-        if (projectInput.length > 2) {
+        let isRunningProject = projects.length === 1 ? projects[0].running : false
+        if (projectInput.length > 2 && !isRunningProject) {
             fetch('/project-list/?q=' + projectInput).then(
                 response => response.json()
             ).then(
@@ -345,9 +404,10 @@ function App() {
                                 <Autocomplete
                                     disablePortal
                                     id="combo-box-demo"
+                                    // @ts-ignore
                                     options={projects}
-                                    getOptionLabel={ options => (options['label'])}
-                                    isOptionEqualToValue={(option, value) => option['id'] == value['id']}
+                                    getOptionLabel={ (options: any) => (options['label'])}
+                                    isOptionEqualToValue={(option: any, value: any) => option['id'] == value['id']}
                                     onChange={(event: any, value: any) => {
                                         if (value) {
                                             setSelectedProject(value)
@@ -386,9 +446,10 @@ function App() {
                                 <Autocomplete
                                     disablePortal
                                     id="combo-box-demo"
+                                    // @ts-ignore
                                     options={tasks}
-                                    getOptionLabel={ options => (options['label'])}
-                                    isOptionEqualToValue={(option, value) => option['id'] == value['id']}
+                                    getOptionLabel={ (options: any) => (options['label'])}
+                                    isOptionEqualToValue={(option: any, value: any) => option['id'] == value['id']}
                                     onChange={(event: any, value: any) => {
                                         if (value) {
                                             setSelectedTask(value)

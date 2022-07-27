@@ -13,13 +13,16 @@ export interface TimeLog {
     id: string
     description: string
     task: string
+    task_id: string
     task_name: string
     activity_type: string
     hours: string
     project_name: string
+    project_id: string
     from_time: string
     to_time: string
     deleteTimeLog: any
+    running: boolean
 }
 
 type TimeLogResponse = TimeLog[]
@@ -112,4 +115,5 @@ export const timesheetApi = createApi({
     })
 })
 
+// @ts-ignore
 export const { useAddTimesheetMutation, useGetTimeLogsQuery, useDeleteTimeLogMutation, useSubmitTimesheetMutation } = timesheetApi

@@ -6,6 +6,7 @@ class TimelogSerializer(serializers.ModelSerializer):
     owner = serializers.SerializerMethodField()
     project_name = serializers.SerializerMethodField()
     project = serializers.SerializerMethodField()
+    project_id = serializers.SerializerMethodField()
     task = serializers.SerializerMethodField()
     activity_type = serializers.SerializerMethodField()
     from_time = serializers.SerializerMethodField()
@@ -15,10 +16,22 @@ class TimelogSerializer(serializers.ModelSerializer):
     is_billable = serializers.SerializerMethodField()
     owner_name = serializers.SerializerMethodField()
     task_name = serializers.SerializerMethodField()
+    task_id = serializers.SerializerMethodField()
+    running = serializers.SerializerMethodField()
+
+    def get_running(self, obj: Timelog):
+        if not obj.end_time:
+            return True
+        return False
 
     def get_task_name(self, obj: Timelog):
         if obj.task:
             return obj.task.name
+        return ''
+
+    def get_task_id(self, obj: Timelog):
+        if obj.task:
+            return obj.task.id
         return ''
 
     def get_is_billable(self, obj):
@@ -42,6 +55,11 @@ class TimelogSerializer(serializers.ModelSerializer):
             return obj.task.project.name
         return ''
 
+    def get_project_id(self, obj: Timelog):
+        if obj.task:
+            return obj.task.project.id
+        return ''
+
     def get_owner_name(self, obj):
         if obj.user.first_name:
             return f'{obj.user.first_name} {obj.user.last_name}'
@@ -57,10 +75,14 @@ class TimelogSerializer(serializers.ModelSerializer):
         return obj.start_time.strftime('%Y-%m-%d %H:%M')
 
     def get_to_time(self, obj: Timelog):
-        return obj.end_time.strftime('%Y-%m-%d %H:%M')
+        if obj.end_time:
+            return obj.end_time.strftime('%Y-%m-%d %H:%M')
+        return ''
 
     def get_hours(self, obj: Timelog):
-        return (obj.end_time - obj.start_time).total_seconds() / 3600
+        if obj.end_time and obj.start_time:
+            return (obj.end_time - obj.start_time).total_seconds() / 3600
+        return 0
 
     class Meta:
         model = Timelog
@@ -71,13 +93,16 @@ class TimelogSerializer(serializers.ModelSerializer):
             'owner',
             'project_name',
             'project',
+            'project_id',
             'task',
             'task_name',
+            'task_id',
             'activity_type',
             'from_time',
             'to_time',
             'hours',
             'doctype',
             'is_billable',
-            'owner_name'
+            'owner_name',
+            'running'
         ]
