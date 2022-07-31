@@ -9,6 +9,7 @@ class TimelogSerializer(serializers.ModelSerializer):
     project_id = serializers.SerializerMethodField()
     task = serializers.SerializerMethodField()
     activity_type = serializers.SerializerMethodField()
+    activity_id = serializers.SerializerMethodField()
     from_time = serializers.SerializerMethodField()
     to_time = serializers.SerializerMethodField()
     hours = serializers.SerializerMethodField()
@@ -71,17 +72,21 @@ class TimelogSerializer(serializers.ModelSerializer):
     def get_activity_type(self, obj):
         return obj.activity.name if obj.activity else '-'
 
+    def get_activity_id(self, obj):
+        return obj.activity.id if obj.activity else ''
+
     def get_from_time(self, obj: Timelog):
-        return obj.start_time.strftime('%Y-%m-%d %H:%M')
+        return obj.start_time.strftime('%Y-%m-%d %H:%M:%S')
 
     def get_to_time(self, obj: Timelog):
         if obj.end_time:
-            return obj.end_time.strftime('%Y-%m-%d %H:%M')
+            return obj.end_time.strftime('%Y-%m-%d %H:%M:%S')
         return ''
 
     def get_hours(self, obj: Timelog):
         if obj.end_time and obj.start_time:
-            return (obj.end_time - obj.start_time).total_seconds() / 3600
+            return round(
+                (obj.end_time - obj.start_time).total_seconds() / 3600, 2)
         return 0
 
     class Meta:
@@ -97,7 +102,7 @@ class TimelogSerializer(serializers.ModelSerializer):
             'task',
             'task_name',
             'task_id',
-            'activity_type',
+            'activity_id',
             'from_time',
             'to_time',
             'hours',

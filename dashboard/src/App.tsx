@@ -14,11 +14,13 @@ import SendIcon from '@mui/icons-material/Send';
 import SettingsIcon from '@mui/icons-material/Settings';
 import {ThemeProvider} from "@mui/material/styles";
 import Chip from '@mui/material/Chip';
+import moment from "moment";
 import {
     TimeLog,
     useAddTimesheetMutation,
     useGetTimeLogsQuery,
-    useSubmitTimesheetMutation
+    useSubmitTimesheetMutation,
+    useUpdateTimesheetMutation
 } from "./services/api";
 
 function addHours(numOfHours: any, date = new Date()) {
@@ -34,21 +36,27 @@ function formatTime(date = new Date()) {
 }
 
 interface TimeCardProps {
+    runningTimeLog?: any | null,
     task?: any | null,
     activity?: any | null,
     description?: String | '',
     clearAllFields?: any
 }
 
-function TimeCard({ task, activity, description, clearAllFields } : TimeCardProps) {
+function TimeCard({ runningTimeLog, task, activity, description, clearAllFields } : TimeCardProps) {
     const [startTime, setStartTime] = React.useState<Date | null>(new Date());
     const [hours, setHours] = React.useState<Number | null>(null);
-    const [buttonDisabled, setButtonDisabled] = React.useState(true);
+    const [addButtonDisabled, setAddButtonDisabled] = React.useState(true);
+    const [isLogging, setIsLogging] = useState(true);
+    const [runningTime, setRunningTime] = useState('00:00:00');
 
     const [addTimesheet, { isLoading: isUpdating, isSuccess, isError }] = useAddTimesheetMutation();
+    const [updateTimesheet, {  isLoading: isUpdateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdateTimesheetMutation();
+
+    let interval: any = null;
 
     useEffect(() => {
-        setButtonDisabled(startTime == null || hours == null || !activity)
+        setAddButtonDisabled(startTime == null || hours == null || !activity)
     }, [startTime, hours, task])
 
     useEffect(() => {
@@ -57,6 +65,52 @@ function TimeCard({ task, activity, description, clearAllFields } : TimeCardProp
             clearAllFields()
         }
     }, [isSuccess])
+
+    useEffect(() => {
+        if (runningTimeLog) {
+            updateTimeRecursively();
+        } else {
+            if (interval)
+                clearInterval(interval);
+        }
+    }, [runningTimeLog])
+
+    const stopButtonClicked = async () => {
+        const runningTimeClone = Object.assign({}, runningTimeLog);
+        let task_id = '-'
+        if (task) {
+            task_id = task.id
+        }
+        runningTimeClone['task'] = {
+            'id': task_id
+        }
+        runningTimeClone['activity'] = {
+            'id': activity.id
+        }
+        runningTimeClone['description'] = description;
+        runningTimeClone['end_time'] = formatTime(new Date());
+        updateTimesheet(runningTimeClone);
+    }
+
+    const startButtonClicked = async () => {
+        if (!startTime || !activity) {
+            return
+        }
+        let task_id = '-'
+        if (task) {
+            task_id = task.id
+        }
+        addTimesheet({
+            start_time: formatTime(new Date()),
+            task: {
+                'id': task_id
+            },
+            activity: {
+                'id': activity.id
+            },
+            description: description
+        })
+    }
 
     const addButtonClicked = async () => {
         // Calculate start-time and end-time
@@ -88,8 +142,23 @@ function TimeCard({ task, activity, description, clearAllFields } : TimeCardProp
         })
     }
 
+    const updateTime = () => {
+        let fromTimeObj = moment(
+          runningTimeLog.from_time,
+          'YYYY-MM-DD hh:mm:ss');
+        let diff = moment().diff(fromTimeObj);
+        let d = moment.duration(diff);
+        setRunningTime(moment.utc(diff).format("HH:mm:ss"))
+    }
+
+    const updateTimeRecursively = () => {
+        updateTime();
+        interval = setInterval(updateTime, 1000);
+    }
+
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
+            { isLogging ?
             <div>
                 <CardContent sx={{ paddingLeft: 0, paddingRight: 0 }}>
                     <DateTimePicker
@@ -113,18 +182,39 @@ function TimeCard({ task, activity, description, clearAllFields } : TimeCardProp
                     <ThemeProvider theme={theme}>
                         <Button color="main" variant="contained" size="small" sx={{ width: 200, marginTop: -1 }}
                                 onClick={addButtonClicked}
-                                disabled={buttonDisabled || isUpdating}
+                                disabled={addButtonDisabled || isUpdating}
                                 disableElevation>{isUpdating ? <CircularProgress color="inherit" size={20} /> : "Add" }</Button>
                     </ThemeProvider>
                 </CardActions>
-            </div>
+            </div> :
+            <div style={{marginTop: '8px'}}>
+                <Typography variant={'h3'} style={{color:'#1d575c'}}>{runningTime}</Typography>
+                <CardContent sx={{ paddingLeft: 0, paddingRight: 0 }}>
+                    <ThemeProvider theme={theme}>
+                        {runningTimeLog ?
+                          <Button color="main" variant="contained" size="small"
+                                  sx={{width: 200, height: '58px', marginTop: -1}}
+                                  onClick={stopButtonClicked}
+                                  disabled={!activity}
+                                  disableElevation>{isUpdating ?
+                            <CircularProgress color="inherit" size={20}/> : "STOP"}</Button> :
+                          <Button color="success" variant="contained" size="small"
+                                  sx={{width: 200, height: '58px', marginTop: -1}}
+                                  onClick={startButtonClicked}
+                                  disabled={!activity}
+                                  disableElevation>{isUpdating ?
+                            <CircularProgress color="inherit" size={20}/> : "START"}</Button>
+                        }
+                    </ThemeProvider>
+                </CardContent>
+            </div> }
         </LocalizationProvider>
     )
 }
 
 
 const TimeLogs = () => {
-    const { data: timelogs, isLoading, isSuccess } = useGetTimeLogsQuery()
+    const { data: timesheetData, isLoading, isSuccess } = useGetTimeLogsQuery()
     let totalDraftHours = 0
     const totalPerProject: any = {}
 
@@ -132,29 +222,27 @@ const TimeLogs = () => {
         return <div>Loading</div>
     }
 
-    if (!timelogs) {
+    if (!timesheetData) {
         return <div>No data</div>
     }
 
     if (isSuccess) {
-        Object.keys(timelogs).map((key: any) => {
+        Object.keys(timesheetData.logs).map((key: any) => {
           // @ts-ignore
-            for (let timeLogData of timelogs[key]) {
-                if (!timeLogData['running']) {
-                    totalDraftHours += timeLogData['hours']
-                    let projectName = timeLogData['project_name']
-                    if (!totalPerProject.hasOwnProperty(projectName)) {
-                        totalPerProject[projectName] = timeLogData['hours']
-                    } else {
-                        totalPerProject[projectName] += timeLogData['hours']
-                    }
+            for (let timeLogData of timesheetData.logs[key]) {
+                totalDraftHours += timeLogData['hours']
+                let projectName = timeLogData['project_name']
+                if (!totalPerProject.hasOwnProperty(projectName)) {
+                    totalPerProject[projectName] = timeLogData['hours']
+                } else {
+                    totalPerProject[projectName] += timeLogData['hours']
                 }
-          }
+            }
         })
     }
     return (
         <div>
-
+            <Container maxWidth="lg">
             <div className={'timelogs-info'}>
                 {
                     Object.keys(totalPerProject).map((key: any) =>
@@ -167,10 +255,11 @@ const TimeLogs = () => {
                     style={{ backgroundColor: '#dcdcdc'}}
                 ></Chip> : null }
             </div>
+            </Container>
             {
-                Object.keys(timelogs).map((key: any) =>
+                Object.keys(timesheetData.logs).map((key: any) =>
                     <div style={{ marginBottom: 10 }}>
-                        <TimeLogTable data={timelogs[key]} date={key}/>
+                        <TimeLogTable data={timesheetData.logs[key]} date={key}/>
                     </div>
                 )
             }
@@ -178,17 +267,23 @@ const TimeLogs = () => {
     )
 }
 
+const TimesheetBar = () => {
+   return (
+     <div></div>
+   )
+}
+
 
 function App() {
 
-    const { data: timelogs, isLoading: isFetchingTimelogs, isSuccess: isSuccessFetching } = useGetTimeLogsQuery()
-    const [activities, setActivities] = useState([])
-    const [selectedActivity, setSelectedActivity] = useState<String | null>(null)
+    const { data: timesheetData, isLoading: isFetchingTimelogs, isSuccess: isSuccessFetching } = useGetTimeLogsQuery()
+    const [activities, setActivities] = useState<any>([])
+    const [selectedActivity, setSelectedActivity] = useState<any>(null)
     const [projectInput, setProjectInput] = useState('')
     const [projects, setProjects] = useState<any>([])
     const [projectLoading, setProjectLoading] = useState(false)
-    const [selectedProject, setSelectedProject] = useState(null)
-    const [selectedTask, setSelectedTask] = useState(null)
+    const [selectedProject, setSelectedProject] = useState<any>(null)
+    const [selectedTask, setSelectedTask] = useState<any>(null)
     const [tasks, setTasks] = useState<any>([])
     const [description, setDescription] = useState('')
     const [loading, setLoading] = useState(false)
@@ -197,63 +292,46 @@ function App() {
     const [submitTimesheet, { isLoading: isUpdating, isSuccess, isError }] = useSubmitTimesheetMutation();
 
     useEffect(() => {
-        let runningTime: any = null
-        if (timelogs) {
-            Object.keys(timelogs).map((key: any) => {
-                // @ts-ignore
-                for (let timeLogData of timelogs[key]) {
-                    if (timeLogData['running']) {
-                        runningTime = timeLogData
-                    }
-                }
-            })
-        }
-        if (runningTime) {
-            setRunningTimeLog(runningTime)
+        console.log('isSuccessFetching', timesheetData);
+        if (timesheetData && timesheetData.running) {
+            setSelectedActivity(timesheetData.running.activity_type)
+            setDescription(timesheetData.running.description)
+            setProjects([{
+                id: timesheetData.running.project_id,
+                label: timesheetData.running.project_name,
+                running: true
+            }])
+            setTasks([{
+                id: timesheetData.running.task_id,
+                label: timesheetData.running.task_name,
+                running: true
+            }])
+
+            setRunningTimeLog(timesheetData.running)
         }
     }, [isSuccessFetching])
 
     useEffect(() => {
         if (runningTimeLog) {
-            setSelectedActivity(runningTimeLog.activity_type)
-            setDescription(runningTimeLog.description)
-
-            setProjects([{
+            setSelectedActivity({
+                id: runningTimeLog.activity_id,
+                label: runningTimeLog.activity_type
+            })
+            setSelectedTask({
+                id: runningTimeLog.task_id,
+                label: runningTimeLog.task_name
+            })
+            setSelectedProject({
                 id: runningTimeLog.project_id,
                 label: runningTimeLog.project_name,
                 running: true
-            }])
-            setTasks([{
-                id: runningTimeLog.task_id,
-                label: runningTimeLog.task_name,
-                running: true
-            }])
+            })
         }
     }, [runningTimeLog])
 
     useEffect(() => {
-        if (tasks && runningTimeLog) {
-            for (let task of tasks) {
-                if (task.running) {
-                    setSelectedTask(task)
-                }
-            }
-        }
-    }, [tasks])
-
-    useEffect(() => {
-        if (projects && runningTimeLog) {
-            for (let project of projects) {
-                if (project.running) {
-                    setSelectedProject(project)
-                }
-            }
-        }
-    }, [projects])
-
-    useEffect(() => {
-        if (typeof timelogs !== 'undefined') {
-            if (Object.keys(timelogs).length === 0) {
+        if (typeof timesheetData !== 'undefined') {
+            if (Object.keys(timesheetData.logs).length === 0) {
                 fetch('https://api.quotable.io/random?tags=wisdom|future|humor').then(response => response.json()).then(
                     data => setQuote(data)
                 );
@@ -262,7 +340,7 @@ function App() {
             }
         }
 
-    }, [timelogs])
+    }, [timesheetData])
 
     useEffect(() => {
         fetch('/activity-list/').then(
@@ -306,11 +384,12 @@ function App() {
 
 
     useEffect(() => {
-        if (selectedProject) {
+        if (selectedProject && !selectedProject.running) {
             fetch('/task-list/' + selectedProject['id'] + '/').then(
                 response => response.json()
             ).then(
                 json => {
+                    setSelectedTask(null)
                     setTasks(json)
                 }
             )
@@ -332,8 +411,8 @@ function App() {
     }
 
     const isEmpty = () => {
-        if (typeof timelogs === "undefined") return true
-        if (Object.keys(timelogs).length === 0) {
+        if (typeof timesheetData === "undefined") return true
+        if (Object.keys(timesheetData.logs).length === 0) {
             if (typeof quote === 'undefined' || Object.keys(quote).length === 0) {
                 return true
             }
@@ -353,7 +432,7 @@ function App() {
             <div className="App-header">
                 <Container maxWidth="lg" style={{ display: 'flex' }}>
                     <div className="app-title">
-                        Timesheet Logger
+                        Timesheet
                         <div style={{ display: 'flex', alignItems: 'center' }}>
                             <SettingsIcon
                                 fontSize={'small'}
@@ -361,7 +440,6 @@ function App() {
                                 onClick={() => window.location.href = '/manage/'}
                             />
                         </div>
-                        {/*{ window.hasKeys ? <div> Test </div> : <div> Test2 </div>}*/}
                     </div>
                 </Container>
                 <Container maxWidth="lg" style={{ marginTop: "50px" }}>
@@ -370,12 +448,16 @@ function App() {
                             <Grid item xs={4}>
                                 <Autocomplete
                                     disablePortal
-                                    id="combo-box-demo"
+                                    id="activity-options"
                                     options={activities}
                                     loading={activities.length > 0}
+                                    getOptionLabel={ (options: any) => (options['label'])}
+                                    isOptionEqualToValue={(option: any, value: any) => option['id'] == value['id']}
                                     onChange={(event: any, value: any) => {
                                         if (value) {
                                             setSelectedActivity(value)
+                                        } else {
+                                            setSelectedActivity(null)
                                         }
                                     }}
                                     value={selectedActivity}
@@ -470,7 +552,7 @@ function App() {
                                     />}
                                 />
                             </Grid>
-                            <Grid item xs={12}>
+                            <Grid item xs={12} style={{paddingRight: '4px'}}>
                                 <TextField style={{ width: "100%", minHeight: '20px' }}
                                            label="Description"
                                            multiline
@@ -486,7 +568,7 @@ function App() {
                         </Grid>
                         <Grid container xs={2.2}>
                             <Box className="time-box">
-                                <TimeCard task={selectedTask} activity={selectedActivity} description={description} clearAllFields={clearAllFields}/>
+                                <TimeCard runningTimeLog={runningTimeLog} task={selectedTask} activity={selectedActivity} description={description} clearAllFields={clearAllFields}/>
                             </Box>
                         </Grid>
                     </Grid>

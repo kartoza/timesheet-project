@@ -26,8 +26,8 @@ class ActivitySerializer(serializers.Serializer):
 
 class TimesheetSerializer(serializers.ModelSerializer):
     user = UserSerializer(required=False)
-    task = TaskSerializer(required=True)
-    activity = ActivitySerializer(required=True)
+    task = TaskSerializer(required=False)
+    activity = ActivitySerializer(required=False)
 
     class Meta:
         model = Timelog
@@ -40,17 +40,26 @@ class TimesheetSerializer(serializers.ModelSerializer):
             'activity',
         ]
 
-    def update(self, instance, validated_data):
-        if not validated_data and not instance.end_time:
-            instance.end_time = timezone.now()
-            instance.save()
+    def update(self, instance: Timelog, validated_data):
+        end_time = validated_data.get('end_time', None)
+        task = validated_data.pop('task')
+        activity = validated_data.pop('activity')
+        instance.description = validated_data.pop('description', '')
+        task_id = task.get('id')
+        if task_id != '-':
+            instance.task = Task.objects.get(id=task.get('id'))
+        else:
+            instance.task = None
+        instance.activity = Activity.objects.get(id=activity.get('id'))
+        instance.end_time = end_time
+        instance.save()
         return instance
 
     def create(self, validated_data):
         user = validated_data.pop('user', None)
         task = validated_data.pop('task')
         start_time = validated_data.pop('start_time')
-        end_time = validated_data.pop('end_time')
+        end_time = validated_data.get('end_time', None)
         activity = validated_data.pop('activity')
         description = validated_data.pop('description', '')
 

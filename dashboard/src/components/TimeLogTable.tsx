@@ -3,7 +3,6 @@ import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import CircularProgress from '@mui/material/CircularProgress';
 import Fab from '@mui/material/Fab';
 import {Box, Card, CardContent, CardHeader, Container, Divider, Grid, IconButton, Typography} from "@mui/material";
-import Chip from '@mui/material/Chip';
 import {theme, generateColor} from "../utils/Theme";
 import {ThemeProvider} from "@mui/material/styles";
 import {TimeLog, useDeleteTimeLogMutation} from "../services/api";
@@ -142,12 +141,18 @@ function TimeLogTable(props: any) {
                     }}
                 />
                 <CardContent sx={{padding: 0}}>
-                    {data.map((timeLogData: TimeLog) => (
-                        <div>
+                    {data.map((timeLogData: TimeLog) => {
+                      if (!timeLogData.running) {
+                        return (
+                          <div>
                             <TimeLogItem {...timeLogData} />
                             <Divider sx={{marginBottom: 1}}/>
-                        </div>
-                    ))}
+                          </div>
+                        )
+                      } else {
+                        return null;
+                      }
+                    })}
                 </CardContent>
             </Card>
 

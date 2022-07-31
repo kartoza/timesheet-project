@@ -23,9 +23,16 @@ export interface TimeLog {
     to_time: string
     deleteTimeLog: any
     running: boolean
+    activity_id: string
 }
 
+
 type TimeLogResponse = TimeLog[]
+
+type TimeLogResult = {
+    logs: TimeLog[] | [],
+    running: TimeLog | null
+}
 
 const baseQueryWithInterceptor = async (args: any, api: any, extraOptions: any) => {
     let results = await baseQuery(args, api, extraOptions)
@@ -39,11 +46,19 @@ export const timesheetApi = createApi({
     baseQuery: baseQueryWithInterceptor,
     tagTypes: ['TimeLog'],
     endpoints: (build) => ({
-        getTimeLogs: build.query<TimeLogResponse, void>({
+        getTimeLogs: build.query<TimeLogResult, void>({
             query: () => 'api/timelog/',
             transformResponse: (response: TimeLogResponse) => {
+                let timeLogs: TimeLogResult = {
+                    running: null,
+                    logs: []
+                }
                 let groupByDate: any = {}
                 for (let data of response) {
+                    if (data.running) {
+                        timeLogs.running = data;
+                        continue;
+                    }
                     let dateString = data.from_time.split(' ')[0];
                     if (groupByDate.hasOwnProperty(dateString)) {
                         groupByDate[dateString].push(data)
@@ -53,17 +68,10 @@ export const timesheetApi = createApi({
                         ]
                     }
                 }
-                return groupByDate
+                timeLogs.logs = groupByDate;
+                return timeLogs;
             },
-            providesTags: (result) => {
-                if (result) {
-                    return [
-                        ...Object.keys(result).map(( id ) => ({ type: 'TimeLog' as const, id })),
-                        { type: 'TimeLog', id: 'LIST' },
-                    ]
-                }
-                return [{ type: 'TimeLog', id: 'LIST' }]
-            }
+            providesTags: ['TimeLog'],
         }),
         deleteTimeLog: build.mutation({
             query: (body) => ({
@@ -82,6 +90,15 @@ export const timesheetApi = createApi({
             }),
             invalidatesTags: ['TimeLog']
         }),
+        updateTimesheet: build.mutation({
+            query: (body) => ({
+                url: `/api/timesheet/${body['id']}/`,
+                method: 'PATCH',
+                headers: apiHeaders,
+                body
+            }),
+            invalidatesTags: ['TimeLog']
+        }),
         addTimesheet: build.mutation({
             query: (body) => ({
                 url: '/api/timesheet/',
@@ -89,8 +106,6 @@ export const timesheetApi = createApi({
                 headers: apiHeaders,
                 body
             }),
-            // Pick out data and prevent nested properties in a hook or selector
-            transformResponse: (response: { data: any }, meta, arg) => response.data,
             invalidatesTags: ['TimeLog'],
             // onQueryStarted is useful for optimistic updates
             // The 2nd parameter is the destructured `MutationLifecycleApi`
@@ -116,4 +131,4 @@ export const timesheetApi = createApi({
 })
 
 // @ts-ignore
-export const { useAddTimesheetMutation, useGetTimeLogsQuery, useDeleteTimeLogMutation, useSubmitTimesheetMutation } = timesheetApi
+export const { useAddTimesheetMutation, useUpdateTimesheetMutation ,useGetTimeLogsQuery, useDeleteTimeLogMutation, useSubmitTimesheetMutation } = timesheetApi
