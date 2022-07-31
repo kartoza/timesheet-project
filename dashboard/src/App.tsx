@@ -12,6 +12,8 @@ import TimeLogTable from "./components/TimeLogTable";
 import { theme, generateColor } from "./utils/Theme";
 import SendIcon from '@mui/icons-material/Send';
 import SettingsIcon from '@mui/icons-material/Settings';
+import ListIcon from '@mui/icons-material/List';
+import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import {ThemeProvider} from "@mui/material/styles";
 import Chip from '@mui/material/Chip';
 import moment from "moment";
@@ -51,7 +53,7 @@ function TimeCard({ runningTimeLog, task, activity, description, clearAllFields 
     const [startTime, setStartTime] = React.useState<Date | null>(new Date());
     const [hours, setHours] = React.useState<Number | null>(null);
     const [addButtonDisabled, setAddButtonDisabled] = React.useState(true);
-    const [isLogging, setIsLogging] = useState(false);
+    const [isLogging, setIsLogging] = useState(true);
     const [runningTime, setRunningTime] = useState('00:00:00');
     const [localRunningTimeLog, setLocalRunningTimeLog] = useState<any | null>(null);
 
@@ -187,7 +189,7 @@ function TimeCard({ runningTimeLog, task, activity, description, clearAllFields 
         <LocalizationProvider dateAdapter={AdapterDateFns}>
             { isLogging ?
             <div>
-                <CardContent sx={{ paddingLeft: 0, paddingRight: 0 }}>
+                <CardContent sx={{ paddingLeft: 0, paddingRight: 0, paddingTop: 0 }}>
                     <DateTimePicker
                         value={startTime}
                         onChange={(newValue) => setStartTime(newValue)}
@@ -205,9 +207,9 @@ function TimeCard({ runningTimeLog, task, activity, description, clearAllFields 
                         }}
                         label="Hours" variant="standard" sx={{ width: 200 }} />
                 </CardContent>
-                <CardActions sx={{ justifyContent: "center" }}>
+                <CardActions sx={{ justifyContent: "center", padding: 0, marginBottom: '10px', marginTop: '4px' }}>
                     <ThemeProvider theme={theme}>
-                        <Button color="main" variant="contained" size="small" sx={{ width: 200, marginTop: -1 }}
+                        <Button color="main" variant="contained" size="small" sx={{ width: '100%', marginTop: -1 }}
                                 onClick={addButtonClicked}
                                 disabled={addButtonDisabled || isUpdating}
                                 disableElevation>{isUpdating ? <CircularProgress color="inherit" size={20} /> : "Add" }</Button>
@@ -235,6 +237,20 @@ function TimeCard({ runningTimeLog, task, activity, description, clearAllFields 
                     </ThemeProvider>
                 </CardContent>
             </div> }
+            <div style={{ marginTop: '3px' }}>
+                <Grid container spacing={0.6}>
+                    <Grid item xs={6}>
+                        <Button variant={'outlined'} disabled={!isLogging} color={'success'} style={{ width: '100%' }} onClick={() => setIsLogging(false)}>
+                            <PlayCircleIcon/>
+                        </Button>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Button variant={'outlined'} disabled={isLogging} color={'success'} style={{ width: '100%' }} onClick={() => setIsLogging(true)}>
+                            <ListIcon/>
+                        </Button>
+                    </Grid>
+                </Grid>
+            </div>
         </LocalizationProvider>
     )
 }
@@ -472,7 +488,7 @@ function App() {
                 </Container>
                 <Container maxWidth="lg" style={{ marginTop: "50px" }}>
                     <Grid container spacing={1}>
-                        <Grid container item xs={9.5} spacing={1} style={{ marginRight: 20 }}>
+                        <Grid container item xs={9.5} spacing={1} style={{ marginRight: 20, maxHeight: '185px' }}>
                             <Grid item xs={4}>
                                 <Autocomplete
                                     disablePortal
