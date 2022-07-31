@@ -97,7 +97,10 @@ export const timesheetApi = createApi({
                 headers: apiHeaders,
                 body
             }),
-            invalidatesTags: ['TimeLog']
+            invalidatesTags: ['TimeLog'],
+            transformResponse(response: TimeLog) {
+                return response;
+            },
         }),
         addTimesheet: build.mutation({
             query: (body) => ({
@@ -107,6 +110,9 @@ export const timesheetApi = createApi({
                 body
             }),
             invalidatesTags: ['TimeLog'],
+            transformResponse(response: TimeLog) {
+                return response;
+            },
             // onQueryStarted is useful for optimistic updates
             // The 2nd parameter is the destructured `MutationLifecycleApi`
             async onQueryStarted(

@@ -144,7 +144,7 @@ function TimeLogTable(props: any) {
                     {data.map((timeLogData: TimeLog) => {
                       if (!timeLogData.running) {
                         return (
-                          <div>
+                          <div key={timeLogData.id}>
                             <TimeLogItem {...timeLogData} />
                             <Divider sx={{marginBottom: 1}}/>
                           </div>

@@ -22,6 +22,7 @@ import {
     useSubmitTimesheetMutation,
     useUpdateTimesheetMutation
 } from "./services/api";
+import {debug} from "util";
 
 function addHours(numOfHours: any, date = new Date()) {
     let numOfSeconds = numOfHours / 3600
@@ -36,6 +37,7 @@ function formatTime(date = new Date()) {
 }
 
 interface TimeCardProps {
+    updateTimeLog?: any | null,
     runningTimeLog?: any | null,
     task?: any | null,
     activity?: any | null,
@@ -43,17 +45,19 @@ interface TimeCardProps {
     clearAllFields?: any
 }
 
+let interval: any = null;
+
 function TimeCard({ runningTimeLog, task, activity, description, clearAllFields } : TimeCardProps) {
     const [startTime, setStartTime] = React.useState<Date | null>(new Date());
     const [hours, setHours] = React.useState<Number | null>(null);
     const [addButtonDisabled, setAddButtonDisabled] = React.useState(true);
-    const [isLogging, setIsLogging] = useState(true);
+    const [isLogging, setIsLogging] = useState(false);
     const [runningTime, setRunningTime] = useState('00:00:00');
+    const [localRunningTimeLog, setLocalRunningTimeLog] = useState<any | null>(null);
 
-    const [addTimesheet, { isLoading: isUpdating, isSuccess, isError }] = useAddTimesheetMutation();
-    const [updateTimesheet, {  isLoading: isUpdateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdateTimesheetMutation();
+    const [addTimesheet, { isLoading: isUpdating, isSuccess, isError, data }] = useAddTimesheetMutation();
+    const [updateTimesheet, {  isLoading: isUpdateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError, data: updatedData }] = useUpdateTimesheetMutation();
 
-    let interval: any = null;
 
     useEffect(() => {
         setAddButtonDisabled(startTime == null || hours == null || !activity)
@@ -61,22 +65,45 @@ function TimeCard({ runningTimeLog, task, activity, description, clearAllFields 
 
     useEffect(() => {
         if (isSuccess) {
-            setHours(null)
-            clearAllFields()
+            if (data.running) {
+                setLocalRunningTimeLog(data);
+            } else {
+                setLocalRunningTimeLog(null)
+                setHours(null)
+                clearAllFields()
+            }
         }
     }, [isSuccess])
 
     useEffect(() => {
+        if (localRunningTimeLog) {
+            if (updatedData && !updatedData.running) {
+                clearInterval(interval);
+                setRunningTime('00:00:00');
+                setLocalRunningTimeLog(null);
+                clearAllFields();
+            }
+        }
+    }, [isUpdateSuccess])
+
+    useEffect(() => {
         if (runningTimeLog) {
+            setLocalRunningTimeLog(runningTimeLog);
+        }
+    }, [runningTimeLog])
+
+    useEffect(() => {
+        if (localRunningTimeLog) {
             updateTimeRecursively();
         } else {
             if (interval)
                 clearInterval(interval);
         }
-    }, [runningTimeLog])
+    }, [localRunningTimeLog])
 
     const stopButtonClicked = async () => {
-        const runningTimeClone = Object.assign({}, runningTimeLog);
+        if (!localRunningTimeLog) return;
+        const runningTimeClone = Object.assign({}, localRunningTimeLog);
         let task_id = '-'
         if (task) {
             task_id = task.id
@@ -144,7 +171,7 @@ function TimeCard({ runningTimeLog, task, activity, description, clearAllFields 
 
     const updateTime = () => {
         let fromTimeObj = moment(
-          runningTimeLog.from_time,
+          localRunningTimeLog.from_time,
           'YYYY-MM-DD hh:mm:ss');
         let diff = moment().diff(fromTimeObj);
         let d = moment.duration(diff);
@@ -191,7 +218,7 @@ function TimeCard({ runningTimeLog, task, activity, description, clearAllFields 
                 <Typography variant={'h3'} style={{color:'#1d575c'}}>{runningTime}</Typography>
                 <CardContent sx={{ paddingLeft: 0, paddingRight: 0 }}>
                     <ThemeProvider theme={theme}>
-                        {runningTimeLog ?
+                        {localRunningTimeLog ?
                           <Button color="main" variant="contained" size="small"
                                   sx={{width: 200, height: '58px', marginTop: -1}}
                                   onClick={stopButtonClicked}
@@ -246,7 +273,9 @@ const TimeLogs = () => {
             <div className={'timelogs-info'}>
                 {
                     Object.keys(totalPerProject).map((key: any) =>
-                        <Chip label={`${key} : ${totalPerProject[key]}`}
+                        <Chip
+                            key={key}
+                            label={`${key} : ${totalPerProject[key]}`}
                             style={{ backgroundColor: generateColor(key) }} />
                     )
                 }
@@ -258,8 +287,8 @@ const TimeLogs = () => {
             </Container>
             {
                 Object.keys(timesheetData.logs).map((key: any) =>
-                    <div style={{ marginBottom: 10 }}>
-                        <TimeLogTable data={timesheetData.logs[key]} date={key}/>
+                    <div key={key} style={{ marginBottom: 10 }}>
+                        <TimeLogTable key={key} data={timesheetData.logs[key]} date={key}/>
                     </div>
                 )
             }
@@ -292,7 +321,6 @@ function App() {
     const [submitTimesheet, { isLoading: isUpdating, isSuccess, isError }] = useSubmitTimesheetMutation();
 
     useEffect(() => {
-        console.log('isSuccessFetching', timesheetData);
         if (timesheetData && timesheetData.running) {
             setSelectedActivity(timesheetData.running.activity_type)
             setDescription(timesheetData.running.description)
@@ -444,7 +472,7 @@ function App() {
                 </Container>
                 <Container maxWidth="lg" style={{ marginTop: "50px" }}>
                     <Grid container spacing={1}>
-                        <Grid container xs={9.5} spacing={1} style={{ marginRight: 20 }}>
+                        <Grid container item xs={9.5} spacing={1} style={{ marginRight: 20 }}>
                             <Grid item xs={4}>
                                 <Autocomplete
                                     disablePortal
@@ -557,8 +585,6 @@ function App() {
                                            label="Description"
                                            multiline
                                            rows={2}
-                                           minRows={1}
-                                           maxRows={5}
                                            variant="filled" className="headerInput" value={description} onChange={e => setDescription(e.target.value)}
                                            InputProps={{
                                                disableUnderline: true,
@@ -566,7 +592,7 @@ function App() {
                                 />
                             </Grid>
                         </Grid>
-                        <Grid container xs={2.2}>
+                        <Grid container item xs={2.2}>
                             <Box className="time-box">
                                 <TimeCard runningTimeLog={runningTimeLog} task={selectedTask} activity={selectedActivity} description={description} clearAllFields={clearAllFields}/>
                             </Box>
