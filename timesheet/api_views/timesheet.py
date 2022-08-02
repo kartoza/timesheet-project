@@ -1,3 +1,5 @@
+import time
+
 from django.contrib.auth import get_user_model
 from django.http import Http404
 from django.utils import timezone
@@ -41,6 +43,8 @@ class TimesheetSerializer(serializers.ModelSerializer):
         ]
 
     def update(self, instance: Timelog, validated_data):
+        if instance.end_time:
+            return instance
         end_time = validated_data.get('end_time', None)
         task = validated_data.pop('task')
         activity = validated_data.pop('activity')

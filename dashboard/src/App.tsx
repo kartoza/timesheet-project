@@ -24,7 +24,6 @@ import {
     useSubmitTimesheetMutation,
     useUpdateTimesheetMutation
 } from "./services/api";
-import {debug} from "util";
 
 function addHours(numOfHours: any, date = new Date()) {
     let numOfSeconds = numOfHours / 3600
@@ -53,7 +52,8 @@ function TimeCard({ runningTimeLog, task, activity, description, clearAllFields 
     const [startTime, setStartTime] = React.useState<Date | null>(new Date());
     const [hours, setHours] = React.useState<Number | null>(null);
     const [addButtonDisabled, setAddButtonDisabled] = React.useState(true);
-    const [isLogging, setIsLogging] = useState(true);
+    const [startButtonDisabled, setStartButtonDisabled] = React.useState(true);
+    const [isLogging, setIsLogging] = useState(false);
     const [runningTime, setRunningTime] = useState('00:00:00');
     const [localRunningTimeLog, setLocalRunningTimeLog] = useState<any | null>(null);
 
@@ -63,7 +63,8 @@ function TimeCard({ runningTimeLog, task, activity, description, clearAllFields 
 
     useEffect(() => {
         setAddButtonDisabled(startTime == null || hours == null || !activity)
-    }, [startTime, hours, task])
+        setStartButtonDisabled(!activity)
+    }, [startTime, hours, task, activity])
 
     useEffect(() => {
         if (isSuccess) {
@@ -96,6 +97,7 @@ function TimeCard({ runningTimeLog, task, activity, description, clearAllFields 
 
     useEffect(() => {
         if (localRunningTimeLog) {
+            setStartButtonDisabled(false)
             updateTimeRecursively();
         } else {
             if (interval)
@@ -105,10 +107,15 @@ function TimeCard({ runningTimeLog, task, activity, description, clearAllFields 
 
     const stopButtonClicked = async () => {
         if (!localRunningTimeLog) return;
+        clearInterval(interval);
+        setStartButtonDisabled(true);
         const runningTimeClone = Object.assign({}, localRunningTimeLog);
-        let task_id = '-'
+        let task_id = ''
         if (task) {
             task_id = task.id
+        }
+        if (!task_id) {
+            task_id = '-'
         }
         runningTimeClone['task'] = {
             'id': task_id
@@ -122,6 +129,8 @@ function TimeCard({ runningTimeLog, task, activity, description, clearAllFields 
     }
 
     const startButtonClicked = async () => {
+        setStartButtonDisabled(true);
+        clearInterval(interval);
         if (!startTime || !activity) {
             return
         }
@@ -224,13 +233,13 @@ function TimeCard({ runningTimeLog, task, activity, description, clearAllFields 
                           <Button color="main" variant="contained" size="small"
                                   sx={{width: 200, height: '58px', marginTop: -1}}
                                   onClick={stopButtonClicked}
-                                  disabled={!activity}
-                                  disableElevation>{isUpdating ?
+                                  disabled={startButtonDisabled}
+                                  disableElevation>{isUpdateLoading ?
                             <CircularProgress color="inherit" size={20}/> : "STOP"}</Button> :
                           <Button color="success" variant="contained" size="small"
                                   sx={{width: 200, height: '58px', marginTop: -1}}
                                   onClick={startButtonClicked}
-                                  disabled={!activity}
+                                  disabled={startButtonDisabled}
                                   disableElevation>{isUpdating ?
                             <CircularProgress color="inherit" size={20}/> : "START"}</Button>
                         }
@@ -282,6 +291,9 @@ const TimeLogs = () => {
                 }
             }
         })
+        if (totalDraftHours) {
+            totalDraftHours = parseFloat(totalDraftHours.toFixed(2));
+        }
     }
     return (
         <div>
@@ -340,11 +352,13 @@ function App() {
         if (timesheetData && timesheetData.running) {
             setSelectedActivity(timesheetData.running.activity_type)
             setDescription(timesheetData.running.description)
-            setProjects([{
-                id: timesheetData.running.project_id,
-                label: timesheetData.running.project_name,
-                running: true
-            }])
+            if (timesheetData.running.project_name !== 'Kartoza') {
+                setProjects([{
+                    id: timesheetData.running.project_id,
+                    label: timesheetData.running.project_name,
+                    running: true
+                }])
+            }
             setTasks([{
                 id: timesheetData.running.task_id,
                 label: timesheetData.running.task_name,
@@ -365,11 +379,13 @@ function App() {
                 id: runningTimeLog.task_id,
                 label: runningTimeLog.task_name
             })
-            setSelectedProject({
-                id: runningTimeLog.project_id,
-                label: runningTimeLog.project_name,
-                running: true
-            })
+            if (runningTimeLog.project_name !== 'Kartoza') {
+                setSelectedProject({
+                    id: runningTimeLog.project_id,
+                    label: runningTimeLog.project_name,
+                    running: true
+                })
+            }
         }
     }, [runningTimeLog])
 
