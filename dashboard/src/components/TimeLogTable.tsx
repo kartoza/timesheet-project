@@ -1,5 +1,6 @@
 import '../styles/TimeLogTable.scss';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
+import EditIcon from '@mui/icons-material/Edit';
 import CircularProgress from '@mui/material/CircularProgress';
 import Fab from '@mui/material/Fab';
 import {Box, Card, CardContent, CardHeader, Container, Divider, Grid, IconButton, Typography} from "@mui/material";
@@ -41,9 +42,15 @@ function TimeLogItem(prop : TimeLog) {
     }, [isUpdating, isSuccess])
 
     const deleteTimeLogClicked = () => {
-        deleteTimeLog({
-            'id': prop.id
-        })
+        if (confirm('Are you sure you want to delete this record?')) {
+            deleteTimeLog({
+               'id': prop.id
+            })
+        }
+    }
+
+    const editTimeLogClicked = () => {
+        prop.edit_button_clicked(prop);
     }
 
     return (
@@ -96,13 +103,25 @@ function TimeLogItem(prop : TimeLog) {
                         zIndex: 99,
                     }} /> : null }
                 </ThemeProvider>
+                <ThemeProvider theme={theme}>
+                    <Fab
+                        aria-label="edit"
+                        color="warning"
+                        size={"small"}
+                        onClick={editTimeLogClicked}
+                        sx={{ marginLeft: '20px' }}
+                        disabled={loading}
+                    >
+                        <EditIcon/>
+                    </Fab>
+                </ThemeProvider>
             </Grid>
         </Grid>
     )
 }
 
 function TimeLogTable(props: any) {
-    const { data, date } = props;
+    const { data, date, editTimeLog } = props;
 
     const totalHours = () => {
         let _totalHours = 0;
@@ -114,6 +133,10 @@ function TimeLogTable(props: any) {
 
     const dateString = () => {
         return new Date(Date.parse(date)).toDateString()
+    }
+
+    const onEditButtonClicked = (timelog: TimeLog) => {
+        editTimeLog(timelog);
     }
 
     return (
@@ -145,7 +168,7 @@ function TimeLogTable(props: any) {
                       if (!timeLogData.running) {
                         return (
                           <div key={timeLogData.id}>
-                            <TimeLogItem {...timeLogData} />
+                            <TimeLogItem {...timeLogData} edit_button_clicked={onEditButtonClicked}/>
                             <Divider sx={{marginBottom: 1}}/>
                           </div>
                         )

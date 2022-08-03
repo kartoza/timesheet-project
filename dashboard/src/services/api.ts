@@ -24,6 +24,7 @@ export interface TimeLog {
     deleteTimeLog: any
     running: boolean
     activity_id: string
+    edit_button_clicked?: any
 }
 
 

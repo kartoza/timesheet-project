@@ -30,6 +30,10 @@ class TimesheetSerializer(serializers.ModelSerializer):
     user = UserSerializer(required=False)
     task = TaskSerializer(required=False)
     activity = ActivitySerializer(required=False)
+    editing = serializers.SerializerMethodField()
+
+    def get_editing(self, obj):
+        return self.context['request'].data.get('editing', False)
 
     class Meta:
         model = Timelog
@@ -40,11 +44,16 @@ class TimesheetSerializer(serializers.ModelSerializer):
             'user',
             'task',
             'activity',
+            'editing'
         ]
 
     def update(self, instance: Timelog, validated_data):
-        if instance.end_time:
+        editing = self.get_editing(instance)
+        if instance.end_time and not editing:
             return instance
+        start_time = validated_data.pop('start_time', None)
+        if start_time:
+            instance.start_time = start_time
         end_time = validated_data.get('end_time', None)
         task = validated_data.pop('task')
         activity = validated_data.pop('activity')
@@ -101,8 +110,7 @@ class TimesheetSerializer(serializers.ModelSerializer):
 
 
 class TimesheetModelViewSet(viewsets.ModelViewSet):
-    queryset = Timelog.objects.filter(
-        end_time__isnull=True)
+    queryset = Timelog.objects.all()
     serializer_class = TimesheetSerializer
 
     def create(self, request, *args, **kwargs):
