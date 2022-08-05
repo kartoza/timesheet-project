@@ -41,6 +41,7 @@ interface TimeCardProps {
     updateTimeLog?: any | null,
     runningTimeLog?: any | null,
     editingTimeLog?: any | null,
+    toggleTimer?: any,
     task?: any | null,
     activity?: any | null,
     description?: String | '',
@@ -49,7 +50,7 @@ interface TimeCardProps {
 
 let interval: any = null;
 
-function TimeCard({ runningTimeLog, editingTimeLog, task, activity, description, clearAllFields } : TimeCardProps) {
+function TimeCard({ runningTimeLog, editingTimeLog, toggleTimer, task, activity, description, clearAllFields } : TimeCardProps) {
     const [startTime, setStartTime] = React.useState<any | null>(new Date());
     const [hours, setHours] = React.useState<Number | null>(null);
     const [addButtonDisabled, setAddButtonDisabled] = React.useState(true);
@@ -114,6 +115,7 @@ function TimeCard({ runningTimeLog, editingTimeLog, task, activity, description,
 
     const stopButtonClicked = async () => {
         if (!localRunningTimeLog) return;
+        toggleTimer(false);
         clearInterval(interval);
         setStartButtonDisabled(true);
         const runningTimeClone = Object.assign({}, localRunningTimeLog);
@@ -138,6 +140,7 @@ function TimeCard({ runningTimeLog, editingTimeLog, task, activity, description,
     const startButtonClicked = async () => {
         setStartButtonDisabled(true);
         clearInterval(interval);
+        toggleTimer(true);
         if (!startTime || !activity) {
             return
         }
@@ -145,6 +148,7 @@ function TimeCard({ runningTimeLog, editingTimeLog, task, activity, description,
         if (task) {
             task_id = task.id
         }
+
         addTimesheet({
             start_time: formatTime(new Date()),
             task: {
@@ -321,7 +325,7 @@ function TimeCard({ runningTimeLog, editingTimeLog, task, activity, description,
                         </Button>
                     </Grid>
                     <Grid item xs={6}>
-                        <Button variant={'outlined'} disabled={isLogging || editingTimeLog} color={'success'} style={{ width: '100%' }} onClick={() => setIsLogging(true)}>
+                        <Button variant={'outlined'} disabled={isLogging || editingTimeLog || localRunningTimeLog} color={'success'} style={{ width: '100%' }} onClick={() => setIsLogging(true)}>
                             <ListIcon/>
                         </Button>
                     </Grid>
@@ -333,7 +337,7 @@ function TimeCard({ runningTimeLog, editingTimeLog, task, activity, description,
 
 
 const TimeLogs = (props: any) => {
-    const { editTimeLog } = props;
+    const { editTimeLog, copyTimeLog } = props;
 
     const { data: timesheetData, isLoading, isSuccess } = useGetTimeLogsQuery()
     let totalDraftHours = 0
@@ -390,7 +394,8 @@ const TimeLogs = (props: any) => {
                             key={key}
                             data={timesheetData.logs[key]}
                             date={key}
-                            editTimeLog={editTimeLog}/>
+                            editTimeLog={editTimeLog}
+                            copyTimeLog={copyTimeLog}/>
                     </div>
                 )
             }
@@ -414,6 +419,7 @@ function App() {
     const [quote, setQuote] = useState<any>({})
     const [runningTimeLog, setRunningTimeLog] = useState<TimeLog | null>(null)
     const [editingTimeLog, setEditingTimeLog] = useState<TimeLog | null>(null)
+    const [timerStarted, setTimerStarted] = useState(false);
     const [submitTimesheet, { isLoading: isUpdating, isSuccess, isError }] = useSubmitTimesheetMutation();
 
     useEffect(() => {
@@ -432,6 +438,7 @@ function App() {
             }])
 
             setRunningTimeLog(timesheetData.running)
+            setTimerStarted(true)
         }
     }, [isSuccessFetching])
 
@@ -441,10 +448,6 @@ function App() {
             id: data.activity_id,
             label: data.activity_type
         })
-        setSelectedTask({
-            id: data.task_id,
-            label: data.task_name
-        })
         if (data.project_name !== 'Kartoza') {
             setSelectedProject({
                 id: data.project_id,
@@ -452,6 +455,11 @@ function App() {
                 running: true
             })
         }
+
+        setSelectedTask({
+            id: data.task_id,
+            label: data.task_name
+        })
     }
 
     useEffect(() => {
@@ -521,12 +529,14 @@ function App() {
 
 
     useEffect(() => {
-        if (selectedProject && !selectedProject.running) {
+        if (selectedProject) {
             fetch('/task-list/' + selectedProject['id'] + '/').then(
                 response => response.json()
             ).then(
                 json => {
-                    setSelectedTask(null)
+                    if (!selectedProject.running) {
+                        setSelectedTask(null)
+                    }
                     setTasks(json)
                 }
             )
@@ -560,11 +570,26 @@ function App() {
     }
 
     const editTimeLog = (data: TimeLog) => {
-        if (!runningTimeLog) {
+        if (!timerStarted) {
             setEditingTimeLog(data);
         } else {
-            alert('`Please stop `the running timer first.');
+            alert('Please stop the running timer first.');
         }
+    }
+
+    const copyTimeLog = (data: TimeLog) => {
+        if (timerStarted) {
+            alert('Please stop the running timer first.');
+            return;
+        }
+        if (editingTimeLog) {
+            setEditingTimeLog(null);
+        }
+        updateSelectedTimeLog(data);
+    }
+
+    const toggleTimer = (timerStartedValue: boolean) => {
+        setTimerStarted(timerStartedValue);
     }
 
     return (
@@ -719,13 +744,14 @@ function App() {
                                     task={selectedTask}
                                     activity={selectedActivity}
                                     description={description}
+                                    toggleTimer={toggleTimer}
                                     clearAllFields={clearAllFields}/>
                             </Box>
                         </Grid>
                     </Grid>
                 </Container>
             </div>
-            <TimeLogs editTimeLog={editTimeLog}/>
+            <TimeLogs editTimeLog={editTimeLog} copyTimeLog={copyTimeLog}/>
             { isEmpty() ? <div><CircularProgress style={{ marginTop: '50px' }} /></div> : null }
             { quote ?
                 <div className='quote-container'>
