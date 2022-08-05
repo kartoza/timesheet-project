@@ -3,7 +3,9 @@
 <head>
     {% load render_bundle from webpack_loader %}
     <meta charset="UTF-8">
-    <title>Dashboard</title>
+    <title>Timesheet</title>
+    <link rel="icon" href="/static/default-favicon.ico">
+
     <script>
         const csrfToken = "{{ csrf_token }}";
         window.hasKeys = {% if has_keys %}true{% else %}false{% endif %}

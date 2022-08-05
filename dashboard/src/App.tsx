@@ -107,6 +107,11 @@ function TimeCard({ runningTimeLog, editingTimeLog, toggleTimer, task, activity,
         if (localRunningTimeLog) {
             setStartButtonDisabled(false)
             updateTimeRecursively();
+
+            const link = document.querySelector("link[rel~='icon']") as HTMLAnchorElement | null;
+            if (link) {
+                link.href = '/static/running-favicon.ico';
+            }
         } else {
             if (interval)
                 clearInterval(interval);
@@ -118,6 +123,12 @@ function TimeCard({ runningTimeLog, editingTimeLog, toggleTimer, task, activity,
         toggleTimer(false);
         clearInterval(interval);
         setStartButtonDisabled(true);
+
+        const link = document.querySelector("link[rel~='icon']") as HTMLAnchorElement | null;
+        if (link) {
+            link.href = '/static/default-favicon.ico';
+        }
+
         const runningTimeClone = Object.assign({}, localRunningTimeLog);
         let task_id = ''
         if (task) {
@@ -141,12 +152,16 @@ function TimeCard({ runningTimeLog, editingTimeLog, toggleTimer, task, activity,
         setStartButtonDisabled(true);
         clearInterval(interval);
         toggleTimer(true);
+
         if (!startTime || !activity) {
             return
         }
-        let task_id = '-'
+        let task_id = ''
         if (task) {
             task_id = task.id
+        }
+        if (!task_id) {
+            task_id = '-'
         }
 
         addTimesheet({

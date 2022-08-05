@@ -87,7 +87,7 @@ function TimeLogItem(prop : TimeLog) {
         <Grid container spacing={1} className="time-log-row">
             <Grid className="time-log-item left-item" item xs={8.5}>
                 <div>
-                    <Typography variant={"subtitle2"} color="text.secondary" sx={{ display: "inline-block" }}>
+                    <Typography variant={"subtitle2"} color="text.secondary" sx={{ display: "inline-block", marginRight: prop.task_name ? '10px' : '0' }}>
                         { prop.task_name }
                     </Typography>
                     <Typography className="activity-type" color="text.primary">
