@@ -1,11 +1,23 @@
 import '../styles/TimeLogTable.scss';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import EditIcon from '@mui/icons-material/Edit';
-import CircularProgress from '@mui/material/CircularProgress';
-import Fab from '@mui/material/Fab';
-import {Box, Card, CardContent, CardHeader, Container, Divider, Grid, IconButton, Typography} from "@mui/material";
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import {
+    Box,
+    Button,
+    Card,
+    CardContent,
+    CardHeader,
+    Container,
+    Divider,
+    Grid,
+    IconButton,
+    Typography
+} from "@mui/material";
 import {theme, generateColor} from "../utils/Theme";
-import {ThemeProvider} from "@mui/material/styles";
 import {TimeLog, useDeleteTimeLogMutation} from "../services/api";
 import moment from "moment";
 import React, {useEffect, useState} from "react";
@@ -22,6 +34,9 @@ const bull = (
 function TimeLogItem(prop : TimeLog) {
     const [deleteTimeLog, { isLoading: isUpdating, isSuccess, isError }] = useDeleteTimeLogMutation();
     const [loading, setLoading] = useState(false);
+    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    // @ts-ignore
+    const open = Boolean(anchorEl);
 
     const getTime = ( date : string ) => {
         return moment(date, 'YYYY-MM-DD hh:mm').format('hh:mm A')
@@ -42,6 +57,7 @@ function TimeLogItem(prop : TimeLog) {
     }, [isUpdating, isSuccess])
 
     const deleteTimeLogClicked = () => {
+        handleClose();
         if (confirm('Are you sure you want to delete this record?')) {
             deleteTimeLog({
                'id': prop.id
@@ -50,7 +66,21 @@ function TimeLogItem(prop : TimeLog) {
     }
 
     const editTimeLogClicked = () => {
+        handleClose();
         prop.edit_button_clicked(prop);
+    }
+
+    const copyTimeLogClicked = () => {
+        handleClose();
+        prop.copy_button_clicked(prop);
+    }
+
+    const openMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setAnchorEl(event.currentTarget);
+    }
+
+    const handleClose = () => {
+        setAnchorEl(null);
     }
 
     return (
@@ -84,44 +114,39 @@ function TimeLogItem(prop : TimeLog) {
             </Grid>
             <Divider orientation="vertical" variant="middle" flexItem />
             <Grid className="time-log-item center-item" item xs={0.6}>
-                <ThemeProvider theme={theme}>
-                    <Fab
-                        aria-label="delete"
-                        color="warning"
-                        size={"small"}
-                        onClick={deleteTimeLogClicked}
-                        sx={{ marginLeft: '20px' }}
-                        disabled={loading}
-                    >
-                        <DeleteSweepIcon/>
-                    </Fab>
-                    { loading ?
-                    <CircularProgress size={45} sx={{
-                        position: 'absolute',
-                        marginTop: -5.3,
-                        marginLeft: -1.4,
-                        zIndex: 99,
-                    }} /> : null }
-                </ThemeProvider>
-                <ThemeProvider theme={theme}>
-                    <Fab
-                        aria-label="edit"
-                        color="warning"
-                        size={"small"}
-                        onClick={editTimeLogClicked}
-                        sx={{ marginLeft: '20px' }}
-                        disabled={loading}
-                    >
-                        <EditIcon/>
-                    </Fab>
-                </ThemeProvider>
+                <Button
+                    style={{ marginLeft: '8px' }}
+                    aria-controls={open ? 'basic-menu' : undefined}
+                    aria-expanded={open ? 'true': undefined}
+                    aria-label="delete"
+                    variant={'text'}
+                    size={"small"}
+                    onClick={openMenu}
+                    disabled={loading}
+                >
+                    <MoreVertIcon/>
+                </Button>
+                <Menu
+                    disableAutoFocusItem={true}
+                    id="basic-menu"
+                    anchorEl={anchorEl}
+                    open={open}
+                    onClose={handleClose}
+                    MenuListProps={{
+                        'aria-labelledby': 'basic-button',
+                    }}
+                >
+                    <MenuItem onClick={deleteTimeLogClicked}><DeleteSweepIcon/></MenuItem>
+                    <MenuItem onClick={editTimeLogClicked}><EditIcon/></MenuItem>
+                    <MenuItem onClick={copyTimeLogClicked}><ContentCopyIcon/></MenuItem>
+                </Menu>
             </Grid>
         </Grid>
     )
 }
 
 function TimeLogTable(props: any) {
-    const { data, date, editTimeLog } = props;
+    const { data, date, editTimeLog, copyTimeLog } = props;
 
     const totalHours = () => {
         let _totalHours = 0;
@@ -137,6 +162,10 @@ function TimeLogTable(props: any) {
 
     const onEditButtonClicked = (timelog: TimeLog) => {
         editTimeLog(timelog);
+    }
+
+    const onCopyButtonClicked = (timelog: TimeLog) => {
+        copyTimeLog(timelog);
     }
 
     return (
@@ -168,7 +197,7 @@ function TimeLogTable(props: any) {
                       if (!timeLogData.running) {
                         return (
                           <div key={timeLogData.id}>
-                            <TimeLogItem {...timeLogData} edit_button_clicked={onEditButtonClicked}/>
+                            <TimeLogItem {...timeLogData} edit_button_clicked={onEditButtonClicked} copy_button_clicked={onCopyButtonClicked}/>
                             <Divider sx={{marginBottom: 1}}/>
                           </div>
                         )
