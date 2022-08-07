@@ -88,6 +88,7 @@
   display: flex;
   margin-bottom: 10px;
   margin-top: -10px;
+  flex-wrap: wrap;
 }
 
 .timelogs-info .MuiChip-filled {
@@ -109,4 +110,16 @@
 .quote-author {
   font-family: 'noto_serif', serif !important;
   padding-top: 10px;
+}
+
+@media (max-width: 800px) {
+  .timesheet-container {
+    flex-direction: column-reverse !important;
+  }
+  .container-options {
+    padding-right: 8px !important;
+  }
+  .time-box {
+    width: 100%;
+  }
 }
