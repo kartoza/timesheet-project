@@ -274,7 +274,7 @@ function TimeCard({ runningTimeLog, editingTimeLog, toggleTimer, task, activity,
                     <DateTimePicker
                         value={startTime}
                         onChange={(newValue) => setStartTime(newValue)}
-                        renderInput={(params) => <TextField {...params} variant="standard" sx={{ width: 200 }} />}
+                        renderInput={(params) => <TextField {...params} variant="standard" sx={{ width: "100%" }} />}
                     />
                     <TextField
                         value={hours !== null ? hours : ''}
@@ -286,7 +286,7 @@ function TimeCard({ runningTimeLog, editingTimeLog, toggleTimer, task, activity,
                         InputProps={{
                             inputProps: { min: 0 }
                         }}
-                        label="Hours" variant="standard" sx={{ width: 200 }} />
+                        label="Hours" variant="standard" sx={{ width: "100%" }} />
                 </CardContent>
                 <CardActions sx={{ justifyContent: "center", padding: 0, marginBottom: '10px', marginTop: '4px' }}>
                     <ThemeProvider theme={theme}>
@@ -630,9 +630,9 @@ function App() {
                     </div>
                 </Container>
                 <Container maxWidth="lg" style={{ marginTop: "50px" }}>
-                    <Grid container spacing={1}>
-                        <Grid container item xs={9.5} spacing={1} style={{ marginRight: 20, maxHeight: '185px' }}>
-                            <Grid item xs={4}>
+                    <Grid container spacing={1} className="timesheet-container">
+                        <Grid className="container-options" container item xs={12} md={9.5} spacing={1} style={{ marginRight: 20 }}>
+                            <Grid item xs={12} md={4}>
                                 <Autocomplete
                                     disablePortal
                                     id="activity-options"
@@ -669,7 +669,7 @@ function App() {
                                     }
                                 />
                             </Grid>
-                            <Grid item xs={4}>
+                            <Grid item md={4} xs={12}>
                                 <Autocomplete
                                     disablePortal
                                     id="combo-box-demo"
@@ -711,7 +711,7 @@ function App() {
                                     }
                                 />
                             </Grid>
-                            <Grid item xs={4}>
+                            <Grid item md={4} xs={12}>
                                 <Autocomplete
                                     disablePortal
                                     id="combo-box-demo"
@@ -739,7 +739,7 @@ function App() {
                                     />}
                                 />
                             </Grid>
-                            <Grid item xs={12} style={{paddingRight: '4px'}}>
+                            <Grid item xs={12}>
                                 <TextField style={{ width: "100%", minHeight: '20px' }}
                                            label="Description"
                                            multiline
@@ -751,7 +751,7 @@ function App() {
                                 />
                             </Grid>
                         </Grid>
-                        <Grid container item xs={2.2}>
+                        <Grid container item xs={12} md={2.2}>
                             <Box className="time-box">
                                 <TimeCard
                                     runningTimeLog={runningTimeLog}

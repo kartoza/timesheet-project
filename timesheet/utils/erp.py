@@ -136,6 +136,6 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
             logger.info('Timesheet submitted successfully')
             Timelog.objects.filter(
                 id__in=value['ids']
-            ).update(submitted=True)
+            ).delete()
         else:
             logger.error(response)
