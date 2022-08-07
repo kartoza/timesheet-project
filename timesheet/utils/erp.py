@@ -83,7 +83,7 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
     serializer = TimelogSerializer(
         queryset.order_by('start_time'), many=True)
 
-    datetime_format = '%Y-%m-%d %H:%M'
+    datetime_format = '%Y-%m-%d %H:%M:%S'
     timelogs = {}
 
     for serializer_data in serializer.data:
