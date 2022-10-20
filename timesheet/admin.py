@@ -13,7 +13,9 @@ from timesheet.forms import ProfileForm
 @admin.action(description='Push to ERP')
 def push_to_erp(modeladmin, request, queryset: Timelog.objects):
     queryset = queryset.filter(submitted=False)
-    push_timesheet_to_erp(queryset, request.user)
+    if queryset.exists():
+        user = queryset.first().user
+        push_timesheet_to_erp(queryset, user)
 
 
 @admin.action(description='Pull projects')
