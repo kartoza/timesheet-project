@@ -141,4 +141,4 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
                 id__in=value['ids']
             ).delete()
         else:
-            logger.error(response)
+            logger.error(response.text)
