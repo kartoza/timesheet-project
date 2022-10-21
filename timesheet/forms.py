@@ -7,7 +7,7 @@ class ProfileForm(ModelForm):
         model = Profile
         widgets = {
             'api_secret': PasswordInput(
-                render_value=False
+                render_value=True
             )
         }
         fields = '__all__'

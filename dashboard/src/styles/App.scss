@@ -112,6 +112,10 @@
   padding-top: 10px;
 }
 
+.MuiAutocomplete-option {
+  text-align: left;
+}
+
 @media (max-width: 800px) {
   .timesheet-container {
     flex-direction: column-reverse !important;

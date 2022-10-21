@@ -44,7 +44,9 @@ class TimelogAdmin(admin.ModelAdmin):
 class TaskAdmin(admin.ModelAdmin):
     list_display = (
         'name',
-        'project'
+        'project',
+        'actual_time',
+        'expected_time'
     )
 
 

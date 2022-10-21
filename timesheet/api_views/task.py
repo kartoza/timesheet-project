@@ -1,4 +1,7 @@
-from django.db.models import F
+import re
+
+from django.db.models import F, CharField, Value
+from django.db.models.functions import Concat, Round
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -22,8 +25,20 @@ class TaskAutocomplete(APIView):
             name__icontains=query
         )
 
+        tasks = self.queryset.annotate(
+            label=Concat('name',
+                         Value(' ('),
+                         Round(F('actual_time'), 2),
+                         Value('/'),
+                         Round(F('expected_time'), 2),
+                         Value(')'), output_field=CharField())
+        ).values(
+            'id', 'label'
+        )
+
+        for task in tasks:
+            task['label'] = re.sub(' +', ' ', task['label'])
+
         return Response(
-            self.queryset.annotate(label=F('name')).values(
-                'id', 'label'
-            )
+            tasks
         )

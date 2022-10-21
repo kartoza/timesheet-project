@@ -24,6 +24,14 @@ class Task(models.Model):
         blank=True
     )
 
+    actual_time = models.FloatField(
+        default=0.0,
+    )
+
+    expected_time = models.FloatField(
+        default=0.0
+    )
+
     def __str__(self):
         return (
             f'{self.name} - '

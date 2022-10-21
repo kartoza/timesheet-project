@@ -5,3 +5,4 @@ class DocType(Enum):
     ACTIVITY = 'Activity Type'
     TASK = 'Task'
     PROJECT = 'Project'
+    EMPLOYEE = 'Employee'

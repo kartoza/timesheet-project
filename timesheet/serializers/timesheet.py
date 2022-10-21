@@ -1,3 +1,5 @@
+import re
+
 from rest_framework import serializers
 from timesheet.models import Timelog
 
@@ -39,7 +41,9 @@ class TimelogSerializer(serializers.ModelSerializer):
 
     def get_task_name(self, obj: Timelog):
         if obj.task:
-            return obj.task.name
+            return re.sub(' +', ' ',
+                f'{obj.task.name} ({obj.task.actual_time}/{obj.task.expected_time})'
+            )
         return ''
 
     def get_task_id(self, obj: Timelog):

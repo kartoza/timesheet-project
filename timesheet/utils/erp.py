@@ -62,11 +62,16 @@ def pull_projects_from_erp(user: get_user_model()):
             project = Project.objects.get(name=task['project'])
         except Project.DoesNotExist:
             continue
-        Task.objects.get_or_create(
+        Task.objects.update_or_create(
             project=project,
             name=task['subject'],
-            erp_id=task['name']
+            erp_id=task['name'],
+            defaults={
+                "expected_time": task['expected_time'],
+                "actual_time": task['actual_time']
+            }
         )
+
 
     activities = get_erp_data(
         DocType.ACTIVITY, user.profile.token)
