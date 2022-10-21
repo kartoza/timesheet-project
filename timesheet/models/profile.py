@@ -32,6 +32,18 @@ class Profile(models.Model):
         default='UTC'
     )
 
+    employee_id = models.CharField(
+        max_length=255,
+        default='',
+        blank=True
+    )
+
+    employee_name = models.CharField(
+        max_length=255,
+        default='',
+        blank=True
+    )
+
     @property
     def token(self):
         return f'{self.api_key}:{self.api_secret}'

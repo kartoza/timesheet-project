@@ -114,6 +114,7 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
     headers = {
         'Authorization': 'token {}'.format(user.profile.token)
     }
+    logger.info(headers)
 
     submitted_timelogs = []
     for key, value in timelogs.items():
@@ -126,6 +127,8 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
             'time_logs': value["data"]
         }
         submitted_timelogs.append(value["data"])
+
+        logger.info(erp_timesheet_data)
         response = requests.post(
             url,
             data=json.dumps(erp_timesheet_data),

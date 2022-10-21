@@ -19,6 +19,18 @@ class TimelogSerializer(serializers.ModelSerializer):
     task_name = serializers.SerializerMethodField()
     task_id = serializers.SerializerMethodField()
     running = serializers.SerializerMethodField()
+    employee_name = serializers.SerializerMethodField()
+    employee = serializers.SerializerMethodField()
+
+    def get_employee(self, obj: Timelog):
+        return obj.user.profile.employee_id
+
+    def get_employee_name(self, obj: Timelog):
+        if obj.user.profile.employee_name:
+            return obj.user.profile.employee_name
+        if obj.user.first_name:
+            return f'{obj.user.first_name} {obj.user.last_name}'
+        return ''
 
     def get_running(self, obj: Timelog):
         if not obj.end_time:
@@ -109,5 +121,7 @@ class TimelogSerializer(serializers.ModelSerializer):
             'doctype',
             'is_billable',
             'owner_name',
+            'employee',
+            'employee_name',
             'running'
         ]
