@@ -93,6 +93,8 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
         if project_name not in timelogs:
             timelogs[project_name] = {
                 'owner': serializer_data['owner_name'],
+                'employee_name': serializer_data['employee_name'],
+                'employee': serializer_data['employee'],
                 'from_time': from_time,
                 'to_time': to_time,
                 'data': [serializer_data],
