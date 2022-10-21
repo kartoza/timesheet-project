@@ -58,7 +58,7 @@ function TimeLogItem(prop : TimeLog) {
 
     const deleteTimeLogClicked = () => {
         handleClose();
-        if (confirm('Are you sure you want to delete this record?')) {
+        if (window.confirm('Are you sure you want to delete this record?')) {
             deleteTimeLog({
                'id': prop.id
             })

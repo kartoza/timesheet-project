@@ -40,6 +40,21 @@ def get_erp_data(doctype: DocType, erpnext_token: str = None) -> list:
     return response_data['data']
 
 
+def pull_user_data_from_erp(user: get_user_model()):
+    users = get_erp_data(
+        DocType.EMPLOYEE, user.profile.token
+    )
+    if len(users) > 0:
+        erp_user = users[0]
+        user.profile.employee_name = erp_user['employee_name']
+        user.profile.employee_id = erp_user['employee']
+        user.profile.save()
+
+        user.first_name = erp_user['first_name']
+        user.last_name = erp_user['last_name']
+        user.save()
+
+
 def pull_projects_from_erp(user: get_user_model()):
     projects = get_erp_data(
         DocType.PROJECT, user.profile.token)
@@ -62,16 +77,28 @@ def pull_projects_from_erp(user: get_user_model()):
             project = Project.objects.get(name=task['project'])
         except Project.DoesNotExist:
             continue
-        Task.objects.update_or_create(
-            project=project,
-            name=task['subject'],
-            erp_id=task['name'],
-            defaults={
-                "expected_time": task['expected_time'],
-                "actual_time": task['actual_time']
-            }
-        )
-
+        try:
+            Task.objects.update_or_create(
+                project=project,
+                name=task['subject'],
+                erp_id=task['name'],
+                defaults={
+                    "expected_time": task['expected_time'],
+                    "actual_time": task['actual_time']
+                }
+            )
+        except Task.MultipleObjectsReturned:
+            tasks = Task.objects.filter(
+                project=project,
+                name=task['subject'],
+                erp_id=task['name'],
+            ).order_by('-id')
+            latest_task = tasks.first()
+            tasks.exclude(id=latest_task.id).delete()
+            tasks.update(
+                expected_time=task['expected_time'],
+                actual_time=task['actual_time']
+            )
 
     activities = get_erp_data(
         DocType.ACTIVITY, user.profile.token)

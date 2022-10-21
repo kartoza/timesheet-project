@@ -3,7 +3,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
 from timesheet.models import Timelog, Task, Project, Activity
-from timesheet.utils.erp import push_timesheet_to_erp, pull_projects_from_erp
+from timesheet.utils.erp import (
+    push_timesheet_to_erp, pull_projects_from_erp, pull_user_data_from_erp
+)
 from timesheet.models.profile import Profile
 from timesheet.models.user_project import UserProject
 from timesheet.forms import ProfileForm
@@ -23,6 +25,14 @@ def pull_projects(modeladmin, request, queryset: get_user_model()):
         if not user.profile.token:
             continue
         pull_projects_from_erp(user)
+
+
+@admin.action(description='Pull user data')
+def pull_user_data(modeladmin, request, queryset: get_user_model()):
+    for user in queryset:
+        if not user.profile.token:
+            continue
+        pull_user_data_from_erp(user)
 
 
 class TimelogAdmin(admin.ModelAdmin):
@@ -70,7 +80,7 @@ class ProfileInLine(admin.StackedInline):
 
 class UserAdmin(DjangoUserAdmin):
     inlines = [ProfileInLine, ]
-    actions = [pull_projects, ]
+    actions = [pull_projects, pull_user_data]
 
 
 class UserProjectAdmin(admin.ModelAdmin):
