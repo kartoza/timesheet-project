@@ -114,11 +114,13 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
     headers = {
         'Authorization': 'token {}'.format(user.profile.token)
     }
-    logger.info(headers)
+    logger.error(headers)
 
     submitted_timelogs = []
     for key, value in timelogs.items():
         erp_timesheet_data = {
+            'employee_name': value['employee_name'],
+            'employee': value['employee'],
             'title': (
                 f'{value["owner"]} : '
                 f'{value["from_time"].strftime("%d/%m/%y")}-'
@@ -128,7 +130,7 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
         }
         submitted_timelogs.append(value["data"])
 
-        logger.info(erp_timesheet_data)
+        logger.error(erp_timesheet_data)
         response = requests.post(
             url,
             data=json.dumps(erp_timesheet_data),

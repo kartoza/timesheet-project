@@ -2,7 +2,6 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
-from timesheet.enums.doctype import DocType
 from timesheet.models import Timelog, Task, Project, Activity
 from timesheet.utils.erp import push_timesheet_to_erp, pull_projects_from_erp
 from timesheet.models.profile import Profile
