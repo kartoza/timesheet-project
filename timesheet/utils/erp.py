@@ -14,11 +14,13 @@ from timesheet.serializers.timesheet import TimelogSerializer
 logger = logging.getLogger(__name__)
 
 
-def get_erp_data(doctype: DocType, erpnext_token: str = None) -> list:
+def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '') -> list:
     url = (
         f'{settings.ERPNEXT_SITE_LOCATION}/api/'
         f'resource/{doctype.value}/?limit_page_length=None&fields=["*"]'
     )
+    if filters:
+        url += '&filters=' + filters
     if not erpnext_token:
         erpnext_token = settings.ERPNEXT_TOKEN
     headers = {
@@ -42,7 +44,7 @@ def get_erp_data(doctype: DocType, erpnext_token: str = None) -> list:
 
 def pull_user_data_from_erp(user: get_user_model()):
     users = get_erp_data(
-        DocType.EMPLOYEE, user.profile.token
+        DocType.EMPLOYEE, user.profile.token, f'[["company_email", "=", "{user.email}"]]'
     )
     if len(users) > 0:
         erp_user = users[0]
