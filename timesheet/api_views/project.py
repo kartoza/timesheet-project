@@ -5,8 +5,7 @@ from rest_framework.response import Response
 
 from timesheet.models import Project
 from timesheet.utils.erp import (
-    pull_projects_from_erp,
-    pull_user_data_from_erp
+    pull_projects_from_erp
 )
 
 
@@ -16,7 +15,6 @@ class PullProjects(APIView):
         if not request.user.profile.token:
             raise Http404()
         pull_projects_from_erp(request.user)
-        pull_user_data_from_erp(request.user)
 
         return Response({'success': True})
 
