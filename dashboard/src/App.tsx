@@ -3,7 +3,18 @@ import './styles/App.scss';
 import {
     Container,
     Autocomplete,
-    TextField, CircularProgress, Button, Grid, CardContent, CardActions, Box, createStyles, Theme, Backdrop, Typography
+    TextField,
+    CircularProgress,
+    Button,
+    Grid,
+    CardContent,
+    CardActions,
+    Box,
+    createStyles,
+    Theme,
+    Backdrop,
+    Typography,
+    ToggleButton, ToggleButtonGroup
 } from "@mui/material";
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -24,6 +35,48 @@ import {
     useSubmitTimesheetMutation,
     useUpdateTimesheetMutation
 } from "./services/api";
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import {
+    Experimental_CssVarsProvider as CssVarsProvider,
+    experimental_extendTheme as extendTheme,
+    useColorScheme,
+} from '@mui/material/styles';
+
+function ModeToggle() {
+    const { mode, setMode } = useColorScheme();
+    return (
+        <ToggleButtonGroup value={mode} exclusive
+                           onChange={() => setMode(mode === 'light' ? 'dark' : 'light')}>
+            <ToggleButton value={"light"}>
+                <LightModeIcon/>
+            </ToggleButton>
+            <ToggleButton value={"dark"}>
+                <DarkModeIcon/>
+            </ToggleButton>
+        </ToggleButtonGroup>
+    );
+}
+
+const modeTheme = extendTheme({
+    // colorSchemes: {
+    //     light: {
+    //         palette: {
+    //             primary: {
+    //                 main: '#FF00FF'
+    //             }
+    //         }
+    //     },
+    //     dark: {
+    //         palette: {
+    //             primary: {
+    //                 main: '#411941'
+    //             }
+    //         }
+    //     }
+    // }
+});
+
 
 function addHours(numOfHours: any, date = new Date()) {
     let numOfSeconds = numOfHours / 3600
@@ -289,32 +342,29 @@ function TimeCard({ runningTimeLog, editingTimeLog, toggleTimer, task, activity,
                         label="Hours" variant="standard" sx={{ width: "100%" }} />
                 </CardContent>
                 <CardActions sx={{ justifyContent: "center", padding: 0, marginBottom: '10px', marginTop: '4px' }}>
-                    <ThemeProvider theme={theme}>
-                        {editingTimeLog ?
-                            <div style={{width: '100%'}}>
-                                <Button color="warning" variant="contained" size="small" sx={{width: '50%', marginTop: -1}}
-                                        onClick={cancelEditingTimeLog}
-                                        disabled={isUpdateLoading}
-                                        disableElevation>Cancel</Button>
-                                <Button color="success" variant="contained" size="small" sx={{width: '50%', marginTop: -1}}
-                                    onClick={submitEditedTimeLog}
+                    {editingTimeLog ?
+                        <div style={{width: '100%'}}>
+                            <Button color="warning" variant="contained" size="small" sx={{width: '50%', marginTop: -1}}
+                                    onClick={cancelEditingTimeLog}
                                     disabled={isUpdateLoading}
-                                    disableElevation>{isUpdateLoading ?
-                                <CircularProgress color="inherit" size={20}/> : "Save"}</Button>
-                            </div>:
-                            <Button color="main" variant="contained" size="small" sx={{width: '100%', marginTop: -1}}
-                                    onClick={addButtonClicked}
-                                    disabled={addButtonDisabled || isUpdating}
-                                    disableElevation>{isUpdating ?
-                                <CircularProgress color="inherit" size={20}/> : "Add"}</Button>
-                        }
-                    </ThemeProvider>
+                                    disableElevation>Cancel</Button>
+                            <Button color="success" variant="contained" size="small" sx={{width: '50%', marginTop: -1}}
+                                onClick={submitEditedTimeLog}
+                                disabled={isUpdateLoading}
+                                disableElevation>{isUpdateLoading ?
+                            <CircularProgress color="inherit" size={20}/> : "Save"}</Button>
+                        </div>:
+                        <Button variant="contained" size="small" sx={{width: '100%', marginTop: -1}}
+                                onClick={addButtonClicked}
+                                disabled={addButtonDisabled || isUpdating}
+                                disableElevation>{isUpdating ?
+                            <CircularProgress color="inherit" size={20}/> : "Add"}</Button>
+                    }
                 </CardActions>
             </div> :
             <div style={{marginTop: '8px'}}>
                 <Typography variant={'h3'} style={{color:'#1d575c'}}>{runningTime}</Typography>
                 <CardContent sx={{ paddingLeft: 0, paddingRight: 0 }}>
-                    <ThemeProvider theme={theme}>
                         {localRunningTimeLog ?
                           <Button color="main" variant="contained" size="small"
                                   sx={{width: 200, height: '58px', marginTop: -1}}
@@ -329,7 +379,6 @@ function TimeCard({ runningTimeLog, editingTimeLog, toggleTimer, task, activity,
                                   disableElevation>{isUpdating ?
                             <CircularProgress color="inherit" size={20}/> : "START"}</Button>
                         }
-                    </ThemeProvider>
                 </CardContent>
             </div> }
             <div style={{ marginTop: '3px' }}>
@@ -393,12 +442,12 @@ const TimeLogs = (props: any) => {
                         <Chip
                             key={key}
                             label={`${key} : ${totalPerProject[key]}`}
-                            style={{ backgroundColor: generateColor(key) }} />
+                            style={{ backgroundColor: generateColor(key), color: '#ffffff' }} />
                     )
                 }
                 { totalDraftHours > 0 ?
                 <Chip label={`Total Draft : ${totalDraftHours}`}
-                    style={{ backgroundColor: '#dcdcdc'}}
+                    style={{ backgroundColor: '#858585', color: '#ffffff'}}
                 ></Chip> : null }
             </div>
             </Container>
@@ -608,6 +657,7 @@ function App() {
     }
 
     return (
+        <CssVarsProvider theme={modeTheme}>
         <div className="App">
             <Backdrop
                 sx={{ color: '#fff', zIndex: 9999, display: 'flex', flexDirection: 'column' }}
@@ -617,7 +667,7 @@ function App() {
                 <div>Sending data to ERPNext...</div>
             </Backdrop>
             <div className="App-header">
-                <Container maxWidth="lg" style={{ display: 'flex' }}>
+                <Container maxWidth="lg" className="app-title-container">
                     <div className="app-title">
                         Timesheet
                         <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -627,6 +677,10 @@ function App() {
                                 onClick={() => window.location.href = '/manage/'}
                             />
                         </div>
+                    </div>
+
+                    <div style={{ display: 'flex', marginLeft: 'auto'}}>
+                        <ModeToggle />
                     </div>
                 </Container>
                 <Container maxWidth="lg" style={{ marginTop: "50px" }}>
@@ -781,6 +835,7 @@ function App() {
             </Button>
             }
         </div>
+        </CssVarsProvider>
     );
 }
 
