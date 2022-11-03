@@ -2,6 +2,15 @@
   text-align: center;
 }
 
+[data-mui-color-scheme="dark"] {
+  .App-header {
+    background-color: rgb(0, 30, 60);
+  }
+  .app-title {
+    color: mintcream !important;
+  }
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;
@@ -40,19 +49,22 @@
     padding-left: 0;
   }
 
+  .app-title-container {
+    display: flex;
+    margin-top: 20px;
+    margin-bottom: -20px;
+  }
+
   .MuiOutlinedInput-root {
-    background-color: white;
   }
 
   .headerInput {
     border-radius: 4px;
-    background-color: white;
   }
 
   .app-title {
     color: #1d575c;
     margin-top: 20px;
-    margin-bottom: -30px;
     font-weight: bolder;
     font-size: 25px;
     display: flex;
