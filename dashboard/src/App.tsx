@@ -366,7 +366,7 @@ function TimeCard({ runningTimeLog, editingTimeLog, toggleTimer, task, activity,
                 <Typography variant={'h3'} style={{color:'#1d575c'}}>{runningTime}</Typography>
                 <CardContent sx={{ paddingLeft: 0, paddingRight: 0 }}>
                         {localRunningTimeLog ?
-                          <Button color="main" variant="contained" size="small"
+                          <Button color="info" variant="contained" size="small"
                                   sx={{width: 200, height: '58px', marginTop: -1}}
                                   onClick={stopButtonClicked}
                                   disabled={startButtonDisabled}
