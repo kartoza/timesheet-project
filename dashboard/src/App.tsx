@@ -1,5 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import './styles/App.scss';
+import ReactQuill from "react-quill";
+import 'react-quill/dist/quill.snow.css';
 import {
     Container,
     Autocomplete,
@@ -777,15 +779,25 @@ function App() {
                                 />
                             </Grid>
                             <Grid item xs={12} style={{ marginRight: 5 }}>
-                                <TextField style={{ width: "100%", minHeight: '20px' }}
-                                           label="Description"
-                                           multiline
-                                           minRows={4}
-                                           variant="filled" className="headerInput" value={description} onChange={e => setDescription(e.target.value)}
-                                           InputProps={{
-                                               disableUnderline: true,
-                                           }}
+                                <ReactQuill
+                                    theme='snow'
+                                    value={description}
+                                    onChange={setDescription}
+                                    style={{minHeight: '150px'}}
                                 />
+                                {/*<TextField style={{ width: "100%", minHeight: '20px' }}*/}
+                                {/*           label="Description"*/}
+                                {/*           multiline*/}
+                                {/*           minRows={4}*/}
+                                {/*           variant="filled" className="headerInput" value={description}*/}
+                                {/*           onChange={e => {*/}
+                                {/*               console.log(e)*/}
+                                {/*               setDescription(e.target.value)*/}
+                                {/*           }}*/}
+                                {/*           InputProps={{*/}
+                                {/*               disableUnderline: true,*/}
+                                {/*           }}*/}
+                                {/*/>*/}
                             </Grid>
                         </Grid>
                         <Grid container item xs={12} md={2.2}>

@@ -139,3 +139,21 @@
     width: 100%;
   }
 }
+
+.ql-toolbar {
+  display: none;
+}
+
+.ql-editor {
+  min-height: 150px;
+}
+
+.ql-container {
+  min-height: 150px;
+  background-color: rgba(255, 255, 255, 0.09);
+  border-radius: 5px;
+}
+
+.ql-container.ql-snow {
+  border: 0 !important;
+}

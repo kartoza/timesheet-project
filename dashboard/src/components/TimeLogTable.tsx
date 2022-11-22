@@ -20,7 +20,7 @@ import {
 import {theme, generateColor} from "../utils/Theme";
 import {TimeLog, useDeleteTimeLogMutation} from "../services/api";
 import moment from "moment";
-import React, {useEffect, useState} from "react";
+import React, {Fragment, useEffect, useState} from "react";
 
 const bull = (
     <Box
@@ -31,7 +31,7 @@ const bull = (
     </Box>
 );
 
-function TimeLogItem(prop : TimeLog) {
+function TimeLogItem(prop : TimeLog)    {
     const [deleteTimeLog, { isLoading: isUpdating, isSuccess, isError }] = useDeleteTimeLogMutation();
     const [loading, setLoading] = useState(false);
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -93,12 +93,13 @@ function TimeLogItem(prop : TimeLog) {
                     <Typography className="activity-type" color="text.primary">
                         { prop.activity_type }
                     </Typography>
+                    <Typography sx={{ display: "inline-block", paddingLeft: 1, color: generateColor(prop.project_name) }}>
+                        {bull} { prop.project_name }
+                    </Typography>
                 </div>
                 <div style={{display: "flex"}}>
                     <Typography sx={{ display: "inline-block", fontWeight: "bold", whiteSpace: "pre-line"}}>
-                        { prop.description ? prop.description : '-' }</Typography>
-                    <Typography sx={{ display: "inline-block", paddingLeft: 1, color: generateColor(prop.project_name) }}>
-                        {bull} { prop.project_name }
+                        <div dangerouslySetInnerHTML={{__html: prop.description}} />
                     </Typography>
                 </div>
             </Grid>
