@@ -21,7 +21,7 @@ class PullProjects(APIView):
 
 class ProjectAutocomplete(APIView):
 
-    queryset = Project.objects.all()
+    queryset = Project.objects.filter(is_active=True)
 
     def get(self, request, format=None):
         query = request.GET.get('q', '')

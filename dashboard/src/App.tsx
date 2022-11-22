@@ -59,22 +59,6 @@ function ModeToggle() {
 }
 
 const modeTheme = extendTheme({
-    // colorSchemes: {
-    //     light: {
-    //         palette: {
-    //             primary: {
-    //                 main: '#FF00FF'
-    //             }
-    //         }
-    //     },
-    //     dark: {
-    //         palette: {
-    //             primary: {
-    //                 main: '#411941'
-    //             }
-    //         }
-    //     }
-    // }
 });
 
 
@@ -275,7 +259,6 @@ function TimeCard({ runningTimeLog, editingTimeLog, toggleTimer, task, activity,
 
     const clearData = () => {
         setHours(null);
-        setStartTime(new Date());
         clearAllFields();
     }
 
@@ -793,11 +776,11 @@ function App() {
                                     />}
                                 />
                             </Grid>
-                            <Grid item xs={12}>
+                            <Grid item xs={12} style={{ marginRight: 5 }}>
                                 <TextField style={{ width: "100%", minHeight: '20px' }}
                                            label="Description"
                                            multiline
-                                           rows={2}
+                                           minRows={4}
                                            variant="filled" className="headerInput" value={description} onChange={e => setDescription(e.target.value)}
                                            InputProps={{
                                                disableUnderline: true,
