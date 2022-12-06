@@ -1,5 +1,4 @@
 import json
-
 from datetime import datetime
 import requests
 import logging
@@ -9,7 +8,7 @@ from django.contrib.auth import get_user_model
 from timesheet.enums.doctype import DocType
 from timesheet.models import Timelog, Project, Task, Activity
 from timesheet.models.user_project import UserProject
-from timesheet.serializers.timesheet import TimelogSerializer
+from timesheet.serializers.timesheet import TimelogSerializerERP
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +113,7 @@ def pull_projects_from_erp(user: get_user_model()):
 
 
 def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
-    serializer = TimelogSerializer(
+    serializer = TimelogSerializerERP(
         queryset.order_by('start_time'), many=True)
 
     datetime_format = '%Y-%m-%d %H:%M:%S'
@@ -172,11 +171,8 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
             data=json.dumps(erp_timesheet_data),
             headers=headers
         )
-
         if response.status_code == 200:
             logger.info('Timesheet submitted successfully')
-            Timelog.objects.filter(
-                id__in=value['ids']
-            ).delete()
+
         else:
             logger.error(response.text)

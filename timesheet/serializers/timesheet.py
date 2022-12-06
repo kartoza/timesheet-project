@@ -1,4 +1,5 @@
 import re
+import html2text
 
 from rest_framework import serializers
 from timesheet.models import Timelog
@@ -127,5 +128,16 @@ class TimelogSerializer(serializers.ModelSerializer):
             'owner_name',
             'employee',
             'employee_name',
-            'running'
+            'running',
+            'submitted'
         ]
+
+
+class TimelogSerializerERP(TimelogSerializer):
+
+    description = serializers.SerializerMethodField()
+
+    def get_description(self, obj: Timelog):
+        h = html2text.HTML2Text()
+        h.ignore_links = True
+        return h.handle(obj.description)

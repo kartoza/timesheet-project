@@ -23,6 +23,7 @@ export interface TimeLog {
     to_time: string
     deleteTimeLog: any
     running: boolean
+    submitted: boolean
     activity_id: string
     edit_button_clicked?: any
     copy_button_clicked?: any

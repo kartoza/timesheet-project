@@ -483,7 +483,7 @@ function App() {
             setTasks([{
                 id: timesheetData.running.task_id,
                 label: timesheetData.running.task_name,
-                running: true
+                running: true,
             }])
 
             setRunningTimeLog(timesheetData.running)
@@ -785,21 +785,9 @@ function App() {
                                     onChange={setDescription}
                                     style={{minHeight: '150px'}}
                                 />
-                                {/*<TextField style={{ width: "100%", minHeight: '20px' }}*/}
-                                {/*           label="Description"*/}
-                                {/*           multiline*/}
-                                {/*           minRows={4}*/}
-                                {/*           variant="filled" className="headerInput" value={description}*/}
-                                {/*           onChange={e => {*/}
-                                {/*               console.log(e)*/}
-                                {/*               setDescription(e.target.value)*/}
-                                {/*           }}*/}
-                                {/*           InputProps={{*/}
-                                {/*               disableUnderline: true,*/}
-                                {/*           }}*/}
-                                {/*/>*/}
                             </Grid>
                         </Grid>
+
                         <Grid container item xs={12} md={2.2}>
                             <Box className="time-box">
                                 <TimeCard

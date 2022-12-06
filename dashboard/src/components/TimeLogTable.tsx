@@ -5,6 +5,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import {
     Box,
     Button,
@@ -114,34 +115,40 @@ function TimeLogItem(prop : TimeLog)    {
                 </Typography>
             </Grid>
             <Divider orientation="vertical" variant="middle" flexItem />
-            <Grid className="time-log-item center-item" item xs={0.6}>
-                <Button
-                    style={{ marginLeft: '8px' }}
-                    aria-controls={open ? 'basic-menu' : undefined}
-                    aria-expanded={open ? 'true': undefined}
-                    aria-label="delete"
-                    variant={'text'}
-                    size={"small"}
-                    onClick={openMenu}
-                    disabled={loading}
-                >
-                    <MoreVertIcon/>
-                </Button>
-                <Menu
-                    disableAutoFocusItem={true}
-                    id="basic-menu"
-                    anchorEl={anchorEl}
-                    open={open}
-                    onClose={handleClose}
-                    MenuListProps={{
-                        'aria-labelledby': 'basic-button',
-                    }}
-                >
-                    <MenuItem onClick={deleteTimeLogClicked}><DeleteSweepIcon/></MenuItem>
-                    <MenuItem onClick={editTimeLogClicked}><EditIcon/></MenuItem>
-                    <MenuItem onClick={copyTimeLogClicked}><ContentCopyIcon/></MenuItem>
-                </Menu>
-            </Grid>
+            {
+                !prop.submitted ?
+                    <Grid className="time-log-item center-item" item xs={0.6}>
+                        <Button
+                            style={{ marginLeft: '8px' }}
+                            aria-controls={open ? 'basic-menu' : undefined}
+                            aria-expanded={open ? 'true': undefined}
+                            aria-label="delete"
+                            variant={'text'}
+                            size={"small"}
+                            onClick={openMenu}
+                            disabled={loading}
+                        >
+                            <MoreVertIcon/>
+                        </Button>
+                        <Menu
+                            disableAutoFocusItem={true}
+                            id="basic-menu"
+                            anchorEl={anchorEl}
+                            open={open}
+                            onClose={handleClose}
+                            MenuListProps={{
+                                'aria-labelledby': 'basic-button',
+                            }}
+                        >
+                            <MenuItem onClick={deleteTimeLogClicked}><DeleteSweepIcon/></MenuItem>
+                            <MenuItem onClick={editTimeLogClicked}><EditIcon/></MenuItem>
+                            <MenuItem onClick={copyTimeLogClicked}><ContentCopyIcon/></MenuItem>
+                        </Menu>
+                    </Grid>
+                    :
+                    <Grid className="time-log-item center-item" item xs={0.6}>
+                        <TaskAltIcon color={'success'} style={{marginLeft: '1em'}}/>
+                    </Grid> }
         </Grid>
     )
 }
