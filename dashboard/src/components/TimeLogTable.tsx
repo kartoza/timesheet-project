@@ -5,7 +5,10 @@ import EditIcon from '@mui/icons-material/Edit';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import EngineeringIcon from '@mui/icons-material/Engineering';
 import {
     Box,
     Button,
@@ -15,10 +18,10 @@ import {
     Container,
     Divider,
     Grid,
-    IconButton,
+    IconButton, Paper, Stack,
     Typography
 } from "@mui/material";
-import {theme, generateColor} from "../utils/Theme";
+import {theme, generateColor, getColorFromTaskLabel} from "../utils/Theme";
 import {TimeLog, useDeleteTimeLogMutation} from "../services/api";
 import moment from "moment";
 import React, {Fragment, useEffect, useState} from "react";
@@ -87,17 +90,36 @@ function TimeLogItem(prop : TimeLog)    {
     return (
         <Grid container spacing={1} className="time-log-row">
             <Grid className="time-log-item left-item" item xs={12} md={8.5}>
-                <div>
-                    <Typography variant={"subtitle2"} color="text.secondary" sx={{ display: "inline-block", marginRight: prop.task_name ? '10px' : '0' }}>
-                        { prop.task_name }
-                    </Typography>
-                    <Typography className="activity-type" color="text.primary">
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                    <Paper style={{
+                        padding: prop.project_name ? '3px 10px' : '0',
+                        textAlign: 'center',
+                        alignItems: 'center',
+                        display: 'flex',
+                        backgroundColor: generateColor(prop.project_name) }}>
+                        <EngineeringIcon/>
+                        { prop.project_name }
+                    </Paper>
+                    <Paper sx={{
+                        textAlign: 'center',
+                        alignItems: 'center',
+                        display: 'flex',
+                            padding: prop.activity_type ? '3px 10px' : '0',
+                            backgroundColor: '#9b8540'
+                    }}>
+                        <DirectionsRunIcon/>
                         { prop.activity_type }
-                    </Typography>
-                    <Typography sx={{ display: "inline-block", paddingLeft: 1, color: generateColor(prop.project_name) }}>
-                        {bull} { prop.project_name }
-                    </Typography>
-                </div>
+                    </Paper>
+                    <Paper sx={{
+                        alignItems: 'center',
+                        display: 'flex',
+                        textAlign: 'center',
+                        backgroundColor: getColorFromTaskLabel(prop.task_name),
+                        padding: prop.task_name ? '3px 10px' : '0'}}>
+                        { prop.task_name ? <AssignmentIcon/> : null }
+                        { prop.task_name }
+                    </Paper>
+                </Stack>
                 <div style={{display: "flex"}}>
                     <Typography sx={{ display: "inline-block", fontWeight: "bold", whiteSpace: "pre-line"}}>
                         <div dangerouslySetInnerHTML={{__html: prop.description}} />

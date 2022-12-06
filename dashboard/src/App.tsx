@@ -22,7 +22,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import TimeLogTable from "./components/TimeLogTable";
-import { theme, generateColor } from "./utils/Theme";
+import { theme, generateColor, getColorFromTaskLabel } from "./utils/Theme";
 import SendIcon from '@mui/icons-material/Send';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ListIcon from '@mui/icons-material/List';
@@ -561,7 +561,7 @@ function App() {
     useEffect(() => {
         setProjectLoading(true)
         let isRunningProject = projects.length === 1 ? projects[0].running : false
-        if (projectInput.length > 2 && !isRunningProject) {
+        if (projectInput.length > 1 && !isRunningProject) {
             fetch('/project-list/?q=' + projectInput).then(
                 response => response.json()
             ).then(
@@ -586,7 +586,11 @@ function App() {
                     if (!selectedProject.running) {
                         setSelectedTask(null)
                     }
-                    setTasks(json)
+                    setTasks(json.map((jsonData: any) => {
+                        const label = jsonData.label;
+                        jsonData['color'] = getColorFromTaskLabel(label);
+                        return jsonData
+                    }))
                 }
             )
         } else {
@@ -765,17 +769,26 @@ function App() {
                                             setSelectedTask(null)
                                         }
                                     }}
+                                    renderOption={(props, option) => {
+                                        return (<li {...props}
+                                                    style={{ backgroundColor: option.color ? option.color : 'rgba(255,255,255,0)' }}>
+                                            {option.label}</li>)
+                                    }}
                                     value={selectedTask}
-                                    renderInput={(params) => <TextField
-                                        {...params}
-                                        label="Task"
-                                        variant="filled"
-                                        className="headerInput"
-                                        InputProps={{
-                                            ...params.InputProps,
-                                            disableUnderline: true,
-                                        }}
-                                    />}
+                                    renderInput={(params) => {
+                                        return <TextField
+                                            {...params}
+                                            label="Task"
+                                            variant="filled"
+                                            className="headerInput"
+                                            // @ts-ignore
+                                            style={{ backgroundColor: params?.inputProps?.value !== '' ? getColorFromTaskLabel(params.inputProps.value) : 'rgba(255,255,255,0)' }}
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                disableUnderline: true,
+                                            }}
+                                        />
+                                    }}
                                 />
                             </Grid>
                             <Grid item xs={12} style={{ marginRight: 5 }}>

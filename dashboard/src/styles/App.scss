@@ -114,6 +114,12 @@
   margin-top: 50px;
 }
 
+.MuiAutocomplete-listbox {
+  .Mui-focused {
+    opacity: 0.8;
+  }
+}
+
 .quote {
   font-family: 'noto_serif_italic', serif !important;
   max-width: 400px;
