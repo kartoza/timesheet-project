@@ -33,6 +33,7 @@ export default function TimeCard({
     clearAllFields } : TimeCardProps) {
     const [startTime, setStartTime] = React.useState<any | null>(new Date());
     const [hours, setHours] = React.useState<Number | null>(null);
+    const [hourString, setHourString] = React.useState<string>('');
     const [addButtonDisabled, setAddButtonDisabled] = React.useState(true);
     const [startButtonDisabled, setStartButtonDisabled] = React.useState(true);
     const [isLogging, setIsLogging] = useState(false);
@@ -44,13 +45,14 @@ export default function TimeCard({
 
 
     useEffect(() => {
-        setAddButtonDisabled(startTime == null || hours == null || !activity)
+        setAddButtonDisabled(startTime == null || hours == null || !activity || description === '')
         setStartButtonDisabled(!activity)
-    }, [startTime, hours, task, activity])
+    }, [startTime, hours, task, activity, description])
 
 
     const clearData = useCallback(() => {
         setHours(null);
+        setHourString('')
         clearAllFields();
     }, [clearAllFields])
 
@@ -262,12 +264,26 @@ export default function TimeCard({
                         renderInput={(params) => <TextField {...params} variant="standard" sx={{ width: "100%" }} />}
                     />
                     <TextField
-                        value={hours !== null ? hours : ''}
-                        onChange={(event) => (
-                            setHours(event.target.value !== '' ? parseFloat(event.target.value) : null)
-                        )}
+                        error={hourString.length > 4 && !hours}
+                        value={hourString}
+                        onChange={(event) => {
+                            const timeData = event.target.value.match(/(0?[1-9]|1[0-2])(:|.)[0-9]{2}/g)
+                            setHours(null)
+                            setHourString(event.target.value)
+                            if (timeData && timeData.length > 0) {
+                                const timeDataString = timeData[0]
+                                if (timeDataString.includes(':')) {
+                                    const minutes = timeDataString.split(':')[1]
+                                    const hour = timeDataString.split(':')[0]
+                                    setHours(parseFloat((parseFloat(hour) + (parseFloat(minutes)/60)).toFixed(2)))
+                                } else {
+                                    setHours(parseFloat(timeDataString))
+                                }
+                            }
+                        }}
                         id="hour"
-                        type="number"
+                        type="text"
+                        helperText='HH:MM or decimal'
                         InputProps={{
                             inputProps: { min: 0 }
                         }}

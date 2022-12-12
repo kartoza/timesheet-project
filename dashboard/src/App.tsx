@@ -462,7 +462,13 @@ function App() {
                                 <ReactQuill
                                     theme='snow'
                                     value={description}
-                                    onChange={setDescription}
+                                    onChange={(value) => {
+                                        if (value === '<p><br></p>') {
+                                            setDescription('')
+                                        } else {
+                                            setDescription(value)
+                                        }
+                                    }}
                                     style={{minHeight: '150px'}}
                                 />
                             </Grid>
