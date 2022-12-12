@@ -10,7 +10,6 @@ import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import EngineeringIcon from '@mui/icons-material/Engineering';
 import {
-    Box,
     Button,
     Card,
     CardContent,
@@ -18,22 +17,14 @@ import {
     Container,
     Divider,
     Grid,
-    IconButton, Paper, Stack,
+    Paper, Stack,
     Typography
 } from "@mui/material";
-import {theme, generateColor, getColorFromTaskLabel} from "../utils/Theme";
+import {generateColor, getColorFromTaskLabel} from "../utils/Theme";
 import {TimeLog, useDeleteTimeLogMutation} from "../services/api";
 import moment from "moment";
-import React, {Fragment, useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 
-const bull = (
-    <Box
-        component="span"
-        sx={{ display: 'inline-block', mx: '2px', transform: 'scale(0.8)' }}
-    >
-        •
-    </Box>
-);
 
 function TimeLogItem(prop : TimeLog)    {
     const [deleteTimeLog, { isLoading: isUpdating, isSuccess, isError }] = useDeleteTimeLogMutation();
@@ -96,19 +87,11 @@ function TimeLogItem(prop : TimeLog)    {
                         textAlign: 'center',
                         alignItems: 'center',
                         display: 'flex',
+                        fontSize: '15pt',
+                        fontWeight: 'bolder',
                         backgroundColor: generateColor(prop.project_name) }}>
-                        <EngineeringIcon/>
+                        <EngineeringIcon style={{ marginRight: 10 }}/>
                         { prop.project_name }
-                    </Paper>
-                    <Paper sx={{
-                        textAlign: 'center',
-                        alignItems: 'center',
-                        display: 'flex',
-                            padding: prop.activity_type ? '3px 10px' : '0',
-                            backgroundColor: '#9b8540'
-                    }}>
-                        <DirectionsRunIcon/>
-                        { prop.activity_type }
                     </Paper>
                     <Paper sx={{
                         alignItems: 'center',
@@ -117,8 +100,18 @@ function TimeLogItem(prop : TimeLog)    {
                         backgroundColor: getColorFromTaskLabel(prop.task_name),
                         padding: prop.task_name ? '3px 10px' : '0'}}>
                         { prop.task_name ? <AssignmentIcon/> : null }
-                        { prop.task_name }
+                        { prop.task_name } 
                     </Paper>
+                    { !prop.project_active ? (
+                    <Paper sx={{
+                        alignItems: 'center',
+                        display: 'flex',
+                        textAlign: 'center',
+                        backgroundColor: 'red',
+                        color: 'white',
+                        padding: prop.task_name ? '3px 10px' : '0'}}>
+                            Project Inactive
+                        </Paper> ) : null }
                 </Stack>
                 <div style={{display: "flex"}}>
                     <Typography sx={{ display: "inline-block", fontWeight: "bold", whiteSpace: "pre-line"}}>
@@ -227,7 +220,9 @@ function TimeLogTable(props: any) {
                       if (!timeLogData.running) {
                         return (
                           <div key={timeLogData.id}>
-                            <TimeLogItem {...timeLogData} edit_button_clicked={onEditButtonClicked} copy_button_clicked={onCopyButtonClicked}/>
+                            <TimeLogItem {...timeLogData}
+                                edit_button_clicked={onEditButtonClicked} 
+                                copy_button_clicked={onCopyButtonClicked}/>
                             <Divider sx={{marginBottom: 1}}/>
                           </div>
                         )
@@ -237,7 +232,6 @@ function TimeLogTable(props: any) {
                     })}
                 </CardContent>
             </Card>
-
         </Container>
     )
 }

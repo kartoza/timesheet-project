@@ -10,6 +10,7 @@ const apiHeaders = {
 }
 
 export interface TimeLog {
+    project_active: any;
     id: string
     description: string
     task: string

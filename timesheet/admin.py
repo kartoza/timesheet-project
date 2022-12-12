@@ -46,9 +46,12 @@ class TimelogAdmin(admin.ModelAdmin):
     )
     list_filter = (
         'user',
-        'task'
+        'submitted'
     )
     actions = [push_to_erp]
+    raw_id_fields = (
+        'task',
+    )
 
 
 class TaskAdmin(admin.ModelAdmin):
@@ -58,12 +61,22 @@ class TaskAdmin(admin.ModelAdmin):
         'actual_time',
         'expected_time'
     )
+    search_fields = (
+        'name',
+        'project__name'
+    )
 
 
 class ProjectAdmin(admin.ModelAdmin):
     list_display = (
         'name',
         'is_active'
+    )
+    search_fields = (
+        'name',
+    )
+    list_filter = (
+        'is_active',
     )
 
 
