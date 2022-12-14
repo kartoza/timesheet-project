@@ -39,9 +39,19 @@ export default function TimeCard({
     const [isLogging, setIsLogging] = useState(false);
     const [runningTime, setRunningTime] = useState('00:00:00');
     const [localRunningTimeLog, setLocalRunningTimeLog] = useState<any | null>(null);
+    const [updatedTimesheet, setUpdatedTimesheet] = useState<any>(null)
+    const [newTimesheet, setNewTimesheet] = useState<any>(null)
 
-    const [addTimesheet, { isLoading: isUpdating, isSuccess, isError, data }] = useAddTimesheetMutation();
+    const [addTimesheet, { isLoading: isUpdating, isSuccess, isError, data: newData }] = useAddTimesheetMutation();
     const [updateTimesheet, {  isLoading: isUpdateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError, data: updatedData }] = useUpdateTimesheetMutation();
+
+    useEffect(() => {
+        setUpdatedTimesheet(updatedData)
+    }, [updatedData])
+
+    useEffect(() => {
+        setNewTimesheet(newData)
+    }, [newData])
 
 
     useEffect(() => {
@@ -54,23 +64,26 @@ export default function TimeCard({
         setHours(null);
         setHourString('')
         clearAllFields();
+        setUpdatedTimesheet(null)
+        setNewTimesheet(null)
     }, [clearAllFields])
 
     useEffect(() => {
-        if (isSuccess && data) {
-            if (data.running) {
-                setLocalRunningTimeLog(data);
+        if (isSuccess && newTimesheet) {
+            if (newTimesheet.running) {
+                setLocalRunningTimeLog(newTimesheet);
             } else {
                 setLocalRunningTimeLog(null)
                 clearData();
             }
         }
-    }, [isSuccess, data, clearData])
+    }, [isSuccess, newTimesheet, clearData])
 
     useEffect(() => {
         if (localRunningTimeLog || editingTimeLog) {
-            if (updatedData && !updatedData.running) {
+            if (updatedTimesheet && !updatedTimesheet.running) {
                 clearInterval(interval);
+                setStartButtonDisabled(true);
                 setRunningTime('00:00:00');
                 setLocalRunningTimeLog(null);
                 clearData();
@@ -78,13 +91,14 @@ export default function TimeCard({
         }
     }, [localRunningTimeLog, 
         editingTimeLog, 
-        isUpdateSuccess, 
-        updatedData, 
+        isUpdateSuccess,
+        updatedTimesheet,
         clearData])
 
     useEffect(() => {
         if (editingTimeLog) {
             setHours(editingTimeLog.hours);
+            setHourString(editingTimeLog.hours);
             setStartTime(moment(editingTimeLog.from_time, 'YYYY-MM-DD hh:mm:ss'));
         }
     }, [editingTimeLog])
@@ -197,7 +211,11 @@ export default function TimeCard({
             task_id = task.id
         }
         setStartTime(endTime)
-        let startTimeStr = formatTime(startTime)
+        let _startTime = startTime;
+        if (typeof startTime.toDate === 'function') {
+            _startTime = startTime.toDate();
+        }
+        let startTimeStr = formatTime(_startTime)
         let endTimeStr = formatTime(endTime)
         addTimesheet({
             start_time: startTimeStr,
@@ -267,9 +285,19 @@ export default function TimeCard({
                         error={hourString.length > 4 && !hours}
                         value={hourString}
                         onChange={(event) => {
-                            const timeData = event.target.value.match(/(0?[1-9]|1[0-2])(:|.)[0-9]{2}/g)
+                            const value = event.target.value;
                             setHours(null)
-                            setHourString(event.target.value)
+                            setHourString(value)
+                            if (!value) {
+                                return
+                            }
+
+                            // @ts-ignore
+                            if (!isNaN(value)) {
+                                setHours(parseFloat(value))
+                                return
+                            }
+                            const timeData = value.match(/(0?[1-9]|1[0-2])(:|.)[0-9]{2}/g)
                             if (timeData && timeData.length > 0) {
                                 const timeDataString = timeData[0]
                                 if (timeDataString.includes(':')) {
