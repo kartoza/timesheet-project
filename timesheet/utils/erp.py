@@ -194,6 +194,10 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
         )
         if response.status_code == 200:
             logger.info('Timesheet submitted successfully')
+            
+            timelogs = Timelog.objects.filter(
+                id__in=value['ids']
+            ).update(submitted=True)
 
         else:
             logger.error(response.text)
