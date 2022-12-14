@@ -5,8 +5,11 @@ import EditIcon from '@mui/icons-material/Edit';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
+import TaskAltIcon from '@mui/icons-material/TaskAlt';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import EngineeringIcon from '@mui/icons-material/Engineering';
 import {
-    Box,
     Button,
     Card,
     CardContent,
@@ -14,24 +17,16 @@ import {
     Container,
     Divider,
     Grid,
-    IconButton,
+    Paper, Stack,
     Typography
 } from "@mui/material";
-import {theme, generateColor} from "../utils/Theme";
+import {generateColor, getColorFromTaskLabel} from "../utils/Theme";
 import {TimeLog, useDeleteTimeLogMutation} from "../services/api";
 import moment from "moment";
 import React, {useEffect, useState} from "react";
 
-const bull = (
-    <Box
-        component="span"
-        sx={{ display: 'inline-block', mx: '2px', transform: 'scale(0.8)' }}
-    >
-        •
-    </Box>
-);
 
-function TimeLogItem(prop : TimeLog) {
+function TimeLogItem(prop : TimeLog)    {
     const [deleteTimeLog, { isLoading: isUpdating, isSuccess, isError }] = useDeleteTimeLogMutation();
     const [loading, setLoading] = useState(false);
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -86,19 +81,41 @@ function TimeLogItem(prop : TimeLog) {
     return (
         <Grid container spacing={1} className="time-log-row">
             <Grid className="time-log-item left-item" item xs={12} md={8.5}>
-                <div>
-                    <Typography variant={"subtitle2"} color="text.secondary" sx={{ display: "inline-block", marginRight: prop.task_name ? '10px' : '0' }}>
-                        { prop.task_name }
-                    </Typography>
-                    <Typography className="activity-type" color="text.primary">
-                        { prop.activity_type }
-                    </Typography>
-                </div>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                    <Paper style={{
+                        padding: prop.project_name ? '3px 10px' : '0',
+                        textAlign: 'center',
+                        alignItems: 'center',
+                        display: 'flex',
+                        fontSize: '15pt',
+                        fontWeight: 'bolder',
+                        backgroundColor: generateColor(prop.project_name) }}>
+                        <EngineeringIcon style={{ marginRight: 10 }}/>
+                        { prop.project_name }
+                    </Paper>
+                    <Paper sx={{
+                        alignItems: 'center',
+                        display: 'flex',
+                        textAlign: 'center',
+                        backgroundColor: getColorFromTaskLabel(prop.task_name),
+                        padding: prop.task_name ? '3px 10px' : '0'}}>
+                        { prop.task_name ? <AssignmentIcon/> : null }
+                        { prop.task_name } 
+                    </Paper>
+                    { !prop.project_active ? (
+                    <Paper sx={{
+                        alignItems: 'center',
+                        display: 'flex',
+                        textAlign: 'center',
+                        backgroundColor: 'red',
+                        color: 'white',
+                        padding: prop.task_name ? '3px 10px' : '0'}}>
+                            Project Inactive
+                        </Paper> ) : null }
+                </Stack>
                 <div style={{display: "flex"}}>
                     <Typography sx={{ display: "inline-block", fontWeight: "bold", whiteSpace: "pre-line"}}>
-                        { prop.description ? prop.description : '-' }</Typography>
-                    <Typography sx={{ display: "inline-block", paddingLeft: 1, color: generateColor(prop.project_name) }}>
-                        {bull} { prop.project_name }
+                        <div dangerouslySetInnerHTML={{__html: prop.description}} />
                     </Typography>
                 </div>
             </Grid>
@@ -113,34 +130,40 @@ function TimeLogItem(prop : TimeLog) {
                 </Typography>
             </Grid>
             <Divider orientation="vertical" variant="middle" flexItem />
-            <Grid className="time-log-item center-item" item xs={0.6}>
-                <Button
-                    style={{ marginLeft: '8px' }}
-                    aria-controls={open ? 'basic-menu' : undefined}
-                    aria-expanded={open ? 'true': undefined}
-                    aria-label="delete"
-                    variant={'text'}
-                    size={"small"}
-                    onClick={openMenu}
-                    disabled={loading}
-                >
-                    <MoreVertIcon/>
-                </Button>
-                <Menu
-                    disableAutoFocusItem={true}
-                    id="basic-menu"
-                    anchorEl={anchorEl}
-                    open={open}
-                    onClose={handleClose}
-                    MenuListProps={{
-                        'aria-labelledby': 'basic-button',
-                    }}
-                >
-                    <MenuItem onClick={deleteTimeLogClicked}><DeleteSweepIcon/></MenuItem>
-                    <MenuItem onClick={editTimeLogClicked}><EditIcon/></MenuItem>
-                    <MenuItem onClick={copyTimeLogClicked}><ContentCopyIcon/></MenuItem>
-                </Menu>
-            </Grid>
+            {
+                !prop.submitted ?
+                    <Grid className="time-log-item center-item" item xs={0.6}>
+                        <Button
+                            style={{ marginLeft: '8px' }}
+                            aria-controls={open ? 'basic-menu' : undefined}
+                            aria-expanded={open ? 'true': undefined}
+                            aria-label="delete"
+                            variant={'text'}
+                            size={"small"}
+                            onClick={openMenu}
+                            disabled={loading}
+                        >
+                            <MoreVertIcon/>
+                        </Button>
+                        <Menu
+                            disableAutoFocusItem={true}
+                            id="basic-menu"
+                            anchorEl={anchorEl}
+                            open={open}
+                            onClose={handleClose}
+                            MenuListProps={{
+                                'aria-labelledby': 'basic-button',
+                            }}
+                        >
+                            <MenuItem onClick={deleteTimeLogClicked}><DeleteSweepIcon/></MenuItem>
+                            <MenuItem onClick={editTimeLogClicked}><EditIcon/></MenuItem>
+                            <MenuItem onClick={copyTimeLogClicked}><ContentCopyIcon/></MenuItem>
+                        </Menu>
+                    </Grid>
+                    :
+                    <Grid className="time-log-item center-item" item xs={0.6}>
+                        <TaskAltIcon color={'success'} style={{marginLeft: '1em'}}/>
+                    </Grid> }
         </Grid>
     )
 }
@@ -197,7 +220,9 @@ function TimeLogTable(props: any) {
                       if (!timeLogData.running) {
                         return (
                           <div key={timeLogData.id}>
-                            <TimeLogItem {...timeLogData} edit_button_clicked={onEditButtonClicked} copy_button_clicked={onCopyButtonClicked}/>
+                            <TimeLogItem {...timeLogData}
+                                edit_button_clicked={onEditButtonClicked} 
+                                copy_button_clicked={onCopyButtonClicked}/>
                             <Divider sx={{marginBottom: 1}}/>
                           </div>
                         )
@@ -207,7 +232,6 @@ function TimeLogTable(props: any) {
                     })}
                 </CardContent>
             </Card>
-
         </Container>
     )
 }

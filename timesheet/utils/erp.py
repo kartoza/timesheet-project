@@ -1,15 +1,16 @@
 import json
-
 from datetime import datetime
 import requests
 import logging
 from django.conf import settings
+
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 
 from timesheet.enums.doctype import DocType
 from timesheet.models import Timelog, Project, Task, Activity
 from timesheet.models.user_project import UserProject
-from timesheet.serializers.timesheet import TimelogSerializer
+from timesheet.serializers.timesheet import TimelogSerializerERP
 
 logger = logging.getLogger(__name__)
 
@@ -60,17 +61,36 @@ def pull_user_data_from_erp(user: get_user_model()):
 def pull_projects_from_erp(user: get_user_model()):
     projects = get_erp_data(
         DocType.PROJECT, user.profile.token)
+    updated = timezone.now()
     for project in projects:
-        _project, _ = Project.objects.get_or_create(
+        _project, _ = Project.objects.update_or_create(
             name=project['name'],
             defaults={
-                'is_active': project['is_active'] == 'Yes'
+                'is_active': project['is_active'] == 'Yes',
+                'updated': updated
             }
         )
         UserProject.objects.get_or_create(
             user=user,
             project=_project
         )
+    
+    # Check inactive projects
+    inactive = UserProject.objects.exclude(
+        project__updated=updated
+    )
+    if inactive.exists():
+        inactive_projects = Project.objects.filter(
+            id__in=inactive.values('project')
+        ).distinct()
+        inactive_projects.update(is_active=False)
+        Project.objects.filter(
+            id__in=inactive_projects.exclude(
+                task__timelog__isnull=False
+            ).values('id')
+        ).delete()
+
+
     tasks = get_erp_data(
         DocType.TASK, user.profile.token
     )
@@ -114,7 +134,7 @@ def pull_projects_from_erp(user: get_user_model()):
 
 
 def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
-    serializer = TimelogSerializer(
+    serializer = TimelogSerializerERP(
         queryset.order_by('start_time'), many=True)
 
     datetime_format = '%Y-%m-%d %H:%M:%S'
@@ -172,11 +192,8 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
             data=json.dumps(erp_timesheet_data),
             headers=headers
         )
-
         if response.status_code == 200:
             logger.info('Timesheet submitted successfully')
-            Timelog.objects.filter(
-                id__in=value['ids']
-            ).delete()
+
         else:
             logger.error(response.text)

@@ -1,4 +1,5 @@
 import re
+import html2text
 
 from rest_framework import serializers
 from timesheet.models import Timelog
@@ -7,6 +8,7 @@ from timesheet.models import Timelog
 class TimelogSerializer(serializers.ModelSerializer):
     owner = serializers.SerializerMethodField()
     project_name = serializers.SerializerMethodField()
+    project_active = serializers.SerializerMethodField()
     project = serializers.SerializerMethodField()
     project_id = serializers.SerializerMethodField()
     task = serializers.SerializerMethodField()
@@ -23,6 +25,11 @@ class TimelogSerializer(serializers.ModelSerializer):
     running = serializers.SerializerMethodField()
     employee_name = serializers.SerializerMethodField()
     employee = serializers.SerializerMethodField()
+
+    def get_project_active(self, obj: Timelog):
+        if obj.task:
+            return obj.task.project.is_active
+        return True
 
     def get_employee(self, obj: Timelog):
         return obj.user.profile.employee_id
@@ -127,5 +134,17 @@ class TimelogSerializer(serializers.ModelSerializer):
             'owner_name',
             'employee',
             'employee_name',
-            'running'
+            'running',
+            'submitted',
+            'project_active'
         ]
+
+
+class TimelogSerializerERP(TimelogSerializer):
+
+    description = serializers.SerializerMethodField()
+
+    def get_description(self, obj: Timelog):
+        h = html2text.HTML2Text()
+        h.ignore_links = True
+        return h.handle(obj.description)

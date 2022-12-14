@@ -1,5 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import './styles/App.scss';
+import ReactQuill from "react-quill";
+import 'react-quill/dist/quill.snow.css';
 import {
     Container,
     Autocomplete,
@@ -7,33 +9,20 @@ import {
     CircularProgress,
     Button,
     Grid,
-    CardContent,
-    CardActions,
     Box,
-    createStyles,
-    Theme,
     Backdrop,
     Typography,
     ToggleButton, ToggleButtonGroup
 } from "@mui/material";
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import TimeLogTable from "./components/TimeLogTable";
-import { theme, generateColor } from "./utils/Theme";
+import { generateColor, getColorFromTaskLabel } from "./utils/Theme";
 import SendIcon from '@mui/icons-material/Send';
 import SettingsIcon from '@mui/icons-material/Settings';
-import ListIcon from '@mui/icons-material/List';
-import PlayCircleIcon from '@mui/icons-material/PlayCircle';
-import {ThemeProvider} from "@mui/material/styles";
 import Chip from '@mui/material/Chip';
-import moment from "moment";
 import {
     TimeLog,
-    useAddTimesheetMutation,
     useGetTimeLogsQuery,
     useSubmitTimesheetMutation,
-    useUpdateTimesheetMutation
 } from "./services/api";
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
@@ -42,6 +31,7 @@ import {
     experimental_extendTheme as extendTheme,
     useColorScheme,
 } from '@mui/material/styles';
+import TimeCard from './components/TimeCard';
 
 function ModeToggle() {
     const { mode, setMode } = useColorScheme();
@@ -60,327 +50,6 @@ function ModeToggle() {
 
 const modeTheme = extendTheme({
 });
-
-
-function addHours(numOfHours: any, date = new Date()) {
-    let numOfSeconds = numOfHours / 3600
-    date.setTime(date.getTime() + numOfSeconds * 60 * 60 * 60 * 60 * 1000);
-    return date;
-}
-
-function formatTime(date = new Date()) {
-    let tzOffset = (new Date()).getTimezoneOffset() * 60000;
-    let localISOTime = (new Date(date.getTime() - tzOffset)).toISOString().slice(0, -1);
-    return localISOTime.replace('T', ' ').split('.')[0]
-}
-
-interface TimeCardProps {
-    updateTimeLog?: any | null,
-    runningTimeLog?: any | null,
-    editingTimeLog?: any | null,
-    toggleTimer?: any,
-    task?: any | null,
-    activity?: any | null,
-    description?: String | '',
-    clearAllFields?: any
-}
-
-let interval: any = null;
-
-function TimeCard({ runningTimeLog, editingTimeLog, toggleTimer, task, activity, description, clearAllFields } : TimeCardProps) {
-    const [startTime, setStartTime] = React.useState<any | null>(new Date());
-    const [hours, setHours] = React.useState<Number | null>(null);
-    const [addButtonDisabled, setAddButtonDisabled] = React.useState(true);
-    const [startButtonDisabled, setStartButtonDisabled] = React.useState(true);
-    const [isLogging, setIsLogging] = useState(false);
-    const [runningTime, setRunningTime] = useState('00:00:00');
-    const [localRunningTimeLog, setLocalRunningTimeLog] = useState<any | null>(null);
-
-    const [addTimesheet, { isLoading: isUpdating, isSuccess, isError, data }] = useAddTimesheetMutation();
-    const [updateTimesheet, {  isLoading: isUpdateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError, data: updatedData }] = useUpdateTimesheetMutation();
-
-
-    useEffect(() => {
-        setAddButtonDisabled(startTime == null || hours == null || !activity)
-        setStartButtonDisabled(!activity)
-    }, [startTime, hours, task, activity])
-
-    useEffect(() => {
-        if (isSuccess) {
-            if (data.running) {
-                setLocalRunningTimeLog(data);
-            } else {
-                setLocalRunningTimeLog(null)
-                clearData();
-            }
-        }
-    }, [isSuccess])
-
-    useEffect(() => {
-        if (localRunningTimeLog || editingTimeLog) {
-            if (updatedData && !updatedData.running) {
-                clearInterval(interval);
-                setRunningTime('00:00:00');
-                setLocalRunningTimeLog(null);
-                clearData();
-            }
-        }
-    }, [isUpdateSuccess])
-
-    useEffect(() => {
-        if (editingTimeLog) {
-            setHours(editingTimeLog.hours);
-            setStartTime(moment(editingTimeLog.from_time, 'YYYY-MM-DD hh:mm:ss'));
-        }
-    }, [editingTimeLog])
-
-    useEffect(() => {
-        if (runningTimeLog) {
-            setLocalRunningTimeLog(runningTimeLog);
-        }
-    }, [runningTimeLog])
-
-    useEffect(() => {
-        if (localRunningTimeLog) {
-            setStartButtonDisabled(false)
-            updateTimeRecursively();
-
-            const link = document.querySelector("link[rel~='icon']") as HTMLAnchorElement | null;
-            if (link) {
-                link.href = '/static/running-favicon.ico';
-            }
-        } else {
-            if (interval)
-                clearInterval(interval);
-        }
-    }, [localRunningTimeLog])
-
-    const stopButtonClicked = async () => {
-        if (!localRunningTimeLog) return;
-        toggleTimer(false);
-        clearInterval(interval);
-        setStartButtonDisabled(true);
-
-        const link = document.querySelector("link[rel~='icon']") as HTMLAnchorElement | null;
-        if (link) {
-            link.href = '/static/default-favicon.ico';
-        }
-
-        const runningTimeClone = Object.assign({}, localRunningTimeLog);
-        let task_id = ''
-        if (task) {
-            task_id = task.id
-        }
-        if (!task_id) {
-            task_id = '-'
-        }
-        runningTimeClone['task'] = {
-            'id': task_id
-        }
-        runningTimeClone['activity'] = {
-            'id': activity.id
-        }
-        runningTimeClone['description'] = description;
-        runningTimeClone['end_time'] = formatTime(new Date());
-        updateTimesheet(runningTimeClone);
-    }
-
-    const startButtonClicked = async () => {
-        setStartButtonDisabled(true);
-        clearInterval(interval);
-        toggleTimer(true);
-
-        if (!startTime || !activity) {
-            return
-        }
-        let task_id = ''
-        if (task) {
-            task_id = task.id
-        }
-        if (!task_id) {
-            task_id = '-'
-        }
-
-        addTimesheet({
-            start_time: formatTime(new Date()),
-            task: {
-                'id': task_id
-            },
-            activity: {
-                'id': activity.id
-            },
-            description: description
-        })
-    }
-
-    const addButtonClicked = async () => {
-        // Calculate start-time and end-time
-        let endTime = null
-        if (hours && startTime) {
-            let startTimeCopy = new Date(startTime.toISOString())
-            endTime = addHours(hours, startTimeCopy)
-        }
-        if (!endTime || !startTime || !activity) {
-            return
-        }
-        let task_id = '-'
-        if (task) {
-            task_id = task.id
-        }
-        setStartTime(endTime)
-        let startTimeStr = formatTime(startTime)
-        let endTimeStr = formatTime(endTime)
-        addTimesheet({
-            start_time: startTimeStr,
-            end_time: endTimeStr,
-            task: {
-                'id': task_id
-            },
-            activity: {
-                'id': activity.id
-            },
-            description: description
-        })
-    }
-
-    const updateTime = () => {
-        let fromTimeObj = moment(
-          localRunningTimeLog.from_time,
-          'YYYY-MM-DD hh:mm:ss');
-        let diff = moment().diff(fromTimeObj);
-        let d = moment.duration(diff);
-        setRunningTime(moment.utc(diff).format("HH:mm:ss"))
-    }
-
-    const updateTimeRecursively = () => {
-        updateTime();
-        interval = setInterval(updateTime, 1000);
-    }
-
-    const clearData = () => {
-        setHours(null);
-        clearAllFields();
-    }
-
-    const submitEditedTimeLog = () => {
-        let endTime = null
-        if (hours && startTime) {
-            let startTimeCopy = new Date(startTime.toISOString())
-            endTime = addHours(hours, startTimeCopy)
-        }
-        if (!editingTimeLog || !startTime || !endTime || !activity) {
-            return
-        }
-        if (editingTimeLog) {
-            const editingTimeClone = Object.assign({}, editingTimeLog);
-            let task_id = ''
-            if (task) {
-                task_id = task.id
-            }
-            if (!task_id) {
-                task_id = '-'
-            }
-            editingTimeClone['task'] = {
-                'id': task_id
-            }
-            editingTimeClone['activity'] = {
-                'id': activity.id
-            }
-            editingTimeClone['description'] = description;
-            editingTimeClone['end_time'] = formatTime(endTime);
-            let _startTime = startTime;
-            if (typeof startTime.toDate === 'function') {
-                _startTime = startTime.toDate();
-            }
-            editingTimeClone['start_time'] = formatTime(_startTime);
-            editingTimeClone['editing'] = true;
-            updateTimesheet(editingTimeClone);
-        }
-    }
-
-    const cancelEditingTimeLog = () => {
-        clearData();
-    }
-
-    return (
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-            { isLogging || editingTimeLog ?
-            <div>
-                <CardContent sx={{ paddingLeft: 0, paddingRight: 0, paddingTop: 0 }}>
-                    <DateTimePicker
-                        value={startTime}
-                        onChange={(newValue) => setStartTime(newValue)}
-                        renderInput={(params) => <TextField {...params} variant="standard" sx={{ width: "100%" }} />}
-                    />
-                    <TextField
-                        value={hours !== null ? hours : ''}
-                        onChange={(event) => (
-                            setHours(event.target.value !== '' ? parseFloat(event.target.value) : null)
-                        )}
-                        id="hour"
-                        type="number"
-                        InputProps={{
-                            inputProps: { min: 0 }
-                        }}
-                        label="Hours" variant="standard" sx={{ width: "100%" }} />
-                </CardContent>
-                <CardActions sx={{ justifyContent: "center", padding: 0, marginBottom: '10px', marginTop: '4px' }}>
-                    {editingTimeLog ?
-                        <div style={{width: '100%'}}>
-                            <Button color="warning" variant="contained" size="small" sx={{width: '50%', marginTop: -1}}
-                                    onClick={cancelEditingTimeLog}
-                                    disabled={isUpdateLoading}
-                                    disableElevation>Cancel</Button>
-                            <Button color="success" variant="contained" size="small" sx={{width: '50%', marginTop: -1}}
-                                onClick={submitEditedTimeLog}
-                                disabled={isUpdateLoading}
-                                disableElevation>{isUpdateLoading ?
-                            <CircularProgress color="inherit" size={20}/> : "Save"}</Button>
-                        </div>:
-                        <Button variant="contained" size="small" sx={{width: '100%', marginTop: -1}}
-                                onClick={addButtonClicked}
-                                disabled={addButtonDisabled || isUpdating}
-                                disableElevation>{isUpdating ?
-                            <CircularProgress color="inherit" size={20}/> : "Add"}</Button>
-                    }
-                </CardActions>
-            </div> :
-            <div style={{marginTop: '8px'}}>
-                <Typography variant={'h3'} style={{color:'#1d575c'}}>{runningTime}</Typography>
-                <CardContent sx={{ paddingLeft: 0, paddingRight: 0 }}>
-                        {localRunningTimeLog ?
-                          <Button color="info" variant="contained" size="small"
-                                  sx={{width: 200, height: '58px', marginTop: -1}}
-                                  onClick={stopButtonClicked}
-                                  disabled={startButtonDisabled}
-                                  disableElevation>{isUpdateLoading ?
-                            <CircularProgress color="inherit" size={20}/> : "STOP"}</Button> :
-                          <Button color="success" variant="contained" size="small"
-                                  sx={{width: 200, height: '58px', marginTop: -1}}
-                                  onClick={startButtonClicked}
-                                  disabled={startButtonDisabled}
-                                  disableElevation>{isUpdating ?
-                            <CircularProgress color="inherit" size={20}/> : "START"}</Button>
-                        }
-                </CardContent>
-            </div> }
-            <div style={{ marginTop: '3px' }}>
-                <Grid container spacing={0.6}>
-                    <Grid item xs={6}>
-                        <Button variant={'outlined'} disabled={!isLogging || editingTimeLog} color={'success'} style={{ width: '100%' }} onClick={() => setIsLogging(false)}>
-                            <PlayCircleIcon/>
-                        </Button>
-                    </Grid>
-                    <Grid item xs={6}>
-                        <Button variant={'outlined'} disabled={isLogging || editingTimeLog || localRunningTimeLog} color={'success'} style={{ width: '100%' }} onClick={() => setIsLogging(true)}>
-                            <ListIcon/>
-                        </Button>
-                    </Grid>
-                </Grid>
-            </div>
-        </LocalizationProvider>
-    )
-}
 
 
 const TimeLogs = (props: any) => {
@@ -481,7 +150,7 @@ function App() {
             setTasks([{
                 id: timesheetData.running.task_id,
                 label: timesheetData.running.task_name,
-                running: true
+                running: true,
             }])
 
             setRunningTimeLog(timesheetData.running)
@@ -559,7 +228,7 @@ function App() {
     useEffect(() => {
         setProjectLoading(true)
         let isRunningProject = projects.length === 1 ? projects[0].running : false
-        if (projectInput.length > 2 && !isRunningProject) {
+        if (projectInput.length > 1 && !isRunningProject) {
             fetch('/project-list/?q=' + projectInput).then(
                 response => response.json()
             ).then(
@@ -584,7 +253,11 @@ function App() {
                     if (!selectedProject.running) {
                         setSelectedTask(null)
                     }
-                    setTasks(json)
+                    setTasks(json.map((jsonData: any) => {
+                        const label = jsonData.label;
+                        jsonData['color'] = getColorFromTaskLabel(label);
+                        return jsonData
+                    }))
                 }
             )
         } else {
@@ -763,31 +436,44 @@ function App() {
                                             setSelectedTask(null)
                                         }
                                     }}
+                                    renderOption={(props, option) => {
+                                        return (<li {...props}
+                                                    style={{ backgroundColor: option.color ? option.color : 'rgba(255,255,255,0)' }}>
+                                            {option.label}</li>)
+                                    }}
                                     value={selectedTask}
-                                    renderInput={(params) => <TextField
-                                        {...params}
-                                        label="Task"
-                                        variant="filled"
-                                        className="headerInput"
-                                        InputProps={{
-                                            ...params.InputProps,
-                                            disableUnderline: true,
-                                        }}
-                                    />}
+                                    renderInput={(params) => {
+                                        return <TextField
+                                            {...params}
+                                            label="Task"
+                                            variant="filled"
+                                            className="headerInput"
+                                            // @ts-ignore
+                                            style={{ backgroundColor: params?.inputProps?.value !== '' ? getColorFromTaskLabel(params.inputProps.value) : 'rgba(255,255,255,0)' }}
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                disableUnderline: true,
+                                            }}
+                                        />
+                                    }}
                                 />
                             </Grid>
                             <Grid item xs={12} style={{ marginRight: 5 }}>
-                                <TextField style={{ width: "100%", minHeight: '20px' }}
-                                           label="Description"
-                                           multiline
-                                           minRows={4}
-                                           variant="filled" className="headerInput" value={description} onChange={e => setDescription(e.target.value)}
-                                           InputProps={{
-                                               disableUnderline: true,
-                                           }}
+                                <ReactQuill
+                                    theme='snow'
+                                    value={description}
+                                    onChange={(value) => {
+                                        if (value === '<p><br></p>') {
+                                            setDescription('')
+                                        } else {
+                                            setDescription(value)
+                                        }
+                                    }}
+                                    style={{minHeight: '150px'}}
                                 />
                             </Grid>
                         </Grid>
+
                         <Grid container item xs={12} md={2.2}>
                             <Box className="time-box">
                                 <TimeCard
