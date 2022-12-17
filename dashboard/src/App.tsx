@@ -471,6 +471,13 @@ function App() {
                             </Grid>
                             <Grid item xs={12} style={{ marginRight: 5 }}>
                                 <ReactQuill
+                                    modules={{
+                                        toolbar: [
+                                          ['bold', 'italic','strike', 'blockquote'],
+                                          [{'list': 'ordered'}, {'list': 'bullet'}],
+                                          ['link'],
+                                        ],
+                                      }}
                                     theme='snow'
                                     value={description}
                                     onChange={(value) => {
