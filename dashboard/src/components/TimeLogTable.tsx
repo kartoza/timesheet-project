@@ -82,21 +82,13 @@ function TimeLogItem(prop : TimeLog)    {
         <Grid container spacing={1} className="time-log-row">
             <Grid className="time-log-item left-item" item xs={12} md={8.5}>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-                    <Paper style={{
+                    <Paper className="time-log-project" style={{
                         padding: prop.project_name ? '3px 10px' : '0',
-                        textAlign: 'center',
-                        alignItems: 'center',
-                        display: 'flex',
-                        fontSize: '15pt',
-                        fontWeight: 'bolder',
                         backgroundColor: generateColor(prop.project_name) }}>
                         <EngineeringIcon style={{ marginRight: 10 }}/>
                         { prop.project_name }
                     </Paper>
-                    <Paper sx={{
-                        alignItems: 'center',
-                        display: 'flex',
-                        textAlign: 'center',
+                    <Paper className='time-log-task' sx={{
                         backgroundColor: getColorFromTaskLabel(prop.task_name),
                         padding: prop.task_name ? '3px 10px' : '0'}}>
                         { prop.task_name ? <AssignmentIcon/> : null }
