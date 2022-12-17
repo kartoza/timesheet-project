@@ -2,6 +2,14 @@
   text-align: center;
 }
 
+.ql-editor ol, .ql-editor ul {
+    padding-left: 0 !important;
+}
+
+.ql-editor li {
+    padding-left: 1.5em !important;
+}
+
 [data-mui-color-scheme="dark"] {
   .App-header {
     background-color: rgb(0, 30, 60);

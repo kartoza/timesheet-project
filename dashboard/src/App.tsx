@@ -32,6 +32,7 @@ import {
     useColorScheme,
 } from '@mui/material/styles';
 import TimeCard from './components/TimeCard';
+import Standup from './components/Standup';
 
 function ModeToggle() {
     const { mode, setMode } = useColorScheme();
@@ -345,6 +346,7 @@ function App() {
                     </div>
 
                     <div style={{ display: 'flex', marginLeft: 'auto'}}>
+                        <Standup  data={timesheetData}/>
                         <ModeToggle />
                     </div>
                 </Container>
