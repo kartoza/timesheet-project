@@ -15,7 +15,7 @@ import {
     ToggleButton, ToggleButtonGroup
 } from "@mui/material";
 import TimeLogTable from "./components/TimeLogTable";
-import { generateColor, getColorFromTaskLabel } from "./utils/Theme";
+import { generateColor, getColorFromTaskLabel, getTaskColor } from "./utils/Theme";
 import SendIcon from '@mui/icons-material/Send';
 import SettingsIcon from '@mui/icons-material/Settings';
 import Chip from '@mui/material/Chip';
@@ -89,18 +89,27 @@ const TimeLogs = (props: any) => {
         <div>
             <Container maxWidth="lg">
             <div className={'timelogs-info'}>
-                {
-                    Object.keys(totalPerProject).map((key: any) =>
-                        <Chip
-                            key={key}
-                            label={`${key} : ${totalPerProject[key]}`}
-                            style={{ backgroundColor: generateColor(key), color: '#ffffff' }} />
-                    )
-                }
-                { totalDraftHours > 0 ?
-                <Chip label={`Total Draft : ${totalDraftHours}`}
-                    style={{ backgroundColor: '#858585', color: '#ffffff'}}
-                ></Chip> : null }
+                <Grid container>
+                    <Grid item xs={10} style={{ textAlign: "left"}}>
+                    {
+                        Object.keys(totalPerProject).map((key: any) =>
+                            <Chip
+                                key={key}
+                                label={`${key} : ${totalPerProject[key]}`}
+                                style={{ backgroundColor: generateColor(key), color: '#ffffff' }} />
+                        )
+                    }
+                    </Grid>
+                    <Grid item xs={2} style={{ textAlign: 'right' }}>
+                    { totalDraftHours > 0 ?
+                    <Chip label={`Total : ${totalDraftHours}`}
+                        style={{ 
+                            color: 'white',
+                            backgroundColor: getTaskColor(totalDraftHours < 40 ? 1 - ((totalDraftHours % 40) / 40) : 0), 
+                            fontSize: '11pt', fontWeight: 'bold'}}
+                    ></Chip> : null }
+                    </Grid>
+                </Grid>
             </div>
             </Container>
             {
