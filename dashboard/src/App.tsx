@@ -471,6 +471,8 @@ function App() {
                             </Grid>
                             <Grid item xs={12} style={{ marginRight: 5 }}>
                                 <ReactQuill
+                                    formats={['bold', 'link', 'strike', 
+                                    'italic', 'list', 'indent', 'align', 'code-block']}
                                     modules={{
                                         toolbar: [
                                           ['bold', 'italic','strike', 'blockquote'],

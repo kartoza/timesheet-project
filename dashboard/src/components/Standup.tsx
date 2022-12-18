@@ -133,6 +133,9 @@ export default function Standup(props: StandupProp) {
                     </Grid>
                 </Grid>
                 <ReactQuill
+
+                    formats={['bold', 'link', 'strike', 
+                        'italic', 'list', 'indent', 'align', 'code-block']}
                     modules={{
                         toolbar: [
                           ['bold', 'italic','strike', 'blockquote'],
