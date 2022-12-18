@@ -187,3 +187,13 @@ class SubmitTimeLogsAPIView(APIView):
         )
         push_timesheet_to_erp(queryset, request.user)
         return Response(status=200)
+
+
+class ClearSubmittedTimesheetsAPIView(APIView):
+    def post(self, request):
+        queryset = Timelog.objects.filter(
+            user=self.request.user,
+            submitted=True
+        )
+        queryset.delete()
+        return Response(status=200)

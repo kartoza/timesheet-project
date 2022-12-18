@@ -3,9 +3,12 @@ import { LocalizationProvider, DateTimePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import ListIcon from '@mui/icons-material/List';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
+import ClearAllIcon from '@mui/icons-material/ClearAll';
 import moment from "moment";
 import React, { useCallback, useEffect, useState } from "react";
-import { useAddTimesheetMutation, useUpdateTimesheetMutation } from "../services/api";
+import { useAddTimesheetMutation, 
+    useUpdateTimesheetMutation, 
+    useClearSubmittedTimesheetsMutation } from "../services/api";
 import { addHours, formatTime } from "../utils/time";
 
 
@@ -44,6 +47,9 @@ export default function TimeCard({
 
     const [addTimesheet, { isLoading: isUpdating, isSuccess, isError, data: newData }] = useAddTimesheetMutation();
     const [updateTimesheet, {  isLoading: isUpdateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError, data: updatedData }] = useUpdateTimesheetMutation();
+    const [clearTimesheets, {
+        isLoading: isClearLoading, 
+        isSuccess: isClearSuccess, isError: isClearError }] = useClearSubmittedTimesheetsMutation();
 
     useEffect(() => {
         setUpdatedTimesheet(updatedData)
@@ -271,6 +277,14 @@ export default function TimeCard({
         clearData();
     }
 
+    const handleClearSubmitted = () => {
+        // eslint-disable-next-line no-restricted-globals
+        let confirmed = confirm('Are you sure you want to clear submitted timesheets?');
+        if (confirmed) {
+            clearTimesheets({})
+        }
+    }
+
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
             { isLogging || editingTimeLog ?
@@ -338,7 +352,7 @@ export default function TimeCard({
                     }
                 </CardActions>
             </div> :
-            <div style={{marginTop: '8px'}}>
+            <div style={{marginTop: '8px',  marginBottom: '25px'}}>
                 <Typography variant={'h3'} style={{color:'#1d575c'}}>{runningTime}</Typography>
                 <CardContent sx={{ paddingLeft: 0, paddingRight: 0 }}>
                         {localRunningTimeLog ?
@@ -370,6 +384,14 @@ export default function TimeCard({
                         </Button>
                     </Grid>
                 </Grid>
+            </div>
+            <div style={{ marginTop: 'auto'}}>
+                <Button 
+                    onClick={handleClearSubmitted}
+                    style={{ width: '100%' }}
+                    startIcon={<ClearAllIcon/>}
+                    variant={'outlined'} 
+                    color={'warning'}>Clear Submitted</Button>
             </div>
         </LocalizationProvider>
     )

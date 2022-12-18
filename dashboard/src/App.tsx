@@ -22,7 +22,7 @@ import Chip from '@mui/material/Chip';
 import {
     TimeLog,
     useGetTimeLogsQuery,
-    useSubmitTimesheetMutation,
+    useSubmitTimesheetMutation
 } from "./services/api";
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';

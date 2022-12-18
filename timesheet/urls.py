@@ -4,7 +4,8 @@ from timesheet.api_views.timesheet import (
     TimesheetModelViewSet,
     TimesheetViewSet,
     TimeLogDeleteAPIView,
-    SubmitTimeLogsAPIView
+    SubmitTimeLogsAPIView,
+    ClearSubmittedTimesheetsAPIView
 )
 from timesheet.api_views.activity_list import ActivityList
 from timesheet.api_views.project import (
@@ -33,6 +34,9 @@ urlpatterns = [
     path('api/submit-timesheet/',
          SubmitTimeLogsAPIView.as_view(),
          name='submit-timesheet'),
+    path('api/clear-submitted-timesheets/',
+         ClearSubmittedTimesheetsAPIView.as_view(),
+         name='clear-submitted-timesheets'),
     path('task-list/<int:task_id>/',
          TaskAutocomplete.as_view(),
          name='task-list'),

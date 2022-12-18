@@ -133,7 +133,13 @@ export default function Standup(props: StandupProp) {
                     </Grid>
                 </Grid>
                 <ReactQuill
-                
+                    modules={{
+                        toolbar: [
+                          ['bold', 'italic','strike', 'blockquote'],
+                          [{'list': 'ordered'}, {'list': 'bullet'}],
+                          ['link'],
+                        ],
+                      }}
                     ref={textAreaRef}
                     theme='snow'
                     value={standupText}
