@@ -61,6 +61,10 @@ def pull_user_data_from_erp(user: get_user_model()):
 def pull_projects_from_erp(user: get_user_model()):
     projects = get_erp_data(
         DocType.PROJECT, user.profile.token)
+
+    if len(projects) == 0:
+        return
+
     updated = timezone.now()
     for project in projects:
         _project, _ = Project.objects.update_or_create(
