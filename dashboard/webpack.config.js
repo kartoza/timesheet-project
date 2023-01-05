@@ -6,7 +6,7 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 const mode = process.env.npm_lifecycle_event;
 const isDev = (mode.includes('dev'));
-const filename = isDev ? "[name]" : "[name].[hash]";
+const filename = isDev ? "[name]" : "[name].[chunkhash]";
 
 module.exports = {
   context: __dirname,

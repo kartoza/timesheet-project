@@ -1,38 +1,40 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState, Suspense} from 'react';
 import './styles/App.scss';
-import ReactQuill from "react-quill";
-import 'react-quill/dist/quill.snow.css';
-import {
-    Container,
-    Autocomplete,
-    TextField,
-    CircularProgress,
-    Button,
-    Grid,
-    Box,
-    Backdrop,
-    Typography,
-    ToggleButton, ToggleButtonGroup
-} from "@mui/material";
-import TimeLogTable from "./components/TimeLogTable";
-import { generateColor, getColorFromTaskLabel, getTaskColor } from "./utils/Theme";
-import SendIcon from '@mui/icons-material/Send';
-import SettingsIcon from '@mui/icons-material/Settings';
+import Container from '@mui/material/Container';
+import Autocomplete from '@mui/material/Autocomplete';
+import TextField from '@mui/material/TextField';
+import CircularProgress from '@mui/material/CircularProgress';
+import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
+import Backdrop from '@mui/material/Backdrop';
+import Typography from '@mui/material/Typography';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+
+import { generateColor, getColorFromTaskLabel, getTaskColor } from "./utils/Theme";
 import {
     TimeLog,
     useGetTimeLogsQuery,
     useSubmitTimesheetMutation
 } from "./services/api";
-import LightModeIcon from '@mui/icons-material/LightMode';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
 import {
     Experimental_CssVarsProvider as CssVarsProvider,
     experimental_extendTheme as extendTheme,
     useColorScheme,
 } from '@mui/material/styles';
-import TimeCard from './components/TimeCard';
-import Standup from './components/Standup';
+import TReactQuill from './components/ReactQuill';
+import TButton from './loadable/Button';
+import { 
+    SettingsIcon, 
+    SendIcon, 
+    LightModeIcon, 
+    DarkModeIcon 
+} from './loadable/Icon';
+const Standup = React.lazy(() => import('./components/Standup'));
+const TimeCard = React.lazy(() => import('./components/TimeCard'));
+const TimeLogTable = React.lazy(() => import("./components/TimeLogTable"));
+
 
 function ModeToggle() {
     const { mode, setMode } = useColorScheme();
@@ -116,12 +118,14 @@ const TimeLogs = (props: any) => {
             {
                 Object.keys(timesheetData.logs).map((key: any) =>
                     <div key={key} style={{ marginBottom: 10 }}>
-                        <TimeLogTable
-                            key={key}
-                            data={timesheetData.logs[key]}
-                            date={key}
-                            editTimeLog={editTimeLog}
-                            copyTimeLog={copyTimeLog}/>
+                        <Suspense>
+                            <TimeLogTable
+                                key={key}
+                                data={timesheetData.logs[key]}
+                                date={key}
+                                editTimeLog={editTimeLog}
+                                copyTimeLog={copyTimeLog}/>
+                        </Suspense>
                     </div>
                 )
             }
@@ -130,7 +134,6 @@ const TimeLogs = (props: any) => {
 }
 
 function App() {
-
     const { data: timesheetData, isLoading: isFetchingTimelogs, isSuccess: isSuccessFetching } = useGetTimeLogsQuery()
     const [activities, setActivities] = useState<any>([])
     const [selectedActivity, setSelectedActivity] = useState<any>(null)
@@ -346,7 +349,9 @@ function App() {
                     </div>
 
                     <div style={{ display: 'flex', marginLeft: 'auto'}}>
-                        <Standup  data={timesheetData}/>
+                        <Suspense fallback={<div></div>}>
+                            <Standup  data={timesheetData}/>
+                        </Suspense>
                         <ModeToggle />
                     </div>
                 </Container>
@@ -469,20 +474,19 @@ function App() {
                                     }}
                                 />
                             </Grid>
-                            <Grid item xs={12} style={{ marginRight: 5 }}>
-                                <ReactQuill
+                            <Grid item xs={12} style={{ marginRight: 5, minHeight: 110 }}>
+                                <TReactQuill
                                     formats={['bold', 'link', 'strike', 
                                     'italic', 'list', 'indent', 'align', 'code-block']}
                                     modules={{
                                         toolbar: [
-                                          ['bold', 'italic','strike', 'blockquote'],
-                                          [{'list': 'ordered'}, {'list': 'bullet'}],
-                                          ['link'],
+                                        ['bold', 'italic','strike', 'blockquote'],
+                                        [{'list': 'ordered'}, {'list': 'bullet'}],
+                                        ['link'],
                                         ],
-                                      }}
-                                    theme='snow'
+                                    }}
                                     value={description}
-                                    onChange={(value) => {
+                                    onChange={(value : any) => {
                                         if (value === '<p><br></p>') {
                                             setDescription('')
                                         } else {
@@ -496,14 +500,16 @@ function App() {
 
                         <Grid container item xs={12} md={2.2}>
                             <Box className="time-box">
-                                <TimeCard
-                                    runningTimeLog={runningTimeLog}
-                                    editingTimeLog={editingTimeLog}
-                                    task={selectedTask}
-                                    activity={selectedActivity}
-                                    description={description}
-                                    toggleTimer={toggleTimer}
-                                    clearAllFields={clearAllFields}/>
+                                <Suspense>
+                                    <TimeCard
+                                        runningTimeLog={runningTimeLog}
+                                        editingTimeLog={editingTimeLog}
+                                        task={selectedTask}
+                                        activity={selectedActivity}
+                                        description={description}
+                                        toggleTimer={toggleTimer}
+                                        clearAllFields={clearAllFields}/>
+                                </Suspense>
                             </Box>
                         </Grid>
                     </Grid>
@@ -519,9 +525,15 @@ function App() {
                         : ''
                     }
                 </div> :
-            <Button variant="contained" endIcon={<SendIcon />} className="send-erpnext-btn" onClick={submitTimesheetClicked} style={{ marginBottom: 50 }}>
-                Send To Erpnext
-            </Button>
+            <Grid container>
+                <Grid item xs={12} md={4}></Grid>
+                <Grid item xs={12} md={4}>
+                <TButton variant="contained" endIcon={<SendIcon />} className="send-erpnext-btn" onClick={submitTimesheetClicked} style={{ marginBottom: 50 }}>
+                    Send To Erpnext
+                </TButton>
+                </Grid>
+                <Grid item xs={12} md={4}></Grid>
+            </Grid>
             }
         </div>
         </CssVarsProvider>

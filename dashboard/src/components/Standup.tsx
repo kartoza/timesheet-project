@@ -1,11 +1,11 @@
-import { Button, Grid, Modal, Typography } from "@mui/material";
+import { Grid, Modal, Typography } from "@mui/material";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import EmojiPeopleIcon from '@mui/icons-material/EmojiPeople';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import TReactQuill from "./ReactQuill";
+import TButton from "../loadable/Button";
 import '../styles/Standup';
 import { Box } from "@mui/system";
-import ReactQuill from "react-quill";
 import moment from "moment";
+import { EmojiPeopleIcon, ContentCopyIcon } from "../loadable/Icon";
 
 
 interface StandupProp {
@@ -108,13 +108,13 @@ export default function Standup(props: StandupProp) {
     }
 
     return <div className="Standup">
-        <Button 
+        <TButton 
             onClick={() => updateStandupText()}
             className="StandupButton"
             startIcon={<EmojiPeopleIcon/>} 
             variant="outlined" size="large" color='secondary'>
           Standup
-        </Button>
+        </TButton>
         <Modal open={open} onClose={handleModalClose}>
             <Box className='StandupModal'>
                 <Grid container marginBottom={1}>
@@ -125,15 +125,14 @@ export default function Standup(props: StandupProp) {
                         </Typography>
                     </Grid>
                     <Grid item xs={6} textAlign={"right"}>
-                        <Button variant="outlined" 
+                        <TButton variant="outlined" 
                             onClick={() => {
                                 copyToClip(standupText)
                             }}
-                            startIcon={<ContentCopyIcon/>}>Copy To Clipboard</Button>
+                            startIcon={<ContentCopyIcon/>}>Copy To Clipboard</TButton>
                     </Grid>
                 </Grid>
-                <ReactQuill
-
+                <TReactQuill
                     formats={['bold', 'link', 'strike', 
                         'italic', 'list', 'indent', 'align', 'code-block']}
                     modules={{
@@ -144,7 +143,6 @@ export default function Standup(props: StandupProp) {
                         ],
                       }}
                     ref={textAreaRef}
-                    theme='snow'
                     value={standupText}
                     onChange={(value: string) => {
                         if (value === '<p><br></p>') {

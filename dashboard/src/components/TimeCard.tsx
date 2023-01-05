@@ -1,15 +1,16 @@
-import { CardContent, TextField, CardActions, Button, CircularProgress, Typography, Grid } from "@mui/material";
+import { TextField, CircularProgress, Typography, Grid } from "@mui/material";
+import CardContent from "@mui/material/CardContent";
+import CardActions from "@mui/material/CardActions";
 import { LocalizationProvider, DateTimePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import ListIcon from '@mui/icons-material/List';
-import PlayCircleIcon from '@mui/icons-material/PlayCircle';
-import ClearAllIcon from '@mui/icons-material/ClearAll';
 import moment from "moment";
 import React, { useCallback, useEffect, useState } from "react";
 import { useAddTimesheetMutation, 
     useUpdateTimesheetMutation, 
     useClearSubmittedTimesheetsMutation } from "../services/api";
 import { addHours, formatTime } from "../utils/time";
+import TButton from "../loadable/Button";
+import { ListIcon, PlayCircleIcon, ClearAllIcon } from "../loadable/Icon";
 
 
 interface TimeCardProps {
@@ -334,21 +335,21 @@ export default function TimeCard({
                 <CardActions sx={{ justifyContent: "center", padding: 0, marginBottom: '10px', marginTop: '4px' }}>
                     {editingTimeLog ?
                         <div style={{width: '100%'}}>
-                            <Button color="warning" variant="contained" size="small" sx={{width: '50%', marginTop: -1}}
+                            <TButton color="warning" variant="contained" size="small" sx={{width: '50%', marginTop: -1}}
                                     onClick={cancelEditingTimeLog}
                                     disabled={isUpdateLoading}
-                                    disableElevation>Cancel</Button>
-                            <Button color="success" variant="contained" size="small" sx={{width: '50%', marginTop: -1}}
+                                    disableElevation>Cancel</TButton>
+                            <TButton color="success" variant="contained" size="small" sx={{width: '50%', marginTop: -1}}
                                 onClick={submitEditedTimeLog}
                                 disabled={isUpdateLoading}
                                 disableElevation>{isUpdateLoading ?
-                            <CircularProgress color="inherit" size={20}/> : "Save"}</Button>
+                            <CircularProgress color="inherit" size={20}/> : "Save"}</TButton>
                         </div>:
-                        <Button variant="contained" size="small" sx={{width: '100%', marginTop: -1}}
+                        <TButton variant="contained" size="small" sx={{width: '100%', marginTop: -1}}
                                 onClick={addButtonClicked}
                                 disabled={addButtonDisabled || isUpdating}
                                 disableElevation>{isUpdating ?
-                            <CircularProgress color="inherit" size={20}/> : "Add"}</Button>
+                            <CircularProgress color="inherit" size={20}/> : "Add"}</TButton>
                     }
                 </CardActions>
             </div> :
@@ -356,42 +357,42 @@ export default function TimeCard({
                 <Typography variant={'h3'} style={{color:'#1d575c'}}>{runningTime}</Typography>
                 <CardContent sx={{ paddingLeft: 0, paddingRight: 0 }}>
                         {localRunningTimeLog ?
-                          <Button color="info" variant="contained" size="small"
+                          <TButton color="info" variant="contained" size="small"
                                   sx={{width: 200, height: '58px', marginTop: -1}}
                                   onClick={stopButtonClicked}
                                   disabled={startButtonDisabled}
                                   disableElevation>{isUpdateLoading ?
-                            <CircularProgress color="inherit" size={20}/> : "STOP"}</Button> :
-                          <Button color="success" variant="contained" size="small"
+                            <CircularProgress color="inherit" size={20}/> : "STOP"}</TButton> :
+                          <TButton color="success" variant="contained" size="small"
                                   sx={{width: 200, height: '58px', marginTop: -1}}
                                   onClick={startButtonClicked}
                                   disabled={startButtonDisabled}
                                   disableElevation>{isUpdating ?
-                            <CircularProgress color="inherit" size={20}/> : "START"}</Button>
+                            <CircularProgress color="inherit" size={20}/> : "START"}</TButton>
                         }
                 </CardContent>
             </div> }
             <div style={{ marginTop: '3px' }}>
                 <Grid container spacing={0.6}>
                     <Grid item xs={6}>
-                        <Button variant={'outlined'} disabled={!isLogging || editingTimeLog} color={'success'} style={{ width: '100%' }} onClick={() => setIsLogging(false)}>
+                        <TButton variant={'outlined'} disabled={!isLogging || editingTimeLog} color={'success'} style={{ width: '100%' }} onClick={() => setIsLogging(false)}>
                             <PlayCircleIcon/>
-                        </Button>
+                        </TButton>
                     </Grid>
                     <Grid item xs={6}>
-                        <Button variant={'outlined'} disabled={isLogging || editingTimeLog || localRunningTimeLog} color={'success'} style={{ width: '100%' }} onClick={() => setIsLogging(true)}>
+                        <TButton variant={'outlined'} disabled={isLogging || editingTimeLog || localRunningTimeLog} color={'success'} style={{ width: '100%' }} onClick={() => setIsLogging(true)}>
                             <ListIcon/>
-                        </Button>
+                        </TButton>
                     </Grid>
                 </Grid>
             </div>
             <div style={{ marginTop: 'auto'}}>
-                <Button 
+                <TButton 
                     onClick={handleClearSubmitted}
                     style={{ width: '100%' }}
                     startIcon={<ClearAllIcon/>}
                     variant={'outlined'} 
-                    color={'warning'}>Clear Submitted</Button>
+                    color={'warning'}>Clear Submitted</TButton>
             </div>
         </LocalizationProvider>
     )
