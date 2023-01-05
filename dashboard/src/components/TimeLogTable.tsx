@@ -1,29 +1,29 @@
 import '../styles/TimeLogTable.scss';
-import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import EditIcon from '@mui/icons-material/Edit';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
-import TaskAltIcon from '@mui/icons-material/TaskAlt';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import EngineeringIcon from '@mui/icons-material/Engineering';
-import {
-    Button,
-    Card,
-    CardContent,
-    CardHeader,
-    Container,
-    Divider,
-    Grid,
-    Paper, Stack,
-    Typography
-} from "@mui/material";
+import Card from "@mui/material/Card";
+import CardContent from '@mui/material/CardContent';
+import CardHeader from '@mui/material/CardHeader';
+import Container from '@mui/material/Container';
+import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 import {generateColor, getColorFromTaskLabel} from "../utils/Theme";
 import {TimeLog, useDeleteTimeLogMutation} from "../services/api";
 import moment from "moment";
 import React, {useEffect, useState} from "react";
+import TButton from '../loadable/Button';
+import { 
+    DeleteSweepIcon, 
+    MoreVertIcon, 
+    EditIcon, 
+    ContentCopyIcon, 
+    TaskAltIcon, 
+    AssignmentIcon, 
+    EngineeringIcon 
+} from '../loadable/Icon';
 
 
 function TimeLogItem(prop : TimeLog)    {
@@ -125,7 +125,7 @@ function TimeLogItem(prop : TimeLog)    {
             {
                 !prop.submitted ?
                     <Grid className="time-log-item center-item" item xs={0.6}>
-                        <Button
+                        <TButton
                             style={{ marginLeft: '8px' }}
                             aria-controls={open ? 'basic-menu' : undefined}
                             aria-expanded={open ? 'true': undefined}
@@ -136,7 +136,7 @@ function TimeLogItem(prop : TimeLog)    {
                             disabled={loading}
                         >
                             <MoreVertIcon/>
-                        </Button>
+                        </TButton>
                         <Menu
                             disableAutoFocusItem={true}
                             id="basic-menu"

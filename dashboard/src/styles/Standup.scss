@@ -1,5 +1,7 @@
 .Standup {
     padding-right: 10px;
+    display: flex;
+    min-width: 150px;
     .StandupButton {
         height: 52px;
     }
