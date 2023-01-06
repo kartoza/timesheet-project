@@ -9,17 +9,12 @@ class ManageView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super(ManageView, self).get_context_data(**kwargs)
-        api_key = self.request.user.profile.api_key
-        ctx['api_key'] = api_key if api_key else ''
+        ctx['email'] = self.request.user.email
         return ctx
 
     def post(self, request, *args, **kwargs):
-        profile = request.user.profile
-        profile.api_key = request.POST.get('api_key', '')
-        api_secret = request.POST.get('api_secret', '')
-        if api_secret:
-            profile.api_secret = api_secret
-        profile.save()
+        request.user.email = request.POST.get('email', '')
+        request.user.save()
         return HttpResponseRedirect(
             reverse_lazy('manage')
         )

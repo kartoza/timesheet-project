@@ -45,6 +45,8 @@ INSTALLED_APPS = [
 
     'allauth',
     'allauth.account',
+
+    'preferences'
 ]
 
 MIDDLEWARE = [
@@ -71,6 +73,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'preferences.context_processors.preferences_cp',
             ],
         },
     },
@@ -180,3 +183,4 @@ SITE_ID = 1
 LOGIN_REDIRECT_URL = '/'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+ACCOUNT_EMAIL_REQUIRED = True
