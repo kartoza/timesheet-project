@@ -6,3 +6,4 @@ class DocType(Enum):
     TASK = 'Task'
     PROJECT = 'Project'
     EMPLOYEE = 'Employee'
+    USER = 'User'

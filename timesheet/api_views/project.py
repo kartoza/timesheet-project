@@ -5,15 +5,16 @@ from rest_framework.response import Response
 
 from timesheet.models import Project
 from timesheet.utils.erp import (
-    pull_projects_from_erp
+    pull_projects_from_erp,
+    pull_user_data_from_erp
 )
 
 
 class PullProjects(APIView):
 
     def post(self, request, *args):
-        if not request.user.profile.token:
-            raise Http404()
+        if 'None' in request.user.profile.token:
+            pull_user_data_from_erp(request.user)
         pull_projects_from_erp(request.user)
 
         return Response({'success': True})

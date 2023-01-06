@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 import requests
+from preferences import preferences
 import logging
 from django.conf import settings
 
@@ -13,6 +14,11 @@ from timesheet.models.user_project import UserProject
 from timesheet.serializers.timesheet import TimelogSerializerERP
 
 logger = logging.getLogger(__name__)
+
+
+class ProjectsNotFound(Exception):
+    "Raised when projects are not found in erpnext"
+    pass
 
 
 def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '') -> list:
@@ -43,18 +49,52 @@ def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '')
     return response_data['data']
 
 
+def generate_api_secret(user: get_user_model()):
+    url = (
+        f'{settings.ERPNEXT_SITE_LOCATION}/api/'
+        f'method/frappe.core.doctype.user.user.generate_keys?user='
+    )
+    token = preferences.TimesheetPreferences.admin_token
+    headers = {
+        'Authorization': 'token {}'.format(token)
+    }
+    response = requests.post(
+        url + user.email,
+        headers=headers
+    )
+    if response.status_code == 200:
+        response_data = response.json()
+        if 'message' in response_data:
+            user.profile.api_secret = response_data['message']['api_secret']
+            user.profile.save()
+
+
 def pull_user_data_from_erp(user: get_user_model()):
+
     users = get_erp_data(
-        DocType.EMPLOYEE, user.profile.token, f'[["company_email", "=", "{user.email}"]]'
+        DocType.USER, preferences.TimesheetPreferences.admin_token, 
+        f'[["email", "=", "{user.email}"]]'
     )
     if len(users) > 0:
         erp_user = users[0]
-        user.profile.employee_name = erp_user['employee_name']
-        user.profile.employee_id = erp_user['employee']
+        user.profile.api_key = erp_user['api_key']
         user.profile.save()
 
-        user.first_name = erp_user['first_name']
-        user.last_name = erp_user['last_name']
+    if not user.profile.api_secret:
+        generate_api_secret(user)
+    
+    employee = get_erp_data(
+        DocType.EMPLOYEE, user.profile.token, 
+        f'[["company_email", "=", "{user.email}"]]'
+    )
+    if len(employee) > 0:
+        employee_data = employee[0]
+        user.profile.employee_name = employee_data['employee_name']
+        user.profile.employee_id = employee_data['employee']
+        user.profile.save()
+
+        user.first_name = employee_data['first_name']
+        user.last_name = employee_data['last_name']
         user.save()
 
 
@@ -63,7 +103,7 @@ def pull_projects_from_erp(user: get_user_model()):
         DocType.PROJECT, user.profile.token)
 
     if len(projects) == 0:
-        return
+        raise ProjectsNotFound
 
     updated = timezone.now()
     for project in projects:

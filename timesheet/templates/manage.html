@@ -11,12 +11,9 @@
     <h3>Admin</h3>
     <form method="post" action="/manage/" class="form">
         {% csrf_token %}
-        <label>Api Key</label>
-        <input name="api_key" type="text" placeholder="API key" value="{{ api_key }}">
-
-        <label>Api Secret</label>
-        <input name="api_secret" type="password" placeholder="API Secret">
-        <button id="submit" type="submit">Submit</button>
+        <label>Email</label>
+        <input name="email" type="text" placeholder="Email" value="{{ email }}">
+        <button id="submit" type="submit">Save</button>
     </form>
     <div class="divider">
         <hr/>
@@ -98,7 +95,8 @@
             console.log('SUCCESS');
             alert('Data retrieved successfully!')
         }).catch(error => {
-            alert('There was an error retrieving data from erpnext. Please check your keys.');
+            alert('There was an error retrieving data from erpnext. Please check your email.' + 
+                ' Ensure that your email address matches the one registered in ERPNext.');
             console.log(error);
         }).finally(() => {
             btn.innerHTML = 'Pull Data From Erpnext';

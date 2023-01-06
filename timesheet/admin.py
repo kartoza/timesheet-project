@@ -1,8 +1,10 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from preferences.admin import PreferencesAdmin
 
-from timesheet.models import Timelog, Task, Project, Activity
+
+from timesheet.models import Timelog, Task, Project, Activity, TimesheetPreferences
 from timesheet.utils.erp import (
     push_timesheet_to_erp, pull_projects_from_erp, pull_user_data_from_erp
 )
@@ -110,3 +112,4 @@ admin.site.register(Activity, ActivityAdmin)
 admin.site.unregister(get_user_model())
 admin.site.register(get_user_model(), UserAdmin)
 admin.site.register(UserProject, UserProjectAdmin)
+admin.site.register(TimesheetPreferences, PreferencesAdmin)
