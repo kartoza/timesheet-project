@@ -67,10 +67,10 @@ export default function TimeCard({
     }, [startTime, hours, task, activity, description])
 
 
-    const clearData = useCallback(() => {
+    const clearData = useCallback((clearActivity = true) => {
         setHours(null);
         setHourString('')
-        clearAllFields();
+        clearAllFields(clearActivity);
         setUpdatedTimesheet(null)
         setNewTimesheet(null)
     }, [clearAllFields])
@@ -81,7 +81,7 @@ export default function TimeCard({
                 setLocalRunningTimeLog(newTimesheet);
             } else {
                 setLocalRunningTimeLog(null)
-                clearData();
+                clearData(false);
             }
         }
     }, [isSuccess, newTimesheet, clearData])
