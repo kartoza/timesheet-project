@@ -7,7 +7,8 @@ DEBUG = False
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+MEDIA_ROOT = '/home/web/media'
+STATIC_ROOT = '/home/web/static'
+ALLOWED_HOSTS = ['timesheets.kartoza.com']
 
 STATICFILES_STORAGE = 'onairdjango.storage.BigBlindManifestStaticFilesStorage'
