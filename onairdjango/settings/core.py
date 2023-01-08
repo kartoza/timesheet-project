@@ -14,8 +14,7 @@ from pathlib import Path
 from onairdjango.utils import *
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
@@ -161,7 +160,7 @@ STATICFILES_FINDERS = (
 # Additional locations of static files
 STATICFILES_DIRS = (
     absolute_path('timesheet', 'static'),
-    absolute_path('dashboard', 'assets'),
+    absolute_path('dashboard', 'assets')
 )
 
 WEBPACK_LOADER = {
@@ -169,7 +168,9 @@ WEBPACK_LOADER = {
     'CACHE': not DEBUG,
     'STATS_FILE': os.path.join(BASE_DIR, 'dashboard', 'webpack-stats.json'),
     'POLL_INTERVAL': 0.1,
+    'TIMEOUT': None,
     'IGNORE': [r'.+\.hot-update.js', r'.+\.map'],
+    'LOADER_CLASS': 'webpack_loader.loader.WebpackLoader',
   }
 }
 

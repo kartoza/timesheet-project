@@ -279,10 +279,12 @@ function App() {
     }, [selectedProject])
 
     // Clear activity, task, project, and description
-    const clearAllFields = () => {
-        setSelectedProject(null)
-        setSelectedActivity(null)
-        setSelectedTask(null)
+    const clearAllFields = (clearActivity = true) => {
+        if (clearActivity) {
+            setSelectedProject(null)
+            setSelectedActivity(null)
+            setSelectedTask(null)
+        }
         setDescription('')
         setEditingTimeLog(null)
         setRunningTimeLog(null)

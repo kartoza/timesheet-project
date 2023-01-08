@@ -2,13 +2,15 @@ const path = require('path');
 const webpack = require('webpack');
 const BundleTracker = require('webpack-bundle-tracker');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
-const mode = process.env.npm_lifecycle_event;
-const isDev = (mode.includes('dev'));
+const mode = process.env.npm_lifecycle_script;
+const isDev = (mode.includes('development'));
 const filename = isDev ? "[name]" : "[name].[chunkhash]";
+const statsFilename = './webpack-stats.json';
 
-module.exports = {
+let conf = {
   context: __dirname,
   entry: {
       App: ['./src/index.tsx'],
@@ -54,7 +56,7 @@ module.exports = {
   },
   plugins: [
         new CleanWebpackPlugin(),
-        new BundleTracker({ filename: './webpack-stats.json' }),
+        new BundleTracker({ filename: statsFilename }),
         new MiniCssExtractPlugin({
             filename: filename + '.css',
             chunkFilename: filename + '.css',
@@ -65,3 +67,22 @@ module.exports = {
     extensions: [".ts", ".tsx", ".js", ".css", ".scss", ".svg"]
   },
 }
+if (isDev) {
+    conf['output'] = {
+      path: path.resolve('./assets/webpack_bundles/'),
+      filename: filename + '.js',
+      publicPath: 'http://localhost:9000/static/',
+    }
+    conf['devServer'] = {
+        hot: true,
+        port: 9000,
+        headers: {
+            'Access-Control-Allow-Origin': '*'
+        },
+        compress: true,
+    }
+    conf['plugins'].push(
+        new ReactRefreshWebpackPlugin({ overlay: false })
+    )
+}
+module.exports = conf;
