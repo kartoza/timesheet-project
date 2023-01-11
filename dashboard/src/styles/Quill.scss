@@ -1,0 +1,9 @@
+ql-editor a {
+    color: black !important;
+}
+
+[data-mui-color-scheme="dark"] {
+    .ql-editor a {
+        color: white !important;
+    } 
+}
