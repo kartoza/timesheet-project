@@ -14,6 +14,7 @@ let conf = {
   context: __dirname,
   entry: {
       App: ['./src/index.tsx'],
+      Space: ['./src/Space.tsx'],
   },
   output: {
     path: path.resolve('./assets/webpack_bundles/'),

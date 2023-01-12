@@ -1,6 +1,7 @@
 import React, {useEffect, Suspense, useState} from 'react';
 import 'react-quill/dist/quill.snow.css';
 import Loader from '../loadable/Loader';
+import '../styles/Quill';
 
 const ReactQuill = React.lazy(() => import('react-quill'))
 

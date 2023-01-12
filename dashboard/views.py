@@ -15,3 +15,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         )
 
         return ctx
+
+
+class SpaceView(LoginRequiredMixin, TemplateView):
+    template_name = 'space.html'
+    

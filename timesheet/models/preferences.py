@@ -7,3 +7,8 @@ class TimesheetPreferences(Preferences):
         max_length=200,
         default=''
     )
+
+    map_api_key = models.CharField(
+        max_length=200,
+        default=''
+    )

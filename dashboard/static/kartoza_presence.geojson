@@ -1,0 +1,36 @@
+{
+    "type": "FeatureCollection",
+    "crs": { 
+        "type": "name", 
+        "properties": { 
+            "name": "urn:ogc:def:crs:OGC:1.3:CRS84" 
+        } 
+    },
+    "features": [
+        { "type": "Feature", "properties": { "name": "Overstrand office", "people": "Gavin" }, "geometry": { "type": "Point", "coordinates": [ 19.15109, -34.41256 ] } },
+        { "type": "Feature", "properties": { "name": "Surabaya", "people": "Dimas Ciputra"}, "geometry": { "type": "Point", "coordinates": [  112.78841257095337,-7.285115219174964 ] } },
+        { "type": "Feature", "properties": { "name": "Irwan's Place, Bandung", "people": "Irwan Fathurrahman"}, "geometry": { "type": "Point", "coordinates": [ 107.7135873, -6.9178288] } },
+        { "type": "Feature", "properties": { "name": "Marvão", "people": "Tim Sutton"}, "geometry": { "type": "Point", "coordinates": [ -7.3635, 39.4042 ] } },
+        { "type": "Feature", "properties": { "name": "Samweli's Place", "people": "Samweli Mwakisambwe"}, "geometry": { "type": "Point", "coordinates": [ 39.3194, -6.8630 ] }},
+        { "type": "Feature", "properties": { "name": "Admire's Place", "people": "Admire Nyakudya" }, "geometry": { "type": "Point", "coordinates": [ 18.514829949637345, -34.006595498959577 ] } },
+        { "type": "Feature", "properties": { "name": "Petra's Place", "people": "Petra Paton" }, "geometry": { "type": "Point", "coordinates": [ 18.476907935624425, -33.954756738576492 ] } },
+        { "type": "Feature", "properties": { "name": "Suzanne's Place", "people": "Suzanne Sutton" }, "geometry": { "type": "Point", "coordinates": [ 18.406083712967007, -33.934935773843684 ] } },
+        { "type": "Feature", "properties": { "name": "Seabilwe's Place", "people": "Seabilwe Tilodi" }, "geometry": { "type": "Point", "coordinates": [ 28.391466, -26.286025 ] } },
+        { "type": "Feature", "properties": { "name": "Zakki's Place, Purworejo", "people": "Zulfikar Akbar Muzakki" }, "geometry": { "type": "Point", "coordinates": [110.008946, -7.713326] } },
+        { "type": "Feature", "properties": { "name": "Marike's Place", "people": "Marike Kruger" }, "geometry": { "type": "Point", "coordinates": [ 27.92570, -26.12071 ] } },
+        { "type": "Feature", "properties": { "name": "Faneva's Place", "people": "Faneva Andriamiadantsoa" }, "geometry": { "type": "Point", "coordinates": [47.5261584, -18.9774589] } },
+        { "type": "Feature", "properties": { "name": "Amy's Place", "people": "Amy Burness" }, "geometry": { "type": "Point", "coordinates": [27.951423, -26.151361] } },
+        { "type": "Feature", "properties": { "name": "Victoria's Place", "people": "Victoria Neema" }, "geometry": { "type": "Point", "coordinates": [36.871744, -1.214169 ] } },
+        { "type": "Feature", "properties": { "name": "Lin-Mari's Place", "people": "Lin-Mari Volschenk" }, "geometry": { "type": "Point", "coordinates": [27.81523, -26.08742 ] } },
+        { "type": "Feature", "properties": { "name": "Divan's Place", "people": "Divan Vermeulen" }, "geometry": { "type": "Point", "coordinates": [18.695273, -33.81535 ] } },
+        { "type": "Feature", "properties": { "name": "Rudolf's Place", "people": "Rudolf Jacobs" }, "geometry": { "type": "Point", "coordinates": [27.839900, -26.728453 ] } },
+        { "type": "Feature", "properties": { "name": "Tharanath's Place", "people": "Tharanath G Prabhu" }, "geometry": { "type": "Point", "coordinates": [75.135674, 12.2558012 ] } },
+        { "type": "Feature", "properties": { "name": "Leon's Place", "people": "Leon" }, "geometry": { "type": "Point", "coordinates": [27.910480, -26.149447 ] } },
+        { "type": "Feature", "properties": { "name": "Jeremy's Place", "people": "Jeremy Prior" }, "geometry": { "type": "Point", "coordinates": [28.013969, -26.156080] } },
+        { "type": "Feature", "properties": { "name": "Thiasha's Place", "people": "Thiasha Vythilingam" }, "geometry": { "type": "Point", "coordinates": [27.942119, -26.095870 ] } },
+        { "type": "Feature", "properties": { "name": "Cairo, Giza", "people": "Mohab" }, "geometry": { "type": "Point", "coordinates": [31.182893, 30.007277] } },
+        { "type": "Feature", "properties": { "name": "Faizal's Place, Kab. Bogor", "people": "Akhmad Faizal P S" }, "geometry": { "type": "Point", "coordinates": [107.037344, -6.451046] } },
+        { "type": "Feature", "properties": { "name": "Marina's Place", "people": "Marina van der Merwe" }, "geometry": { "type": "Point", "coordinates": [29.716533, -26.159249] } },
+        { "type": "Feature", "properties": { "name": "Belgacem's Place", "people": "Belgacem Nedjima" }, "geometry": { "type": "Point", "coordinates": [3.040638, 36.742694] } }
+    ]
+}
