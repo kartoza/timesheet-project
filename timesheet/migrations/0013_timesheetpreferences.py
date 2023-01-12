@@ -8,7 +8,7 @@ import django.db.models.manager
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('preferences', '0003_alter_preferences_id'),
+        ('preferences', '0002_auto_20181220_0803'),
         ('timesheet', '0012_project_updated'),
     ]
 
