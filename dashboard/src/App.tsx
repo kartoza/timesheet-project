@@ -23,7 +23,6 @@ import {
     experimental_extendTheme as extendTheme,
     useColorScheme,
 } from '@mui/material/styles';
-import TReactQuill from './components/ReactQuill';
 import TButton from './loadable/Button';
 import { 
     SettingsIcon, 
@@ -31,8 +30,10 @@ import {
     LightModeIcon, 
     DarkModeIcon 
 } from './loadable/Icon';
+import Loader from './loadable/Loader';
 const Standup = React.lazy(() => import('./components/Standup'));
 const TimeCard = React.lazy(() => import('./components/TimeCard'));
+const TReactQuill = React.lazy(() => import('./components/ReactQuill'));
 const TimeLogTable = React.lazy(() => import("./components/TimeLogTable"));
 
 
@@ -477,26 +478,29 @@ function App() {
                                 />
                             </Grid>
                             <Grid item xs={12} style={{ marginRight: 5, minHeight: 110 }}>
-                                <TReactQuill
-                                    formats={['bold', 'link', 'strike', 
-                                    'italic', 'list', 'indent', 'align', 'code-block']}
-                                    modules={{
-                                        toolbar: [
-                                        ['bold', 'italic','strike', 'blockquote'],
-                                        [{'list': 'ordered'}, {'list': 'bullet'}],
-                                        ['link'],
-                                        ],
-                                    }}
-                                    value={description}
-                                    onChange={(value : any) => {
-                                        if (value === '<p><br></p>') {
-                                            setDescription('')
-                                        } else {
-                                            setDescription(value)
-                                        }
-                                    }}
-                                    style={{minHeight: '150px'}}
-                                />
+
+                                <Suspense fallback={<Loader/>}>
+                                    <TReactQuill
+                                        formats={['bold', 'link', 'strike', 
+                                        'italic', 'list', 'indent', 'align', 'code-block']}
+                                        modules={{
+                                            toolbar: [
+                                            ['bold', 'italic','strike', 'blockquote'],
+                                            [{'list': 'ordered'}, {'list': 'bullet'}],
+                                            ['link'],
+                                            ],
+                                        }}
+                                        value={description}
+                                        onChange={(value : any) => {
+                                            if (value === '<p><br></p>') {
+                                                setDescription('')
+                                            } else {
+                                                setDescription(value)
+                                            }
+                                        }}
+                                        style={{minHeight: '150px'}}
+                                    />
+                                </Suspense>
                             </Grid>
                         </Grid>
 
