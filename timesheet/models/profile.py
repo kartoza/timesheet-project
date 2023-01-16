@@ -44,6 +44,16 @@ class Profile(models.Model):
         blank=True
     )
 
+    lat = models.FloatField(
+        blank=True,
+        null=True
+    )
+
+    lon = models.FloatField(
+        blank=True,
+        null=True
+    )
+
     @property
     def token(self):
         return f'{self.api_key}:{self.api_secret}'
