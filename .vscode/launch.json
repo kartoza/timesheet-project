@@ -29,5 +29,29 @@
                 "DJANGO_SETTINGS_MODULE": "onairdjango.settings.prod"
             }
         },
+        {
+            "name":"Make Migrations",
+            "type":"python",
+            "request":"launch",
+            "program":"${workspaceFolder}/manage.py",
+            "args":["makemigrations"],
+            "django":true,
+            "justMyCode":true,
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "onairdjango.settings.prod"
+            }
+        },
+        {
+            "name":"Migrate",
+            "type":"python",
+            "request":"launch",
+            "program":"${workspaceFolder}/manage.py",
+            "args":["migrate"],
+            "django":true,
+            "justMyCode":true,
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "onairdjango.settings.prod"
+            }
+        },
     ]
 }

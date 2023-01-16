@@ -1,6 +1,7 @@
 import time
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.utils import timezone
 from rest_framework import serializers, viewsets, status
@@ -109,7 +110,7 @@ class TimesheetSerializer(serializers.ModelSerializer):
         return timesheet
 
 
-class TimesheetModelViewSet(viewsets.ModelViewSet):
+class TimesheetModelViewSet(LoginRequiredMixin, viewsets.ModelViewSet):
     queryset = Timelog.objects.all()
     serializer_class = TimesheetSerializer
 
@@ -161,6 +162,8 @@ class TimesheetViewSet(viewsets.ViewSet):
     """
     A ViewSet for listing time logs
     """
+    permission_classes = [IsAuthenticated]
+
     def list(self, request):
         queryset = Timelog.objects.filter(
             user=self.request.user

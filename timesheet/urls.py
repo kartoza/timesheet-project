@@ -13,6 +13,7 @@ from timesheet.api_views.project import (
     PullProjects
 )
 from timesheet.api_views.task import TaskAutocomplete
+from timesheet.api_views.user import UserActivities
 from timesheet.views import ManageView
 
 
@@ -45,5 +46,8 @@ urlpatterns = [
          name='manage'),
     path('api/pull-projects/',
          PullProjects.as_view(),
-         name='pull-projects]')
+         name='pull-projects'),
+    path('api/user-activities/',
+         UserActivities.as_view(),
+         name='user-activities')
 ]
