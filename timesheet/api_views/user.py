@@ -73,12 +73,13 @@ class UserSerializer(GeoFeatureModelSerializer):
         user_timelogs = Timelog.objects.filter(
             user=obj
         ).order_by('end_time')
-        timelog = self.context['timelog'] = user_timelogs.filter(
+        timelog = user_timelogs.filter(
             Q(start_time__lte=now),
             Q(end_time__gte=now),
             user=obj
         ).last()
         if timelog:
+            self.context['timelog'] = timelog
             if timelog.start_time and not timelog.end_time:
                 return True
             if timelog.end_time:
@@ -86,6 +87,7 @@ class UserSerializer(GeoFeatureModelSerializer):
                 return utc_time > tzone.now()
         if user_timelogs.count() > 0 and not timelog:
             timelog = user_timelogs.last()
+            self.context['timelog'] = timelog
         return False
 
     def get_point(self, obj):
