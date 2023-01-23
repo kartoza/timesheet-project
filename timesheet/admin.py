@@ -5,6 +5,7 @@ from preferences.admin import PreferencesAdmin
 
 
 from timesheet.models import Timelog, Task, Project, Activity, TimesheetPreferences
+from timesheet.models.clock import Clock
 from timesheet.utils.erp import (
     push_timesheet_to_erp, pull_projects_from_erp, pull_user_data_from_erp
 )
@@ -113,3 +114,4 @@ admin.site.unregister(get_user_model())
 admin.site.register(get_user_model(), UserAdmin)
 admin.site.register(UserProject, UserProjectAdmin)
 admin.site.register(TimesheetPreferences, PreferencesAdmin)
+admin.site.register(Clock)

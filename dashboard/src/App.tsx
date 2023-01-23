@@ -28,7 +28,8 @@ import {
     SettingsIcon, 
     SendIcon, 
     LightModeIcon, 
-    DarkModeIcon 
+    DarkModeIcon,
+    MapIcon 
 } from './loadable/Icon';
 import Loader from './loadable/Loader';
 const Standup = React.lazy(() => import('./components/Standup'));
@@ -73,7 +74,7 @@ const TimeLogs = (props: any) => {
 
     if (isSuccess) {
         Object.keys(timesheetData.logs).map((key: any) => {
-          // @ts-ignore
+            // @ts-ignore
             for (let timeLogData of timesheetData.logs[key]) {
                 totalDraftHours += timeLogData['hours']
                 let projectName = timeLogData['project_name']
@@ -356,6 +357,9 @@ function App() {
                             <Standup  data={timesheetData}/>
                         </Suspense>
                         <ModeToggle />
+                        <TButton color='warning' variant="text" onClick={() => window.location.href = '/space'}>
+                            <MapIcon/>
+                        </TButton>
                     </div>
                 </Container>
                 <Container maxWidth="lg" style={{ marginTop: "50px" }}>

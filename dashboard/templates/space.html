@@ -10,7 +10,7 @@
     <script>
         const csrfToken = "{{ csrf_token }}";
         window.apiKey = "{{ preferences.TimesheetPreferences.map_api_key }}";
-        window.hasKeys = {% if has_keys %}true{% else %}false{% endif %}
+        window.clocks = {{ clocks | safe }};
     </script>
     <style>
         @font-face {

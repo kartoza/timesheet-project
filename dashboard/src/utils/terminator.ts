@@ -144,7 +144,7 @@ class Terminator {
       var today = time ? new Date(time) : new Date();
       var julianDay = julian(today);
       var gst = GMST(julianDay);
-      var latLng = [];
+      var latLng: any = [];
       var startMinus = -360;
   
       var sunEclPos = this._sunEclipticPosition(julianDay);

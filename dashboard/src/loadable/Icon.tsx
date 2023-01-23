@@ -16,6 +16,7 @@ const MuiEditIcon = React.lazy(() => import('@mui/icons-material/Edit'))
 const MuiTaskAltIcon = React.lazy(() => import('@mui/icons-material/TaskAlt'))
 const MuiAssignmentIcon = React.lazy(() => import('@mui/icons-material/Assignment'))
 const MuiEngineeringIcon = React.lazy(() => import('@mui/icons-material/Engineering'))
+const MuiMapIcon = React.lazy(() => import('@mui/icons-material/Map'))
 
 
 function IconLoader(props: any) {
@@ -141,3 +142,12 @@ export function EngineeringIcon(props: any) {
         </Suspense>
     )
 }
+
+export function MapIcon(props: any) {
+    return (
+        <Suspense fallback={<IconLoader {...props}/>}>
+            <MuiMapIcon {...props} />
+        </Suspense>
+    )
+}
+

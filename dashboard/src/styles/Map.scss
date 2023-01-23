@@ -40,3 +40,49 @@
     color: white;
     width: fit-content;
 }
+
+.react-clock__face {
+    background-color: rgb(254, 255, 227);
+}
+
+.clock-text {
+    padding: 5px 5px;
+    width: 60px;
+    border-radius: 5px;
+    margin-top: 10px;
+    background-color: rgb(254, 255, 227);
+    text-align: center;
+    display: flex;
+    flex-direction: row;
+    font-size: 11px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.time {
+    width: 70px;
+    text-align: center;
+}
+
+.clock-container {
+    position: absolute;
+    z-index: 9999;
+    width: 100%;
+    justify-content: center;
+    padding-top: 20px;
+    display: flex;
+    flex-direction: row;
+    flex-flow:row wrap;
+}
+
+.v-space {
+    height: 20px;
+}
+
+.clock-item-container {
+    margin-right: 20px;
+}
+
+.marker {
+    cursor: pointer;
+}
