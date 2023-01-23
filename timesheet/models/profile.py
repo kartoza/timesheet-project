@@ -53,6 +53,11 @@ class Profile(models.Model):
         blank=True,
         null=True
     )
+    
+    profile_picture = models.FileField(
+        null=True,
+        blank=True
+    )
 
     @property
     def token(self):

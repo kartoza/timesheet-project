@@ -205,7 +205,7 @@ export default function TimeCard({
 
     const addButtonClicked = async () => {
         // Calculate start-time and end-time
-        let endTime = null
+        let endTime: any = null
         if (hours && startTime) {
             let startTimeCopy = new Date(startTime.toISOString())
             endTime = addHours(hours, startTimeCopy)
@@ -239,7 +239,7 @@ export default function TimeCard({
 
 
     const submitEditedTimeLog = () => {
-        let endTime = null
+        let endTime: any = null
         if (hours && startTime) {
             let startTimeCopy = new Date(startTime.toISOString())
             endTime = addHours(hours, startTimeCopy)

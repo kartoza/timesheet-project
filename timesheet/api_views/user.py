@@ -57,6 +57,12 @@ class UserSerializer(GeoFeatureModelSerializer):
     point = serializers.SerializerMethodField()
     is_active = serializers.SerializerMethodField()
     task = serializers.SerializerMethodField()
+    avatar = serializers.SerializerMethodField()
+
+    def get_avatar(self, obj):
+        if obj.profile.profile_picture:
+            return obj.profile.profile_picture.url
+        return '/static/user_icon.png'
     
     def get_is_active(self, obj):
         timelog = self.context['timelog'] = Timelog.objects.filter(
@@ -88,6 +94,7 @@ class UserSerializer(GeoFeatureModelSerializer):
             'id',
             'first_name',
             'last_name',
+            'avatar',
             'is_active',
             'task'
         ]
