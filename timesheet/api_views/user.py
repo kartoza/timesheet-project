@@ -7,9 +7,10 @@ from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from django.contrib.auth import get_user_model
 from django.utils import timezone as tzone
 from django.contrib.gis.geos import Point
+from django.db.models import Q
 
 from timesheet.models.timelog import Timelog
-from timesheet.utils.time import convert_time
+from timesheet.utils.time import convert_time, convert_time_to_user_timezone
 
 
 class UserTimelogSerializer(serializers.ModelSerializer):
@@ -65,16 +66,27 @@ class UserSerializer(GeoFeatureModelSerializer):
         return '/static/user_icon.png'
     
     def get_is_active(self, obj):
-        timelog = self.context['timelog'] = Timelog.objects.filter(
+        now = convert_time_to_user_timezone(
+            tzone.now(),
+            obj
+        )
+        user_timelogs = Timelog.objects.filter(
             user=obj
-        ).order_by('start_time').last()
+        ).order_by('end_time')
+        timelog = self.context['timelog'] = user_timelogs.filter(
+            Q(start_time__lte=now),
+            Q(end_time__gte=now),
+            user=obj
+        ).last()
         if timelog:
             if timelog.start_time and not timelog.end_time:
                 return True
             if timelog.end_time:
                 utc_time = convert_time(timelog.end_time, obj)
                 return utc_time > tzone.now()
-        return None
+        if user_timelogs.count() > 0 and not timelog:
+            timelog = user_timelogs.last()
+        return False
 
     def get_point(self, obj):
         return {
@@ -85,6 +97,10 @@ class UserSerializer(GeoFeatureModelSerializer):
     def get_task(self, obj):
         if self.context['timelog'] and self.context['timelog'].task:
             return self.context['timelog'].task.name
+        if self.context['timelog'] and self.context['timelog'].activity:
+            return 'Kartoza - {}'.format(self.context['timelog'].activity.name)
+        if self.context['timelog']:
+            return 'Kartoza'
         return ''
 
     class Meta:
