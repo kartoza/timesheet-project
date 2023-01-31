@@ -34,7 +34,7 @@ function TimeLogItem(prop : TimeLog)    {
     const open = Boolean(anchorEl);
 
     const getTime = ( date : string ) => {
-        return moment(date, 'YYYY-MM-DD hh:mm').format('hh:mm A')
+        return moment(date, 'YYYY-MM-DD hh:mm').format('HH:mm')
     }
 
     const calculateHours = (fromTime: string) => {
@@ -112,14 +112,13 @@ function TimeLogItem(prop : TimeLog)    {
                 </div>
             </Grid>
             <Divider orientation="vertical" variant="middle" flexItem />
-            <Grid className="time-log-item center-item"  item xs={1.8} sx={{ fontSize: "0.85em", letterSpacing: 0.8 }}>
-                { getTime(prop.from_time) } { !prop.running ? '- ' + getTime(prop.to_time) : '' }
-            </Grid>
-            <Divider orientation="vertical" variant="middle" flexItem />
-            <Grid className="time-log-item center-item" item xs={1}>
-                <Typography sx={{ fontSize: "1.1em", textWeight: "bold" }} color="text.primary" variant="button">
+            <Grid className="time-log-item center-item"  item xs={2.8} sx={{ fontSize: "0.85em", letterSpacing: 0.8 }}>
+                <Typography sx={{ fontSize: "2em", fontWeight: "bolder" }} color="text.primary">
                     { !prop.running ? prop.hours : calculateHours(prop.from_time) }
                 </Typography>
+                <div>
+                    { getTime(prop.from_time) } { !prop.running ? '- ' + getTime(prop.to_time) : '' }
+                </div>
             </Grid>
             <Divider orientation="vertical" variant="middle" flexItem />
             {
