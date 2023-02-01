@@ -1,7 +1,7 @@
 import { TextField, CircularProgress, Typography, Grid } from "@mui/material";
 import CardContent from "@mui/material/CardContent";
 import CardActions from "@mui/material/CardActions";
-import { LocalizationProvider, DateTimePicker } from "@mui/x-date-pickers";
+import { LocalizationProvider, DatePicker, TimePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import moment from "moment";
 import React, { useCallback, useEffect, useState } from "react";
@@ -11,6 +11,8 @@ import { useAddTimesheetMutation,
 import { addHours, formatTime } from "../utils/time";
 import TButton from "../loadable/Button";
 import { ListIcon, PlayCircleIcon, ClearAllIcon } from "../loadable/Icon";
+import AccessibleIcon from "@mui/icons-material/Accessible";
+
 
 
 interface TimeCardProps {
@@ -291,11 +293,25 @@ export default function TimeCard({
             { isLogging || editingTimeLog ?
             <div>
                 <CardContent sx={{ paddingLeft: 0, paddingRight: 0, paddingTop: 0 }}>
-                    <DateTimePicker
-                        value={startTime}
-                        onChange={(newValue) => setStartTime(newValue)}
-                        renderInput={(params) => <TextField {...params} variant="standard" sx={{ width: "100%" }} />}
-                    />
+                    <Grid container spacing={0.6}>
+                        <Grid item xs={7} className="time-picker">
+                            <DatePicker 
+                                value={startTime}
+                                onChange={(newValue) => setStartTime(newValue)}
+                                renderInput={(params) => <TextField {...params} variant="standard" sx={{ width: "100%" }} />}
+                            />
+                        </Grid>
+                        <Grid item xs={1}>:</Grid>
+                        <Grid item xs={4} className="time-picker">
+                            <TimePicker
+                                ampm={false}
+                                value={startTime}
+                                onChange={(newValue) => setStartTime(newValue)}
+                                renderInput={(params) => 
+                                    <TextField {...params} variant="standard" sx={{ width: "100%" }} />}
+                            />
+                        </Grid>
+                    </Grid>
                     <TextField
                         error={hourString.length > 4 && !hours}
                         value={hourString}
