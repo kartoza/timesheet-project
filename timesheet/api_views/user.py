@@ -76,7 +76,6 @@ class UserSerializer(GeoFeatureModelSerializer):
         timelog = user_timelogs.filter(
             Q(start_time__lte=now),
             Q(end_time__gte=now),
-            user=obj
         ).last()
         if timelog:
             self.context['timelog'] = timelog
@@ -85,6 +84,13 @@ class UserSerializer(GeoFeatureModelSerializer):
             if timelog.end_time:
                 utc_time = convert_time(timelog.end_time, obj)
                 return utc_time > tzone.now()
+        if user_timelogs.count() > 0 and not timelog:
+            timelog = user_timelogs.filter(
+                start_time__lte=now,
+                end_time__isnull=True).last()
+            if timelog:
+                self.context['timelog'] = timelog
+            return True
         if user_timelogs.count() > 0 and not timelog:
             timelog = user_timelogs.last()
             self.context['timelog'] = timelog
@@ -98,7 +104,11 @@ class UserSerializer(GeoFeatureModelSerializer):
 
     def get_task(self, obj):
         if self.context['timelog'] and self.context['timelog'].task:
-            return self.context['timelog'].task.name
+            return (
+                '{project} - {task}'.format(
+                    task=self.context['timelog'].task.name,
+                    project=self.context['timelog'].task.project.name)
+            )
         if self.context['timelog'] and self.context['timelog'].activity:
             return 'Kartoza - {}'.format(self.context['timelog'].activity.name)
         if self.context['timelog']:

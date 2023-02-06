@@ -17,4 +17,3 @@ class Command(BaseCommand):
             if user.profile.api_secret:
                 print(f'Updating {user}')
                 pull_projects_from_erp(user)
-                pull_user_data_from_erp(user)
