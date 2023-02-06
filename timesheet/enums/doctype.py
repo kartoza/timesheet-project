@@ -7,3 +7,5 @@ class DocType(Enum):
     PROJECT = 'Project'
     EMPLOYEE = 'Employee'
     USER = 'User'
+    TIMESHEET_DETAIL = 'Timesheet Detail'
+    

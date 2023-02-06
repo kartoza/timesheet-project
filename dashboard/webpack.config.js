@@ -15,6 +15,8 @@ let conf = {
   entry: {
       App: ['./src/index.tsx'],
       Space: ['./src/Space.tsx'],
+      Summary: ['./src/Summary.tsx'],
+      PublicSummary: ['./src/PublicSummary.tsx'],
   },
   output: {
     path: path.resolve('./assets/webpack_bundles/'),
