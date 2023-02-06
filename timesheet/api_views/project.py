@@ -1,3 +1,4 @@
+import ast
 from django.db.models import F
 from django.http import Http404
 from rest_framework.views import APIView
@@ -26,14 +27,24 @@ class ProjectAutocomplete(APIView):
 
     def get(self, request, format=None):
         query = request.GET.get('q', '')
+        try:
+            ignore_user = ast.literal_eval(
+                request.GET.get('ignoreUser', 'False')
+            )
+        except ValueError:
+            ignore_user = False
 
         if not query or len(query) < 1:
             return Response([])
 
         self.queryset = self.queryset.filter(
-            userproject__user=self.request.user,
             name__icontains=query
         )
+
+        if not ignore_user:
+            self.queryset = self.queryset.filter(
+                userproject__user=self.request.user,
+            )
 
         return Response(
             self.queryset.annotate(label=F('name')).values(

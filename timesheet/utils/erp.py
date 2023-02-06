@@ -1,9 +1,12 @@
 import json
 from datetime import datetime
+from collections import OrderedDict
 import requests
 from preferences import preferences
 import logging
+import calendar
 from django.conf import settings
+from django.db.models import Sum
 
 from django.utils import timezone
 from django.contrib.auth import get_user_model
@@ -245,3 +248,84 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
 
         else:
             logger.error(response.text)
+
+def get_report_data(report_name: str, erpnext_token: str = None, filters: str = '') -> list:
+    url = (
+        f'{settings.ERPNEXT_SITE_LOCATION}/api/'
+        f'method/frappe.desk.query_report.run?report_name={report_name}'
+    )
+    if filters:
+        url += '&filters=' + filters
+    if not erpnext_token:
+        erpnext_token = settings.ERPNEXT_TOKEN
+    headers = {
+        'Authorization': 'token {}'.format(erpnext_token)
+    }
+    response = requests.request(
+        'GET',
+        url,
+        headers=headers
+    )
+    if not response.status_code == 200:
+        logger.error(response.content)
+        return []
+
+    response_data = response.json()
+    if 'message' not in response_data:
+        logger.error('Data not found')
+        return []
+    message = response_data['message']
+    if 'result' not in message:
+        logger.error('Data not found')
+        return []
+    return message['result']
+
+
+def get_burndown_chart_data(project_name: str):
+    
+    def week_of_month(dt):
+        """ Returns the week of the month for the specified date.
+        """
+        if dt.month == 1:
+            return dt.isocalendar()[1] + 1
+        return (dt.isocalendar()[1] - dt.replace(day=1).isocalendar()[1] + 1)
+
+    total_expected_time = 0
+    project = Project.objects.filter(
+        name=project_name
+    ).first()
+    if project:
+        total_expected_time = Task.objects.filter(
+            project=project
+        ).aggregate(
+            total_hours=Sum('expected_time'),
+            total_actual_hours=Sum('actual_time')
+        )
+    timesheet_detail = get_report_data(
+        'Timesheet%20Detailed%20Report', 
+        preferences.TimesheetPreferences.admin_token,
+        f'{{"Project":"{project_name}"}}')
+    
+    hours_by_week = {}
+    for timesheet_date in timesheet_detail:
+        if 'Date' not in timesheet_date:
+            continue
+        date_time_obj = datetime.strptime(timesheet_date['Date'], '%Y-%m-%d')
+        week_number = week_of_month(date_time_obj)
+        week = f'{date_time_obj.isocalendar()[0]}{str(date_time_obj.isocalendar()[1]).zfill(2) }'
+        if week not in hours_by_week:
+            hours_by_week[week] = {
+                'hours': timesheet_date['Billable Hours'],
+                'week_string' : (
+                    f'{calendar.month_abbr[date_time_obj.month]} '
+                    f'Week {week_number}'
+                )
+            }
+        else:
+            hours_by_week[week]['hours'] += timesheet_date['Billable Hours']
+
+    return {
+        'hours': OrderedDict(sorted(hours_by_week.items())),
+        'total_hours': total_expected_time,
+        'project': project.name if project else '-'
+    }
