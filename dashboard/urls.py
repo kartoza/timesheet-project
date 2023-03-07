@@ -5,8 +5,8 @@ from dashboard.api_views import (
     PublicBurnDownChartData
 )
 from dashboard.views import (
-    DashboardView, SpaceView, 
-    SummaryView, PublicSummaryView
+    DashboardView, SpaceView,
+    SummaryView, PublicSummaryView, PlannerView
 )
 from django.conf import settings
 from django.conf.urls.static import static
@@ -17,6 +17,7 @@ urlpatterns = [
     path('', DashboardView.as_view(), name='dashboard'),
     path('space', SpaceView.as_view(), name='space'),
     path('summary', SummaryView.as_view(), name='summary'),
+    path('planner', PlannerView.as_view(), name='planner'),
     path('summary/<slug:title>/', 
         PublicSummaryView.as_view(), 
         name='public-summary'),
