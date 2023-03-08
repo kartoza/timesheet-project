@@ -5,6 +5,7 @@ import "react-calendar-timeline/lib/Timeline.css";
 import Timeline from "react-calendar-timeline";
 
 import generateFakeData from "../utils/generate_fake_data";
+import {fetchSchedules, fetchSlottedProjects} from "../utils/schedule_data";
 
 let keys = {
   groupIdKey: "id",
@@ -19,79 +20,107 @@ let keys = {
   groupLabelKey: "title"
 };
 
+interface ItemInterface {
+  id: string,
+  start: number,
+  end: number
+}
 
-export default class Planner extends Component {
-  constructor(props) {
-    super(props);
+interface GroupInterface {
+  id: string,
+  root: boolean,
+  parent: string,
+  title: string
+}
 
-    const { groups, items } = generateFakeData();
-
-    const defaultTimeStart = moment()
+export default function Planner() {
+  const [groups, setGroups] = useState<GroupInterface[]>([])
+  const [items, setItems] = useState<ItemInterface[]>([])
+  const [defaultTimeStart, setDefaultTimeStart] = useState<Date>(
+    moment()
       .startOf("month")
-      .toDate();
-    const defaultTimeEnd = moment()
+      .toDate()
+  )
+  const [defaultTimeEnd, setDefaultTimeEnd] = useState<Date>(
+    moment()
       .startOf("month")
       .add(1, "month")
-      .toDate();
-    const openGroups = {}
-     // convert every 2 groups out of 3 to nodes, leaving the first as the root
-    const newGroups = groups.map(group => {
-      const isRoot = (parseInt(group.id) - 1) % 3 === 0;
-      const parent = isRoot ? null : Math.floor((parseInt(group.id) - 1) / 3) * 3 + 1;
+      .toDate()
+  )
+  const [openGroups, setOpenGroups] = useState<any>({})
 
-      if (isRoot) {
-        openGroups[group.id] = true
-      }
-      return Object.assign({}, group, {
-        root: isRoot,
-        parent: parent
-      });
-    });
-
-    this.state = {
-      groups: newGroups,
-      items,
-      defaultTimeStart,
-      defaultTimeEnd,
-      openGroups
-    };
-  }
-
-  toggleGroup = id => {
-    const { openGroups } = (this.state as any);
-    this.setState({
-      openGroups: {
+  const toggleGroup = id => {
+    console.log('toggleGroup', id)
+    setOpenGroups({
         ...openGroups,
         [id]: !openGroups[id]
-      }
-    });
+      });
   };
 
-  handleItemMove = (itemId, dragTime, newGroupOrder) => {
-    const { items, groups } = (this.state as any);
+  useEffect(() => {
+    const data = generateFakeData()
+    console.log('fakeData', data);
 
-    const group = groups[newGroupOrder];
-
-    this.setState({
-      items: items.map(item =>
-        item.id === itemId
-          ? Object.assign({}, item, {
-              start: dragTime,
-              end: dragTime + (item.end - item.start),
-              group: group.id
-            })
-          : item
-      )
+    fetchSlottedProjects().then((groupsData: GroupInterface[]) => {
+      if (groupsData.length > 0) {
+        setGroups(groupsData
+          .map(group => {
+            return Object.assign({}, group, {
+              title: group.root ? (
+                <div style={{ cursor: "pointer" }}>
+                  {group.title}
+                </div>
+              ) : (
+                <div style={{ paddingLeft: 20 }}>{group.title}</div>
+              )
+            });
+          })
+        )
+      }
     });
+  }, [])
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const schedules: any = await fetchSchedules();
+      setItems(schedules.map(schedule => {
+        const startTime = moment.unix(schedule.start/1000).toDate();
+        const endTime = moment.unix(schedule.end/1000).toDate();
+        startTime.setHours(0)
+        startTime.setMinutes(0)
+        startTime.setSeconds(0)
+        endTime.setHours(0)
+        endTime.setMinutes(0)
+        endTime.setSeconds(0)
+        return Object.assign({}, schedule, {
+          start: startTime.getTime(),
+          end: endTime.getTime()
+        })
+      }))
+    }
+
+    if (groups.length > 0) {
+      fetchData().catch(console.error);
+    }
+  }, [groups])
+
+  const handleItemMove = (itemId, dragTime, newGroupOrder) => {
+    const group = groups[newGroupOrder];
+    setItems(items.map(item =>
+      item.id === itemId
+        ? Object.assign({}, item, {
+            start: dragTime,
+            end: dragTime + (item.end - item.start),
+            group: group.id
+          })
+        : item
+    ))
     console.log("Moved", itemId, dragTime, newGroupOrder);
   };
 
-  handleItemResize = (itemId, time, edge) => {
-    const { items } = (this.state as any);
-
-    this.setState({
-      items: items.map(item =>
+  const handleItemResize = (itemId, time, edge) => {
+    setItems(
+      items.map(item =>
         item.id === itemId
           ? Object.assign({}, item, {
               start: edge === "left" ? time : item.start,
@@ -99,50 +128,34 @@ export default class Planner extends Component {
             })
           : item
       )
-    });
-
+    )
     console.log("Resized", itemId, time, edge);
   };
 
-  render() {
-    const { groups, items, defaultTimeStart, defaultTimeEnd, openGroups } = (this.state as any);
-
-    // hide (filter) the groups that are closed, for the rest, patch their "title" and add some callbacks or padding
-    const newGroups = groups
-      .filter(g => g.root || openGroups[g.parent])
-      .map(group => {
-        return Object.assign({}, group, {
-          title: group.root ? (
-            <div onClick={() => this.toggleGroup(parseInt(group.id))} style={{ cursor: "pointer" }}>
-              {openGroups[parseInt(group.id)] ? "[-]" : "[+]"} {group.title}
-            </div>
-          ) : (
-            <div style={{ paddingLeft: 20 }}>{group.title}</div>
-          )
-        });
-      });
-
-    return (
-      <Timeline
-        groups={newGroups}
-        items={items}
-        keys={keys}
-        sidebarContent={<div>Above The Left</div>}
-        itemsSorted
-        itemTouchSendsClick={false}
-        stackItems
-        itemHeightRatio={0.75}
-        showCursorLine
-        timeSteps={{
-          year: 1,
-          month: 1,
-          day: 1
-        }}
-        defaultTimeStart={defaultTimeStart}
-        defaultTimeEnd={defaultTimeEnd}
-        onItemMove={this.handleItemMove}
-        onItemResize={this.handleItemResize}
-      />
+  return (
+      groups.length > 0 ?
+        <Timeline
+          sidebarWidth={225}
+          groups={groups}
+          items={items}
+          keys={keys}
+          sidebarContent={<div>Planning</div>}
+          itemsSorted
+          itemTouchSendsClick={false}
+          stackItems
+          itemHeightRatio={0.75}
+          showCursorLine
+          dragSnap={60 * 24 * 60 * 1000}
+          timeSteps={{
+            year: 1,
+            month: 1,
+            day: 1,
+            hour: 1
+          }}
+          defaultTimeStart={defaultTimeStart}
+          defaultTimeEnd={defaultTimeEnd}
+          onItemMove={handleItemMove}
+          onItemResize={handleItemResize}
+        /> : <div></div>
     );
-  }
 }

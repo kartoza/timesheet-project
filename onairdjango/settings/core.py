@@ -140,6 +140,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 INSTALLED_APPS += [
     'dashboard',
     'timesheet',
+    'schedule'
 ]
 
 REST_FRAMEWORK = {

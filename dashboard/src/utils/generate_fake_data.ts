@@ -10,6 +10,7 @@ export default function (groupCount = 30, itemCount = 10, daysInPast = 30) {
       id: `${i + 1}`,
       title: faker.name.firstName(),
       rightTitle: faker.name.lastName(),
+      stackItems: false,
       bgColor: randomColor({ luminosity: 'light', seed: randomSeed + i })
     })
   }
