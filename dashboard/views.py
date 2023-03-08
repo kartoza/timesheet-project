@@ -62,3 +62,7 @@ class PublicSummaryView(TemplateView):
         ctx['selectedProjectId'] = summary.project.id
         ctx['summaryName'] = summary.name
         return ctx
+
+
+class PlannerView(LoginRequiredMixin, TemplateView):
+    template_name = 'planner.html'

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load render_bundle from webpack_loader %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planner</title>
+    <link rel="icon" href="/static/default-favicon.ico">
+
+    <script>
+        const csrfToken = "{{ csrf_token }}";
+        window.apiKey = "{{ preferences.TimesheetPreferences.map_api_key }}";
+        window.clocks = {{ clocks | safe }};
+    </script>
+    <style>
+        @font-face {
+            font-family: noto_serif;
+            src: url(/static/Noto_Serif/NotoSerif-Regular.ttf);
+        }
+        @font-face {
+            font-family: noto_serif_italic;
+            src: url(/static/Noto_Serif/NotoSerif-Italic.ttf);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    {% render_bundle 'Planner' %}
+</body>
+</html>
