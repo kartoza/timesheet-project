@@ -83,6 +83,7 @@ export default function TimelinePlanner() {
       .filter(g => g.root || _openGroups[g.parent])
       .map(group => {
         return Object.assign({}, group, {
+          stackItems: group.root,
           title: group.root ? (
             <div className={"root-parent"} onClick={() => toggleGroup(parseInt(group.id))}>
               {_openGroups[parseInt(group.id)] ? <IndeterminateCheckBoxIcon/> : <AddBoxIcon/>} {group.rightTitle}
@@ -100,6 +101,12 @@ export default function TimelinePlanner() {
       updateGroups(groups)
     }
   }, [groups])
+
+  useEffect(() => {
+    if (items.length > 0) {
+      updateGroups(groups)
+    }
+  }, [items])
 
   useEffect(() => {
     if (groups.length > 0 && Object.keys(openGroups).length > 0) {
@@ -150,21 +157,27 @@ export default function TimelinePlanner() {
 
   const toggleGroup = useCallback((id) => {
     if (openGroups[id]) {
-      console.log(groups, items)
       const childrenGroups = groups.filter(group => group.parent === id).map(group => '' + group.id)
       const groupItems = items.filter(item => item.group ? childrenGroups.includes('' + item.group) : false).map(item => {
+          const group = item.group ? groups.filter(group => parseInt(group.id) === item.group)[0] : null;
           return Object.assign({}, item, {
+            id: parseInt(item.id) * 1000,
             color: '#FFF',
             bgColor: '#242474',
             selectedBgColor: '#CC6600',
             canMove: false,
-            group: id
+            canResize: false,
+            group: id,
+            title: group ? group.title : item.title
           })
         }
       )
-      console.log(groupItems)
+      setItems((oldItems) => [...oldItems, ...groupItems])
     } else {
-      console.log('open')
+      const groupItems = items.filter(item => item.group ? item.group === id : false).map(item => item.id)
+      if (groupItems.length > 0) {
+        setItems(items.filter(item => !groupItems.includes(item.id)))
+      }
     }
     setOpenGroups({
         ...openGroups,
@@ -282,7 +295,6 @@ export default function TimelinePlanner() {
           sidebarContent={<div>Planning</div>}
           itemsSorted
           itemTouchSendsClick={false}
-          stackItems
           itemHeightRatio={0.75}
           showCursorLine
           dragSnap={60 * 24 * 60 * 1000}
