@@ -10,6 +10,10 @@ class ScheduleSerializer(serializers.ModelSerializer):
     title = serializers.SerializerMethodField()
     start = serializers.SerializerMethodField()
     end = serializers.SerializerMethodField()
+    project_name = serializers.SerializerMethodField()
+
+    def get_project_name(self, obj: Schedule):
+        return obj.user_project.project.name
 
     def get_group(self, obj: Schedule):
         return obj.user_project.id
@@ -32,7 +36,8 @@ class ScheduleSerializer(serializers.ModelSerializer):
             'start',
             'end',
             'start_time',
-            'end_time'
+            'end_time',
+            'project_name'
         ]
 
 
