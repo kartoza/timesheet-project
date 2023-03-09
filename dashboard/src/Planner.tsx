@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import './index.scss';
 import reportWebVitals from './reportWebVitals';
 import { store } from './app/store';
-import Planner from "./components/Planner";
+import TimelinePlanner from "./components/TimelinePlanner";
 
 
 const root = ReactDOM.createRoot(
@@ -12,7 +12,7 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <Provider store={store}>
-    <Planner/>
+    <TimelinePlanner/>
   </Provider>
 );
 
