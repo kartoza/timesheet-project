@@ -14,9 +14,10 @@ export async function fetchSlottedProjects() {
       groups.push({
         id: groupId,
         title: project.user_name,
+        userId: project.user_id ? project.user_id : null,
         root: true,
         rightTitle: project.user_name,
-        stackItems: false,
+        stackItems: true,
         bgColor: randomColor({ luminosity: 'light', seed: randomSeed + i })
       })
       if (project.slotted_projects.length > 0) {
@@ -26,6 +27,7 @@ export async function fetchSlottedProjects() {
             title: slottedProject.project_name,
             root: false,
             parent: groupId,
+            userId: null,
             rightTitle: slottedProject.project_name,
             stackItems: false,
           })
