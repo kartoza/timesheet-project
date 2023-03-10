@@ -1,23 +1,15 @@
-import React, {Component, useEffect, useState} from "react";
+import React, {useEffect, useState, useCallback} from "react";
 import moment from "moment";
 
 import "react-calendar-timeline/lib/Timeline.css";
 import Timeline, {TimelineMarkers, TodayMarker} from "react-calendar-timeline";
 
-import generateFakeData from "../utils/generate_fake_data";
 import {fetchSchedules, fetchSlottedProjects} from "../utils/schedule_data";
 import {generateColor} from "../utils/Theme";
-import TButton from "../loadable/Button";
-import {
-  Modal,
-  Box,
-  Typography,
-  TextField,
-  Grid, CircularProgress
-} from "@mui/material";
 import '../styles/Planner.scss';
-import { LocalizationProvider, DatePicker, TimePicker } from "@mui/x-date-pickers";
-import {AdapterDateFns} from "@mui/x-date-pickers/AdapterDateFns";
+import ItemForm from "./TimelineItemForm";
+import AddBoxIcon from '@mui/icons-material/AddBox';
+import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
 
 let keys = {
   groupIdKey: "id",
@@ -40,10 +32,11 @@ interface ItemInterface {
   title?: string,
   color?: string,
   bgColor?: string,
-  selectedBgColor?: string
+  selectedBgColor?: string,
+  canMove?: boolean
 }
 
-interface GroupInterface {
+export interface GroupInterface {
   id: string,
   root: boolean,
   parent: string,
@@ -51,140 +44,9 @@ interface GroupInterface {
   rightTitle?: string
 }
 
-interface ItemFormInterface {
-  open: boolean,
-  onClose: Function,
-  onAdd: Function,
-  selectedGroup: GroupInterface | null,
-  startTime?: Date | null
-}
-
-const style = {
-  position: 'absolute' as 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 400,
-  bgcolor: 'background.paper',
-  border: '2px solid #000',
-  boxShadow: 24,
-  p: 4,
-};
-
-function ItemForm(props: ItemFormInterface) {
-  const [open, setOpen] = useState<boolean>(false)
-  const [startTime, setStartTime] = useState<any | null>(new Date());
-  const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [duration, setDuration] = useState<number>(1)
-
-  useEffect(() => {
-    if (props.open) {
-      setOpen(true)
-      setDuration(1)
-      setIsLoading(false)
-    }
-    if (props.startTime) {
-      setStartTime(props.startTime)
-    }
-    if (props.selectedGroup) {
-      console.log(props.selectedGroup)
-    }
-  }, [props])
-
-  const handleClose = () => {
-    if (isLoading) return
-    setOpen(false)
-    props.onClose()
-  }
-
-  const submitAdd = () => {
-    setIsLoading(true)
-    setTimeout(() => {
-      startTime.setHours(0)
-      startTime.setMinutes(0)
-      startTime.setSeconds(0)
-      const start = startTime.getTime()
-      const end = new Date(startTime.setDate(startTime.getDate() + duration));
-      props.onAdd({
-        start: start,
-        end: end,
-        title: 'New task',
-        group: props.selectedGroup ? props.selectedGroup.id : null
-      })
-      setIsLoading(false)
-      setTimeout(() => {
-        handleClose()
-      }, 200)
-    }, 500)
-  }
-
-  return (<Modal
-      open={open}
-      onClose={handleClose}
-      aria-labelledby="modal-modal-title"
-      aria-describedby="modal-modal-description"
-    >
-      <Box sx={style}>
-        <Typography id="modal-modal-title" variant="h6" component="h2">
-          Add new data
-        </Typography>
-        <div>
-           <LocalizationProvider dateAdapter={AdapterDateFns}>
-             <Grid container spacing={2} style={{ marginTop: 10 }}>
-               <Grid item xs={12} className="time-picker">
-                 <TextField
-                   id="project-text-input"
-                   label="Project"
-                   disabled={isLoading}
-                   style={{ width: '100%' }}
-                   value={props.selectedGroup ? props.selectedGroup.rightTitle : ''}
-                   InputProps={{
-                     readOnly: true,
-                   }}
-                 />
-               </Grid>
-               <Grid item xs={12} className="time-picker">
-                 <DatePicker
-                   value={startTime}
-                   disabled={isLoading}
-                   onChange={(newValue) => setStartTime(newValue)}
-                   renderInput={(params) => <TextField {...params}
-                                                       label='Start Time'
-                                                       sx={{width: "100%"}}/>}
-                 />
-               </Grid>
-               <Grid item xs={12}>
-                 <TextField
-                   id="duration-input"
-                   label="Duration (day)"
-                   style={{ width: '100%' }}
-                   value={duration}
-                   disabled={isLoading}
-                   type={'number'}
-                   onChange={(event) => {
-                     const newDuration = parseInt(event.target.value);
-                     setDuration(newDuration)
-                   }}
-                 />
-               </Grid>
-               <Grid item xs={12}>
-                 <TButton color="success" variant="contained" size="large" sx={{width: '100%', marginTop: -1}}
-                      onClick={submitAdd}
-                      disabled={isLoading}
-                      disableElevation>{isLoading ?
-                      <CircularProgress color="inherit" size={20}/> : "Add"}
-                 </TButton>
-               </Grid>
-             </Grid>
-           </LocalizationProvider>
-        </div>
-      </Box>
-    </Modal>
-  )
-}
-
-export default function Planner() {
+export default function TimelinePlanner() {
   const [groups, setGroups] = useState<GroupInterface[]>([])
+  const [renderedGroups, setRenderedGroups] = useState<GroupInterface[]>([])
   const [items, setItems] = useState<ItemInterface[]>([])
   const [defaultTimeStart, setDefaultTimeStart] = useState<Date>(
     moment()
@@ -202,32 +64,64 @@ export default function Planner() {
   const [selectedGroup, setSelectedGroup] = useState<GroupInterface | null>(null)
   const [selectedTime, setSelectedTime] = useState<Date | null>(null)
 
-  const toggleGroup = id => {
-    console.log('toggleGroup', id)
-    setOpenGroups({
-        ...openGroups,
-        [id]: !openGroups[id]
-      });
-  };
+  const updateGroups = (groupsData: GroupInterface[]) => {
+    let _openGroups = openGroups;
+    if (renderedGroups.length === 0) {
+      for (const group of groupsData) {
+        if (group.root) {
+          if (!(group.parent in _openGroups)) {
+            _openGroups[group.parent] = false
+          }
+        }
+        if (group.parent) {
+          _openGroups[group.parent] = true
+        }
+      }
+      setOpenGroups(_openGroups)
+    }
+    setRenderedGroups(groupsData
+      .filter(g => g.root || _openGroups[g.parent])
+      .map(group => {
+        return Object.assign({}, group, {
+          stackItems: group.root,
+          title: group.root ? (
+            <div className={"root-parent"} onClick={() => toggleGroup(parseInt(group.id))}>
+              {_openGroups[parseInt(group.id)] ? <IndeterminateCheckBoxIcon/> : <AddBoxIcon/>} {group.rightTitle}
+            </div>
+          ) : (
+            <div style={{ paddingLeft: 20 }}>{group.rightTitle}</div>
+          )
+        });
+      })
+    )
+  }
 
   useEffect(() => {
-    fetchSlottedProjects().then((groupsData: GroupInterface[]) => {
-      if (groupsData.length > 0) {
-        setGroups(groupsData
-          .map(group => {
-            return Object.assign({}, group, {
-              title: group.root ? (
-                <div style={{ cursor: "pointer" }}>
-                  {group.title}
-                </div>
-              ) : (
-                <div style={{ paddingLeft: 20 }}>{group.title}</div>
-              )
-            });
-          })
-        )
-      }
-    });
+    if (groups.length > 0) {
+      updateGroups(groups)
+    }
+  }, [groups])
+
+  useEffect(() => {
+    if (items.length > 0) {
+      updateGroups(groups)
+    }
+  }, [items])
+
+  useEffect(() => {
+    if (groups.length > 0 && Object.keys(openGroups).length > 0) {
+      updateGroups(groups)
+    }
+  }, [openGroups])
+
+  useEffect(() => {
+    if (groups.length === 0) {
+      fetchSlottedProjects().then((groupsData: GroupInterface[]) => {
+        if (groupsData.length > 0) {
+          setGroups(groupsData)
+        }
+      });
+    }
   }, [])
 
   useEffect(() => {
@@ -256,13 +150,43 @@ export default function Planner() {
       }))
     }
 
-    if (groups.length > 0) {
+    if (groups.length > 0 && items.length === 0) {
       fetchData().catch(console.error);
     }
   }, [groups])
 
+  const toggleGroup = useCallback((id) => {
+    if (openGroups[id]) {
+      const childrenGroups = groups.filter(group => group.parent === id).map(group => '' + group.id)
+      const groupItems = items.filter(item => item.group ? childrenGroups.includes('' + item.group) : false).map(item => {
+          const group = item.group ? groups.filter(group => parseInt(group.id) === item.group)[0] : null;
+          return Object.assign({}, item, {
+            id: parseInt(item.id) * 1000,
+            color: '#FFF',
+            bgColor: '#242474',
+            selectedBgColor: '#CC6600',
+            canMove: false,
+            canResize: false,
+            group: id,
+            title: group ? group.title : item.title
+          })
+        }
+      )
+      setItems((oldItems) => [...oldItems, ...groupItems])
+    } else {
+      const groupItems = items.filter(item => item.group ? item.group === id : false).map(item => item.id)
+      if (groupItems.length > 0) {
+        setItems(items.filter(item => !groupItems.includes(item.id)))
+      }
+    }
+    setOpenGroups({
+        ...openGroups,
+        [id]: !openGroups[id]
+      });
+  }, [items, groups, openGroups]);
+
   const handleItemMove = (itemId, dragTime, newGroupOrder) => {
-    const group = groups[newGroupOrder];
+    const group = renderedGroups[newGroupOrder];
     if (group.root) {
       return false;
     }
@@ -361,17 +285,16 @@ export default function Planner() {
                   }
                 }}
       />
-      {groups.length > 0 ?
+      {renderedGroups.length > 0 ?
         <Timeline
           horizontalLineClassNamesForGroup={(group) => group.root ? ["row-root"] : []}
           sidebarWidth={225}
-          groups={groups}
+          groups={renderedGroups}
           items={items}
           keys={keys}
           sidebarContent={<div>Planning</div>}
           itemsSorted
           itemTouchSendsClick={false}
-          stackItems
           itemHeightRatio={0.75}
           showCursorLine
           dragSnap={60 * 24 * 60 * 1000}
