@@ -10,6 +10,8 @@ import '../styles/Planner.scss';
 import ItemForm from "./TimelineItemForm";
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
+import {Button} from "@mui/material";
+import TimelineProjectForm from "./TimelineProjectForm";
 
 let keys = {
   groupIdKey: "id",
@@ -41,7 +43,8 @@ export interface GroupInterface {
   root: boolean,
   parent: string,
   title: string,
-  rightTitle?: string
+  rightTitle?: string,
+  userId?: string
 }
 
 export default function TimelinePlanner() {
@@ -61,6 +64,7 @@ export default function TimelinePlanner() {
   )
   const [openGroups, setOpenGroups] = useState<any>({})
   const [openForm, setOpenForm] = useState<boolean>(false)
+  const [openProjectForm, setOpenProjectForm] = useState<boolean>(false)
   const [selectedGroup, setSelectedGroup] = useState<GroupInterface | null>(null)
   const [selectedTime, setSelectedTime] = useState<Date | null>(null)
 
@@ -83,10 +87,15 @@ export default function TimelinePlanner() {
       .filter(g => g.root || _openGroups[g.parent])
       .map(group => {
         return Object.assign({}, group, {
-          stackItems: group.root,
           title: group.root ? (
             <div className={"root-parent"} onClick={() => toggleGroup(parseInt(group.id))}>
-              {_openGroups[parseInt(group.id)] ? <IndeterminateCheckBoxIcon/> : <AddBoxIcon/>} {group.rightTitle}
+              {_openGroups[parseInt(group.id)] ?
+                <IndeterminateCheckBoxIcon/> : <AddBoxIcon/>} {group.rightTitle} <div className={'add-project-container'}>
+                  <Button onClick={(event) => {
+                    event.stopPropagation()
+                    handleProjectAdd(group.id)
+                  }} sx={{ m: 0, p: 0 }} variant={'contained'} size={'small'} style={{ fontSize: 10, minWidth: 35 }}>Add</Button>
+              </div>
             </div>
           ) : (
             <div style={{ paddingLeft: 20 }}>{group.rightTitle}</div>
@@ -154,6 +163,14 @@ export default function TimelinePlanner() {
       fetchData().catch(console.error);
     }
   }, [groups])
+
+  const handleProjectAdd = (groupId) => {
+    const group = groups.find(group => group.id === groupId)
+    if (group) {
+      setSelectedGroup(group)
+      setOpenProjectForm(true)
+    }
+  }
 
   const toggleGroup = useCallback((id) => {
     if (openGroups[id]) {
@@ -285,6 +302,28 @@ export default function TimelinePlanner() {
                   }
                 }}
       />
+      <TimelineProjectForm open={openProjectForm}
+                           onClose={() => setOpenProjectForm(false)}
+                           onAdd={(newGroup: GroupInterface) => {
+                             if (newGroup) {
+                               let groupIndex = 0;
+                               for (const group of groups.slice().reverse()) {
+                                 if (group.parent === newGroup.parent) {
+                                   break;
+                                 }
+                                 groupIndex += 1
+                               }
+                               if (groups.length > 0) {
+                                 groupIndex = groups.length - groupIndex
+                               }
+                               setGroups((pre) => {
+                                 return [...pre.slice(0, groupIndex),
+                                   newGroup,
+                                   ...pre.slice(groupIndex, groups.length)];
+                               })
+                             }
+                           }}
+                           selectedGroup={selectedGroup}/>
       {renderedGroups.length > 0 ?
         <Timeline
           horizontalLineClassNamesForGroup={(group) => group.root ? ["row-root"] : []}

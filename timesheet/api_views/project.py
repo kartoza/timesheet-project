@@ -1,6 +1,6 @@
 import ast
 from django.db.models import F
-from django.http import Http404
+from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -27,6 +27,7 @@ class ProjectAutocomplete(APIView):
 
     def get(self, request, format=None):
         query = request.GET.get('q', '')
+        user_id = request.GET.get('user_id', None)
         try:
             ignore_user = ast.literal_eval(
                 request.GET.get('ignoreUser', 'False')
@@ -42,9 +43,17 @@ class ProjectAutocomplete(APIView):
         )
 
         if not ignore_user:
+            if user_id:
+                user = get_user_model().objects.get(id=user_id)
+            else:
+                user = self.request.user
             self.queryset = self.queryset.filter(
-                userproject__user=self.request.user,
+                userproject__user=user,
             )
+            if user_id:
+                self.queryset = self.queryset.exclude(
+                    userprojectslot__user=user
+                )
 
         return Response(
             self.queryset.annotate(label=F('name')).values(
