@@ -6,6 +6,9 @@ import {DatePicker, LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDateFns} from "@mui/x-date-pickers/AdapterDateFns";
 import TButton from "../loadable/Button";
 import {GroupInterface} from "./TimelinePlanner";
+import {getColorFromTaskLabel} from "../utils/Theme";
+import Autocomplete from "@mui/material/Autocomplete";
+import TaskAutocomplete from "./TaskAutocomplete";
 
 
 const style = {
@@ -33,6 +36,7 @@ export default function ItemForm(props: ItemFormInterface) {
   const [startTime, setStartTime] = useState<any | null>(new Date());
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [duration, setDuration] = useState<number>(1)
+  const [selectedTask, setSelectedTask] = useState<any>(null)
 
   useEffect(() => {
     if (props.open) {
@@ -54,25 +58,63 @@ export default function ItemForm(props: ItemFormInterface) {
     props.onClose()
   }
 
-  const submitAdd = () => {
+  const submitAdd = async () => {
     setIsLoading(true)
-    setTimeout(() => {
-      startTime.setHours(0)
-      startTime.setMinutes(0)
-      startTime.setSeconds(0)
-      const start = startTime.getTime()
-      const end = new Date(startTime.setDate(startTime.getDate() + duration));
-      props.onAdd({
-        start: start,
-        end: end,
-        title: 'New task',
-        group: props.selectedGroup ? props.selectedGroup.id : null
+    const start = new Date(startTime.toISOString())
+    const endTime = new Date(startTime.getTime())
+    const end = new Date(endTime.setDate(endTime.getDate() + duration));
+    const url = '/api/add-schedule/'
+    const formData = new FormData();
+    formData.append('start_time', '' + start.getTime())
+    formData.append('end_time', '' + end.getTime())
+    if (selectedTask) {
+      formData.append('task_id', selectedTask.id)
+    }
+    if (props.selectedGroup) {
+      if (props.selectedGroup.userId) {
+        formData.append('user_id', props.selectedGroup.userId)
+      }
+    }
+    await fetch(url, {
+      credentials: 'include',
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Accept': 'application/json',
+        'X-CSRFToken': (window as any).csrftoken
+      },
+    })
+      .then(response => response.json())
+      .then((result: any) => {
+        setIsLoading(false)
+        if (result) {
+          let _startTime = new Date(result.start_time)
+          let _endTime = new Date(result.end_time)
+          _startTime = new Date(Date.UTC(_startTime.getFullYear(), _startTime.getMonth(), _startTime.getDate()));
+          _endTime = new Date(Date.UTC(_endTime.getFullYear(), _endTime.getMonth(), _endTime.getDate()));
+          _startTime.setHours(0)
+          _startTime.setMinutes(0)
+          _startTime.setSeconds(0)
+          _endTime.setHours(0)
+          _endTime.setMinutes(0)
+          _endTime.setSeconds(0)
+          _endTime.setDate(_endTime.getDate() + 1);
+          const newSchedule = {
+            id: result.id,
+            start: _startTime,
+            end: _endTime,
+            title: result.task_name,
+            group: props.selectedGroup ? props.selectedGroup.id : null,
+            bgColor: selectedTask ? getColorFromTaskLabel(selectedTask.label) : '#FFF'
+          }
+          props.onAdd(newSchedule)
+        }
       })
-      setIsLoading(false)
-      setTimeout(() => {
-        handleClose()
-      }, 200)
-    }, 500)
+      .catch(error => {
+        console.log('Error :', error)
+        setIsLoading(false)
+      })
+      handleClose()
   }
 
   return (<Modal
@@ -99,6 +141,13 @@ export default function ItemForm(props: ItemFormInterface) {
                      readOnly: true,
                    }}
                  />
+               </Grid>
+               <Grid item xs={12}>
+                 <TaskAutocomplete selectedProjectId={props.selectedGroup?.projectId}
+                                   onTaskSelected={(task) => {
+                                     console.log(task)
+                                     setSelectedTask(task)
+                                   }}/>
                </Grid>
                <Grid item xs={12} className="time-picker">
                  <DatePicker
@@ -127,7 +176,7 @@ export default function ItemForm(props: ItemFormInterface) {
                <Grid item xs={12}>
                  <TButton color="success" variant="contained" size="large" sx={{width: '100%', marginTop: -1}}
                       onClick={submitAdd}
-                      disabled={isLoading}
+                      disabled={isLoading || !selectedTask}
                       disableElevation>{isLoading ?
                       <CircularProgress color="inherit" size={20}/> : "Add"}
                  </TButton>

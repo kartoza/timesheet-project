@@ -26,6 +26,9 @@ class ScheduleAdmin(admin.ModelAdmin):
         'start_time',
         'end_time'
     )
+    raw_id_fields = (
+        'task',
+    )
 
 
 admin.site.register(UserProjectSlot, UserProjectSlotAdmin)

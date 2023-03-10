@@ -111,9 +111,10 @@ export default function TimelineProjectForm(props: TimelineProjectInterface) {
             title: result.project_name,
             root: false,
             parent: props.selectedGroup ? props.selectedGroup.id : null,
-            userId: null,
+            userId: props.selectedGroup ? props.selectedGroup.userId : null,
+            projectId: result.project,
             rightTitle: result.project_name,
-            stackItems: false,
+            stackItems: true,
           }
           props.onAdd(newGroup)
         }
