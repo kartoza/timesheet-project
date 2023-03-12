@@ -2,16 +2,18 @@ import React, {useEffect, useState, useCallback} from "react";
 import moment from "moment";
 
 import "react-calendar-timeline/lib/Timeline.css";
-import Timeline, {TimelineMarkers, TodayMarker} from "react-calendar-timeline";
+import Timeline, {TimelineMarkers, TodayMarker, TimelineHeaders,
+  SidebarHeader, DateHeader} from "react-calendar-timeline";
 
 import {fetchSchedules, fetchSlottedProjects} from "../utils/schedule_data";
-import {generateColor, getColorFromTaskLabel} from "../utils/Theme";
+import {getColorFromTaskLabel} from "../utils/Theme";
 import '../styles/Planner.scss';
 import ItemForm from "./TimelineItemForm";
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
-import {Button} from "@mui/material";
+import {Button, TextField, InputAdornment} from "@mui/material";
 import TimelineProjectForm from "./TimelineProjectForm";
+import SearchIcon from '@mui/icons-material/Search';
 
 let keys = {
   groupIdKey: "id",
@@ -48,10 +50,64 @@ export interface GroupInterface {
   projectId?: string
 }
 
-export default function TimelinePlanner() {
+interface TimelinePlannerInterface {
+  searchValue?: string
+}
+
+export default function TimelineDashboard() {
+  const [searchText, setSearchText] = useState<string | undefined>(undefined)
+  return (
+    <div>
+      <TimelineSearchInput searchValue={searchText} onChange={(value) => setSearchText(value)} />
+      <TimelinePlanner searchValue={searchText}/>
+    </div>
+  )
+}
+
+function TimelineSearchInput({searchValue, onChange}) {
+  const [searchText, setSearchText] = useState<string>('')
+  const [focus, setFocus] = useState<boolean>(true)
+
+  useEffect(() => {
+    setSearchText(searchValue);
+  }, [searchValue]);
+
+  useEffect(() => {
+    setFocus(true)
+  }, [searchText])
+
+  return (<TextField id="timeline-filter"
+                 style={{
+                   height: '100%', width: '225px',
+                   position: 'absolute', backgroundColor: '#FFF'
+                 }}
+                 hiddenLabel
+                 variant="filled"
+                 size={'small'}
+                 value={searchText}
+                 focused={focus}
+                 className={'timeline-filter'}
+                 onChange={(e) => {
+                   const caretStart = e.target.selectionStart;
+                   const caretEnd = e.target.selectionEnd;
+                   const value = e.target.value;
+                   setSearchText(value);
+                   onChange(value);
+                   e.target.setSelectionRange(caretStart, caretEnd);
+                 }}
+                 InputProps={{
+                   startAdornment: (<InputAdornment position="start">
+                     <SearchIcon/>
+                   </InputAdornment>)
+                 }}
+  />)
+}
+
+function TimelinePlanner(props: TimelinePlannerInterface) {
   const [groups, setGroups] = useState<GroupInterface[]>([])
   const [renderedGroups, setRenderedGroups] = useState<GroupInterface[]>([])
   const [items, setItems] = useState<ItemInterface[]>([])
+
   const [defaultTimeStart, setDefaultTimeStart] = useState<Date>(
     moment()
       .startOf("month")
@@ -126,6 +182,35 @@ export default function TimelinePlanner() {
   }, [openGroups])
 
   useEffect(() => {
+    let searchText = ''
+    if (typeof props.searchValue === 'undefined') {
+      return
+    } else {
+      searchText = props.searchValue
+    }
+    if (searchText !== null) {
+      const searchValue = searchText.toLowerCase()
+      const updatedGroups = groups.filter((group) => {
+        const groupTitle = group.rightTitle ? group.rightTitle.toLowerCase() : ''
+        if (group.root && !groupTitle.includes(searchValue)) {
+          const children = groups.filter(childGroup => childGroup.parent === group.id)
+          if (children.length > 0) {
+            return children.filter(child => child.rightTitle ? child.rightTitle.toLowerCase().includes(searchValue) : false).length > 0
+          }
+        }
+        if (!group.root && !groupTitle.includes(searchValue)) {
+          const parent = groups.find(_group => _group.id === group.parent)
+          if (parent) {
+            return parent.rightTitle ? parent.rightTitle.toLowerCase().includes(searchValue) : false
+          }
+        }
+        return groupTitle.includes(searchValue)
+      })
+      updateGroups(updatedGroups)
+    }
+  }, [props])
+
+  useEffect(() => {
     if (groups.length === 0) {
       fetchSlottedProjects().then((groupsData: GroupInterface[]) => {
         if (groupsData.length > 0) {
@@ -175,6 +260,9 @@ export default function TimelinePlanner() {
   }
 
   const toggleGroup = useCallback((id) => {
+    if (typeof props.searchValue !== 'undefined' && props.searchValue !== "") {
+      return
+    }
     if (openGroups[id]) {
       const childrenGroups = groups.filter(group => group.parent === id).map(group => '' + group.id)
       const groupItems = items.filter(item => item.group ? childrenGroups.includes('' + item.group) : false).map(item => {
@@ -202,7 +290,7 @@ export default function TimelinePlanner() {
         ...openGroups,
         [id]: !openGroups[id]
       });
-  }, [items, groups, openGroups]);
+  }, [items, groups, openGroups, props]);
 
   const handleItemMove = (itemId, dragTime, newGroupOrder) => {
     const group = renderedGroups[newGroupOrder];
@@ -347,10 +435,22 @@ export default function TimelinePlanner() {
           onItemResize={handleItemResize}
           itemRenderer={itemRenderer}
           onCanvasClick={handleCanvasClick}>
+          <TimelineHeaders>
+            <SidebarHeader>
+              {({ getRootProps }) => {
+                return (
+                  <div {...getRootProps()} style={{ width: '225px'}}>
+                  </div>
+                )
+              }}
+            </SidebarHeader>
+            <DateHeader unit="primaryHeader" />
+            <DateHeader />
+          </TimelineHeaders>
           <TimelineMarkers>
             <TodayMarker />
           </TimelineMarkers>
-        </Timeline> : <div></div>}
+        </Timeline> : <div style={{ marginLeft: '235px', paddingTop: '20px' }}>No Data</div>}
     </div>
     );
 }
