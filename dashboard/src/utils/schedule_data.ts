@@ -17,6 +17,7 @@ export async function fetchSlottedProjects() {
         userId: project.user_id ? project.user_id : null,
         root: true,
         rightTitle: project.user_name,
+        projectId: null,
         stackItems: true,
         bgColor: randomColor({ luminosity: 'light', seed: randomSeed + i })
       })
@@ -27,9 +28,10 @@ export async function fetchSlottedProjects() {
             title: slottedProject.project_name,
             root: false,
             parent: groupId,
-            userId: null,
+            projectId: slottedProject.project,
+            userId: project.user_id ? project.user_id : null,
             rightTitle: slottedProject.project_name,
-            stackItems: false,
+            stackItems: true,
           })
         }
       }

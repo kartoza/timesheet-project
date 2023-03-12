@@ -9,6 +9,13 @@ class Schedule(models.Model):
         on_delete=models.CASCADE
     )
 
+    task = models.ForeignKey(
+        'timesheet.Task',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
+
     start_time = models.DateTimeField(
         null=True,
         blank=True

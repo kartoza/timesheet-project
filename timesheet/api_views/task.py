@@ -33,7 +33,7 @@ class TaskAutocomplete(APIView):
                          Round(F('expected_time'), 2),
                          Value(')'), output_field=CharField())
         ).values(
-            'id', 'label'
+            'id', 'label', 'name'
         )
 
         for task in tasks:

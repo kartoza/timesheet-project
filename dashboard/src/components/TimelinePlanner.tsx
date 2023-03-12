@@ -5,7 +5,7 @@ import "react-calendar-timeline/lib/Timeline.css";
 import Timeline, {TimelineMarkers, TodayMarker} from "react-calendar-timeline";
 
 import {fetchSchedules, fetchSlottedProjects} from "../utils/schedule_data";
-import {generateColor} from "../utils/Theme";
+import {generateColor, getColorFromTaskLabel} from "../utils/Theme";
 import '../styles/Planner.scss';
 import ItemForm from "./TimelineItemForm";
 import AddBoxIcon from '@mui/icons-material/AddBox';
@@ -44,7 +44,8 @@ export interface GroupInterface {
   parent: string,
   title: string,
   rightTitle?: string,
-  userId?: string
+  userId?: string,
+  projectId?: string
 }
 
 export default function TimelinePlanner() {
@@ -87,6 +88,7 @@ export default function TimelinePlanner() {
       .filter(g => g.root || _openGroups[g.parent])
       .map(group => {
         return Object.assign({}, group, {
+          stackItems: true,
           title: group.root ? (
             <div className={"root-parent"} onClick={() => toggleGroup(parseInt(group.id))}>
               {_openGroups[parseInt(group.id)] ?
@@ -139,8 +141,8 @@ export default function TimelinePlanner() {
       setItems(schedules.map(schedule => {
         let startTime = new Date(schedule.start_time)
         let endTime = new Date(schedule.end_time)
-        startTime = new Date(Date.UTC(startTime.getUTCFullYear(), startTime.getUTCMonth(), startTime.getUTCDate()));
-        endTime = new Date(Date.UTC(endTime.getUTCFullYear(), endTime.getUTCMonth(), endTime.getUTCDate()));
+        startTime = new Date(Date.UTC(startTime.getFullYear(), startTime.getMonth(), startTime.getDate()));
+        endTime = new Date(Date.UTC(endTime.getFullYear(), endTime.getMonth(), endTime.getDate()));
         startTime.setHours(0)
         startTime.setMinutes(0)
         startTime.setSeconds(0)
@@ -149,11 +151,11 @@ export default function TimelinePlanner() {
         endTime.setSeconds(0)
         endTime.setDate(endTime.getDate() + 1);
         return Object.assign({}, schedule, {
-          title: 'Coding Task',
+          title: schedule.task_name,
           start: startTime.getTime(),
           end: endTime.getTime(),
           color: '#FFF',
-          bgColor: generateColor(schedule.project_name),
+          bgColor: getColorFromTaskLabel(schedule.task_label),
           selectedBgColor: '#CC6600'
         })
       }))
@@ -293,10 +295,7 @@ export default function TimelinePlanner() {
                   }}
                 onAdd={(item: ItemInterface) => {
                   if (item) {
-                    let lastId = items[items.length - 1].id
-                    item.id = lastId + 1
                     item.color = '#FFF'
-                    item.bgColor = selectedGroup ? generateColor(selectedGroup.rightTitle ? selectedGroup.rightTitle : '') : '#FFF'
                     item.selectedBgColor = '#CC6600'
                     setItems(oldItems => [...oldItems, item]);
                   }
