@@ -67,11 +67,17 @@ class ScheduleSerializer(serializers.ModelSerializer):
 class ScheduleList(APIView):
 
     def get(self, request, format=None):
+        timeline_id = self.request.GET.get('timelineId', None)
         schedules = Schedule.objects.all()
-        if not request.user.is_staff:
+        if timeline_id:
             schedules = schedules.filter(
-                user_project__user=request.user
-            )
+                user_project__project__publictimeline__id=timeline_id
+            ).distinct()
+        else:
+            if not request.user.is_staff:
+                schedules = schedules.filter(
+                    user_project__user=request.user
+                )
         return Response(ScheduleSerializer(
             schedules, many=True
         ).data)

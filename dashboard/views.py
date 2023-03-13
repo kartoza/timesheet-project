@@ -1,6 +1,8 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.views.generic import TemplateView
+
+from schedule.models import PublicTimeline
 from timesheet.models.clock import Clock
 from timesheet.models.project import Project
 from timesheet.models.summary import SavedSummary
@@ -66,3 +68,34 @@ class PublicSummaryView(TemplateView):
 
 class PlannerView(LoginRequiredMixin, TemplateView):
     template_name = 'planner.html'
+
+
+class PublicTimelineView(TemplateView):
+    template_name = 'planner.html'
+
+    def get(self, request, *args, **kwargs):
+        slug_name = self.kwargs.get('title', '')
+        try:
+            timeline = PublicTimeline.objects.get(
+                slug_name=slug_name
+            )
+            timeline.view_count += 1
+            timeline.save()
+        except PublicTimeline.DoesNotExist:
+            raise Http404()
+        return super(PublicTimelineView, self).get(
+            request, *args, **kwargs
+        )
+
+    def get_context_data(self, **kwargs):
+        ctx = super(
+            PublicTimelineView, self
+        ).get_context_data(**kwargs)
+        slug_name = self.kwargs.get('title', '')
+        timeline = PublicTimeline.objects.get(
+            slug_name=slug_name
+        )
+        ctx['name'] = timeline.name
+        ctx['public_timeline_id'] = timeline.id
+        ctx['public'] = True
+        return ctx

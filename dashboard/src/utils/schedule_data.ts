@@ -1,6 +1,8 @@
 import randomColor from 'randomcolor'
 import {getColorFromTaskLabel} from "./Theme";
 
+const publicTimelineId = (window as any).publicTimelineId;
+
 export function resetTimeInDate(timestamp: number) {
   let dateTime = new Date(new Date(timestamp).toLocaleString('en'))
   dateTime.setHours(0)
@@ -74,8 +76,11 @@ export function updateSchedule(scheduleId: number, startTime: number, endTime: n
 export async function fetchSlottedProjects() {
   let groups: any = [];
   let randomSeed = Math.floor(Math.random() * 1000)
-
-  return fetch('/api/user-project-slots/').then(response => response.json()).then(result => {
+  let url = '/api/user-project-slots/'
+  if (publicTimelineId) {
+    url += '?timelineId=' + publicTimelineId
+  }
+  return fetch(url).then(response => response.json()).then(result => {
     for (let i = 0; i < result.length; i++) {
       let project = result[ i ];
       let groupId = parseInt(project.user_id + '000000');
@@ -109,7 +114,11 @@ export async function fetchSlottedProjects() {
 }
 
 export async function fetchSchedules() {
-  return fetch('/api/schedules/').then(response => response.json()).then(result => {
+  let url = '/api/schedules/';
+  if (publicTimelineId) {
+    url += '?timelineId=' + publicTimelineId
+  }
+  return fetch(url).then(response => response.json()).then(result => {
     return result
   })
 }
