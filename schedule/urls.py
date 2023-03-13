@@ -3,7 +3,11 @@ from schedule.api_views.user_projects import (
     UserProjectList,
     AddUserProjectSlot
 )
-from schedule.api_views.schedule import ScheduleList, AddSchedule
+from schedule.api_views.schedule import (
+    ScheduleList,
+    AddSchedule,
+    UpdateSchedule
+)
 
 urlpatterns = [
     path('api/user-project-slots/',
@@ -18,4 +22,7 @@ urlpatterns = [
     path('api/add-schedule/',
          AddSchedule.as_view(),
          name='add-schedule'),
+    path('api/update-schedule/',
+         UpdateSchedule.as_view(),
+         name='update-schedule'),
 ]
