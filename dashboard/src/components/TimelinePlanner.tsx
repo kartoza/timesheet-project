@@ -6,8 +6,7 @@ import Timeline, {TimelineMarkers, TodayMarker, TimelineHeaders,
   SidebarHeader, DateHeader} from "react-calendar-timeline";
 
 import {
-  fetchSchedules,
-  fetchSlottedProjects, updateSchedule
+  deleteSchedule, fetchSchedules, fetchSlottedProjects, updateSchedule
 } from "../utils/schedule_data";
 import {getColorFromTaskLabel} from "../utils/Theme";
 import '../styles/Planner.scss';
@@ -295,6 +294,21 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
       });
   }, [items, groups, openGroups, props]);
 
+  const deleteItem = useCallback((itemId: string) => {
+    const item = items.find(item => item.id === itemId)
+    if (item) {
+      if (window.confirm('Are you sure you want to delete this record?')) {
+        deleteSchedule(
+          item.id
+        ).then(result => {
+          if (result) {
+            setItems((current) => current.filter((currentItem) => currentItem.id !== itemId));
+          }
+        })
+      }
+    }
+  }, [items])
+
   const handleItemMove = (itemId, dragTime, newGroupOrder) => {
     const group = renderedGroups[ newGroupOrder ];
     if (group.root) {
@@ -372,6 +386,11 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
         >
           <div className={'timeline-item-title'}>{itemContext.title}</div>
           <div className={'timeline-itme-sub'}>{item.info.replace( /(^.*\(|\).*$)/g, '' )}</div>
+          <div className={'remove-item'} onClick={(e) => {
+            e.stopPropagation()
+            e.preventDefault()
+            deleteItem(item.id)
+          }}>✕</div>
         </div>
 
         {itemContext.useResizeHandle ? <div {...rightResizeProps} /> : null}
