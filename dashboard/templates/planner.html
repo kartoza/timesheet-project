@@ -11,6 +11,7 @@
         const csrfToken = "{{ csrf_token }}";
         window.apiKey = "{{ preferences.TimesheetPreferences.map_api_key }}";
         window.csrftoken = "{{ csrf_token }}";
+        window.isStaff = {% if user.is_staff %}true{% else %}false{% endif %};
     </script>
     <style>
         @font-face {

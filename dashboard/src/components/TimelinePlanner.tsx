@@ -17,6 +17,8 @@ import {Button, TextField, InputAdornment} from "@mui/material";
 import TimelineProjectForm from "./TimelineProjectForm";
 import SearchIcon from '@mui/icons-material/Search';
 
+export const canEdit = (window as any).isStaff
+
 let keys = {
   groupIdKey: "id",
   groupTitleKey: "title",
@@ -154,10 +156,10 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
             <div className={"root-parent"} onClick={() => toggleGroup(parseInt(group.id))}>
               {_openGroups[parseInt(group.id)] ?
                 <IndeterminateCheckBoxIcon/> : <AddBoxIcon/>} {group.rightTitle} <div className={'add-project-container'}>
-                  <Button onClick={(event) => {
+                  { canEdit ? <Button onClick={(event) => {
                     event.stopPropagation()
                     handleProjectAdd(group.id)
-                  }} sx={{ m: 0, p: 0 }} variant={'contained'} size={'small'} style={{ fontSize: 10, minWidth: 35 }}>Add</Button>
+                  }} sx={{ m: 0, p: 0 }} variant={'contained'} size={'small'} style={{ fontSize: 10, minWidth: 35 }}>Add</Button> : null }
               </div>
             </div>
           ) : (
@@ -192,6 +194,8 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
           bgColor: getColorFromTaskLabel(schedule.task_label),
           selectedBgColor: ItemSelectedColor,
           canChangeGroup: false,
+          canMove: canEdit,
+          canResize: canEdit
         })
       }))
     }
@@ -347,7 +351,7 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
   };
 
   const handleCanvasClick = (groupId, time, event) => {
-    console.log('time', time, event)
+    if (!canEdit) return
     if (openForm) return
     const group = groups.filter(group => group.id === groupId)[0]
     if (!group.root) {
@@ -386,11 +390,11 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
         >
           <div className={'timeline-item-title'}>{itemContext.title}</div>
           <div className={'timeline-itme-sub'}>{item.info.replace( /(^.*\(|\).*$)/g, '' )}</div>
-          <div className={'remove-item'} onClick={(e) => {
+          { canEdit ? <div className={'remove-item'} onClick={(e) => {
             e.stopPropagation()
             e.preventDefault()
             deleteItem(item.id)
-          }}>✕</div>
+          }}>✕</div> : null }
         </div>
 
         {itemContext.useResizeHandle ? <div {...rightResizeProps} /> : null}
@@ -424,6 +428,15 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
                                    break;
                                  }
                                  groupIndex += 1
+                               }
+                               if (groupIndex === groups.length) {
+                                 groupIndex = 0
+                                 for (const group of groups.slice().reverse()) {
+                                   if (group.id === newGroup.parent) {
+                                     break;
+                                   }
+                                   groupIndex += 1
+                                 }
                                }
                                if (groups.length > 0) {
                                  groupIndex = groups.length - groupIndex
