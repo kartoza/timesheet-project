@@ -14,6 +14,28 @@ export function getDateString(timestamp: number) {
   return `${dateTime.getDate()}/${dateTime.getMonth() + 1}/${dateTime.getFullYear()}`
 }
 
+export function deleteSchedule(scheduleId: string) {
+  const formData = new FormData()
+  formData.append('schedule_id', scheduleId)
+  const url = '/api/delete-schedule/'
+  return fetch(url, {
+    credentials: 'include',
+    method: 'POST',
+    body: formData,
+    headers: {
+      'Accept': 'application/json', 'X-CSRFToken': (window as any).csrftoken
+    },
+  })
+    .then(response => response.json())
+    .then((result: any) => {
+      return 'removed' in result
+    })
+    .catch(error => {
+      console.log('Error :', error)
+      return false
+    })
+}
+
 export function updateSchedule(scheduleId: number, startTime: number, endTime: number) {
   const formData = new FormData()
   formData.append('schedule_id', scheduleId + '')

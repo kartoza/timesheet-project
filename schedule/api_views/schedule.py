@@ -72,6 +72,20 @@ class ScheduleList(APIView):
         ).data)
 
 
+class DeleteSchedule(APIView):
+    def post(self, request):
+        schedule_id = request.data.get('schedule_id', None)
+        if not schedule_id:
+            raise Http404()
+        schedule = Schedule.objects.get(
+            id=schedule_id
+        )
+        schedule.delete()
+        return Response({
+            'removed': True
+        })
+
+
 class UpdateSchedule(APIView):
     def put(self, request):
         schedule_id = request.data.get('schedule_id', None)
