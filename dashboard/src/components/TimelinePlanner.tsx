@@ -64,6 +64,8 @@ export default function TimelineDashboard() {
   )
 }
 
+const ItemSelectedColor = '#c19e16'
+
 function TimelineSearchInput({searchValue, onChange}) {
   const [searchText, setSearchText] = useState<string>('')
   const [focus, setFocus] = useState<boolean>(true)
@@ -144,7 +146,8 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
       .filter(g => g.root || _openGroups[g.parent])
       .map(group => {
         return Object.assign({}, group, {
-          stackItems: true,
+          stackItems: false,
+          height: 50,
           title: group.root ? (
             <div className={"root-parent"} onClick={() => toggleGroup(parseInt(group.id))}>
               {_openGroups[parseInt(group.id)] ?
@@ -164,8 +167,37 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
   }
 
   useEffect(() => {
+    const fetchData = async () => {
+      const schedules: any = await fetchSchedules();
+      setItems(schedules.map(schedule => {
+        let startTime = new Date(schedule.start_time)
+        let endTime = new Date(schedule.end_time)
+        startTime = new Date(Date.UTC(startTime.getFullYear(), startTime.getMonth(), startTime.getDate()));
+        endTime = new Date(Date.UTC(endTime.getFullYear(), endTime.getMonth(), endTime.getDate()));
+        startTime.setHours(0)
+        startTime.setMinutes(0)
+        startTime.setSeconds(0)
+        endTime.setHours(0)
+        endTime.setMinutes(0)
+        endTime.setSeconds(0)
+        endTime.setDate(endTime.getDate() + 1);
+        return Object.assign({}, schedule, {
+          title: schedule.task_name,
+          info: schedule.task_label,
+          start: startTime.getTime(),
+          end: endTime.getTime(),
+          color: '#FFF',
+          bgColor: getColorFromTaskLabel(schedule.task_label),
+          selectedBgColor: ItemSelectedColor,
+          canChangeGroup: false,
+        })
+      }))
+    }
     if (groups.length > 0) {
       updateGroups(groups)
+      if (items.length === 0) {
+        fetchData().catch(console.error);
+      }
     }
   }, [groups])
 
@@ -220,37 +252,6 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
     }
   }, [])
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const schedules: any = await fetchSchedules();
-      setItems(schedules.map(schedule => {
-        let startTime = new Date(schedule.start_time)
-        let endTime = new Date(schedule.end_time)
-        startTime = new Date(Date.UTC(startTime.getFullYear(), startTime.getMonth(), startTime.getDate()));
-        endTime = new Date(Date.UTC(endTime.getFullYear(), endTime.getMonth(), endTime.getDate()));
-        startTime.setHours(0)
-        startTime.setMinutes(0)
-        startTime.setSeconds(0)
-        endTime.setHours(0)
-        endTime.setMinutes(0)
-        endTime.setSeconds(0)
-        endTime.setDate(endTime.getDate() + 1);
-        return Object.assign({}, schedule, {
-          title: schedule.task_name,
-          start: startTime.getTime(),
-          end: endTime.getTime(),
-          color: '#FFF',
-          bgColor: getColorFromTaskLabel(schedule.task_label),
-          selectedBgColor: '#CC6600'
-        })
-      }))
-    }
-
-    if (groups.length > 0 && items.length === 0) {
-      fetchData().catch(console.error);
-    }
-  }, [groups])
-
   const handleProjectAdd = (groupId) => {
     const group = groups.find(group => group.id === groupId)
     if (group) {
@@ -270,8 +271,7 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
           return Object.assign({}, item, {
             id: parseInt(item.id) * 1000,
             color: '#FFF',
-            bgColor: '#242474',
-            selectedBgColor: '#CC6600',
+            selectedBgColor: ItemSelectedColor,
             canMove: false,
             canResize: false,
             group: id,
@@ -324,6 +324,7 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
   };
 
   const handleCanvasClick = (groupId, time, event) => {
+    if (openForm) return
     const group = groups.filter(group => group.id === groupId)[0]
     if (!group.root) {
       setSelectedTime(new Date(time))
@@ -348,7 +349,7 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
             borderBottomWidth: 1,
             borderRadius: 4,
             borderLeftWidth: itemContext.selected ? 3 : 1,
-            borderRightWidth: itemContext.selected ? 3 : 1
+            borderRightWidth: itemContext.selected ? 3 : 1,
           },
           onMouseDown: () => {
             console.log("on item click", item);
@@ -357,15 +358,10 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
       >
         {itemContext.useResizeHandle ? <div {...leftResizeProps} /> : null}
         <div
-          style={{
-            height: itemContext.dimensions.height,
-            overflow: "hidden",
-            paddingLeft: 3,
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap"
-          }}
+          className={'timeline-item'}
         >
-          {itemContext.title}
+          <div className={'timeline-item-title'}>{itemContext.title}</div>
+          <div className={'timeline-itme-sub'}>{item.info.replace( /(^.*\(|\).*$)/g, '' )}</div>
         </div>
 
         {itemContext.useResizeHandle ? <div {...rightResizeProps} /> : null}
