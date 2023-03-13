@@ -1,4 +1,5 @@
 from django.http import Http404
+from rest_framework.permissions import IsAdminUser
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import serializers
@@ -36,6 +37,10 @@ class UserProjectList(APIView):
         users = get_user_model().objects.filter(
             profile__api_key__isnull=False
         )
+        if not request.user.is_staff:
+            users = users.filter(
+                id=request.user.id
+            )
         users_data = []
         for user in users:
             users_data.append({
@@ -55,6 +60,7 @@ class UserProjectList(APIView):
 
 
 class AddUserProjectSlot(APIView):
+    permission_classes = [IsAdminUser]
 
     def post(self, request):
         project_id = request.data.get('project_id', None)

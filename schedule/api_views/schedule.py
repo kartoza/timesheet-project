@@ -1,5 +1,6 @@
 from django.http import Http404
 from rest_framework import serializers
+from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from datetime import datetime
@@ -67,12 +68,18 @@ class ScheduleList(APIView):
 
     def get(self, request, format=None):
         schedules = Schedule.objects.all()
+        if not request.user.is_staff:
+            schedules = schedules.filter(
+                user_project__user=request.user
+            )
         return Response(ScheduleSerializer(
             schedules, many=True
         ).data)
 
 
 class DeleteSchedule(APIView):
+    permission_classes = [IsAdminUser]
+
     def post(self, request):
         schedule_id = request.data.get('schedule_id', None)
         if not schedule_id:
@@ -87,6 +94,8 @@ class DeleteSchedule(APIView):
 
 
 class UpdateSchedule(APIView):
+    permission_classes = [IsAdminUser]
+
     def put(self, request):
         schedule_id = request.data.get('schedule_id', None)
         if not schedule_id:
@@ -109,6 +118,7 @@ class UpdateSchedule(APIView):
 
 
 class AddSchedule(APIView):
+    permission_classes = [IsAdminUser]
 
     def post(self, request):
         task_id = request.data.get('task_id', None)
