@@ -72,6 +72,28 @@ class ScheduleList(APIView):
         ).data)
 
 
+class UpdateSchedule(APIView):
+    def put(self, request):
+        schedule_id = request.data.get('schedule_id', None)
+        if not schedule_id:
+            raise Http404()
+        start_time = datetime.strptime(
+            request.data.get('start_time'),
+            '%d/%m/%Y')
+        end_time = datetime.strptime(
+            request.data.get('end_time'),
+            '%d/%m/%Y')
+        schedule = Schedule.objects.get(
+            id=schedule_id
+        )
+        schedule.start_time = start_time
+        schedule.end_time = end_time
+        schedule.save()
+        return Response(
+            ScheduleSerializer(schedule, many=False).data
+        )
+
+
 class AddSchedule(APIView):
 
     def post(self, request):

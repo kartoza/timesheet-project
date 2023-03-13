@@ -98,12 +98,13 @@ export default function ItemForm(props: ItemFormInterface) {
           _endTime.setHours(0)
           _endTime.setMinutes(0)
           _endTime.setSeconds(0)
-          _endTime.setDate(_endTime.getDate() + 1);
+          _endTime.setDate(_endTime.getDate());
           const newSchedule = {
             id: result.id,
             start: _startTime,
             end: _endTime,
             title: result.task_name,
+            info: result.task_label,
             group: props.selectedGroup ? props.selectedGroup.id : null,
             bgColor: selectedTask ? getColorFromTaskLabel(selectedTask.label) : '#FFF'
           }

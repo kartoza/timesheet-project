@@ -5,7 +5,10 @@ import "react-calendar-timeline/lib/Timeline.css";
 import Timeline, {TimelineMarkers, TodayMarker, TimelineHeaders,
   SidebarHeader, DateHeader} from "react-calendar-timeline";
 
-import {fetchSchedules, fetchSlottedProjects} from "../utils/schedule_data";
+import {
+  fetchSchedules,
+  fetchSlottedProjects, updateSchedule
+} from "../utils/schedule_data";
 import {getColorFromTaskLabel} from "../utils/Theme";
 import '../styles/Planner.scss';
 import ItemForm from "./TimelineItemForm";
@@ -180,7 +183,7 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
         endTime.setHours(0)
         endTime.setMinutes(0)
         endTime.setSeconds(0)
-        endTime.setDate(endTime.getDate() + 1);
+        endTime.setDate(endTime.getDate());
         return Object.assign({}, schedule, {
           title: schedule.task_name,
           info: schedule.task_label,
@@ -293,37 +296,44 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
   }, [items, groups, openGroups, props]);
 
   const handleItemMove = (itemId, dragTime, newGroupOrder) => {
-    const group = renderedGroups[newGroupOrder];
+    const group = renderedGroups[ newGroupOrder ];
     if (group.root) {
       return false;
     }
-    setItems(items.map(item =>
-      item.id === itemId
-        ? Object.assign({}, item, {
-            start: dragTime,
-            end: dragTime + (item.end - item.start),
-            group: group.id
-          })
-        : item
-    ))
-    console.log("Moved", itemId, dragTime, newGroupOrder);
+    const item = items.find(item => item.id === itemId)
+    if (item) {
+      setItems(items.map(item => item.id === itemId ? Object.assign({}, item, {
+        start: dragTime,
+        end: dragTime + (item.end - item.start),
+        group: group.id
+      }) : item))
+      updateSchedule(itemId, dragTime, dragTime + (item.end - item.start)).then(updatedSchedule => {
+        console.log('moved', updatedSchedule)
+      })
+    }
   };
 
   const handleItemResize = (itemId, time, edge) => {
-    setItems(
-      items.map(item =>
-        item.id === itemId
-          ? Object.assign({}, item, {
-              start: edge === "left" ? time : item.start,
-              end: edge === "left" ? item.end : time
-            })
-          : item
+    const item = items.find(item => item.id === itemId)
+    if (item) {
+      setItems(
+        items.map(item =>
+          item.id === itemId
+            ? Object.assign({}, item, {
+                start: edge === "left" ? time : item.start,
+                end: edge === "left" ? item.end : time
+              })
+            : item
+        )
       )
-    )
-    console.log("Resized", itemId, time, edge);
+      updateSchedule(itemId, edge === "left" ? time : item.start, edge === "left" ? item.end : time).then(updatedSchedule => {
+        console.log('resized', updatedSchedule)
+      })
+    }
   };
 
   const handleCanvasClick = (groupId, time, event) => {
+    console.log('time', time, event)
     if (openForm) return
     const group = groups.filter(group => group.id === groupId)[0]
     if (!group.root) {
@@ -424,6 +434,7 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
             year: 1,
             month: 1,
             day: 1,
+            hour: 1
           }}
           defaultTimeStart={defaultTimeStart}
           defaultTimeEnd={defaultTimeEnd}
