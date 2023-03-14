@@ -2,7 +2,8 @@ from django.contrib import admin
 
 from schedule.models import (
     UserProjectSlot,
-    Schedule
+    Schedule,
+    PublicTimeline
 )
 
 
@@ -31,5 +32,15 @@ class ScheduleAdmin(admin.ModelAdmin):
     )
 
 
+class PublicTimelineAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'start_time',
+        'end_time',
+        'active'
+    )
+
+
 admin.site.register(UserProjectSlot, UserProjectSlotAdmin)
 admin.site.register(Schedule, ScheduleAdmin)
+admin.site.register(PublicTimeline, PublicTimelineAdmin)

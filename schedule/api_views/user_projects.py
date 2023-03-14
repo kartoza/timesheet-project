@@ -32,26 +32,44 @@ class UserProjectSerializer(serializers.ModelSerializer):
 
 
 class UserProjectList(APIView):
-
+    permission_classes = []
+    
     def get(self, request, format=None):
-        users = get_user_model().objects.filter(
-            profile__api_key__isnull=False
-        )
-        if not request.user.is_staff:
-            users = users.filter(
-                id=request.user.id
+        timeline_id = self.request.GET.get('timelineId', None)
+        if not timeline_id:
+            if request.user.is_anonymous:
+                return Response([])
+        if timeline_id:
+            projects = Project.objects.filter(
+                publictimeline__id=timeline_id
             )
+            users = get_user_model().objects.filter(
+                userprojectslot__project__in=projects
+            ).distinct()
+        else:
+            users = get_user_model().objects.filter(
+                profile__api_key__isnull=False
+            )
+            if not request.user.is_staff:
+                users = users.filter(
+                    id=request.user.id
+                )
         users_data = []
         for user in users:
+            user_projects = UserProjectSlot.objects.filter(
+                user=user
+            )
+            if timeline_id:
+                user_projects = user_projects.filter(
+                    project__publictimeline__id=timeline_id
+                )
             users_data.append({
                 'user_id': user.id,
                 'user_name': (
                     user.first_name if user.first_name else user.username
                 ),
                 'slotted_projects': UserProjectSerializer(
-                    UserProjectSlot.objects.filter(
-                        user=user
-                    ), many=True
+                    user_projects, many=True
                 ).data
             })
         return Response(
