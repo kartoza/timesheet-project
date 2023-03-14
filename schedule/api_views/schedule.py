@@ -66,8 +66,13 @@ class ScheduleSerializer(serializers.ModelSerializer):
 
 class ScheduleList(APIView):
 
+    permission_classes = []
+
     def get(self, request, format=None):
         timeline_id = self.request.GET.get('timelineId', None)
+        if not timeline_id:
+            if request.user.is_anonymous:
+                return Response([])
         schedules = Schedule.objects.all()
         if timeline_id:
             schedules = schedules.filter(

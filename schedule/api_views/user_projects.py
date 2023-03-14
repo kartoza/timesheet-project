@@ -32,9 +32,13 @@ class UserProjectSerializer(serializers.ModelSerializer):
 
 
 class UserProjectList(APIView):
-
+    permission_classes = []
+    
     def get(self, request, format=None):
         timeline_id = self.request.GET.get('timelineId', None)
+        if not timeline_id:
+            if request.user.is_anonymous:
+                return Response([])
         if timeline_id:
             projects = Project.objects.filter(
                 publictimeline__id=timeline_id
