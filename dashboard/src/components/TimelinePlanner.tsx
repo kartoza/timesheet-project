@@ -109,22 +109,18 @@ function TimelineSearchInput({searchValue, onChange}) {
   />)
 }
 
+const DEFAULT_TIME_START = moment()
+      .startOf("month")
+      .valueOf()
+const DEFAULT_TIME_END = moment()
+      .startOf("month")
+      .add(1, "month")
+      .valueOf()
+
 function TimelinePlanner(props: TimelinePlannerInterface) {
   const [groups, setGroups] = useState<GroupInterface[]>([])
   const [renderedGroups, setRenderedGroups] = useState<GroupInterface[]>([])
   const [items, setItems] = useState<ItemInterface[]>([])
-
-  const [defaultTimeStart, setDefaultTimeStart] = useState<Date>(
-    moment()
-      .startOf("month")
-      .toDate()
-  )
-  const [defaultTimeEnd, setDefaultTimeEnd] = useState<Date>(
-    moment()
-      .startOf("month")
-      .add(1, "month")
-      .toDate()
-  )
   const [openGroups, setOpenGroups] = useState<any>({})
   const [openForm, setOpenForm] = useState<boolean>(false)
   const [openProjectForm, setOpenProjectForm] = useState<boolean>(false)
@@ -468,8 +464,8 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
             day: 1,
             hour: 1
           }}
-          defaultTimeStart={defaultTimeStart}
-          defaultTimeEnd={defaultTimeEnd}
+          defaultTimeStart={DEFAULT_TIME_START}
+          defaultTimeEnd={DEFAULT_TIME_END}
           onItemMove={handleItemMove}
           onItemResize={handleItemResize}
           itemRenderer={itemRenderer}

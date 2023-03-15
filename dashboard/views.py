@@ -95,7 +95,5 @@ class PublicTimelineView(TemplateView):
         timeline = PublicTimeline.objects.get(
             slug_name=slug_name
         )
-        ctx['name'] = timeline.name
-        ctx['public_timeline_id'] = timeline.id
-        ctx['public'] = True
+        ctx['public_timeline'] = timeline
         return ctx
