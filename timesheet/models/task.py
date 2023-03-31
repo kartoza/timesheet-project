@@ -32,6 +32,10 @@ class Task(models.Model):
         default=0.0
     )
 
+    last_update = models.DateTimeField(
+        auto_now=True
+    )
+
     def __str__(self):
         return (
             f'{self.name} - '

@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from schedule.models import Schedule, UserProjectSlot
 from timesheet.models import Task
@@ -17,6 +17,8 @@ class ScheduleSerializer(serializers.ModelSerializer):
     project_name = serializers.SerializerMethodField()
     task_name = serializers.SerializerMethodField()
     task_label = serializers.SerializerMethodField()
+    first_day = serializers.IntegerField(source='first_day_number')
+    last_day = serializers.IntegerField(source='last_day_number')
 
     def get_task_label(self, obj: Schedule):
         if not obj.task:
@@ -60,7 +62,9 @@ class ScheduleSerializer(serializers.ModelSerializer):
             'end_time',
             'project_name',
             'task_name',
-            'task_label'
+            'task_label',
+            'first_day',
+            'last_day'
         ]
 
 
@@ -154,12 +158,66 @@ class AddSchedule(APIView):
             user_id=user_id,
             project=task.project
         )
+
+        # remaining task time = expected_time - actual_time = 100
+        remaining_task_time = task.expected_time - task.actual_time
+        # last task update
+        last_task_update = task.last_update
+        # hours per day ( default to 7 )
+        hours_per_day = 7
+        # remaining task day = int(100 / 7) = 14
+        remaining_task_day = int(remaining_task_time / hours_per_day)
+
+        # Calculate remaining days
+        # e.g. 2 previous schedules
+        previous_schedules = Schedule.objects.filter(
+            task=task,
+            start_time__lte=start_time,
+            end_time__gte=last_task_update
+        )
+
+        for previous_schedule in previous_schedules:
+            if previous_schedule.start_time >= last_task_update:
+                remaining_task_day -= (
+                    previous_schedule.end_time - previous_schedule.start_time
+                ).days
+            elif previous_schedule.start_time < last_task_update:
+                remaining_task_day -= (
+                    previous_schedule.end_time - last_task_update.replace(
+                       hour=0, minute=0, second=0, microsecond=0)
+                ).days
+
+        last_day_number = (
+            remaining_task_day - (end_time - start_time).days + 1
+        )
         schedule = Schedule.objects.create(
             user_project=user_project,
             start_time=start_time,
             end_time=end_time,
-            task=task
+            task=task,
+            first_day_number=remaining_task_day,
+            last_day_number=last_day_number
         )
+
+        # update first day and last day of tasks
+        # check for subsequent schedules
+        sub_schedules = Schedule.objects.filter(
+            start_time__gt=start_time,
+            task=task
+        ).order_by('start_time')
+
+        if sub_schedules.exists():
+            # Update the numbers
+            for sub_schedule in sub_schedules:
+                sub_schedule.first_day_number = last_day_number - 1
+                last_day_number = (
+                    (last_day_number - 1) - (
+                        sub_schedule.end_time - sub_schedule.start_time
+                    ).days + 1
+                )
+                sub_schedule.last_day_number = last_day_number
+                sub_schedule.save()
+
         return Response(
             ScheduleSerializer(schedule, many=False).data
         )

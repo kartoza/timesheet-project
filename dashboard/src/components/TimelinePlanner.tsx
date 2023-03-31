@@ -8,7 +8,7 @@ import Timeline, {TimelineMarkers, TodayMarker, TimelineHeaders,
 import {
   deleteSchedule, fetchSchedules, fetchSlottedProjects, updateSchedule
 } from "../utils/schedule_data";
-import {getColorFromTaskLabel} from "../utils/Theme";
+import {getColorFromTaskLabel, getTaskColor} from "../utils/Theme";
 import '../styles/Planner.scss';
 import ItemForm from "./TimelineItemForm";
 import AddBoxIcon from '@mui/icons-material/AddBox';
@@ -360,6 +360,33 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
   const itemRenderer = ({ item, timelineContext, itemContext, getItemProps, getResizeProps }) => {
     const { left: leftResizeProps, right: rightResizeProps } = getResizeProps();
     const backgroundColor = itemContext.selected ? (itemContext.dragging ? "red" : item.selectedBgColor) : item.bgColor;
+    const taskTimeInfo = item.info.replace( /(^.*\(|\).*$)/g, '' )
+    const usedHour = parseFloat(taskTimeInfo.split('/')[0])
+    const totalHour = parseFloat(taskTimeInfo.split('/')[1])
+    const totalDays = totalHour/7
+    const remainingHour = totalHour - usedHour
+    let remainingDays = parseInt((remainingHour / 7) + "")
+    const countdown:any = []
+    let days = 0;
+    if (item.first_day && item.last_day) {
+      days = item.first_day - item.last_day
+      for (let i = item.first_day; i > item.last_day - 1; i--) {
+        countdown.push(i)
+      }
+    } else {
+      days = Math.abs(
+        moment(item.start_time).diff(moment(item.end_time), 'days'))
+      for (let i = 0; i < days; i++) {
+        countdown.push(remainingDays)
+        remainingDays -= 1
+      }
+    }
+    const countDownStyle = {
+      width: `${100/days}%`
+    }
+    const firstColor = getTaskColor((totalDays - countdown[0]) / totalDays)
+    const lastColor = getTaskColor((totalDays - countdown[countdown.length - 1]) / totalDays)
+    const background = `linear-gradient(90deg, ${firstColor} 0%, ${lastColor} 100%)`;
     return (
       <div
         {...getItemProps({
@@ -383,9 +410,15 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
         {itemContext.useResizeHandle ? <div {...leftResizeProps} /> : null}
         <div
           className={'timeline-item'}
+          style={{
+            background: background,
+            borderRadius: '4px'
+          }}
         >
           <div className={'timeline-item-title'}>{itemContext.title}</div>
-          <div className={'timeline-itme-sub'}>{item.info.replace( /(^.*\(|\).*$)/g, '' )}</div>
+          <div className={'timeline-item-sub'}>
+            {countdown.map(day => <div className={'timeline-item-countdown'} style={countDownStyle}>{day}</div>)}
+          </div>
           { canEdit ? <div className={'remove-item'} onClick={(e) => {
             e.stopPropagation()
             e.preventDefault()
