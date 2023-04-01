@@ -105,6 +105,8 @@ export default function ItemForm(props: ItemFormInterface) {
             end: _endTime,
             title: result.task_name,
             info: result.task_label,
+            first_day: result.first_day,
+            last_day: result.last_day,
             group: props.selectedGroup ? props.selectedGroup.id : null,
             bgColor: selectedTask ? getColorFromTaskLabel(selectedTask.label) : '#FFF'
           }

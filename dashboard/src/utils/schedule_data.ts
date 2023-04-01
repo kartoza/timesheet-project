@@ -53,17 +53,24 @@ export function updateSchedule(scheduleId: number, startTime: number, endTime: n
     },
   })
     .then(response => response.json())
-    .then((result: any) => {
-      if (result) {
-        return {
-          id: result.id,
-          start: resetTimeInDate(result.start_time),
-          end: resetTimeInDate(result.end_time),
-          title: result.task_name,
-          info: result.task_label,
-          group: result.group,
-          bgColor: getColorFromTaskLabel(result.task_label)
+    .then((results: any) => {
+      if (results) {
+        const items: any = {}
+        for (let i = 0; i < results.length; i++) {
+          let result = results[i];
+          items[result.id] = {
+            id: result.id,
+            start: resetTimeInDate(result.start_time),
+            end: resetTimeInDate(result.end_time),
+            title: result.task_name,
+            info: result.task_label,
+            group: result.group,
+            first_day: result.first_day,
+            last_day: result.last_day,
+            bgColor: getColorFromTaskLabel(result.task_label)
+          }
         }
+        return  items;
       }
       return null
     })

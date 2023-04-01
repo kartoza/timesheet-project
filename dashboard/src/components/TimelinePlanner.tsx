@@ -316,13 +316,10 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
     }
     const item = items.find(item => item.id === itemId)
     if (item) {
-      setItems(items.map(item => item.id === itemId ? Object.assign({}, item, {
-        start: dragTime,
-        end: dragTime + (item.end - item.start),
-        group: group.id
-      }) : item))
-      updateSchedule(itemId, dragTime, dragTime + (item.end - item.start)).then(updatedSchedule => {
-        console.log('moved', updatedSchedule)
+      updateSchedule(itemId, dragTime, dragTime + (item.end - item.start)).then((updatedSchedules: any) => {
+        if (updatedSchedules) {
+          setItems(items.map(item => updatedSchedules[item.id] ? Object.assign({}, item, updatedSchedules[item.id]) : item))
+        }
       })
     }
   };
@@ -330,18 +327,20 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
   const handleItemResize = (itemId, time, edge) => {
     const item = items.find(item => item.id === itemId)
     if (item) {
-      setItems(
-        items.map(item =>
-          item.id === itemId
-            ? Object.assign({}, item, {
-                start: edge === "left" ? time : item.start,
-                end: edge === "left" ? item.end : time
-              })
-            : item
-        )
-      )
-      updateSchedule(itemId, edge === "left" ? time : item.start, edge === "left" ? item.end : time).then(updatedSchedule => {
-        console.log('resized', updatedSchedule)
+      // setItems(
+      //   items.map(item =>
+      //     item.id === itemId
+      //       ? Object.assign({}, item, {
+      //           start: edge === "left" ? time : item.start,
+      //           end: edge === "left" ? item.end : time
+      //         })
+      //       : item
+      //   )
+      // )
+      updateSchedule(itemId, edge === "left" ? time : item.start, edge === "left" ? item.end : time).then((updatedSchedules: any) => {
+        if (updatedSchedules) {
+          setItems(items.map(item => updatedSchedules[item.id] ? Object.assign({}, item, updatedSchedules[item.id]) : item))
+        }
       })
     }
   };

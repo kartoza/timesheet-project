@@ -1,3 +1,4 @@
+import pytz
 from django.http import Http404
 from rest_framework import serializers
 from rest_framework.permissions import IsAdminUser
@@ -9,8 +10,13 @@ from schedule.models import Schedule, UserProjectSlot
 from timesheet.models import Task
 
 
+def _naive(date_obj):
+    return date_obj.astimezone(pytz.UTC).replace(tzinfo=None)
+
+
 def calculate_remaining_task_days(
-        task: Task, start_time: datetime, excluded_schedule: Schedule = None):
+        task: Task, start_time: datetime, end_time: datetime = None,
+        excluded_schedule: Schedule = None):
     """
     Calculates the remaining days for a task, considering the task's
     expected time, actual time, and any previous schedules that
@@ -18,6 +24,7 @@ def calculate_remaining_task_days(
     calculated based on a default of 7 hours of work per day
     :param task: Task object
     :param start_time: The start time of the current schedule being considered
+    :param end_time: The end time of the current schedule being considered
     :param excluded_schedule: A schedule excluded from the query
     :return: The remaining task day
     """
@@ -31,45 +38,147 @@ def calculate_remaining_task_days(
     # remaining task day = int(100 / 7) = 14
     remaining_task_day = int(remaining_task_time / hours_per_day)
 
-    # Calculate remaining days
-    # e.g. 2 previous schedules
-    previous_schedules = Schedule.objects.filter(
-        task=task,
-        start_time__lte=start_time,
-        end_time__gte=last_task_update
-    )
+    start_time = _naive(start_time)
+    if end_time:
+        end_time = _naive(end_time)
+    last_task_update = _naive(last_task_update)
 
-    if excluded_schedule:
-        previous_schedules = previous_schedules.exclude(
-            id=excluded_schedule.id
+    if start_time < last_task_update:
+        # Calculate previous schedules before last_task_update and
+        # after the new schedule start_time
+        previous_schedules_before_update = Schedule.objects.filter(
+            task=task,
+            start_time__lt=last_task_update,
+            start_time__gte=start_time
+        ).order_by('-start_time')
+
+        if excluded_schedule:
+            previous_schedules_before_update = (
+                previous_schedules_before_update.exclude(
+                    id=excluded_schedule.id
+                )
+            )
+        for prev_schedule in previous_schedules_before_update:
+            prev_start_time = _naive(prev_schedule.start_time)
+            prev_end_time = _naive(prev_schedule.end_time)
+            if (
+                prev_end_time <
+                last_task_update
+            ):
+                remaining_task_day += (
+                    prev_end_time - prev_start_time
+                ).days
+            else:
+                remaining_task_day += (
+                    last_task_update - prev_start_time
+                ).days
+        if end_time > last_task_update:
+            end_time = last_task_update
+        return (
+            remaining_task_day +
+            (end_time - start_time).days +
+            (1 if end_time < last_task_update else 0)
         )
+    else:
+        # Calculate remaining days
+        # e.g. 2 previous schedules
+        previous_schedules = Schedule.objects.filter(
+            task=task,
+            start_time__lt=start_time,
+            end_time__gte=last_task_update
+        ).order_by('start_time')
+        if excluded_schedule:
+            previous_schedules = previous_schedules.exclude(
+                id=excluded_schedule.id
+            )
 
-    for previous_schedule in previous_schedules:
-        if previous_schedule.start_time >= last_task_update:
-            remaining_task_day -= (
-                    previous_schedule.end_time - previous_schedule.start_time
+        for previous_schedule in previous_schedules:
+            prev_end_time = _naive(previous_schedule.end_time)
+            prev_start_time = _naive(previous_schedule.start_time)
+            if prev_start_time > last_task_update:
+                remaining_task_day -= (
+                    prev_end_time - prev_start_time
+                ).days + 1
+            elif prev_start_time <= last_task_update:
+                remaining_task_day -= (
+                    prev_end_time - last_task_update.replace(
+                        hour=0, minute=0, second=0, microsecond=0)
+                ).days + 1
+        return remaining_task_day
+
+
+def update_previous_schedules(
+        start_time, task_id, remaining_days, excluded_schedule=None):
+    # Initialize the list to store updated schedules' IDs
+    updated_schedules = []
+
+    # Query the previous schedules based on the given start
+    # _time and task_id, ordered by start_time in descending order
+    prev_schedules = Schedule.objects.filter(
+        start_time__lte=start_time,
+        task_id=task_id
+    ).order_by('-start_time')
+
+    # If an excluded_schedule is provided, exclude it from the query
+    if excluded_schedule:
+        prev_schedules = prev_schedules.exclude(id=excluded_schedule.id)
+
+    # Calculate the first_day value for the first previous schedule in the loop
+    first_day = remaining_days + 1
+
+    # If there are previous schedules, update their first_
+    # day_number and last_day_number
+    if prev_schedules.exists():
+        for prev_schedule in prev_schedules:
+            # Update the last_day_number of the current previous schedule
+            prev_schedule.last_day_number = first_day
+
+            # Calculate the duration of the current previous schedule
+            duration = (
+                prev_schedule.end_time -
+                prev_schedule.start_time
             ).days
-        elif previous_schedule.start_time < last_task_update:
-            remaining_task_day -= (
-                previous_schedule.end_time - last_task_update.replace(
-                    hour=0, minute=0, second=0, microsecond=0)
-            ).days
-    return remaining_task_day
+
+            # Update the first_day value for the next
+            # previous schedule in the loop
+            first_day = first_day + duration
+
+            # Update the first_day_number of the current previous schedule
+            prev_schedule.first_day_number = first_day
+
+            # Save the updated previous schedule to the database
+            prev_schedule.save()
+
+            # Append the updated previous schedule's ID
+            # to the updated_schedules list
+            updated_schedules.append(prev_schedule.id)
+
+    return updated_schedules
 
 
-def update_subsequent_schedules(start_time, task_id, last_day_number):
+def update_subsequent_schedules(start_time,
+                                task_id,
+                                last_day_number,
+                                excluded_schedule=None):
     """
     This function checks for subsequent schedules and updates their first day
     and last day numbers accordingly
     :param start_time: The start time of the schedule
     :param task_id: id of the task
     :param last_day_number: The last day number of the previous task
+    :param excluded_schedule: Schedule to be excluded for the query
     :return:
     """
+    updated_schedules = []
     sub_schedules = Schedule.objects.filter(
-        start_time__gt=start_time,
+        start_time__gte=start_time,
         task_id=task_id
     ).order_by('start_time')
+
+    if excluded_schedule:
+        sub_schedules = sub_schedules.exclude(
+            id=excluded_schedule.id
+        )
 
     if sub_schedules.exists():
         # Update the numbers
@@ -82,6 +191,9 @@ def update_subsequent_schedules(start_time, task_id, last_day_number):
             )
             sub_schedule.last_day_number = last_day_number
             sub_schedule.save()
+            updated_schedules.append(sub_schedule.id)
+
+    return updated_schedules
 
 
 class ScheduleSerializer(serializers.ModelSerializer):
@@ -183,6 +295,7 @@ class DeleteSchedule(APIView):
         remaining_task_days = calculate_remaining_task_days(
             task,
             start_time,
+            schedule.end_time
         )
         update_subsequent_schedules(
             start_time=schedule.start_time,
@@ -215,8 +328,10 @@ class UpdateSchedule(APIView):
         schedule.end_time = end_time
         schedule.save()
 
+        task = schedule.task
+
         remaining_task_days = calculate_remaining_task_days(
-            schedule.task, start_time, excluded_schedule=schedule
+            schedule.task, start_time, end_time, excluded_schedule=schedule
         )
         last_day_number = (
             remaining_task_days - (end_time - start_time).days + 1
@@ -225,14 +340,29 @@ class UpdateSchedule(APIView):
         schedule.last_day_number = last_day_number
         schedule.save()
 
-        update_subsequent_schedules(
+        updated = update_subsequent_schedules(
             start_time=start_time,
-            task_id=schedule.task.id,
-            last_day_number=last_day_number
+            task_id=task.id,
+            last_day_number=last_day_number,
+            excluded_schedule=schedule
         )
+        updated.append(schedule.id)
+
+        if _naive(schedule.start_time) < _naive(task.last_update):
+            updated_previous = update_previous_schedules(
+                start_time,
+                task.id,
+                remaining_task_days,
+                schedule
+            )
+            updated += updated_previous
+
+        schedules = Schedule.objects.filter(
+            id__in=updated
+        ).distinct()
 
         return Response(
-            ScheduleSerializer(schedule, many=False).data
+            ScheduleSerializer(schedules, many=True).data
         )
 
 
@@ -264,7 +394,7 @@ class AddSchedule(APIView):
         )
 
         remaining_task_days = calculate_remaining_task_days(
-            task, start_time
+            task, start_time, end_time
         )
 
         last_day_number = (
@@ -282,8 +412,17 @@ class AddSchedule(APIView):
         update_subsequent_schedules(
             start_time=start_time,
             task_id=task.id,
-            last_day_number=last_day_number
+            last_day_number=last_day_number,
+            excluded_schedule=schedule
         )
+
+        if _naive(schedule.start_time) < _naive(task.last_update):
+            update_previous_schedules(
+                start_time,
+                task.id,
+                remaining_task_days,
+                schedule
+            )
 
         return Response(
             ScheduleSerializer(schedule, many=False).data
