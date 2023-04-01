@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from schedule.models import Schedule, UserProjectSlot
 from timesheet.models import Task
@@ -124,12 +124,13 @@ def update_previous_schedules(
         prev_schedules = prev_schedules.exclude(id=excluded_schedule.id)
 
     # Calculate the first_day value for the first previous schedule in the loop
-    first_day = remaining_days + 1
+    first_day = remaining_days
 
     # If there are previous schedules, update their first_
     # day_number and last_day_number
     if prev_schedules.exists():
         for prev_schedule in prev_schedules:
+            first_day += 1
             # Update the last_day_number of the current previous schedule
             prev_schedule.last_day_number = first_day
 
@@ -187,7 +188,7 @@ def update_subsequent_schedules(start_time,
             last_day_number = (
                 (last_day_number - 1) - (
                     sub_schedule.end_time - sub_schedule.start_time
-            ).days + 1
+                ).days
             )
             sub_schedule.last_day_number = last_day_number
             sub_schedule.save()

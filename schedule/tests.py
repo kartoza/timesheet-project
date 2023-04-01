@@ -3,7 +3,11 @@ from pytz import utc
 from django.test import RequestFactory, TestCase, override_settings
 from django.contrib.auth import get_user_model
 
-from schedule.api_views.schedule import calculate_remaining_task_days
+from schedule.api_views.schedule import (
+    calculate_remaining_task_days,
+    update_subsequent_schedules,
+    update_previous_schedules,
+)
 from timesheet.models import Task, Project
 from schedule.models import UserProjectSlot, Schedule
 
@@ -41,6 +45,15 @@ class ScheduleTestCase(TaskTestCase):
 
 
 class TestCalculateRemainingTaskDays(ScheduleTestCase):
+
+    def create_schedule(self, start_time, end_time):
+        return Schedule.objects.create(
+            task=self.task,
+            user_project=self.user_project,
+            start_time=start_time,
+            end_time=end_time
+        )
+
     def test_calculate_remaining_task_days(self):
         # Task last update = 01/01/2023
         # Task days left (hours/hour per day) = 300 / 7 = 42
@@ -77,15 +90,11 @@ class TestCalculateRemainingTaskDays(ScheduleTestCase):
         # Calculate remaining days if the schedule is occurred before the
         # task's last update date and there are existing schedules
         # Countdown => 49(1/12/2022)-48(2/12/2022)-47(3/12/2022)
-        Schedule.objects.create(
-            task=self.task,
-            user_project=self.user_project,
+        self.create_schedule(
             start_time=datetime(2022, 12, 31, tzinfo=utc),
             end_time=datetime(2023, 1, 2, tzinfo=utc)
         )
-        Schedule.objects.create(
-            task=self.task,
-            user_project=self.user_project,
+        self.create_schedule(
             start_time=datetime(2022, 12, 12, tzinfo=utc),
             end_time=datetime(2022, 12, 15, tzinfo=utc)
         )
@@ -100,9 +109,7 @@ class TestCalculateRemainingTaskDays(ScheduleTestCase):
         # Calculate remaining days if the schedule is occurred after the task's
         # last update date and there are existing schedules
         # Countdown => 35(10/4)-34(11/4)-33(12/4)
-        Schedule.objects.create(
-            task=self.task,
-            user_project=self.user_project,
+        self.create_schedule(
             start_time=datetime(2023, 4, 4, tzinfo=utc),
             end_time=datetime(2023, 4, 8, tzinfo=utc)
         )
@@ -113,3 +120,123 @@ class TestCalculateRemainingTaskDays(ScheduleTestCase):
         )
         self.assertEqual(remaining_task_days, 35)
 
+    def test_update_subsequent_schedules(self):
+        self.assertEqual(Schedule.objects.all().count(), 0)
+
+        # Update all schedules that occurred after task's last update
+        schedule1 = self.create_schedule(
+            start_time=datetime(2023, 4, 8, tzinfo=utc),
+            end_time=datetime(2023, 4, 10, tzinfo=utc)
+        )
+        schedule2 = self.create_schedule(
+            start_time=datetime(2023, 5, 8, tzinfo=utc),
+            end_time=datetime(2023, 5, 10, tzinfo=utc)
+        )
+        schedule3 = self.create_schedule(
+            start_time=datetime(2023, 5, 8, tzinfo=utc),
+            end_time=datetime(2023, 5, 10, tzinfo=utc)
+        )
+        new_schedule = self.create_schedule(
+            start_time=datetime(2023, 3, 1, tzinfo=utc),
+            end_time=datetime(2023, 3, 3, tzinfo=utc)
+        )
+        remaining_task_days = calculate_remaining_task_days(
+            self.task, new_schedule.start_time, new_schedule.end_time
+        )
+        update_subsequent_schedules(
+            new_schedule.start_time,
+            self.task.id,
+            remaining_task_days -
+            (new_schedule.end_time - new_schedule.start_time).days,
+            new_schedule
+        )
+        schedule1 = Schedule.objects.get(id=schedule1.id)
+        self.assertEqual(schedule1.first_day_number, 39)
+        self.assertEqual(schedule1.last_day_number, 37)
+
+        schedule2 = Schedule.objects.get(id=schedule2.id)
+        self.assertEqual(schedule2.first_day_number, 36)
+        self.assertEqual(schedule2.last_day_number, 34)
+
+        schedule3 = Schedule.objects.get(id=schedule3.id)
+        self.assertEqual(schedule3.first_day_number, 33)
+        self.assertEqual(schedule3.last_day_number, 31)
+
+    def test_update_subsequent_schedules_2(self):
+        # Update subsequent schedules when one of the schedules contains
+        # the task's last update date
+        # Task last update = 01/01/2023
+        schedule1 = self.create_schedule(
+            start_time=datetime(2022, 12, 31, tzinfo=utc),
+            end_time=datetime(2023, 1, 2, tzinfo=utc)
+        )
+        schedule2 = self.create_schedule(
+            start_time=datetime(2023, 1, 1, tzinfo=utc),
+            end_time=datetime(2023, 1, 4, tzinfo=utc)
+        )
+        schedule3 = self.create_schedule(
+            start_time=datetime(2023, 5, 8, tzinfo=utc),
+            end_time=datetime(2023, 5, 10, tzinfo=utc)
+        )
+        new_schedule = self.create_schedule(
+            start_time=datetime(2023, 1, 1, tzinfo=utc),
+            end_time=datetime(2023, 1, 3, tzinfo=utc)
+        )
+        remaining_task_days = calculate_remaining_task_days(
+            self.task, new_schedule.start_time, new_schedule.end_time
+        )
+        update_subsequent_schedules(
+            new_schedule.start_time,
+            self.task.id,
+            remaining_task_days -
+            (new_schedule.end_time - new_schedule.start_time).days,
+            new_schedule
+        )
+        schedule1 = Schedule.objects.get(id=schedule1.id)
+        self.assertEqual(schedule1.first_day_number, None)
+        self.assertEqual(schedule1.last_day_number, None)
+
+        schedule2 = Schedule.objects.get(id=schedule2.id)
+        self.assertEqual(schedule2.first_day_number, 37)
+        self.assertEqual(schedule2.last_day_number, 34)
+
+        schedule3 = Schedule.objects.get(id=schedule3.id)
+        self.assertEqual(schedule3.first_day_number, 33)
+        self.assertEqual(schedule3.last_day_number, 31)
+
+    def test_update_previous_schedules(self):
+        # Test updates previous schedules if the new schedule is
+        # occurred before task's last update
+        # Task last update = 01/01/2023
+        # 51 1/12-50 2/12-49 3/12
+        schedule1 = self.create_schedule(
+            start_time=datetime(2022, 12, 1, tzinfo=utc),
+            end_time=datetime(2022, 12, 3, tzinfo=utc)
+        )
+        # 48 5/12-47 6/12-46 7/12
+        schedule2 = self.create_schedule(
+            start_time=datetime(2022, 12, 5, tzinfo=utc),
+            end_time=datetime(2022, 12, 7, tzinfo=utc)
+        )
+        # 45(10/12)-44(11/12)-43(12/12)
+        new_schedule = self.create_schedule(
+            start_time=datetime(2022, 12, 10, tzinfo=utc),
+            end_time=datetime(2022, 12, 12, tzinfo=utc)
+        )
+        remaining_task_days = calculate_remaining_task_days(
+            self.task, new_schedule.start_time, new_schedule.end_time,
+            new_schedule
+        )
+        update_previous_schedules(
+            new_schedule.start_time,
+            self.task.id,
+            remaining_task_days,
+            new_schedule
+        )
+        schedule1 = Schedule.objects.get(id=schedule1.id)
+        self.assertEqual(schedule1.first_day_number, 51)
+        self.assertEqual(schedule1.last_day_number, 49)
+
+        schedule2 = Schedule.objects.get(id=schedule2.id)
+        self.assertEqual(schedule2.first_day_number, 48)
+        self.assertEqual(schedule2.last_day_number, 46)
