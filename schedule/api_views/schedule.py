@@ -11,7 +11,9 @@ from timesheet.models import Task
 
 
 def _naive(date_obj):
-    return date_obj.astimezone(pytz.UTC).replace(tzinfo=None)
+    return date_obj.astimezone(pytz.UTC).replace(tzinfo=None).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
 
 
 def calculate_remaining_task_days(
@@ -67,7 +69,7 @@ def calculate_remaining_task_days(
             ):
                 remaining_task_day += (
                     prev_end_time - prev_start_time
-                ).days
+                ).days + 1
             else:
                 remaining_task_day += (
                     last_task_update - prev_start_time
@@ -101,8 +103,7 @@ def calculate_remaining_task_days(
                 ).days + 1
             elif prev_start_time <= last_task_update:
                 remaining_task_day -= (
-                    prev_end_time - last_task_update.replace(
-                        hour=0, minute=0, second=0, microsecond=0)
+                    prev_end_time - last_task_update
                 ).days + 1
         return remaining_task_day
 
@@ -379,12 +380,8 @@ class AddSchedule(APIView):
         end_time = datetime.fromtimestamp(
             int(request.data.get('end_time')) / 1000
         )
-        start_time = start_time.replace(
-            hour=0, minute=0
-        )
-        end_time = end_time.replace(
-            hour=0, minute=0
-        )
+        start_time = _naive(start_time)
+        end_time = _naive(end_time)
 
         if not task_id or not user_id:
             raise Http404()
@@ -394,12 +391,14 @@ class AddSchedule(APIView):
             project=task.project
         )
 
+        last_update = _naive(task.last_update)
         remaining_task_days = calculate_remaining_task_days(
             task, start_time, end_time
         )
 
         last_day_number = (
-            remaining_task_days - (end_time - start_time).days + 1
+            remaining_task_days - (end_time - start_time).days +
+            (1 if end_time >= last_update else 0)
         )
         schedule = Schedule.objects.create(
             user_project=user_project,
@@ -417,7 +416,7 @@ class AddSchedule(APIView):
             excluded_schedule=schedule
         )
 
-        if _naive(schedule.start_time) < _naive(task.last_update):
+        if start_time < last_update:
             update_previous_schedules(
                 start_time,
                 task.id,

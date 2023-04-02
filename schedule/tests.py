@@ -1,7 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+
+from django.urls import reverse
 from pytz import utc
 from django.test import RequestFactory, TestCase, override_settings
 from django.contrib.auth import get_user_model
+from rest_framework import status
+from rest_framework.test import APIClient
 
 from schedule.api_views.schedule import (
     calculate_remaining_task_days,
@@ -14,6 +18,7 @@ from schedule.models import UserProjectSlot, Schedule
 
 class TaskTestCase(TestCase):
     def setUp(self):
+        self.client = APIClient()
         self.project = Project.objects.create(
             name='project',
             is_active=True
@@ -30,7 +35,8 @@ class TaskTestCase(TestCase):
         self.user = get_user_model().objects.create(
             first_name='test',
             last_name='test',
-            username='test'
+            username='test',
+            is_staff=True
         )
 
 
@@ -90,21 +96,24 @@ class TestCalculateRemainingTaskDays(ScheduleTestCase):
         # Calculate remaining days if the schedule is occurred before the
         # task's last update date and there are existing schedules
         # Countdown => 49(1/12/2022)-48(2/12/2022)-47(3/12/2022)
+        # (43)31/12-(42)1/1-(41)2/1
         self.create_schedule(
             start_time=datetime(2022, 12, 31, tzinfo=utc),
             end_time=datetime(2023, 1, 2, tzinfo=utc)
         )
+        # (47)12/12-(46)13/12-(45)14/1-(44)15/1
         self.create_schedule(
             start_time=datetime(2022, 12, 12, tzinfo=utc),
             end_time=datetime(2022, 12, 15, tzinfo=utc)
         )
 
+        # (50)1/12-(49)2/12-(48)3/1
         start_time = datetime(2022, 12, 1, tzinfo=utc)
         end_time = datetime(2022, 12, 3, tzinfo=utc)
         remaining_task_days = calculate_remaining_task_days(
             self.task, start_time, end_time
         )
-        self.assertEqual(remaining_task_days, 49)
+        self.assertEqual(remaining_task_days, 50)
 
         # Calculate remaining days if the schedule is occurred after the task's
         # last update date and there are existing schedules
@@ -240,3 +249,72 @@ class TestCalculateRemainingTaskDays(ScheduleTestCase):
         schedule2 = Schedule.objects.get(id=schedule2.id)
         self.assertEqual(schedule2.first_day_number, 48)
         self.assertEqual(schedule2.last_day_number, 46)
+
+    def test_add_schedule_after_task_last_update(self):
+        self.client.force_authenticate(user=self.user)
+        # 40-39-38
+        start_time = datetime(2023, 5, 8, tzinfo=utc)
+        end_time = datetime(2023, 5, 10, tzinfo=utc)
+
+        # 43-42-41
+        self.create_schedule(
+            start_time=datetime(2023, 2, 8, tzinfo=utc),
+            end_time=datetime(2023, 2, 10, tzinfo=utc)
+        )
+
+        url = reverse('add-schedule')
+        data = {
+            'task_id': self.task.id,
+            'user_id': self.user_project.user_id,
+            'start_time': int(start_time.timestamp() * 1000),
+            'end_time': int(end_time.timestamp() * 1000),
+        }
+        response = self.client.post(url, data)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        schedule = Schedule.objects.get(id=response.data['id'])
+        self.assertEqual(schedule.task.id, self.task.id)
+        self.assertEqual(schedule.user_project.id, self.user_project.id)
+
+        remaining_task_days = calculate_remaining_task_days(
+            self.task, start_time, end_time
+        )
+
+        last_day_number = (
+            remaining_task_days - (
+                end_time - start_time
+            ).days + 1
+        )
+
+        self.assertEqual(schedule.first_day_number, remaining_task_days)
+        self.assertEqual(schedule.last_day_number, last_day_number)
+
+    def test_add_schedule_before_task_last_update(self):
+        # Task last update = 01/01/2023
+        self.client.force_authenticate(user=self.user)
+        # (48)8/10 - (47)9/10 - (46)10/10
+        start_time = datetime(2022, 10, 8, tzinfo=utc)
+        end_time = datetime(2022, 10, 10, tzinfo=utc)
+
+        # (45)8/12 - (44)9/12 - (43)10/12
+        self.create_schedule(
+            start_time=datetime(2022, 12, 8, tzinfo=utc),
+            end_time=datetime(2022, 12, 10, tzinfo=utc)
+        )
+
+        url = reverse('add-schedule')
+        data = {
+            'task_id': self.task.id,
+            'user_id': self.user_project.user_id,
+            'start_time': int(start_time.timestamp() * 1000),
+            'end_time': int(end_time.timestamp() * 1000),
+        }
+        response = self.client.post(url, data)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        schedule = Schedule.objects.get(id=response.data['id'])
+        self.assertEqual(schedule.task.id, self.task.id)
+        self.assertEqual(schedule.user_project.id, self.user_project.id)
+
+        self.assertEqual(schedule.first_day_number, 48)
+        self.assertEqual(schedule.last_day_number, 46)
