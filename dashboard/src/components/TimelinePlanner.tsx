@@ -180,7 +180,7 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
         endTime.setHours(0)
         endTime.setMinutes(0)
         endTime.setSeconds(0)
-        endTime.setDate(endTime.getDate());
+        endTime.setDate(endTime.getDate() + 1);
         return Object.assign({}, schedule, {
           title: schedule.task_name,
           info: schedule.task_label,
@@ -301,8 +301,9 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
         deleteSchedule(
           item.id
         ).then(result => {
-          if (result) {
-            setItems((current) => current.filter((currentItem) => currentItem.id !== itemId));
+          if (result['removed']) {
+            const updatedSchedules = result.updated
+            setItems(items.map(item => updatedSchedules[item.id] ? Object.assign({}, item, updatedSchedules[item.id]) : item).filter((currentItem) => currentItem.id !== itemId))
           }
         })
       }
@@ -402,7 +403,7 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
             borderRightWidth: itemContext.selected ? 3 : 1,
           },
           onMouseDown: () => {
-            console.log("on item click", item);
+            // console.log("on item click", item);
           }
         })}
       >
@@ -438,11 +439,11 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
                     setOpenForm(false)
                     setSelectedGroup(null)
                   }}
-                onAdd={(item: ItemInterface) => {
+                onAdd={(item: ItemInterface, updatedSchedules: any) => {
                   if (item) {
                     item.color = '#FFF'
                     item.selectedBgColor = '#CC6600'
-                    setItems(oldItems => [...oldItems, item]);
+                    setItems(oldItems => [...oldItems.map(oldItem => updatedSchedules[oldItem.id] ? Object.assign({}, oldItem, updatedSchedules[oldItem.id]) : oldItem), item]);
                   }
                 }}
       />

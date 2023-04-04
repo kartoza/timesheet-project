@@ -3,17 +3,24 @@ import {getColorFromTaskLabel} from "./Theme";
 
 const publicTimelineId = (window as any).publicTimelineId;
 
-export function resetTimeInDate(timestamp: number) {
-  let dateTime = new Date(new Date(timestamp).toLocaleString('en'))
+export function resetTimeInDate(timestamp: number, addDate = 0) {
+  let dateTime = new Date(new Date(timestamp))
+  dateTime = new Date(Date.UTC(dateTime.getFullYear(), dateTime.getMonth(), dateTime.getDate()));
   dateTime.setHours(0)
   dateTime.setMinutes(0)
   dateTime.setSeconds(0)
+  if (addDate) {
+    dateTime.setDate(dateTime.getDate() + addDate)
+  }
   return dateTime.getTime()
 }
 
-export function getDateString(timestamp: number) {
+export function getDateString(timestamp: number, addDate = 0) {
   let dateTime = new Date(new Date(timestamp).toLocaleString('en'))
-  return `${dateTime.getDate()}/${dateTime.getMonth() + 1}/${dateTime.getFullYear()}`
+  if (addDate) {
+    dateTime.setDate(dateTime.getDate() + addDate)
+  }
+  return `${dateTime.getUTCDate()}/${dateTime.getUTCMonth() + 1}/${dateTime.getUTCFullYear()}`
 }
 
 export function deleteSchedule(scheduleId: string) {
@@ -30,18 +37,36 @@ export function deleteSchedule(scheduleId: string) {
   })
     .then(response => response.json())
     .then((result: any) => {
-      return 'removed' in result
+      const items: any = {}
+      for (let i = 0; i < result['updated'].length; i++) {
+          let item = result['updated'][i];
+          items[item.id] = {
+            id: item.id,
+            start: resetTimeInDate(item.start_time),
+            end: resetTimeInDate(item.end_time, 1),
+            title: item.task_name,
+            info: item.task_label,
+            group: item.group,
+            first_day: item.first_day,
+            last_day: item.last_day,
+            bgColor: getColorFromTaskLabel(item.task_label)
+          }
+        }
+      return {
+        'removed': result['removed'],
+        'updated': items
+      }
     })
     .catch(error => {
       console.log('Error :', error)
-      return false
+      return { 'removed': false, 'updated': {} }
     })
 }
 
 export function updateSchedule(scheduleId: number, startTime: number, endTime: number) {
   const formData = new FormData()
   formData.append('schedule_id', scheduleId + '')
-  formData.append('start_time', getDateString(startTime))
+  formData.append('start_time', getDateString(startTime, 1))
   formData.append('end_time', getDateString(endTime))
   const url = '/api/update-schedule/'
   return fetch(url, {
@@ -61,7 +86,7 @@ export function updateSchedule(scheduleId: number, startTime: number, endTime: n
           items[result.id] = {
             id: result.id,
             start: resetTimeInDate(result.start_time),
-            end: resetTimeInDate(result.end_time),
+            end: resetTimeInDate(result.end_time, 1),
             title: result.task_name,
             info: result.task_label,
             group: result.group,
