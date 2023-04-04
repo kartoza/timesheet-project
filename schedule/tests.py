@@ -318,3 +318,105 @@ class TestCalculateRemainingTaskDays(ScheduleTestCase):
 
         self.assertEqual(schedule.first_day_number, 48)
         self.assertEqual(schedule.last_day_number, 46)
+
+        data = {
+            'task_id': self.task.id,
+            'user_id': self.user_project.user_id,
+            'start_time': int(datetime(2022, 12, 31, tzinfo=utc).timestamp()
+                              * 1000),
+            'end_time': int(datetime(2023, 1, 2, tzinfo=utc).timestamp()
+                            * 1000),
+        }
+        response = self.client.post(url, data)
+        prev_schedule = Schedule.objects.get(id=schedule.id)
+        schedule = Schedule.objects.get(id=response.data['id'])
+        self.assertEqual(schedule.first_day_number, 43)
+        self.assertEqual(prev_schedule.first_day_number, 49)
+
+    def test_update_schedule_after_task_last_update(self):
+        # Task last update = 01/01/2023
+        self.client.force_authenticate(user=self.user)
+        url = reverse('update-schedule')
+        schedule = self.create_schedule(
+            start_time=datetime(2023, 1, 8, tzinfo=utc),
+            end_time=datetime(2023, 1, 10, tzinfo=utc)
+        )
+        data = {
+            'schedule_id': schedule.id,
+            'start_time': '09/1/2023',
+            'end_time': '15/1/2023'
+        }
+        response = self.client.put(url, data)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        schedule = Schedule.objects.get(id=schedule.id)
+        self.assertEqual(schedule.first_day_number, 42)
+        self.assertEqual(schedule.last_day_number, 36)
+
+        new_schedule = self.create_schedule(
+            start_time=datetime(2023, 1, 2, tzinfo=utc),
+            end_time=datetime(2023, 1, 5, tzinfo=utc)
+        )
+        data = {
+            'schedule_id': new_schedule.id,
+            'start_time': '02/1/2023',
+            'end_time': '06/1/2023'
+        }
+        response = self.client.put(url, data)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        new_schedule = Schedule.objects.get(id=new_schedule.id)
+        self.assertEqual(new_schedule.first_day_number, 42)
+        self.assertEqual(new_schedule.last_day_number, 38)
+        old_schedule = Schedule.objects.get(id=schedule.id)
+        self.assertEqual(old_schedule.first_day_number, 37)
+        self.assertEqual(old_schedule.last_day_number, 31)
+
+    def test_update_schedule_before_task_last_update(self):
+        # Task last update = 01/01/2023
+        self.client.force_authenticate(user=self.user)
+        url = reverse('update-schedule')
+        schedule_2 = self.create_schedule(
+            start_time=datetime(2022, 11, 8, tzinfo=utc),
+            end_time=datetime(2022, 11, 10, tzinfo=utc)
+        )
+        schedule_3 = self.create_schedule(
+            start_time=datetime(2023, 1, 8, tzinfo=utc),
+            end_time=datetime(2023, 1, 10, tzinfo=utc)
+        )
+        schedule = self.create_schedule(
+            start_time=datetime(2023, 1, 8, tzinfo=utc),
+            end_time=datetime(2023, 1, 10, tzinfo=utc)
+        )
+        data = {
+            'schedule_id': schedule.id,
+            'start_time': '30/12/2022',
+            'end_time': '2/1/2023'
+        }
+        response = self.client.put(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        schedule = Schedule.objects.get(id=schedule.id)
+        self.assertEqual(schedule.first_day_number, 44)
+        self.assertEqual(schedule.last_day_number, 41)
+        schedule2 = Schedule.objects.get(id=schedule_2.id)
+        self.assertEqual(schedule2.first_day_number, 47)
+        self.assertEqual(schedule2.last_day_number, 45)
+        schedule_3 = Schedule.objects.get(id=schedule_3.id)
+        self.assertEqual(schedule_3.first_day_number, 40)
+        self.assertEqual(schedule_3.last_day_number, 38)
+
+        data = {
+            'schedule_id': schedule.id,
+            'start_time': '28/12/2022',
+            'end_time': '30/12/2022'
+        }
+        self.client.put(url, data)
+        schedule = Schedule.objects.get(id=schedule.id)
+        self.assertEqual(schedule.first_day_number, 45)
+        self.assertEqual(schedule.last_day_number, 43)
+        schedule2 = Schedule.objects.get(id=schedule_2.id)
+        self.assertEqual(schedule2.first_day_number, 48)
+        self.assertEqual(schedule2.last_day_number, 46)
+        schedule_3 = Schedule.objects.get(id=schedule_3.id)
+        self.assertEqual(schedule_3.first_day_number, 42)
+        self.assertEqual(schedule_3.last_day_number, 40)

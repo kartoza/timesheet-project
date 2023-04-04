@@ -332,11 +332,15 @@ class UpdateSchedule(APIView):
 
         task = schedule.task
 
+        start_time = _naive(schedule.start_time)
+        end_time = _naive(schedule.end_time)
+        last_task_update = _naive(task.last_update)
+
         remaining_task_days = calculate_remaining_task_days(
             schedule.task, start_time, end_time, excluded_schedule=schedule
         )
         last_day_number = (
-            remaining_task_days - (end_time - start_time).days + 1
+            remaining_task_days - (end_time - start_time).days
         )
         schedule.first_day_number = remaining_task_days
         schedule.last_day_number = last_day_number
@@ -350,7 +354,7 @@ class UpdateSchedule(APIView):
         )
         updated.append(schedule.id)
 
-        if _naive(schedule.start_time) < _naive(task.last_update):
+        if start_time < last_task_update:
             updated_previous = update_previous_schedules(
                 start_time,
                 task.id,
