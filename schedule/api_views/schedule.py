@@ -291,22 +291,46 @@ class DeleteSchedule(APIView):
             id=schedule_id
         )
         task = schedule.task
-        start_time = schedule.start_time
+        last_task_update = _naive(task.last_update)
+        start_time = _naive(schedule.start_time)
+        end_time = _naive(schedule.end_time)
         schedule.delete()
+
+        if start_time < last_task_update:
+            prev_schedule = Schedule.objects.filter(
+                task=task,
+                start_time__lt=last_task_update,
+                start_time__gte=start_time
+            )
+            if not prev_schedule.exists():
+                start_time = last_task_update
 
         remaining_task_days = calculate_remaining_task_days(
             task,
             start_time,
-            schedule.end_time
+            end_time
         )
-        update_subsequent_schedules(
+        updated = update_subsequent_schedules(
             start_time=schedule.start_time,
             task_id=task.id,
             last_day_number=remaining_task_days + 1
         )
 
+        if start_time <= last_task_update:
+            updated_previous = update_previous_schedules(
+                start_time,
+                task.id,
+                remaining_task_days
+            )
+            updated += updated_previous
+
+        schedules = Schedule.objects.filter(
+            id__in=updated
+        ).distinct()
+
         return Response({
-            'removed': True
+            'removed': True,
+            'updated': ScheduleSerializer(schedules, many=True).data
         })
 
 
@@ -401,8 +425,7 @@ class AddSchedule(APIView):
         )
 
         last_day_number = (
-            remaining_task_days - (end_time - start_time).days +
-            (1 if end_time >= last_update else 0)
+            remaining_task_days - (end_time - start_time).days
         )
         schedule = Schedule.objects.create(
             user_project=user_project,
@@ -413,7 +436,7 @@ class AddSchedule(APIView):
             last_day_number=last_day_number
         )
 
-        update_subsequent_schedules(
+        updated = update_subsequent_schedules(
             start_time=start_time,
             task_id=task.id,
             last_day_number=last_day_number,
@@ -421,13 +444,19 @@ class AddSchedule(APIView):
         )
 
         if start_time < last_update:
-            update_previous_schedules(
+            updated_previous = update_previous_schedules(
                 start_time,
                 task.id,
                 remaining_task_days,
                 schedule
             )
+            updated += updated_previous
 
-        return Response(
-            ScheduleSerializer(schedule, many=False).data
-        )
+        schedules = Schedule.objects.filter(
+            id__in=updated
+        ).distinct()
+
+        return Response({
+            'new': ScheduleSerializer(schedule, many=False).data,
+            'updated': ScheduleSerializer(schedules, many=True).data
+        })
