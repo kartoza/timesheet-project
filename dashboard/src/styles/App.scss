@@ -14,8 +14,23 @@
   .App-header {
     background-color: rgb(0, 30, 60);
   }
+  .timelog-card-header .MuiTypography-root {
+    color: white;
+  }
+  body {
+    background-color: #121212;
+  }
   .app-title {
     color: mintcream !important;
+  }
+  .ql-editor {
+    color: white;
+  }
+  .timelog-card-header {
+    background-color: #1D575C
+  }
+  .MuiTypography-root a {
+    color: white;
   }
 }
 
@@ -36,6 +51,15 @@
   flex-direction: column;
 }
 
+.timelog-card-header {
+  background-color: #e7c24a;
+}
+
+.timelog-card-header .MuiTypography-root {
+  font-weight: bold;
+  color: black;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
@@ -49,7 +73,7 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   margin-bottom: 20px;
-  background-color: #FFC300;
+  background-color: #e7c24a;
   padding-bottom: 10px;
 
   .MuiGrid-root {
@@ -107,7 +131,7 @@
   justify-content: flex-start;
   display: flex;
   margin-bottom: 10px;
-  margin-top: -10px;
+  margin-top: 10px;
   flex-wrap: wrap;
 }
 

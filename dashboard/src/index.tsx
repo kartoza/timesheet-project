@@ -5,13 +5,16 @@ import './index.scss';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { store } from './app/store';
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <Provider store={store}>
-    <App />
+      <ErrorBoundary>
+        <App/>
+      </ErrorBoundary>
   </Provider>
 );
 

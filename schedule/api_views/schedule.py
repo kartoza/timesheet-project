@@ -1,10 +1,10 @@
 import pytz
 from django.http import Http404
 from rest_framework import serializers
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from schedule.models import Schedule, UserProjectSlot
 from timesheet.models import Task
@@ -279,6 +279,27 @@ class ScheduleList(APIView):
         return Response(ScheduleSerializer(
             schedules, many=True
         ).data)
+
+
+class WeeklyScheduleList(APIView):
+    permission_classes = [IsAuthenticated, ]
+
+    def get(self, request, format=None):
+        today = datetime.today()
+        start_of_week = today - timedelta(days=today.weekday())
+        dates = [start_of_week + timedelta(days=i) for i in range(5)]
+
+        schedules = Schedule.objects.filter(
+            user_project__user=request.user,
+            start_time__gte=_naive(dates[0]),
+            start_time__lte=_naive(dates[4])
+        ).order_by('start_time')
+        return Response({
+            'dates': [str(_naive(date)).split(' ')[0] for date in dates],
+            'schedules': ScheduleSerializer(
+                schedules, many=True
+            ).data
+        })
 
 
 class DeleteSchedule(APIView):
