@@ -109,7 +109,8 @@ def calculate_remaining_task_days(
 
 
 def update_previous_schedules(
-        start_time, task_id, remaining_days, excluded_schedule=None):
+        start_time, task_id, remaining_days,
+        excluded_schedules=None):
     # Initialize the list to store updated schedules' IDs
     updated_schedules = []
 
@@ -121,8 +122,8 @@ def update_previous_schedules(
     ).order_by('-start_time')
 
     # If an excluded_schedule is provided, exclude it from the query
-    if excluded_schedule:
-        prev_schedules = prev_schedules.exclude(id=excluded_schedule.id)
+    if excluded_schedules:
+        prev_schedules = prev_schedules.exclude(id__in=excluded_schedules)
 
     # Calculate the first_day value for the first previous schedule in the loop
     first_day = remaining_days
@@ -175,7 +176,7 @@ def update_subsequent_schedules(start_time,
     sub_schedules = Schedule.objects.filter(
         start_time__gte=start_time,
         task_id=task_id
-    ).order_by('start_time')
+    ).order_by('start_time').distinct()
 
     if excluded_schedule:
         sub_schedules = sub_schedules.exclude(
@@ -320,7 +321,8 @@ class DeleteSchedule(APIView):
             updated_previous = update_previous_schedules(
                 start_time,
                 task.id,
-                remaining_task_days
+                remaining_task_days,
+                excluded_schedules=updated
             )
             updated += updated_previous
 
@@ -350,6 +352,7 @@ class UpdateSchedule(APIView):
         schedule = Schedule.objects.get(
             id=schedule_id
         )
+        pre_start_time = _naive(schedule.start_time)
         schedule.start_time = start_time
         schedule.end_time = end_time
         schedule.save()
@@ -378,12 +381,12 @@ class UpdateSchedule(APIView):
         )
         updated.append(schedule.id)
 
-        if start_time < last_task_update:
+        if start_time < last_task_update or pre_start_time < last_task_update:
             updated_previous = update_previous_schedules(
                 start_time,
                 task.id,
                 remaining_task_days,
-                schedule
+                excluded_schedules=updated
             )
             updated += updated_previous
 
@@ -444,11 +447,13 @@ class AddSchedule(APIView):
         )
 
         if start_time < last_update:
+            excluded_schedules = updated
+            excluded_schedules.append(schedule.id)
             updated_previous = update_previous_schedules(
                 start_time,
                 task.id,
                 remaining_task_days,
-                schedule
+                excluded_schedules=excluded_schedules
             )
             updated += updated_previous
 

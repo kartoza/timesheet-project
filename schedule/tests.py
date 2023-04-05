@@ -240,7 +240,7 @@ class TestCalculateRemainingTaskDays(ScheduleTestCase):
             new_schedule.start_time,
             self.task.id,
             remaining_task_days,
-            new_schedule
+            [new_schedule.id]
         )
         schedule1 = Schedule.objects.get(id=schedule1.id)
         self.assertEqual(schedule1.first_day_number, 51)
