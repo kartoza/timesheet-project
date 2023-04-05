@@ -392,15 +392,13 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
         {...getItemProps({
           style: {
             backgroundColor,
-            color: item.color,
-            border: 'unset',
-            borderColor: itemContext.resizing ? "red" : item.color,
+            borderColor: itemContext.resizing ? "red" : itemContext.selected ? '#ecb754' : item.color,
             borderStyle: "solid",
             borderTopWidth: 1,
             borderBottomWidth: 1,
             borderRadius: 4,
-            borderLeftWidth: itemContext.selected ? 3 : 1,
-            borderRightWidth: itemContext.selected ? 3 : 1,
+            borderLeftWidth: itemContext.selected ? 4 : 1,
+            borderRightWidth: itemContext.selected ? 4 : 1,
           },
           onMouseDown: () => {
             // console.log("on item click", item);
@@ -502,6 +500,8 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
           onItemMove={handleItemMove}
           onItemResize={handleItemResize}
           itemRenderer={itemRenderer}
+          minZoom={60 * 60 * 1000 * 24 * 30}
+          maxZoom={60 * 60 * 1000 * 24 * 30}
           onCanvasClick={handleCanvasClick}>
           <TimelineHeaders className="sticky">
             <SidebarHeader>
