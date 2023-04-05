@@ -30,3 +30,18 @@ class Schedule(models.Model):
         null=True,
         blank=True
     )
+
+    first_day_number = models.IntegerField(
+        null=True,
+        blank=True
+    )
+
+    last_day_number = models.IntegerField(
+        null=True,
+        blank=True
+    )
+
+    hours_per_day = models.FloatField(
+        null=True,
+        blank=True
+    )

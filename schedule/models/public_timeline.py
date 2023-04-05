@@ -18,7 +18,6 @@ class PublicTimeline(models.Model):
 
     projects = models.ManyToManyField(
         'timesheet.Project',
-        null=True,
         blank=True
     )
 

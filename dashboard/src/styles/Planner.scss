@@ -40,6 +40,16 @@
   white-space: nowrap;
 }
 
+.timeline-item-sub {
+  display: flex;
+}
+
+.timeline-item-countdown {
+  text-align: center;
+  padding-right: 8px;
+  font-size: 10px;
+}
+
 .remove-item {
   position: absolute;
   cursor: pointer;

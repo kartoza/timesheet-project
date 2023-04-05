@@ -8,7 +8,7 @@ import Timeline, {TimelineMarkers, TodayMarker, TimelineHeaders,
 import {
   deleteSchedule, fetchSchedules, fetchSlottedProjects, updateSchedule
 } from "../utils/schedule_data";
-import {getColorFromTaskLabel} from "../utils/Theme";
+import {getColorFromTaskLabel, getTaskColor} from "../utils/Theme";
 import '../styles/Planner.scss';
 import ItemForm from "./TimelineItemForm";
 import AddBoxIcon from '@mui/icons-material/AddBox';
@@ -180,7 +180,7 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
         endTime.setHours(0)
         endTime.setMinutes(0)
         endTime.setSeconds(0)
-        endTime.setDate(endTime.getDate());
+        endTime.setDate(endTime.getDate() + 1);
         return Object.assign({}, schedule, {
           title: schedule.task_name,
           info: schedule.task_label,
@@ -301,8 +301,9 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
         deleteSchedule(
           item.id
         ).then(result => {
-          if (result) {
-            setItems((current) => current.filter((currentItem) => currentItem.id !== itemId));
+          if (result['removed']) {
+            const updatedSchedules = result.updated
+            setItems(items.map(item => updatedSchedules[item.id] ? Object.assign({}, item, updatedSchedules[item.id]) : item).filter((currentItem) => currentItem.id !== itemId))
           }
         })
       }
@@ -316,13 +317,10 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
     }
     const item = items.find(item => item.id === itemId)
     if (item) {
-      setItems(items.map(item => item.id === itemId ? Object.assign({}, item, {
-        start: dragTime,
-        end: dragTime + (item.end - item.start),
-        group: group.id
-      }) : item))
-      updateSchedule(itemId, dragTime, dragTime + (item.end - item.start)).then(updatedSchedule => {
-        console.log('moved', updatedSchedule)
+      updateSchedule(itemId, dragTime, dragTime + (item.end - item.start)).then((updatedSchedules: any) => {
+        if (updatedSchedules) {
+          setItems(items.map(item => updatedSchedules[item.id] ? Object.assign({}, item, updatedSchedules[item.id]) : item))
+        }
       })
     }
   };
@@ -330,18 +328,20 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
   const handleItemResize = (itemId, time, edge) => {
     const item = items.find(item => item.id === itemId)
     if (item) {
-      setItems(
-        items.map(item =>
-          item.id === itemId
-            ? Object.assign({}, item, {
-                start: edge === "left" ? time : item.start,
-                end: edge === "left" ? item.end : time
-              })
-            : item
-        )
-      )
-      updateSchedule(itemId, edge === "left" ? time : item.start, edge === "left" ? item.end : time).then(updatedSchedule => {
-        console.log('resized', updatedSchedule)
+      // setItems(
+      //   items.map(item =>
+      //     item.id === itemId
+      //       ? Object.assign({}, item, {
+      //           start: edge === "left" ? time : item.start,
+      //           end: edge === "left" ? item.end : time
+      //         })
+      //       : item
+      //   )
+      // )
+      updateSchedule(itemId, edge === "left" ? time : item.start, edge === "left" ? item.end : time).then((updatedSchedules: any) => {
+        if (updatedSchedules) {
+          setItems(items.map(item => updatedSchedules[item.id] ? Object.assign({}, item, updatedSchedules[item.id]) : item))
+        }
       })
     }
   };
@@ -360,6 +360,33 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
   const itemRenderer = ({ item, timelineContext, itemContext, getItemProps, getResizeProps }) => {
     const { left: leftResizeProps, right: rightResizeProps } = getResizeProps();
     const backgroundColor = itemContext.selected ? (itemContext.dragging ? "red" : item.selectedBgColor) : item.bgColor;
+    const taskTimeInfo = item.info.replace( /(^.*\(|\).*$)/g, '' )
+    const usedHour = parseFloat(taskTimeInfo.split('/')[0])
+    const totalHour = parseFloat(taskTimeInfo.split('/')[1])
+    const totalDays = totalHour/7
+    const remainingHour = totalHour - usedHour
+    let remainingDays = parseInt((remainingHour / 7) + "")
+    const countdown:any = []
+    let days = 0;
+    if (item.first_day && item.last_day) {
+      days = item.first_day - item.last_day
+      for (let i = item.first_day; i > item.last_day - 1; i--) {
+        countdown.push(i)
+      }
+    } else {
+      days = Math.abs(
+        moment(item.start_time).diff(moment(item.end_time), 'days'))
+      for (let i = 0; i < days; i++) {
+        countdown.push(remainingDays)
+        remainingDays -= 1
+      }
+    }
+    const countDownStyle = {
+      width: `${100/days}%`
+    }
+    const firstColor = getTaskColor((totalDays - countdown[0]) / totalDays)
+    const lastColor = getTaskColor((totalDays - countdown[countdown.length - 1]) / totalDays)
+    const background = `linear-gradient(90deg, ${firstColor} 0%, ${lastColor} 100%)`;
     return (
       <div
         {...getItemProps({
@@ -376,16 +403,22 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
             borderRightWidth: itemContext.selected ? 3 : 1,
           },
           onMouseDown: () => {
-            console.log("on item click", item);
+            // console.log("on item click", item);
           }
         })}
       >
         {itemContext.useResizeHandle ? <div {...leftResizeProps} /> : null}
         <div
           className={'timeline-item'}
+          style={{
+            background: background,
+            borderRadius: '4px'
+          }}
         >
           <div className={'timeline-item-title'}>{itemContext.title}</div>
-          <div className={'timeline-itme-sub'}>{item.info.replace( /(^.*\(|\).*$)/g, '' )}</div>
+          <div className={'timeline-item-sub'}>
+            {countdown.map(day => <div className={'timeline-item-countdown'} style={countDownStyle}>{day}</div>)}
+          </div>
           { canEdit ? <div className={'remove-item'} onClick={(e) => {
             e.stopPropagation()
             e.preventDefault()
@@ -406,11 +439,11 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
                     setOpenForm(false)
                     setSelectedGroup(null)
                   }}
-                onAdd={(item: ItemInterface) => {
+                onAdd={(item: ItemInterface, updatedSchedules: any) => {
                   if (item) {
                     item.color = '#FFF'
                     item.selectedBgColor = '#CC6600'
-                    setItems(oldItems => [...oldItems, item]);
+                    setItems(oldItems => [...oldItems.map(oldItem => updatedSchedules[oldItem.id] ? Object.assign({}, oldItem, updatedSchedules[oldItem.id]) : oldItem), item]);
                   }
                 }}
       />

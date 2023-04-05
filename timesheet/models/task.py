@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class Task(models.Model):
@@ -31,6 +32,17 @@ class Task(models.Model):
     expected_time = models.FloatField(
         default=0.0
     )
+
+    last_update = models.DateTimeField(
+        default=timezone.now
+    )
+
+    def save(self, *args, **kwargs):
+        disable_auto_update = kwargs.pop('disable_auto_update', False)
+        if not disable_auto_update:
+            self.last_update = timezone.now()
+        super(Task, self).save(*args, **kwargs)
+
 
     def __str__(self):
         return (

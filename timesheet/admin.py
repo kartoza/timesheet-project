@@ -65,7 +65,11 @@ class TaskAdmin(admin.ModelAdmin):
         'name',
         'project',
         'actual_time',
-        'expected_time'
+        'expected_time',
+        'last_update'
+    )
+    readonly_fields = (
+        'last_update',
     )
     search_fields = (
         'name',

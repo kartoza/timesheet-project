@@ -32,8 +32,9 @@ export const generateColor = (id: string) => {
 }
 
 export const getTaskColor = (ratio: any) => {
-    let green = '0caf00';
-    let red = 'c70606';
+    let green = '99FF33';
+    let red = '660000';
+    let radix = 16
     if (ratio > 1) {
         ratio = 1;
     }
@@ -41,9 +42,9 @@ export const getTaskColor = (ratio: any) => {
         let xString = x.toString(16) + ''
         return (xString.length == 1) ? '0' + xString : xString
     }
-    const r = Math.ceil(parseInt(red.substring(0,2), 16) * ratio + parseInt(green.substring(0,2), 16) * (1-ratio));
-    const g = Math.ceil(parseInt(red.substring(2,4), 16) * ratio + parseInt(green.substring(2,4), 16) * (1-ratio));
-    const b = Math.ceil(parseInt(red.substring(4,6), 16) * ratio + parseInt(green.substring(4,6), 16) * (1-ratio));
+    const r = Math.ceil(parseInt(red.substring(0,2), radix) * ratio + parseInt(green.substring(0,2), radix) * (1-ratio));
+    const g = Math.ceil(parseInt(red.substring(2,4), radix) * ratio + parseInt(green.substring(2,4), radix) * (1-ratio));
+    const b = Math.ceil(parseInt(red.substring(4,6), radix) * ratio + parseInt(green.substring(4,6), radix) * (1-ratio));
     return '#' + hex(r) + hex(g) + hex(b);
 }
 

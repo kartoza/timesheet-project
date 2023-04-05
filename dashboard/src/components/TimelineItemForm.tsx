@@ -9,6 +9,7 @@ import {GroupInterface} from "./TimelinePlanner";
 import {getColorFromTaskLabel} from "../utils/Theme";
 import Autocomplete from "@mui/material/Autocomplete";
 import TaskAutocomplete from "./TaskAutocomplete";
+import {resetTimeInDate} from "../utils/schedule_data";
 
 
 const style = {
@@ -62,7 +63,7 @@ export default function ItemForm(props: ItemFormInterface) {
     setIsLoading(true)
     const start = new Date(startTime.toISOString())
     const endTime = new Date(startTime.getTime())
-    const end = new Date(endTime.setDate(endTime.getDate() + duration));
+    const end = new Date(endTime.setDate(endTime.getDate() + (duration - 1)));
     const url = '/api/add-schedule/'
     const formData = new FormData();
     formData.append('start_time', '' + start.getTime())
@@ -87,28 +88,39 @@ export default function ItemForm(props: ItemFormInterface) {
       .then(response => response.json())
       .then((result: any) => {
         setIsLoading(false)
-        if (result) {
-          let _startTime = new Date(result.start_time)
-          let _endTime = new Date(result.end_time)
-          _startTime = new Date(Date.UTC(_startTime.getFullYear(), _startTime.getMonth(), _startTime.getDate()));
-          _endTime = new Date(Date.UTC(_endTime.getFullYear(), _endTime.getMonth(), _endTime.getDate()));
-          _startTime.setHours(0)
-          _startTime.setMinutes(0)
-          _startTime.setSeconds(0)
-          _endTime.setHours(0)
-          _endTime.setMinutes(0)
-          _endTime.setSeconds(0)
-          _endTime.setDate(_endTime.getDate());
+        if (result['new']) {
+          let item = result['new'];
+          let _startTime = resetTimeInDate(item.start_time)
+          let _endTime = resetTimeInDate(item.end_time, 1)
           const newSchedule = {
-            id: result.id,
+            id: item.id,
             start: _startTime,
             end: _endTime,
-            title: result.task_name,
-            info: result.task_label,
+            title: item.task_name,
+            info: item.task_label,
+            first_day: item.first_day,
+            last_day: item.last_day,
             group: props.selectedGroup ? props.selectedGroup.id : null,
             bgColor: selectedTask ? getColorFromTaskLabel(selectedTask.label) : '#FFF'
           }
-          props.onAdd(newSchedule)
+          const updated: any = {}
+          if (result['updated']) {
+            for (let i = 0; i < result['updated'].length; i++) {
+              let item = result['updated'][ i ];
+              updated[item.id] = {
+                id: item.id,
+                start: resetTimeInDate(item.start_time),
+                end: resetTimeInDate(item.end_time, 1),
+                title: item.task_name,
+                info: item.task_label,
+                group: item.group,
+                first_day: item.first_day,
+                last_day: item.last_day,
+                bgColor: getColorFromTaskLabel(item.task_label)
+              }
+            }
+          }
+          props.onAdd(newSchedule, updated)
         }
       })
       .catch(error => {
