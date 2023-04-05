@@ -36,6 +36,7 @@ const Standup = React.lazy(() => import('./components/Standup'));
 const TimeCard = React.lazy(() => import('./components/TimeCard'));
 const TReactQuill = React.lazy(() => import('./components/ReactQuill'));
 const TimeLogTable = React.lazy(() => import("./components/TimeLogTable"));
+const ScheduleInfo = React.lazy(() => import("./components/ScheduleInfo"));
 
 
 function ModeToggle() {
@@ -93,29 +94,9 @@ const TimeLogs = (props: any) => {
     return (
         <div>
             <Container maxWidth="lg">
-            <div className={'timelogs-info'}>
-                <Grid container>
-                    <Grid item xs={10} style={{ textAlign: "left"}}>
-                    {
-                        Object.keys(totalPerProject).map((key: any) =>
-                            <Chip
-                                key={key}
-                                label={`${key} : ${totalPerProject[key]}`}
-                                style={{ backgroundColor: generateColor(key), color: '#ffffff' }} />
-                        )
-                    }
-                    </Grid>
-                    <Grid item xs={2} style={{ textAlign: 'right' }}>
-                    { totalDraftHours > 0 ?
-                    <Chip label={`Total : ${totalDraftHours}`}
-                        style={{ 
-                            color: 'white',
-                            backgroundColor: getTaskColor(totalDraftHours < 40 ? 1 - ((totalDraftHours % 40) / 40) : 0), 
-                            fontSize: '11pt', fontWeight: 'bold'}}
-                    ></Chip> : null }
-                    </Grid>
-                </Grid>
-            </div>
+                <Suspense>
+                    <ScheduleInfo/>
+                </Suspense>
             </Container>
             {
                 Object.keys(timesheetData.logs).map((key: any) =>
@@ -131,6 +112,31 @@ const TimeLogs = (props: any) => {
                     </div>
                 )
             }
+            <Container>
+                <div className={'timelogs-info'}>
+                    <Grid container>
+                        <Grid item xs={10} style={{ textAlign: "left"}}>
+                        {
+                            Object.keys(totalPerProject).map((key: any) =>
+                                <Chip
+                                    key={key}
+                                    label={`${key} : ${totalPerProject[key]}`}
+                                    style={{ backgroundColor: generateColor(key), color: '#ffffff' }} />
+                            )
+                        }
+                        </Grid>
+                        <Grid item xs={2} style={{ textAlign: 'right' }}>
+                        { totalDraftHours > 0 ?
+                        <Chip label={`Total : ${totalDraftHours}`}
+                            style={{
+                                color: 'white',
+                                backgroundColor: getTaskColor(totalDraftHours < 40 ? 1 - ((totalDraftHours % 40) / 40) : 0),
+                                fontSize: '11pt', fontWeight: 'bold'}}
+                        ></Chip> : null }
+                        </Grid>
+                    </Grid>
+                </div>
+            </Container>
         </div>
     )
 }

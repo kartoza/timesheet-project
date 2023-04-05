@@ -1,0 +1,38 @@
+.schedule-container {
+  color: white;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.schedule-date {
+  background-color: #e7c24a;
+  padding: 5px;
+  color: black;
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  cursor: pointer;
+}
+
+.schedule-date:first-child {
+  border-top-left-radius: 4px;
+}
+.schedule-date:last-child {
+  border-top-right-radius: 4px;
+}
+
+.schedule-item {
+  padding: 5px;
+  border: 1px solid rgba(124, 119, 119, 0.52);
+  color: #f6f6f6;
+}
+
+.schedule-project-name {
+  font-weight: bold;
+}
+
+[data-mui-color-scheme="dark"] {
+  .schedule-date {
+    background-color: #1D575C;
+    color: white;
+    border: 1px solid rgba(124, 119, 119, 0.52);
+  }
+}

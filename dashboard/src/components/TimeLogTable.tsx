@@ -194,7 +194,6 @@ function TimeLogTable(props: any) {
                         paddingTop: '10px',
                         paddingBottom: '10px',
                         marginBottom: '10px',
-                        backgroundColor: '#1D575C',
                         display: 'flex'
                     }}
                     titleTypographyProps={{
