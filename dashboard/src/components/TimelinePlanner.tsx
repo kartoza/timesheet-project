@@ -84,8 +84,8 @@ function TimelineSearchInput({searchValue, onChange}) {
 
   return (<TextField id="timeline-filter"
                  style={{
-                   height: '100%', width: '225px',
-                   position: 'absolute', backgroundColor: '#FFF'
+                   width: '225px', zIndex: 999,
+                   position: 'fixed', backgroundColor: '#FFF'
                  }}
                  hiddenLabel
                  variant="filled"
@@ -503,7 +503,7 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
           onItemResize={handleItemResize}
           itemRenderer={itemRenderer}
           onCanvasClick={handleCanvasClick}>
-          <TimelineHeaders>
+          <TimelineHeaders className="sticky">
             <SidebarHeader>
               {({ getRootProps }) => {
                 return (

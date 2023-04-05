@@ -11,16 +11,14 @@ from dashboard.views import (
 from django.conf import settings
 from django.conf.urls.static import static
 
-
-
 urlpatterns = [
     path('', DashboardView.as_view(), name='dashboard'),
     path('space', SpaceView.as_view(), name='space'),
     path('summary', SummaryView.as_view(), name='summary'),
-    path('planner', PlannerView.as_view(), name='planner'),
-    path('summary/<slug:title>/', 
-        PublicSummaryView.as_view(), 
-        name='public-summary'),
+    path('planning', PlannerView.as_view(), name='planner'),
+    path('summary/<slug:title>/',
+         PublicSummaryView.as_view(),
+         name='public-summary'),
     path('timeline/<slug:title>/',
          PublicTimelineView.as_view(),
          name='public-timeline'),
@@ -35,7 +33,6 @@ urlpatterns = [
          name='public-burndown-chart-data')
 ]
 
-
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    
+    urlpatterns += static(settings.MEDIA_URL,
+                          document_root=settings.MEDIA_ROOT)
