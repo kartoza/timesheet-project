@@ -249,6 +249,7 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
         else:
             logger.error(response.text)
 
+
 def get_report_data(report_name: str, erpnext_token: str = None, filters: str = '') -> list:
     url = (
         f'{settings.ERPNEXT_SITE_LOCATION}/api/'
@@ -329,3 +330,54 @@ def get_burndown_chart_data(project_name: str):
         'total_hours': total_expected_time,
         'project': project.name if project else '-'
     }
+
+
+def pull_leave_data_from_erp(user):
+    """
+    Retrieves leave days data from ERPNext and generates a leave schedule.
+    """
+    from schedule.models.schedule import Schedule
+    filters = []
+    if user.profile.employee_id:
+        filters.append(["employee", "=", user.profile.employee_id])
+    else:
+        filters.append(
+            ["employee_name", "=", f"{user.first_name} {user.last_name}"])
+    filters.append(["status", "=", "Approved"])
+    leave_data = get_erp_data(
+        DocType.LEAVE, preferences.TimesheetPreferences.admin_token,
+        str(filters).replace('\'', '"')
+    )
+    leave_type = {
+        'Paid Annual leave': 'Leave - Paid',
+        'Paid Sick Leave': 'Leave - Sick',
+        'Leave in lieu of time worked': 'Time in lieu'
+    }
+    for leave in leave_data:
+        if leave['leave_type'] in leave_type:
+            activity, _ = Activity.objects.get_or_create(
+                name=leave_type[leave['leave_type']]
+            )
+        else:
+            if 'unpaid' in leave['leave_type'].lower():
+                activity, _ = Activity.objects.get_or_create(
+                    name='Leave - Unpaid'
+                )
+            elif 'family' in leave['leave_type'].lower():
+                activity, _ = Activity.objects.get_or_create(
+                    name='Leave - Paid Family Responsibility'
+                )
+            else:
+                activity, _ = Activity.objects.get_or_create(
+                    name=leave['leave_type']
+                )
+        Schedule.objects.update_or_create(
+            erp_id=leave['name'],
+            defaults={
+                'user': user,
+                'activity': activity,
+                'start_time': leave['from_date'],
+                'end_time': leave['to_date'],
+                'notes': leave['description']
+            }
+        )

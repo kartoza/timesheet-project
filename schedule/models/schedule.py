@@ -61,3 +61,9 @@ class Schedule(models.Model):
         null=True,
         blank=True
     )
+
+    erp_id = models.CharField(
+        max_length=100,
+        default="",
+        blank=True
+    )
