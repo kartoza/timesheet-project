@@ -223,13 +223,19 @@ class ScheduleSerializer(serializers.ModelSerializer):
         if obj.task:
             return obj.task.name
         else:
+            if obj.activity:
+                return obj.activity.name
             return '-'
 
     def get_project_name(self, obj: Schedule):
-        return obj.user_project.project.name
+        return obj.user_project.project.name if obj.user_project else 'Kartoza'
 
     def get_group(self, obj: Schedule):
-        return obj.user_project.id
+        if obj.user_project:
+            return obj.user_project.id
+        if obj.user:
+            return obj.user.id * 1000000
+        return ''
 
     def get_title(self, obj: Schedule):
         return obj.notes

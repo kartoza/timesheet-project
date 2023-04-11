@@ -24,6 +24,7 @@ class UserProjectSlotAdmin(admin.ModelAdmin):
 class ScheduleAdmin(admin.ModelAdmin):
     list_display = (
         'user_project',
+        'activity',
         'start_time',
         'end_time'
     )

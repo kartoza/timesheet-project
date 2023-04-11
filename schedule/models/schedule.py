@@ -1,16 +1,32 @@
+from django.contrib.auth import get_user_model
 from django.db import models
 
 
 class Schedule(models.Model):
     user_project = models.ForeignKey(
         'schedule.UserProjectSlot',
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE
+    )
+
+    user = models.ForeignKey(
+        get_user_model(),
+        null=True,
+        blank=True,
+        related_name='schedule_user',
         on_delete=models.CASCADE
     )
 
     task = models.ForeignKey(
         'timesheet.Task',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
+
+    activity = models.ForeignKey(
+        'timesheet.Activity',
         null=True,
         blank=True,
         on_delete=models.SET_NULL
