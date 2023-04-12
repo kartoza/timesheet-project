@@ -6,7 +6,10 @@ import Timeline, {TimelineMarkers, TodayMarker, TimelineHeaders,
   SidebarHeader, DateHeader} from "react-calendar-timeline";
 
 import {
-  deleteSchedule, fetchSchedules, fetchSlottedProjects, updateSchedule
+  deleteSchedule,
+  fetchSchedules,
+  fetchSlottedProjects,
+  updateSchedule
 } from "../utils/schedule_data";
 import {getColorFromTaskLabel, getTaskColor} from "../utils/Theme";
 import '../styles/Planner.scss';
@@ -41,7 +44,8 @@ interface ItemInterface {
   color?: string,
   bgColor?: string,
   selectedBgColor?: string,
-  canMove?: boolean
+  canMove?: boolean,
+  task_label?: string
 }
 
 export interface GroupInterface {
@@ -170,6 +174,7 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
     const fetchData = async () => {
       const schedules: any = await fetchSchedules();
       setItems(schedules.map(schedule => {
+        const _canEdit = canEdit && schedule.task_label !== '-';
         let startTime = new Date(schedule.start_time)
         let endTime = new Date(schedule.end_time)
         startTime = new Date(Date.UTC(startTime.getFullYear(), startTime.getMonth(), startTime.getDate()));
@@ -189,9 +194,10 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
           color: '#FFF',
           bgColor: getColorFromTaskLabel(schedule.task_label),
           selectedBgColor: ItemSelectedColor,
+          canSelect: _canEdit,
           canChangeGroup: false,
-          canMove: canEdit,
-          canResize: canEdit
+          canMove: _canEdit,
+          canResize: _canEdit
         })
       }))
     }
@@ -283,7 +289,7 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
       )
       setItems((oldItems) => [...oldItems, ...groupItems])
     } else {
-      const groupItems = items.filter(item => item.group ? item.group === id : false).map(item => item.id)
+      const groupItems = items.filter(item => item.group ? item.group === id && item.task_label !== '-' : false).map(item => item.id)
       if (groupItems.length > 0) {
         setItems(items.filter(item => !groupItems.includes(item.id)))
       }
@@ -328,16 +334,6 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
   const handleItemResize = (itemId, time, edge) => {
     const item = items.find(item => item.id === itemId)
     if (item) {
-      // setItems(
-      //   items.map(item =>
-      //     item.id === itemId
-      //       ? Object.assign({}, item, {
-      //           start: edge === "left" ? time : item.start,
-      //           end: edge === "left" ? item.end : time
-      //         })
-      //       : item
-      //   )
-      // )
       updateSchedule(itemId, edge === "left" ? time : item.start, edge === "left" ? item.end : time).then((updatedSchedules: any) => {
         if (updatedSchedules) {
           setItems(items.map(item => updatedSchedules[item.id] ? Object.assign({}, item, updatedSchedules[item.id]) : item))
@@ -359,6 +355,7 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
 
   const itemRenderer = ({ item, timelineContext, itemContext, getItemProps, getResizeProps }) => {
     const { left: leftResizeProps, right: rightResizeProps } = getResizeProps();
+
     const backgroundColor = itemContext.selected ? (itemContext.dragging ? "red" : item.selectedBgColor) : item.bgColor;
     const taskTimeInfo = item.info.replace( /(^.*\(|\).*$)/g, '' )
     const usedHour = parseFloat(taskTimeInfo.split('/')[0])
@@ -386,7 +383,7 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
     }
     const firstColor = getTaskColor((totalDays - countdown[0]) / totalDays)
     const lastColor = getTaskColor((totalDays - countdown[countdown.length - 1]) / totalDays)
-    const background = `linear-gradient(90deg, ${firstColor} 0%, ${lastColor} 100%)`;
+    const background = item.task_label !== '-' ? `linear-gradient(90deg, ${firstColor} 0%, ${lastColor} 100%)` : '#626262';
     return (
       <div
         {...getItemProps({
@@ -415,9 +412,9 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
         >
           <div className={'timeline-item-title'}>{itemContext.title}</div>
           <div className={'timeline-item-sub'}>
-            {countdown.map(day => <div className={'timeline-item-countdown'} style={countDownStyle}>{day}</div>)}
+            {countdown.map(day => <div className={'timeline-item-countdown'} style={countDownStyle}>{!isNaN(day) ? day : ''}</div>)}
           </div>
-          { canEdit ? <div className={'remove-item'} onClick={(e) => {
+          { canEdit && item.task_label !== '-' ? <div className={'remove-item'} onClick={(e) => {
             e.stopPropagation()
             e.preventDefault()
             deleteItem(item.id)

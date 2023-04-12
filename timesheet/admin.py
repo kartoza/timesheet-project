@@ -10,7 +10,8 @@ from timesheet.models import (
 )
 from timesheet.models.clock import Clock
 from timesheet.utils.erp import (
-    push_timesheet_to_erp, pull_projects_from_erp, pull_user_data_from_erp
+    push_timesheet_to_erp, pull_projects_from_erp, pull_user_data_from_erp,
+    pull_leave_data_from_erp
 )
 from timesheet.models.profile import Profile
 from timesheet.models.user_project import UserProject
@@ -39,6 +40,14 @@ def pull_user_data(modeladmin, request, queryset: get_user_model()):
         if not user.profile.token:
             continue
         pull_user_data_from_erp(user)
+
+
+@admin.action(description='Pull leave data')
+def pull_leave_data(modeladmin, request, queryset: get_user_model()):
+    for user in queryset:
+        if not user.profile.token:
+            continue
+        pull_leave_data_from_erp(user)
 
 
 class TimelogAdmin(admin.ModelAdmin):
@@ -103,7 +112,7 @@ class ProfileInLine(admin.StackedInline):
 
 class UserAdmin(DjangoUserAdmin):
     inlines = [ProfileInLine, ]
-    actions = [pull_projects, pull_user_data]
+    actions = [pull_projects, pull_user_data, pull_leave_data]
 
 
 class SavedSummaryAdmin(admin.ModelAdmin):

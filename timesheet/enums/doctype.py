@@ -8,4 +8,5 @@ class DocType(Enum):
     EMPLOYEE = 'Employee'
     USER = 'User'
     TIMESHEET_DETAIL = 'Timesheet Detail'
+    LEAVE = 'Leave Application'
     
