@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from schedule.models import Schedule, UserProjectSlot
 from timesheet.models import Task
@@ -272,7 +272,14 @@ class ScheduleList(APIView):
         if not timeline_id:
             if request.user.is_anonymous:
                 return Response([])
-        schedules = Schedule.objects.all()
+        current_year = date.today().year
+        # Define the start and end dates for the current year
+        start_date = date(current_year, 1, 1)
+        end_date = date(current_year, 12, 31)
+
+        schedules = Schedule.objects.filter(
+            start_time__range=(start_date, end_date)
+        )
         if timeline_id:
             schedules = schedules.filter(
                 user_project__project__publictimeline__id=timeline_id
