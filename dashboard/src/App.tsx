@@ -1,4 +1,6 @@
-import React, {useEffect, useState, Suspense} from 'react';
+import React, {
+    useEffect, useState, Suspense, CSSProperties, useRef, useCallback
+} from 'react';
 import './styles/App.scss';
 import Container from '@mui/material/Container';
 import Autocomplete from '@mui/material/Autocomplete';
@@ -37,7 +39,13 @@ const TimeCard = React.lazy(() => import('./components/TimeCard'));
 const TReactQuill = React.lazy(() => import('./components/ReactQuill'));
 const TimeLogTable = React.lazy(() => import("./components/TimeLogTable"));
 const ScheduleInfo = React.lazy(() => import("./components/ScheduleInfo"));
+const ReactCanvasConfetti = React.lazy(() => import('react-canvas-confetti'));
 
+const randomCompliments = [
+    'Good job!',
+    'Great job!',
+    'Awesome!'
+]
 
 function ModeToggle() {
     const { mode, setMode } = useColorScheme();
@@ -57,6 +65,15 @@ function ModeToggle() {
 const modeTheme = extendTheme({
 });
 
+const confettiStyle: CSSProperties = {
+    position: "fixed",
+    pointerEvents: "none",
+    width: "100%",
+    height: "100%",
+    top: 0,
+    left: 0,
+    zIndex: 999
+}
 
 const TimeLogs = (props: any) => {
     const { editTimeLog, copyTimeLog } = props;
@@ -157,7 +174,16 @@ function App() {
     const [runningTimeLog, setRunningTimeLog] = useState<TimeLog | null>(null)
     const [editingTimeLog, setEditingTimeLog] = useState<TimeLog | null>(null)
     const [timerStarted, setTimerStarted] = useState(false);
+    const refAnimationInstance = useRef(null);
+    const [fadeProp, setFadeProp] = useState({
+        fade: 'fade-out'
+    })
+    const [compliment, setCompliment] = useState(randomCompliments[0])
     const [submitTimesheet, { isLoading: isUpdating, isSuccess, isError }] = useSubmitTimesheetMutation();
+
+     const getInstance = useCallback((instance) => {
+        refAnimationInstance.current = instance;
+      }, []);
 
     useEffect(() => {
         if (timesheetData && timesheetData.running) {
@@ -264,6 +290,26 @@ function App() {
         }
     }, [projectInput])
 
+    useEffect(() => {
+        const celebrate = async () => {
+            if (isSuccess) {
+                setCompliment(
+                    randomCompliments[Math.floor(Math.random() * 3)]
+                )
+                fireConfetti()
+                setFadeProp({
+                    fade: 'fade-in'
+                })
+                await timeout(300)
+                fireConfetti()
+                await timeout(2000)
+                setFadeProp({
+                    fade: 'fade-out'
+                })
+            }
+        }
+        celebrate();
+    }, [isSuccess])
 
     useEffect(() => {
         if (selectedProject) {
@@ -297,8 +343,42 @@ function App() {
         setEditingTimeLog(null)
         setRunningTimeLog(null)
     }
+    const makeShot = useCallback((particleRatio, opts) => {
+        // @ts-ignore
+        refAnimationInstance.current && refAnimationInstance.current({
+            ...opts,
+            origin: {y: 0.7},
+            particleCount: Math.floor(200 * particleRatio)
+        });
+    }, []);
 
-    const submitTimesheetClicked = () => {
+    const fireConfetti = () => {
+        makeShot(0.25, {
+            spread: 26, startVelocity: 55
+        });
+
+        makeShot(0.2, {
+            spread: 60
+        });
+
+        makeShot(0.35, {
+            spread: 100, decay: 0.91, scalar: 0.8
+        });
+
+        makeShot(0.1, {
+            spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2
+        });
+
+        makeShot(0.1, {
+            spread: 120, startVelocity: 45
+        });
+    }
+
+    const timeout = (delay: number) => {
+        return new Promise( res => setTimeout(res, delay) );
+    }
+
+    const submitTimesheetClicked = async () => {
         submitTimesheet({})
     }
 
@@ -338,6 +418,17 @@ function App() {
     return (
         <CssVarsProvider theme={modeTheme}>
         <div className="App">
+            <Suspense>
+                <ReactCanvasConfetti
+                    style={confettiStyle}
+                    refConfetti={getInstance}
+                />
+            </Suspense>
+            <div className={"big-text"}>
+                <h3 className={"animate-character " + fadeProp.fade}>
+                    {compliment}
+                </h3>
+            </div>
             <Backdrop
                 sx={{ color: '#fff', zIndex: 9999, display: 'flex', flexDirection: 'column' }}
                 open={loading}

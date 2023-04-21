@@ -205,7 +205,11 @@
 [data-mui-color-scheme="dark"] {
     .ql-editor a {
         color: white !important;
-    } 
+    }
+
+  .quote-container {
+    color: white;
+  }
 }
 
 .time-picker button {
@@ -221,4 +225,56 @@
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+
+.big-text {
+  display: flex;
+  pointer-events: none;
+  z-index: 999;
+  position: fixed;
+  font-size: 30px;
+  font-weight: bold;
+  color: white;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.animate-character {
+  max-width: 50%;
+  text-transform: uppercase;
+  background-image: linear-gradient(
+                  -225deg,
+                  #231557 0%,
+                  #44107a 29%,
+                  #ff1361 67%,
+                  #fff800 100%
+  );
+  background-size: auto auto;
+  background-clip: border-box;
+  background-size: 200% auto;
+  color: #fff;
+  background-clip: text;
+  text-fill-color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textclip 2s linear infinite;
+  display: inline-block;
+  font-size: 60px;
+}
+
+@keyframes textclip {
+  to {
+    background-position: 200% center;
+  }
+}
+
+.fade-in {
+    transition: opacity 1s ease;
+}
+.fade-out {
+    opacity: 0;
+    transition: opacity 1s ease;
 }
