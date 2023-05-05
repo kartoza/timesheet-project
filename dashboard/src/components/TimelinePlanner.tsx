@@ -150,8 +150,7 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
       .filter(g => g.root || _openGroups[g.parent])
       .map(group => {
         return Object.assign({}, group, {
-          stackItems: false,
-          height: 50,
+          stackItems: true,
           title: group.root ? (
             <div className={"root-parent"} onClick={() => toggleGroup(parseInt(group.id))}>
               {_openGroups[parseInt(group.id)] ?
@@ -483,7 +482,8 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
           sidebarContent={<div>Planning</div>}
           itemsSorted
           itemTouchSendsClick={false}
-          itemHeightRatio={0.75}
+          itemHeightRatio={0.9}
+          lineHeight={60}
           showCursorLine
           dragSnap={60 * 24 * 60 * 1000}
           timeSteps={{

@@ -50,10 +50,6 @@ class UserProjectList(APIView):
             users = get_user_model().objects.filter(
                 profile__api_key__isnull=False
             )
-            if not request.user.is_staff:
-                users = users.filter(
-                    id=request.user.id
-                )
         users_data = []
         for user in users:
             user_projects = UserProjectSlot.objects.filter(
