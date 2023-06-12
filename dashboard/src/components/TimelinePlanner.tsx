@@ -16,7 +16,7 @@ import '../styles/Planner.scss';
 import ItemForm from "./TimelineItemForm";
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
-import {Button, TextField, InputAdornment} from "@mui/material";
+import {Button, TextField, InputAdornment, Backdrop, CircularProgress} from "@mui/material";
 import TimelineProjectForm from "./TimelineProjectForm";
 import SearchIcon from '@mui/icons-material/Search';
 
@@ -114,11 +114,11 @@ function TimelineSearchInput({searchValue, onChange}) {
 }
 
 const DEFAULT_TIME_START = moment()
-      .startOf("month")
+      .startOf("week")
       .valueOf()
 const DEFAULT_TIME_END = moment()
-      .startOf("month")
-      .add(1, "month")
+      .startOf("week")
+      .add(3, "week")
       .valueOf()
 
 function TimelinePlanner(props: TimelinePlannerInterface) {
@@ -130,6 +130,7 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
   const [openProjectForm, setOpenProjectForm] = useState<boolean>(false)
   const [selectedGroup, setSelectedGroup] = useState<GroupInterface | null>(null)
   const [selectedTime, setSelectedTime] = useState<Date | null>(null)
+  const [loading, setLoading] = useState<boolean>(true)
 
   const updateGroups = (groupsData: GroupInterface[]) => {
     let _openGroups = openGroups;
@@ -199,6 +200,7 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
           canResize: _canEdit
         })
       }))
+      setLoading(false)
     }
     if (groups.length > 0) {
       updateGroups(groups)
@@ -352,6 +354,10 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
     }
   }
 
+  const isNotNullAndNumber = (item) => {
+    return item !== null && typeof item === 'number';
+  }
+
   const itemRenderer = ({ item, timelineContext, itemContext, getItemProps, getResizeProps }) => {
     const { left: leftResizeProps, right: rightResizeProps } = getResizeProps();
 
@@ -364,8 +370,8 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
     let remainingDays = parseInt((remainingHour / 7) + "")
     const countdown:any = []
     let days = 0;
-    if (item.first_day && item.last_day) {
-      days = item.first_day - item.last_day
+    if (isNotNullAndNumber(item.first_day) && isNotNullAndNumber(item.last_day)) {
+      days = Math.abs(item.first_day - item.last_day)
       for (let i = item.first_day; i > item.last_day - 1; i--) {
         countdown.push(i)
       }
@@ -427,6 +433,10 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
 
   return (
     <div>
+      <Backdrop open={loading} sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
+      
       <ItemForm open={openForm} selectedGroup={selectedGroup} startTime={selectedTime}
                 onClose={() =>
                   {
