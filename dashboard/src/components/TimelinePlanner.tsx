@@ -1,4 +1,6 @@
-import React, {useEffect, useState, useCallback} from "react";
+import React, {
+  useEffect, useState, useCallback, useRef, forwardRef, useImperativeHandle
+} from "react";
 import moment from "moment";
 
 import "react-calendar-timeline/lib/Timeline.css";
@@ -21,6 +23,11 @@ import TimelineProjectForm from "./TimelineProjectForm";
 import SearchIcon from '@mui/icons-material/Search';
 
 export const canEdit = (window as any).isStaff
+
+enum OpenCloseStatus {
+    OPEN = "OPEN",
+    CLOSE = "CLOSE"
+}
 
 let keys = {
   groupIdKey: "id",
@@ -63,18 +70,25 @@ interface TimelinePlannerInterface {
 }
 
 export default function TimelineDashboard() {
+  const timelinePlanner = useRef(null);
   const [searchText, setSearchText] = useState<string | undefined>(undefined)
+  const toggleAllGroups = () => {
+    if (timelinePlanner.current) {
+      (timelinePlanner.current as any).toggleAllGroups();
+    }
+  }
+
   return (
     <div>
-      <TimelineSearchInput searchValue={searchText} onChange={(value) => setSearchText(value)} />
-      <TimelinePlanner searchValue={searchText}/>
+      <TimelineSearchInput searchValue={searchText} onChange={(value) => setSearchText(value)} toggleAllGroups={toggleAllGroups} />
+      <TimelinePlanner searchValue={searchText} ref={timelinePlanner}/>
     </div>
   )
 }
 
 const ItemSelectedColor = '#c19e16'
 
-function TimelineSearchInput({searchValue, onChange}) {
+function TimelineSearchInput({searchValue, onChange, toggleAllGroups}) {
   const [searchText, setSearchText] = useState<string>('')
   const [focus, setFocus] = useState<boolean>(true)
 
@@ -108,6 +122,9 @@ function TimelineSearchInput({searchValue, onChange}) {
                  InputProps={{
                    startAdornment: (<InputAdornment position="start">
                      <SearchIcon/>
+                   </InputAdornment>),
+                   endAdornment: (<InputAdornment position="end">
+                     <IndeterminateCheckBoxIcon style={{ cursor: 'pointer', color: searchText ? 'gray' : 'black' }} onClick={() => toggleAllGroups()}/>
                    </InputAdornment>)
                  }}
   />)
@@ -121,7 +138,7 @@ const DEFAULT_TIME_END = moment()
       .add(3, "week")
       .valueOf()
 
-function TimelinePlanner(props: TimelinePlannerInterface) {
+const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
   const [groups, setGroups] = useState<GroupInterface[]>([])
   const [renderedGroups, setRenderedGroups] = useState<GroupInterface[]>([])
   const [items, setItems] = useState<ItemInterface[]>([])
@@ -131,6 +148,60 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
   const [selectedGroup, setSelectedGroup] = useState<GroupInterface | null>(null)
   const [selectedTime, setSelectedTime] = useState<Date | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
+
+  useImperativeHandle(ref, () => ({
+    toggleAllGroups(newStatus = OpenCloseStatus.CLOSE) {
+      toggleAll(newStatus)
+    },
+  }));
+
+  const toggleAll = (newStatus = OpenCloseStatus.CLOSE) => {
+    if (typeof props.searchValue !== 'undefined' && props.searchValue !== "") {
+      return
+    }
+    const openedGroups: any[] = [];
+    for (const openGroupId of Object.keys(openGroups)) {
+      if (openGroupId !== 'undefined') {
+        if (openGroups[parseInt(openGroupId)] === (newStatus === OpenCloseStatus.CLOSE)) {
+          openedGroups.push(parseInt(openGroupId))
+        }
+      }
+    }
+    if (newStatus === OpenCloseStatus.CLOSE) {
+      const childrenGroups = groups
+        .filter(group => openedGroups.includes(group.parent))
+        .map(group => '' + group.id);
+
+      // Filter items by group and modify them as necessary
+      const groupItems = items
+          .filter(item => item.group ? childrenGroups.includes('' + item.group) : false)
+          .map(item => {
+              const group = item.group ? groups.find(group => parseInt(group.id, 10) === item.group) : null;
+              return Object.assign({}, item, {
+                id: parseInt(item.id) * 1000,
+                color: '#FFF',
+                selectedBgColor: ItemSelectedColor,
+                canMove: false,
+                canResize: false,
+                group: group ? group.parent : 0,
+                title: group ? group.title : item.title
+              })
+          });
+      setItems((oldItems) => [...oldItems, ...groupItems])
+    } else {
+      const groupItems = items.filter(item => item.group ? openedGroups.includes(item.group) && item.task_label !== '-' : false).map(item => item.id)
+      if (groupItems.length > 0) {
+        setItems(items.filter(item => !groupItems.includes(item.id)))
+      }
+    }
+    setOpenGroups(prevOpenGroups => {
+      let newOpenGroups = {...prevOpenGroups};
+      for (let key of Object.keys(newOpenGroups)) {
+        newOpenGroups[key] = newStatus === OpenCloseStatus.OPEN;
+      }
+      return newOpenGroups;
+    });
+  }
 
   const updateGroups = (groupsData: GroupInterface[]) => {
     let _openGroups = openGroups;
@@ -155,7 +226,7 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
           title: group.root ? (
             <div className={"root-parent"} onClick={() => toggleGroup(parseInt(group.id))}>
               {_openGroups[parseInt(group.id)] ?
-                <IndeterminateCheckBoxIcon/> : <AddBoxIcon/>} {group.rightTitle} <div className={'add-project-container'}>
+                <IndeterminateCheckBoxIcon style={{ color: props.searchValue ? 'gray' : 'black' }}/> : <AddBoxIcon style={{ color: props.searchValue ? 'gray' : 'black' }}/>} {group.rightTitle} <div className={'add-project-container'}>
                   { canEdit ? <Button onClick={(event) => {
                     event.stopPropagation()
                     handleProjectAdd(group.id)
@@ -528,4 +599,4 @@ function TimelinePlanner(props: TimelinePlannerInterface) {
         </Timeline> : <div style={{ marginLeft: '235px', paddingTop: '20px' }}>No Data</div>}
     </div>
     );
-}
+})
