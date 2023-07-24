@@ -316,14 +316,14 @@ def get_burndown_chart_data(project_name: str):
         week = f'{date_time_obj.isocalendar()[0]}{str(date_time_obj.isocalendar()[1]).zfill(2) }'
         if week not in hours_by_week:
             hours_by_week[week] = {
-                'hours': timesheet_date['Billable Hours'],
+                'hours': timesheet_date['Hours'],
                 'week_string' : (
                     f'{calendar.month_abbr[date_time_obj.month]} '
                     f'Week {week_number}'
                 )
             }
         else:
-            hours_by_week[week]['hours'] += timesheet_date['Billable Hours']
+            hours_by_week[week]['hours'] += timesheet_date['Hours']
 
     return {
         'hours': OrderedDict(sorted(hours_by_week.items())),
