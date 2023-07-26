@@ -241,6 +241,27 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
     )
   }
 
+  const filterGroups = (searchText: string) => {
+    const searchValue = searchText.toLowerCase()
+    const updatedGroups = groups.filter((group) => {
+      const groupTitle = group.rightTitle ? group.rightTitle.toLowerCase() : ''
+      if (group.root && !groupTitle.includes(searchValue)) {
+        const children = groups.filter(childGroup => childGroup.parent === group.id)
+        if (children.length > 0) {
+          return children.filter(child => child.rightTitle ? child.rightTitle.toLowerCase().includes(searchValue) : false).length > 0
+        }
+      }
+      if (!group.root && !groupTitle.includes(searchValue)) {
+        const parent = groups.find(_group => _group.id === group.parent)
+        if (parent) {
+          return parent.rightTitle ? parent.rightTitle.toLowerCase().includes(searchValue) : false
+        }
+      }
+      return groupTitle.includes(searchValue)
+    })
+    updateGroups(updatedGroups)
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       const schedules: any = await fetchSchedules();
@@ -283,7 +304,12 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
 
   useEffect(() => {
     if (items.length > 0) {
-      updateGroups(groups)
+      const searchText = props.searchValue;
+      if (searchText !== null && typeof searchText !== 'undefined') {
+        filterGroups(searchText)
+      } else {
+        updateGroups(groups)
+      }
     }
   }, [items])
 
@@ -301,24 +327,7 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
       searchText = props.searchValue
     }
     if (searchText !== null) {
-      const searchValue = searchText.toLowerCase()
-      const updatedGroups = groups.filter((group) => {
-        const groupTitle = group.rightTitle ? group.rightTitle.toLowerCase() : ''
-        if (group.root && !groupTitle.includes(searchValue)) {
-          const children = groups.filter(childGroup => childGroup.parent === group.id)
-          if (children.length > 0) {
-            return children.filter(child => child.rightTitle ? child.rightTitle.toLowerCase().includes(searchValue) : false).length > 0
-          }
-        }
-        if (!group.root && !groupTitle.includes(searchValue)) {
-          const parent = groups.find(_group => _group.id === group.parent)
-          if (parent) {
-            return parent.rightTitle ? parent.rightTitle.toLowerCase().includes(searchValue) : false
-          }
-        }
-        return groupTitle.includes(searchValue)
-      })
-      updateGroups(updatedGroups)
+      filterGroups(searchText)
     }
   }, [props])
 
