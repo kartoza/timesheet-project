@@ -47,7 +47,7 @@ const randomCompliments = [
     'Awesome!'
 ]
 
-function ModeToggle() {
+export function ModeToggle() {
     const { mode, setMode } = useColorScheme();
     return (
         <ToggleButtonGroup value={mode} exclusive
