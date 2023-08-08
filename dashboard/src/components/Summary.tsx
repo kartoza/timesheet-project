@@ -12,6 +12,12 @@ import {
     TextField
 } from "@mui/material";
 import {
+    createTheme,
+    Experimental_CssVarsProvider as CssVarsProvider,
+    experimental_extendTheme as extendTheme,
+    useColorScheme,
+} from '@mui/material/styles';
+import {
     Chart as ChartJS,
     CategoryScale,
     LinearScale,
@@ -28,6 +34,11 @@ import { Line } from 'react-chartjs-2';
 import '../styles/App.scss';
 import {DownloadIcon} from "../loadable/Icon";
 import TButton from "../loadable/Button";
+import Card from "@mui/material/Card";
+import Typography from "@mui/material/Typography";
+import Chip from "@mui/material/Chip";
+import FaceIcon from '@mui/icons-material/Face';
+import {ModeToggle} from "../App";
 
 ChartJS.register(
     CategoryScale,
@@ -39,7 +50,10 @@ ChartJS.register(
     Legend
 );
 
-  
+
+// @ts-ignore
+const modeTheme = extendTheme({});
+
 export const options = {
     responsive: true,
     plugins: {
@@ -73,6 +87,14 @@ const LIST_SUMMARY_API_URL = (
 const IS_STAFF = (window as any).isStaff
 
 function BurnChartTable(props: any) {
+    const getTotalHours = (rowIndex: any) => {
+        let totalHours = 0
+        for (const row of props.rows) {
+            totalHours += row[rowIndex]
+        }
+        return totalHours.toFixed(2)
+    }
+
     return (
       props.rows ? 
       <TableContainer component={Paper}>
@@ -97,12 +119,60 @@ function BurnChartTable(props: any) {
                 <TableCell>{row[3]}</TableCell>
               </TableRow>
             ))}
+              <TableRow key={-1}>
+                  <TableCell component="th" scope="row"><strong>Total</strong></TableCell>
+                  <TableCell></TableCell>
+                  <TableCell></TableCell>
+                  <TableCell><strong>{getTotalHours(3)}</strong></TableCell>
+              </TableRow>
           </TableBody>
         </Table>
       </TableContainer>
       : null
     );
   }
+
+function BurndownChart(props: any) {
+    const { mode, setMode } = useColorScheme();
+    const gridColor = mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    const chartOptions = {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top' as const,
+                labels: {
+                    color: mode === 'dark' ? 'white' : 'black',
+                },
+            },
+            title: {
+                display: true,
+                text: 'Burndown Chart',
+            },
+        },
+        scales: {
+            x: {
+                grid: {
+                    color: gridColor,
+                },
+                ticks: {
+                    color: mode === 'dark' ? 'white' : 'black',
+                },
+            },
+            y: {
+                grid: {
+                    color: gridColor,
+                },
+                ticks: {
+                    color: mode === 'dark' ? 'white' : 'black',
+                },
+            },
+        },
+    };
+    return (
+        <Line options={chartOptions} data={props.chartData} />
+    )
+}
+
 
 export default function Summary(props: any) {
     const [chartData, setChartData] = useState<any>(null)
@@ -235,9 +305,16 @@ export default function Summary(props: any) {
     }, [projectInput])
 
     return (
+        <CssVarsProvider theme={modeTheme}>
         <div className="App">
             <div className="App-header" style={{ padding: '2vh', fontSize: '15pt' }}>
-                <a href={'/summary'}> Burndown Chart </a>
+                <Typography style={{ cursor: "pointer" }} variant="h5" component="div" onClick={() => window.location.href = '/summary'}>
+                    Burndown Chart
+                </Typography>
+                <div style={{ position: 'absolute',
+                    right: 0,
+                    paddingRight: '1em'
+                }}><ModeToggle/></div>
             </div>
             <Grid container>
                 <Grid item xs={2}></Grid>
@@ -293,14 +370,14 @@ export default function Summary(props: any) {
                             <div>
                                 { publicMode ?
                                     <h1>{summaryName}</h1> : null }
-                                <Line options={options} data={chartData} />
+                                <BurndownChart chartData={chartData} />
                                 <div style={{ padding: 35, marginBottom: 20 }}>
                                     <BurnChartTable rows={tableRows} />
                                 </div>
                             </div> : 
                             <div style={{ fontStyle: 'italic', marginTop: 30, fontSize: 25 }}>
                                 Choose a project to get the chart</div> }
-                    { IS_STAFF && selectedProject || props.selectedProjectId ?
+                    { IS_STAFF && (selectedProject || props.selectedProjectId) ?
                     <div style={{ marginBottom: "2em" }}>
                         <TButton
                             onClick={() => downloadCSV(
@@ -316,12 +393,18 @@ export default function Summary(props: any) {
                     { publicMode ? null : 
                         <div style={{ marginTop: 20, marginBottom: 20, textAlign: 'left' }}>
                             <h3>Saved Charts</h3>
-                            {summaries.map(summary => 
-                                <div className="summary-container" style={{ border: '1px solid #000', borderRadius: 8, padding: '10px 20px'}}>
-                                    <p><a href={'/summary/' + summary.slug_name}>{ summary.name }</a></p>
-                                    <p>Project: {summary.project_name}</p>
-                                    <p>View: {summary.view_count}</p>
-                                </div>
+                            {summaries.map(summary =>
+                                <Card variant={"outlined"} elevation={2} onClick={() => window.location.href = "/summary/" + summary.slug_name }>
+                                    <div className="summary-container" style={{ padding: '20px 20px'}}>
+                                        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                                            { summary.project_name }
+                                        </Typography>
+                                        <Typography style={{ cursor: "pointer" }} variant="h5" component="div">
+                                            { summary.name }
+                                        </Typography>
+                                        <Chip style={{ marginTop: 10}} icon={<FaceIcon />} label={summary.view_count} variant="filled" />
+                                    </div>
+                                </Card>
                             )}
                         </div>
                     }
@@ -329,5 +412,6 @@ export default function Summary(props: any) {
                 <Grid item xs={2}></Grid>
             </Grid>
         </div>
+        </CssVarsProvider>
     )
 }
