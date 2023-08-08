@@ -24,12 +24,18 @@ class UserProjectSlotAdmin(admin.ModelAdmin):
 class ScheduleAdmin(admin.ModelAdmin):
     list_display = (
         'user_project',
+        'assignee',
+        'task',
         'activity',
         'start_time',
         'end_time'
     )
     raw_id_fields = (
         'task',
+    )
+    search_fields = (
+        'user__username',
+        'task__name'
     )
 
 
