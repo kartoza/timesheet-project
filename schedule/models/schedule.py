@@ -22,7 +22,7 @@ class Schedule(models.Model):
         'timesheet.Task',
         null=True,
         blank=True,
-        on_delete=models.SET_NULL
+        on_delete=models.CASCADE
     )
 
     activity = models.ForeignKey(
@@ -67,3 +67,11 @@ class Schedule(models.Model):
         default="",
         blank=True
     )
+
+    @property
+    def assignee(self):
+        if self.user:
+            return self.user.username
+        if self.user_project:
+            return self.user_project.user.username
+        return '-'
