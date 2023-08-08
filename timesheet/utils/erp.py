@@ -282,6 +282,14 @@ def get_report_data(report_name: str, erpnext_token: str = None, filters: str = 
     return message['result']
 
 
+def get_detailed_report_data(project_name: str):
+    timesheet_detail = get_report_data(
+        'Timesheet%20Detailed%20Report',
+        preferences.TimesheetPreferences.admin_token,
+        f'{{"Project":"{project_name}"}}')
+    return timesheet_detail
+
+
 def get_burndown_chart_data(project_name: str):
     
     def week_of_month(dt):
@@ -302,10 +310,7 @@ def get_burndown_chart_data(project_name: str):
             total_hours=Sum('expected_time'),
             total_actual_hours=Sum('actual_time')
         )
-    timesheet_detail = get_report_data(
-        'Timesheet%20Detailed%20Report', 
-        preferences.TimesheetPreferences.admin_token,
-        f'{{"Project":"{project_name}"}}')
+    timesheet_detail = get_detailed_report_data(project_name)
     
     hours_by_week = {}
     for timesheet_date in timesheet_detail:
