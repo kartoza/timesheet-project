@@ -1,4 +1,16 @@
-import { Autocomplete, CircularProgress, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from "@mui/material";
+import {
+    Autocomplete,
+    CircularProgress,
+    Grid,
+    Paper,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    TextField
+} from "@mui/material";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -14,6 +26,8 @@ import { useEffect, useState } from "react";
 import { Line } from 'react-chartjs-2';
   
 import '../styles/App.scss';
+import {DownloadIcon} from "../loadable/Icon";
+import TButton from "../loadable/Button";
 
 ChartJS.register(
     CategoryScale,
@@ -48,9 +62,15 @@ const PUBLIC_API_URL = (
     '/api/public-burndown-chart-data/?id='
 )
 
+const DOWNLOAD_API_URL = (
+    '/api/download-report-data/?id='
+)
+
 const LIST_SUMMARY_API_URL = (
     '/api/list-summary/'
 )
+
+const IS_STAFF = (window as any).isStaff
 
 function BurnChartTable(props: any) {
     return (
@@ -95,6 +115,24 @@ export default function Summary(props: any) {
     const [publicMode, setPublicMode] = useState<boolean>(true)
     const [summaryName, setSummaryName] = useState<string>('')
     const [summaries, setSummaries] = useState<any[]>([])
+    const [isDownloading, setIsDownloading] = useState<boolean>(false)
+
+    const downloadCSV = (projectId: string, projectLabel: string) => {
+        setIsDownloading(true)
+        fetch(DOWNLOAD_API_URL + projectId)
+            .then((response) => response.blob())
+            .then((blob) => {
+                const url = window.URL.createObjectURL(new Blob([blob]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', `Detailed Report ${projectLabel}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                link.parentNode?.removeChild(link);
+                setIsDownloading(false)
+            });
+    };
+
 
     const fetchChartData = (url: string) => {
         setChartLoading(true)
@@ -181,7 +219,6 @@ export default function Summary(props: any) {
 
     useEffect(() => {
         setProjectLoading(true)
-        console.log(projectInput)
         if (projectInput.length > 0) {
             fetch('/project-list/?ignoreUser=True&q=' + projectInput).then(
                 response => response.json()
@@ -199,8 +236,8 @@ export default function Summary(props: any) {
 
     return (
         <div className="App">
-            <div className="App-header" style={{ height: '12vh', fontSize: '15pt' }}>
-                Burndown Chart
+            <div className="App-header" style={{ padding: '2vh', fontSize: '15pt' }}>
+                <a href={'/summary'}> Burndown Chart </a>
             </div>
             <Grid container>
                 <Grid item xs={2}></Grid>
@@ -263,6 +300,19 @@ export default function Summary(props: any) {
                             </div> : 
                             <div style={{ fontStyle: 'italic', marginTop: 30, fontSize: 25 }}>
                                 Choose a project to get the chart</div> }
+                    { IS_STAFF && selectedProject || props.selectedProjectId ?
+                    <div style={{ marginBottom: "2em" }}>
+                        <TButton
+                            onClick={() => downloadCSV(
+                                selectedProject ? selectedProject.id : props.selectedProjectId,
+                                selectedProject ? selectedProject.label : summaryName)}
+                            className="StandupButton"
+                            disabled={isDownloading}
+                            startIcon={isDownloading ? <CircularProgress size={12}/> : <DownloadIcon/>}
+                            variant="outlined" size="large" color='primary'>
+                            Download
+                        </TButton>
+                    </div> : null }
                     { publicMode ? null : 
                         <div style={{ marginTop: 20, marginBottom: 20, textAlign: 'left' }}>
                             <h3>Saved Charts</h3>

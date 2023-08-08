@@ -20,6 +20,7 @@
     "chart.js": "^4.2.0",
     "date-fns": "^2.28.0",
     "faker": "^4.1.0",
+    "interactjs": "^1.10.17",
     "js-cookie": "^3.0.1",
     "maplibre-gl": "^2.4.0",
     "moment": "^2.29.3",

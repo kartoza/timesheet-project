@@ -2,7 +2,8 @@ from django.urls import path
 from dashboard.api_views import (
     BurnDownChartData,
     ListSummary,
-    PublicBurnDownChartData
+    PublicBurnDownChartData,
+    DownloadReportData
 )
 from dashboard.views import (
     DashboardView, SpaceView,
@@ -30,7 +31,10 @@ urlpatterns = [
          name='list-summary'),
     path('api/public-burndown-chart-data/',
          PublicBurnDownChartData.as_view(),
-         name='public-burndown-chart-data')
+         name='public-burndown-chart-data'),
+    path('api/download-report-data/',
+         DownloadReportData.as_view(),
+         name='download-report-data')
 ]
 
 if settings.DEBUG:
