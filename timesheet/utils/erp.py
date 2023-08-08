@@ -132,22 +132,21 @@ def pull_projects_from_erp(user: get_user_model()):
         ).distinct()
         inactive_projects.update(is_active=False)
         Project.objects.filter(
-            id__in=inactive_projects.exclude(
-                task__timelog__isnull=False
-            ).values('id')
+            id__in=inactive_projects.values('id')
         ).delete()
 
 
     tasks = get_erp_data(
         DocType.TASK, user.profile.token
     )
+    updated_tasks = []
     for task in tasks:
         try:
             project = Project.objects.get(name=task['project'])
         except Project.DoesNotExist:
             continue
         try:
-            Task.objects.update_or_create(
+            task, _ = Task.objects.update_or_create(
                 project=project,
                 name=task['subject'],
                 erp_id=task['name'],
@@ -156,6 +155,7 @@ def pull_projects_from_erp(user: get_user_model()):
                     "actual_time": task['actual_time']
                 }
             )
+            updated_tasks.append(task.id)
         except Task.MultipleObjectsReturned:
             tasks = Task.objects.filter(
                 project=project,
@@ -168,6 +168,14 @@ def pull_projects_from_erp(user: get_user_model()):
                 expected_time=task['expected_time'],
                 actual_time=task['actual_time']
             )
+            updated_tasks.append(latest_task.id)
+        deleted_tasks = Task.objects.filter(
+            project=project
+        ).exclude(
+            id__in=updated_tasks
+        )
+        if deleted_tasks.exists():
+            deleted_tasks.delete()
 
     activities = get_erp_data(
         DocType.ACTIVITY, user.profile.token)
