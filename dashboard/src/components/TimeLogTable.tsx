@@ -79,7 +79,7 @@ function TimeLogItem(prop : TimeLog)    {
     }
 
     return (
-        <Grid container spacing={1} className="time-log-row">
+        <Grid container spacing={1} className={"time-log-row" + (prop.submitted ? " timelog-submitted": "")}>
             <Grid className="time-log-item left-item" item xs={12} md={8.5}>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                     <Paper className="time-log-project" style={{
@@ -115,46 +115,41 @@ function TimeLogItem(prop : TimeLog)    {
             <Grid className="time-log-item center-item"  item xs={2.8} sx={{ fontSize: "0.85em", letterSpacing: 0.8 }}>
                 <Typography sx={{ fontSize: "2em", fontWeight: "bolder" }} color="text.primary">
                     { !prop.running ? prop.hours : calculateHours(prop.from_time) }
+                    { prop.submitted ? <TaskAltIcon color={'success'} style={{marginLeft: '0.2em'}}/> : null }
                 </Typography>
                 <div>
                     { getTime(prop.from_time) } { !prop.running ? '- ' + getTime(prop.to_time) : '' }
                 </div>
             </Grid>
             <Divider orientation="vertical" variant="middle" flexItem />
-            {
-                !prop.submitted ?
-                    <Grid className="time-log-item center-item" item xs={0.6}>
-                        <TButton
-                            style={{ marginLeft: '8px' }}
-                            aria-controls={open ? 'basic-menu' : undefined}
-                            aria-expanded={open ? 'true': undefined}
-                            aria-label="delete"
-                            variant={'text'}
-                            size={"small"}
-                            onClick={openMenu}
-                            disabled={loading}
-                        >
-                            <MoreVertIcon/>
-                        </TButton>
-                        <Menu
-                            disableAutoFocusItem={true}
-                            id="basic-menu"
-                            anchorEl={anchorEl}
-                            open={open}
-                            onClose={handleClose}
-                            MenuListProps={{
-                                'aria-labelledby': 'basic-button',
-                            }}
-                        >
-                            <MenuItem onClick={deleteTimeLogClicked}><DeleteSweepIcon/></MenuItem>
-                            <MenuItem onClick={editTimeLogClicked}><EditIcon/></MenuItem>
-                            <MenuItem onClick={copyTimeLogClicked}><ContentCopyIcon/></MenuItem>
-                        </Menu>
-                    </Grid>
-                    :
-                    <Grid className="time-log-item center-item" item xs={0.6}>
-                        <TaskAltIcon color={'success'} style={{marginLeft: '1em'}}/>
-                    </Grid> }
+                <Grid className="time-log-item center-item" item xs={0.6}>
+                    <TButton
+                        style={{ marginLeft: '8px' }}
+                        aria-controls={open ? 'basic-menu' : undefined}
+                        aria-expanded={open ? 'true': undefined}
+                        aria-label="delete"
+                        variant={'text'}
+                        size={"small"}
+                        onClick={openMenu}
+                        disabled={loading}
+                    >
+                        <MoreVertIcon/>
+                    </TButton>
+                    <Menu
+                        disableAutoFocusItem={true}
+                        id="basic-menu"
+                        anchorEl={anchorEl}
+                        open={open}
+                        onClose={handleClose}
+                        MenuListProps={{
+                            'aria-labelledby': 'basic-button',
+                        }}
+                    >
+                        <MenuItem onClick={deleteTimeLogClicked}><DeleteSweepIcon/></MenuItem>
+                        { prop.submitted ? null : <MenuItem onClick={editTimeLogClicked}><EditIcon/></MenuItem> }
+                        <MenuItem onClick={copyTimeLogClicked}><ContentCopyIcon/></MenuItem>
+                    </Menu>
+                </Grid>
         </Grid>
     )
 }
@@ -167,7 +162,7 @@ function TimeLogTable(props: any) {
         for (const timeLogData of data) {
             _totalHours += parseFloat(timeLogData.hours)
         }
-        return _totalHours;
+        return _totalHours.toFixed(2);
     }
 
     const dateString = () => {

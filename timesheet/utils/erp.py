@@ -169,13 +169,13 @@ def pull_projects_from_erp(user: get_user_model()):
                 actual_time=task['actual_time']
             )
             updated_tasks.append(latest_task.id)
-        deleted_tasks = Task.objects.filter(
-            project=project
-        ).exclude(
-            id__in=updated_tasks
-        )
-        if deleted_tasks.exists():
-            deleted_tasks.delete()
+        # deleted_tasks = Task.objects.filter(
+        #     project=project
+        # ).exclude(
+        #     id__in=updated_tasks
+        # )
+        # if deleted_tasks.exists():
+        #     deleted_tasks.delete()
 
     activities = get_erp_data(
         DocType.ACTIVITY, user.profile.token)

@@ -319,7 +319,7 @@ export default function TimeCard({
                             const value = event.target.value;
                             setHours(null)
                             setHourString(value)
-                            if (!value) {
+                            if (!value || parseInt(value.includes(':') ? value.split(':')[1] : value) === 0) {
                                 return
                             }
 
@@ -328,7 +328,7 @@ export default function TimeCard({
                                 setHours(parseFloat(value))
                                 return
                             }
-                            const timeData = value.match(/(0?[1-9]|1[0-2])(:|.)[0-9]{2}/g)
+                            const timeData = value.match(/(0?[0-9]|1[0-2])(:|.)[0-9]{2}/g)
                             if (timeData && timeData.length > 0) {
                                 const timeDataString = timeData[0]
                                 if (timeDataString.includes(':')) {
@@ -357,7 +357,7 @@ export default function TimeCard({
                                     disableElevation>Cancel</TButton>
                             <TButton color="success" variant="contained" size="small" sx={{width: '50%', marginTop: -1}}
                                 onClick={submitEditedTimeLog}
-                                disabled={isUpdateLoading}
+                                disabled={addButtonDisabled || isUpdateLoading}
                                 disableElevation>{isUpdateLoading ?
                             <CircularProgress color="inherit" size={20}/> : "Save"}</TButton>
                         </div>:

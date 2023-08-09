@@ -137,7 +137,7 @@ const TimeLogs = (props: any) => {
                             Object.keys(totalPerProject).map((key: any) =>
                                 <Chip
                                     key={key}
-                                    label={`${key} : ${totalPerProject[key]}`}
+                                    label={`${key} : ${totalPerProject[key].toFixed(2)}`}
                                     style={{ backgroundColor: generateColor(key), color: '#ffffff' }} />
                             )
                         }

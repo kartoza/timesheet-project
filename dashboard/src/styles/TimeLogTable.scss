@@ -1,3 +1,7 @@
+.timelog-submitted {
+  background-color: rgba(51, 153, 66, 0.25);
+}
+
 .time-log-row {
   text-align: left;
   min-height: 3em;
@@ -6,9 +10,8 @@
   flex-direction: row;
   padding-top: 10px;
 
-  margin-left: -16px !important;
-  width: 72em !important;
-  padding-left: 15px;
+  padding-right: 1em;
+  padding-left: 0.5em;
 
   .time-log-project {
     text-align: left;

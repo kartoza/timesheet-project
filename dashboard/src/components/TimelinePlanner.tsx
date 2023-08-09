@@ -385,9 +385,11 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
     const item = items.find(item => item.id === itemId)
     if (item) {
       if (window.confirm('Are you sure you want to delete this record?')) {
+        setLoading(true)
         deleteSchedule(
           item.id
         ).then(result => {
+          setLoading(false)
           if (result['removed']) {
             const updatedSchedules = result.updated
             setItems(items.map(item => updatedSchedules[item.id] ? Object.assign({}, item, updatedSchedules[item.id]) : item).filter((currentItem) => currentItem.id !== itemId))
@@ -399,12 +401,14 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
 
   const handleItemMove = (itemId, dragTime, newGroupOrder) => {
     const group = renderedGroups[ newGroupOrder ];
+    setLoading(true)
     if (group.root) {
       return false;
     }
     const item = items.find(item => item.id === itemId)
     if (item) {
       updateSchedule(itemId, dragTime, dragTime + (item.end - item.start)).then((updatedSchedules: any) => {
+        setLoading(false)
         if (updatedSchedules) {
           setItems(items.map(item => updatedSchedules[item.id] ? Object.assign({}, item, updatedSchedules[item.id]) : item))
         }
@@ -414,8 +418,10 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
 
   const handleItemResize = (itemId, time, edge) => {
     const item = items.find(item => item.id === itemId)
+    setLoading(true)
     if (item) {
       updateSchedule(itemId, edge === "left" ? time : item.start, edge === "left" ? item.end : time).then((updatedSchedules: any) => {
+        setLoading(false)
         if (updatedSchedules) {
           setItems(items.map(item => updatedSchedules[item.id] ? Object.assign({}, item, updatedSchedules[item.id]) : item))
         }
