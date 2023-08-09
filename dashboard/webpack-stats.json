@@ -17,9 +17,9 @@
       "name": "PublicSummary.7c71274e36dee1a62208.js",
       "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.7c71274e36dee1a62208.js"
     },
-    "Planner.7b450b7c4426b4ef0f7b.js": {
-      "name": "Planner.7b450b7c4426b4ef0f7b.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Planner.7b450b7c4426b4ef0f7b.js"
+    "Planner.2dd9e3bb0553b88b7a94.js": {
+      "name": "Planner.2dd9e3bb0553b88b7a94.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Planner.2dd9e3bb0553b88b7a94.js"
     },
     "150.3a8f77f41abc6abb1441.js": {
       "name": "150.3a8f77f41abc6abb1441.js",
@@ -153,9 +153,9 @@
       "name": "App.993f0d9a3de4b0dcc244.js.LICENSE.txt",
       "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/App.993f0d9a3de4b0dcc244.js.LICENSE.txt"
     },
-    "Planner.7b450b7c4426b4ef0f7b.js.LICENSE.txt": {
-      "name": "Planner.7b450b7c4426b4ef0f7b.js.LICENSE.txt",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Planner.7b450b7c4426b4ef0f7b.js.LICENSE.txt"
+    "Planner.2dd9e3bb0553b88b7a94.js.LICENSE.txt": {
+      "name": "Planner.2dd9e3bb0553b88b7a94.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Planner.2dd9e3bb0553b88b7a94.js.LICENSE.txt"
     },
     "PublicSummary.7c71274e36dee1a62208.js.LICENSE.txt": {
       "name": "PublicSummary.7c71274e36dee1a62208.js.LICENSE.txt",
@@ -184,7 +184,7 @@
       "PublicSummary.7c71274e36dee1a62208.js"
     ],
     "Planner": [
-      "Planner.7b450b7c4426b4ef0f7b.js"
+      "Planner.2dd9e3bb0553b88b7a94.js"
     ]
   }
 }

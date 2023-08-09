@@ -464,7 +464,7 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
       }
     }
     const countDownStyle = {
-      width: `${100/days}%`
+      width: `${100/(days > 0 ? days : 1)}%`
     }
     const firstColor = getTaskColor((totalDays - countdown[0]) / totalDays)
     const lastColor = getTaskColor((totalDays - countdown[countdown.length - 1]) / totalDays)
@@ -497,7 +497,8 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
         >
           <div className={'timeline-item-title'}>{itemContext.title}</div>
           <div className={'timeline-item-sub'}>
-            {countdown.map(day => <div className={'timeline-item-countdown'} style={countDownStyle}>{!isNaN(day) ? day : ''}</div>)}
+            {countdown.map(day => <div className={'timeline-item-countdown'} style={countDownStyle}>
+              <div className={'timeline-item-sub-text'}>{!isNaN(day) ? day : ''}</div> </div>)}
           </div>
           { canEdit && item.task_label !== '-' ? <div className={'remove-item'} onClick={(e) => {
             e.stopPropagation()
