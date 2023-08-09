@@ -167,7 +167,7 @@ function TimeLogTable(props: any) {
         for (const timeLogData of data) {
             _totalHours += parseFloat(timeLogData.hours)
         }
-        return _totalHours;
+        return _totalHours.toFixed(2);
     }
 
     const dateString = () => {
