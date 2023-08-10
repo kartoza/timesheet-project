@@ -20,3 +20,4 @@ django-allauth==0.51.0
 html2text==2020.1.16
 django-preferences==1.0.0
 djangorestframework-gis==1.0
+django-dbbackup==4.0.2
