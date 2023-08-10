@@ -138,6 +138,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 INSTALLED_APPS += [
+    'dbbackup',
     'dashboard',
     'timesheet',
     'schedule'
@@ -190,3 +191,5 @@ LOGIN_REDIRECT_URL = '/'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 ACCOUNT_EMAIL_REQUIRED = True
+
+DBBACKUP_STORAGE_OPTIONS = {'location': 'backups'}
