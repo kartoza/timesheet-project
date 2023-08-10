@@ -67,6 +67,11 @@ class Schedule(models.Model):
         default="",
         blank=True
     )
+    notes = models.TextField(
+        null=True,
+        blank=True,
+        default=''
+    )
 
     @property
     def assignee(self):

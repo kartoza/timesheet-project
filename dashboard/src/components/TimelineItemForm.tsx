@@ -7,7 +7,6 @@ import {AdapterDateFns} from "@mui/x-date-pickers/AdapterDateFns";
 import TButton from "../loadable/Button";
 import {GroupInterface} from "./TimelinePlanner";
 import {getColorFromTaskLabel} from "../utils/Theme";
-import Autocomplete from "@mui/material/Autocomplete";
 import TaskAutocomplete from "./TaskAutocomplete";
 import {resetTimeInDate} from "../utils/schedule_data";
 
@@ -38,6 +37,7 @@ export default function ItemForm(props: ItemFormInterface) {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [duration, setDuration] = useState<number>(1)
   const [selectedTask, setSelectedTask] = useState<any>(null)
+  const [notes, setNotes] = useState<string>('');
 
   useEffect(() => {
     if (props.open) {
@@ -68,6 +68,7 @@ export default function ItemForm(props: ItemFormInterface) {
     const formData = new FormData();
     formData.append('start_time', '' + start.getTime())
     formData.append('end_time', '' + end.getTime())
+    formData.append('notes', notes)
     if (selectedTask) {
       formData.append('task_id', selectedTask.id)
     }
@@ -184,6 +185,19 @@ export default function ItemForm(props: ItemFormInterface) {
                      const newDuration = parseInt(event.target.value);
                      setDuration(newDuration)
                    }}
+                 />
+               </Grid>
+               <Grid item xs={12}>
+                 <TextField
+                     value={notes}
+                     id={'notes'}
+                     label="Notes"
+                     multiline
+                     rows={4}
+                     onChange={(event) => {
+                       setNotes(event.target.value + '')
+                     }}
+                     style={{ width: '100%' }}
                  />
                </Grid>
                <Grid item xs={12}>

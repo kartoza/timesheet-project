@@ -114,6 +114,17 @@ export default function ScheduleInfo(props: ScheduleInfoProps) {
                         <div>
                             <div className={'schedule-project-name'}>{schedule.schedule.project_name}</div>
                             <div>{schedule.schedule.task_label}</div>
+                            { schedule.schedule.notes ?
+                                <div style={{marginTop: 2}}>📝
+                                    {schedule.schedule.notes.split('\n').map(function(item: string) {
+                                        return (
+                                            <span>
+                                                {item}
+                                                <br/>
+                                            </span>
+                                        )
+                                    })}
+                                </div> : null }
                         </div>
                     ) : null}
                 </Grid>
