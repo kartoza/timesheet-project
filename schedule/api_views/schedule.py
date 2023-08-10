@@ -314,7 +314,8 @@ class ScheduleSerializer(serializers.ModelSerializer):
             'task_name',
             'task_label',
             'first_day',
-            'last_day'
+            'last_day',
+            'notes'
         ]
 
 
@@ -455,6 +456,7 @@ class AddSchedule(APIView):
     def post(self, request):
         task_id = request.data.get('task_id', None)
         user_id = request.data.get('user_id', None)
+        notes = request.data.get('notes', '')
         start_time = datetime.fromtimestamp(
             int(request.data.get('start_time')) / 1000
         )
@@ -486,7 +488,8 @@ class AddSchedule(APIView):
             end_time=end_time,
             task=task,
             first_day_number=remaining_task_days,
-            last_day_number=last_day_number
+            last_day_number=last_day_number,
+            notes=notes
         )
 
         updated = update_subsequent_schedules(
