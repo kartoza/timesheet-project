@@ -80,7 +80,7 @@ function TimeLogItem(prop : TimeLog)    {
 
     return (
         <Grid container spacing={1} className={"time-log-row" + (prop.submitted ? " timelog-submitted": "")}>
-            <Grid className="time-log-item left-item" item xs={12} md={8.5}>
+            <Grid className="time-log-item left-item" item xs={12} md={8}>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                     <Paper className="time-log-project" style={{
                         padding: prop.project_name ? '3px 10px' : '0',
@@ -178,46 +178,44 @@ function TimeLogTable(props: any) {
     }
 
     return (
-        <Container maxWidth="lg">
-            <Card>
-                <CardHeader
-                    title={ dateString() }
-                    subheader={ 'Total: ' + totalHours() }
-                    className={ 'timelog-card-header' }
-                    sx={{
-                        textAlign: 'left',
-                        paddingTop: '10px',
-                        paddingBottom: '10px',
-                        marginBottom: '10px',
-                        display: 'flex'
-                    }}
-                    titleTypographyProps={{
-                        'color': 'text.secondary',
-                        'sx': {fontSize: '14px', color: 'white', marginTop: 0.5}
-                    }}
-                    subheaderTypographyProps={{
-                        'color': 'white',
-                        'sx': {marginLeft: "auto"}
-                    }}
-                />
-                <CardContent sx={{padding: 0}}>
-                    {data.map((timeLogData: TimeLog) => {
-                      if (!timeLogData.running) {
-                        return (
-                          <div key={timeLogData.id}>
-                            <TimeLogItem {...timeLogData}
-                                edit_button_clicked={onEditButtonClicked} 
-                                copy_button_clicked={onCopyButtonClicked}/>
-                            <Divider sx={{marginBottom: 1}}/>
-                          </div>
-                        )
-                      } else {
-                        return null;
-                      }
-                    })}
-                </CardContent>
-            </Card>
-        </Container>
+        <Card>
+            <CardHeader
+                title={ dateString() }
+                subheader={ 'Total: ' + totalHours() }
+                className={ 'timelog-card-header' }
+                sx={{
+                    textAlign: 'left',
+                    paddingTop: '10px',
+                    paddingBottom: '10px',
+                    marginBottom: '10px',
+                    display: 'flex'
+                }}
+                titleTypographyProps={{
+                    'color': 'text.secondary',
+                    'sx': {fontSize: '14px', color: 'white', marginTop: 0.5}
+                }}
+                subheaderTypographyProps={{
+                    'color': 'white',
+                    'sx': {marginLeft: "auto"}
+                }}
+            />
+            <CardContent sx={{padding: 0}}>
+                {data.map((timeLogData: TimeLog) => {
+                  if (!timeLogData.running) {
+                    return (
+                      <div key={timeLogData.id}>
+                        <TimeLogItem {...timeLogData}
+                            edit_button_clicked={onEditButtonClicked}
+                            copy_button_clicked={onCopyButtonClicked}/>
+                        <Divider sx={{marginBottom: 1}}/>
+                      </div>
+                    )
+                  } else {
+                    return null;
+                  }
+                })}
+            </CardContent>
+        </Card>
     )
 }
 

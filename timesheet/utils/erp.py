@@ -290,11 +290,13 @@ def get_report_data(report_name: str, erpnext_token: str = None, filters: str = 
     return message['result']
 
 
-def get_detailed_report_data(project_name: str):
+def get_detailed_report_data(project_name: str, filters: str = ''):
+    if not filters:
+        filters = f'{{"Project":"{project_name}"}}'
     timesheet_detail = get_report_data(
         'Timesheet%20Detailed%20Report',
         preferences.TimesheetPreferences.admin_token,
-        f'{{"Project":"{project_name}"}}')
+        filters)
     return timesheet_detail
 
 

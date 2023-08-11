@@ -34,6 +34,7 @@ import {
     MapIcon 
 } from './loadable/Icon';
 import Loader from './loadable/Loader';
+import LeaderBoard from './components/LeaderBoard';
 const Standup = React.lazy(() => import('./components/Standup'));
 const TimeCard = React.lazy(() => import('./components/TimeCard'));
 const TReactQuill = React.lazy(() => import('./components/ReactQuill'));
@@ -110,26 +111,38 @@ const TimeLogs = (props: any) => {
 
     return (
         <div>
-            <Container maxWidth="lg">
-                <Suspense>
-                    <ScheduleInfo/>
-                </Suspense>
-            </Container>
-            {
-                Object.keys(timesheetData.logs).map((key: any) =>
-                    <div key={key} style={{ marginBottom: 10 }}>
-                        <Suspense>
-                            <TimeLogTable
-                                key={key}
-                                data={timesheetData.logs[key]}
-                                date={key}
-                                editTimeLog={editTimeLog}
-                                copyTimeLog={copyTimeLog}/>
-                        </Suspense>
-                    </div>
-                )
-            }
-            <Container>
+            <Grid container>
+                <Grid item xs={12} md={2}></Grid>
+                <Grid item xs={12} md={8} style={{ paddingLeft: 5, paddingRight: 5 }}>
+                    <Suspense>
+                        <ScheduleInfo/>
+                    </Suspense>
+                </Grid>
+                <Grid item xs={12} md={2}></Grid>
+            </Grid>
+            <Grid container>
+                <Grid item xs={12} md={2}></Grid>
+                <Grid item xs={12} md={8} style={{ paddingLeft: 5, paddingRight: 5 }}>
+                    {
+                        Object.keys(timesheetData.logs).map((key: any) =>
+                            <div key={key} style={{ marginBottom: 10 }}>
+                                <Suspense>
+                                    <TimeLogTable
+                                        key={key}
+                                        data={timesheetData.logs[key]}
+                                        date={key}
+                                        editTimeLog={editTimeLog}
+                                        copyTimeLog={copyTimeLog}/>
+                                </Suspense>
+                            </div>
+                        )
+                    }
+                </Grid>
+                <Grid item xs={12} md={2}></Grid>
+            </Grid>
+            <Grid container>
+                <Grid item xs={12} md={2}></Grid>
+                <Grid item xs={12} md={8}>
                 <div className={'timelogs-info'}>
                     <Grid container>
                         <Grid item xs={10} style={{ textAlign: "left"}}>
@@ -153,7 +166,9 @@ const TimeLogs = (props: any) => {
                         </Grid>
                     </Grid>
                 </div>
-            </Container>
+                </Grid>
+                <Grid item xs={12} md={2}></Grid>
+            </Grid>
         </div>
     )
 }
@@ -437,7 +452,9 @@ function App() {
                 <div>Sending data to ERPNext...</div>
             </Backdrop>
             <div className="App-header">
-                <Container maxWidth="lg" className="app-title-container">
+                <Grid container className="app-title-container">
+                    <Grid item md={2} xs={12}></Grid>
+                    <Grid item md={4} xs={12}>
                     <div className="app-title">
                         Timesheet
                         <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -448,21 +465,23 @@ function App() {
                             />
                         </div>
                     </div>
-
-                    <div style={{ display: 'flex', marginLeft: 'auto'}}>
+                    </Grid>
+                    <Grid item xs={12} md={4} style={{ display: 'flex', justifyContent: 'end', alignContent: 'center'}}>
                         <Suspense fallback={<div></div>}>
                             <Standup  data={timesheetData}/>
                         </Suspense>
                         <ModeToggle />
-                        <TButton color='warning' variant="text" onClick={() => window.location.href = '/space'}>
-                            <MapIcon/>
-                        </TButton>
-                    </div>
-                </Container>
-                <Container maxWidth="lg" style={{ marginTop: "50px" }}>
-                    <Grid container spacing={1} className="timesheet-container">
-                        <Grid className="container-options" container item xs={12} md={9.5} spacing={1} style={{ marginRight: 20 }}>
-                            <Grid item xs={12} md={4}>
+                    </Grid>
+                    <Grid item xs={12} md={2}></Grid>
+                </Grid>
+                <Grid container style={{ marginTop: "50px" }}>
+                    <Grid item md={2} xs={12} sx={{ display: { xs: 'none', md: 'block' } }} >
+                        <LeaderBoard/>
+                    </Grid>
+                    <Grid item md={8} xs={12}>
+                        <Grid container spacing={1} className="timesheet-container">
+                        <Grid className="container-options" container item xs={12} md={8.5} spacing={1} style={{ marginRight: 20 }}>
+                            <Grid item xs={12} md={6}>
                                 <Autocomplete
                                     disablePortal
                                     id="activity-options"
@@ -499,7 +518,7 @@ function App() {
                                     }
                                 />
                             </Grid>
-                            <Grid item md={4} xs={12}>
+                            <Grid item md={6} xs={12}>
                                 <Autocomplete
                                     disablePortal
                                     id="combo-box-demo"
@@ -541,7 +560,7 @@ function App() {
                                     }
                                 />
                             </Grid>
-                            <Grid item md={4} xs={12}>
+                            <Grid item xs={12} >
                                 <Autocomplete
                                     disablePortal
                                     id="combo-box-demo"
@@ -605,7 +624,7 @@ function App() {
                             </Grid>
                         </Grid>
 
-                        <Grid container item xs={12} md={2.2}>
+                        <Grid container item xs={12} md={3}>
                             <Box className="time-box">
                                 <Suspense>
                                     <TimeCard
@@ -620,7 +639,9 @@ function App() {
                             </Box>
                         </Grid>
                     </Grid>
-                </Container>
+                    </Grid>
+                    <Grid item md={2} xs={12}></Grid>
+                </Grid>
             </div>
             <TimeLogs editTimeLog={editTimeLog} copyTimeLog={copyTimeLog}/>
             { isEmpty() ? <div><CircularProgress style={{ marginTop: '50px' }} /></div> : null }
