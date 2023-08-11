@@ -30,10 +30,10 @@ export const EmployeeContributionsSlider = (props : SliderProps) => {
 
     return (
         <Box>
-            <Typography variant={'h5'} align={'left'}>
+            <Typography color={'text.primary'} variant={'h5'} align={'left'}>
                 Employee Contributions
             </Typography>
-            <Typography align={'left'} style={{ marginBottom: 15 }}>
+            <Typography color={'text.primary'} align={'left'} style={{ marginBottom: 15 }}>
                 This visualization represents each employee's contribution to the total billing.
             </Typography>
             <Box
@@ -64,7 +64,7 @@ export const EmployeeContributionsSlider = (props : SliderProps) => {
                 {marks.map((mark, index) => (
                     <div style={{ display: 'flex', marginTop: 5 }}>
                         <span style={{ width: 30, borderRadius: 25, marginRight: 5, backgroundColor: generateColor(mark.label.split(':')[0], '50%') }}>&nbsp;</span>
-                        <Typography fontSize={14}>{mark.label}</Typography>
+                        <Typography color={'text.primary'} fontSize={14}>{mark.label}</Typography>
                     </div>
                 ))}
             </Box>

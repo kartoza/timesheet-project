@@ -44,6 +44,7 @@ import {EmployeeContributions, EmployeeContributionsSlider} from "./EmployeeCont
 import {BurndownChart} from "./BurndownChart";
 import {BurndownTable} from "./BurndownTable";
 import {UserReportTable} from "./UserReportTable";
+import {TaskReportTable} from "./TaskReportTable";
 
 ChartJS.register(
     CategoryScale,
@@ -243,7 +244,7 @@ export default function Summary(props: any) {
         <CssVarsProvider theme={modeTheme}>
         <div className="App">
             <div className="App-header" style={{ padding: '2vh', fontSize: '15pt' }}>
-                <Typography style={{ cursor: "pointer" }} variant="h5" component="div" onClick={() => window.location.href = '/summary'}>
+                <Typography color={"text.primary"} style={{ cursor: "pointer" }} variant="h5" component="div" onClick={() => window.location.href = '/summary'}>
                     Burndown Chart
                 </Typography>
                 <div style={{ position: 'absolute',
@@ -304,14 +305,14 @@ export default function Summary(props: any) {
                         <CircularProgress/></div> : chartData ? 
                             <div>
                                 { publicMode ?
-                                    <h1>{summaryName}</h1> : null }
+                                    <Typography variant={'h5'} color={'text.primary'}>{summaryName}</Typography> : null }
                                 <BurndownChart chartData={chartData} />
                                 <div style={{ padding: 35, marginBottom: 20 }}>
                                     <BurndownTable rows={tableRows} />
                                 </div>
                             </div> : 
-                            <div style={{ fontStyle: 'italic', marginTop: 30, fontSize: 25 }}>
-                                Choose a project to get the chart</div> }
+                            <Typography color={"text.primary"}  style={{ fontStyle: 'italic', marginTop: 30, fontSize: 25 }}>
+                                Choose a project to get the chart</Typography> }
 
                     { IS_STAFF && reportData && chartData ?
                         <Grid container>
@@ -319,6 +320,7 @@ export default function Summary(props: any) {
                             <Grid item xs={10}>
                                 <EmployeeContributionsSlider data={reportData['user_based_analysis']['employee_contributions']}/>
                                 <UserReportTable data={reportData['user_based_analysis']}/>
+                                <TaskReportTable data={reportData['task_based_analysis']}/>
                             </Grid>
                         </Grid>
                         : null }
@@ -339,7 +341,7 @@ export default function Summary(props: any) {
 
                     { publicMode ? null : 
                         <div style={{ marginTop: 20, marginBottom: 20, textAlign: 'left' }}>
-                            <h3>Saved Charts</h3>
+                            <Typography variant={'h5'} style={{ marginBottom: 10 }} color={"text.primary"}>Saved Charts</Typography>
                             {summaries.map(summary =>
                                 <Card variant={"outlined"} elevation={2} onClick={() => window.location.href = "/summary/" + summary.slug_name }>
                                     <div className="summary-container" style={{ padding: '20px 20px'}}>
