@@ -22,13 +22,13 @@ export const theme = createTheme({
     },
 });
 
-export const generateColor = (id: string) => {
+export const generateColor = (id: string, brightness = '25%') => {
     let hash = 0;
     for (let i = 0; i < id.length; i++) {
         hash = id.charCodeAt(i) + ((hash << 5) - hash);
         hash = hash & hash;
     }
-    return `hsl(${(hash % 360)}, 40%, 25%)`;
+    return `hsl(${(hash % 360)}, 40%, ${brightness})`;
 }
 
 export const getTaskColor = (ratio: any) => {

@@ -3,7 +3,8 @@ from dashboard.api_views import (
     BurnDownChartData,
     ListSummary,
     PublicBurnDownChartData,
-    DownloadReportData
+    DownloadReportData,
+    ReportData
 )
 from dashboard.views import (
     DashboardView, SpaceView,
@@ -34,7 +35,10 @@ urlpatterns = [
          name='public-burndown-chart-data'),
     path('api/download-report-data/',
          DownloadReportData.as_view(),
-         name='download-report-data')
+         name='download-report-data'),
+    path('api/report-data/',
+         ReportData.as_view(),
+         name='report-data')
 ]
 
 if settings.DEBUG:
