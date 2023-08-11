@@ -1,8 +1,9 @@
 import {
     Autocomplete,
+    Box,
     CircularProgress,
-    Grid,
-    Paper,
+    Grid, LinearProgress,
+    Paper, Slider,
     Table,
     TableBody,
     TableCell,
@@ -39,6 +40,9 @@ import Typography from "@mui/material/Typography";
 import Chip from "@mui/material/Chip";
 import FaceIcon from '@mui/icons-material/Face';
 import {ModeToggle} from "../App";
+import {EmployeeContributions, EmployeeContributionsSlider} from "./EmployeeContributions";
+import {BurndownChart} from "./BurndownChart";
+import {BurndownTable} from "./BurndownTable";
 
 ChartJS.register(
     CategoryScale,
@@ -67,7 +71,6 @@ export const options = {
     },
 };
 
-
 const API_URL = (
     '/api/burndown-chart-data/?project='
 )
@@ -84,95 +87,11 @@ const LIST_SUMMARY_API_URL = (
     '/api/list-summary/'
 )
 
+const REPORT_DATA_API_URL = (
+    '/api/report-data/?id='
+)
+
 const IS_STAFF = (window as any).isStaff
-
-function BurnChartTable(props: any) {
-    const getTotalHours = (rowIndex: any) => {
-        let totalHours = 0
-        for (const row of props.rows) {
-            totalHours += row[rowIndex]
-        }
-        return totalHours.toFixed(2)
-    }
-
-    return (
-      props.rows ? 
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
-          <TableHead>
-            <TableRow>
-              <TableCell>Week</TableCell>
-              <TableCell>Hours Total</TableCell>
-              <TableCell>Hours Remaining</TableCell>
-              <TableCell>Last Sprint Hours</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {props.rows.map((row) => (
-              <TableRow
-                key={row[0]}
-                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-              >
-                <TableCell component="th" scope="row">{row[0]}</TableCell>
-                <TableCell>{row[1]}</TableCell>
-                <TableCell>{row[2]}</TableCell>
-                <TableCell>{row[3]}</TableCell>
-              </TableRow>
-            ))}
-              <TableRow key={-1}>
-                  <TableCell component="th" scope="row"><strong>Total</strong></TableCell>
-                  <TableCell></TableCell>
-                  <TableCell></TableCell>
-                  <TableCell><strong>{getTotalHours(3)}</strong></TableCell>
-              </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
-      : null
-    );
-  }
-
-function BurndownChart(props: any) {
-    const { mode, setMode } = useColorScheme();
-    const gridColor = mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-    const chartOptions = {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'top' as const,
-                labels: {
-                    color: mode === 'dark' ? 'white' : 'black',
-                },
-            },
-            title: {
-                display: true,
-                text: 'Burndown Chart',
-            },
-        },
-        scales: {
-            x: {
-                grid: {
-                    color: gridColor,
-                },
-                ticks: {
-                    color: mode === 'dark' ? 'white' : 'black',
-                },
-            },
-            y: {
-                grid: {
-                    color: gridColor,
-                },
-                ticks: {
-                    color: mode === 'dark' ? 'white' : 'black',
-                },
-            },
-        },
-    };
-    return (
-        <Line options={chartOptions} data={props.chartData} />
-    )
-}
-
 
 export default function Summary(props: any) {
     const [chartData, setChartData] = useState<any>(null)
@@ -186,6 +105,7 @@ export default function Summary(props: any) {
     const [summaryName, setSummaryName] = useState<string>('')
     const [summaries, setSummaries] = useState<any[]>([])
     const [isDownloading, setIsDownloading] = useState<boolean>(false)
+    const [reportData, setReportData] = useState<any>(null)
 
     const downloadCSV = (projectId: string, projectLabel: string) => {
         setIsDownloading(true)
@@ -202,6 +122,18 @@ export default function Summary(props: any) {
                 setIsDownloading(false)
             });
     };
+
+    const fetchReportData = (url: string) => {
+        setChartLoading(true)
+        fetch(url).then(
+            response => response.json()
+        ).then(
+            data => {
+                setChartLoading(false)
+                setReportData(data)
+            }
+        )
+    }
 
 
     const fetchChartData = (url: string) => {
@@ -266,6 +198,7 @@ export default function Summary(props: any) {
     useEffect(() => {
         if (selectedProject) {
             fetchChartData(API_URL + selectedProject.label)
+            fetchReportData(REPORT_DATA_API_URL + selectedProject.id)
         } else {
             setChartData(null)
         }
@@ -274,6 +207,7 @@ export default function Summary(props: any) {
     useEffect(() => {
         if (props.selectedProjectId) {
             fetchChartData(PUBLIC_API_URL + props.selectedProjectId)
+            fetchReportData(REPORT_DATA_API_URL + props.selectedProjectId)
         } else {
             setPublicMode(false)
             fetch(LIST_SUMMARY_API_URL).then(
@@ -363,8 +297,8 @@ export default function Summary(props: any) {
                 </Grid>
             </Grid>
             <Grid container>
-                <Grid item xs={2}></Grid>
-                <Grid item xs={8}>
+                <Grid item xs={1}></Grid>
+                <Grid item xs={10}>
                     { chartLoading ? <div className="loading-container">
                         <CircularProgress/></div> : chartData ? 
                             <div>
@@ -372,11 +306,21 @@ export default function Summary(props: any) {
                                     <h1>{summaryName}</h1> : null }
                                 <BurndownChart chartData={chartData} />
                                 <div style={{ padding: 35, marginBottom: 20 }}>
-                                    <BurnChartTable rows={tableRows} />
+                                    <BurndownTable rows={tableRows} />
                                 </div>
                             </div> : 
                             <div style={{ fontStyle: 'italic', marginTop: 30, fontSize: 25 }}>
                                 Choose a project to get the chart</div> }
+
+                    { IS_STAFF && reportData && chartData ?
+                        <Grid container>
+                            <Grid item xs={1}></Grid>
+                            <Grid item xs={10}>
+                                <EmployeeContributionsSlider data={reportData['user_based_analysis']['employee_contributions']}/>
+                            </Grid>
+                        </Grid>
+                        : null }
+
                     { IS_STAFF && (selectedProject || props.selectedProjectId) ?
                     <div style={{ marginBottom: "2em" }}>
                         <TButton
@@ -390,6 +334,7 @@ export default function Summary(props: any) {
                             Download
                         </TButton>
                     </div> : null }
+
                     { publicMode ? null : 
                         <div style={{ marginTop: 20, marginBottom: 20, textAlign: 'left' }}>
                             <h3>Saved Charts</h3>
@@ -409,7 +354,7 @@ export default function Summary(props: any) {
                         </div>
                     }
                 </Grid>
-                <Grid item xs={2}></Grid>
+                <Grid item xs={1}></Grid>
             </Grid>
         </div>
         </CssVarsProvider>
