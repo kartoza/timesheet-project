@@ -43,6 +43,7 @@ import {ModeToggle} from "../App";
 import {EmployeeContributions, EmployeeContributionsSlider} from "./EmployeeContributions";
 import {BurndownChart} from "./BurndownChart";
 import {BurndownTable} from "./BurndownTable";
+import {UserReportTable} from "./UserReportTable";
 
 ChartJS.register(
     CategoryScale,
@@ -317,6 +318,7 @@ export default function Summary(props: any) {
                             <Grid item xs={1}></Grid>
                             <Grid item xs={10}>
                                 <EmployeeContributionsSlider data={reportData['user_based_analysis']['employee_contributions']}/>
+                                <UserReportTable data={reportData['user_based_analysis']}/>
                             </Grid>
                         </Grid>
                         : null }
