@@ -46,7 +46,7 @@ export default function LeaderBoard(props: any) {
                         { index == 0 ? <EmojiEventsIcon style={{ color: 'yellow' }}/> : null }
                         <Typography fontSize={9} style={{marginLeft: 'auto'}}>{data['hours'].toFixed(2)}</Typography>
                     </ListItem>
-                ) : null}
+                ) : <Typography fontSize={10}>Fetching...</Typography>}
             </List>
         </Paper>
     )
