@@ -44,11 +44,11 @@
 }
 
 .time-box {
-  max-width: 200px;
   border-radius: 5px;
   margin-top: -8px;
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .timelog-card-header {
@@ -101,6 +101,20 @@
     font-size: 25px;
     display: flex;
   }
+
+  .leaderboard-container {
+    position: absolute;
+    text-align: left;
+    font-family: 'Handjet', cursive;
+    width: 14.5%;
+    margin-left: 10px;
+    padding: 10px;
+
+    p {
+      font-family: 'Press Start 2P', cursive;
+    }
+  }
+
 }
 
 .App-link {
@@ -175,6 +189,8 @@
   }
   .time-box {
     width: 100%;
+    padding-left: 5px;
+    padding-right: 5px;
   }
 }
 

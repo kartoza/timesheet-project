@@ -301,7 +301,7 @@ export default function TimeCard({
                                 renderInput={(params) => <TextField {...params} variant="standard" sx={{ width: "100%" }} />}
                             />
                         </Grid>
-                        <Grid item xs={1}>:</Grid>
+                        <Grid item xs={1}><Typography color={'text.primary'}>:</Typography></Grid>
                         <Grid item xs={4} className="time-picker">
                             <TimePicker
                                 ampm={false}
@@ -319,9 +319,10 @@ export default function TimeCard({
                             const value = event.target.value;
                             setHours(null)
                             setHourString(value)
-                            if (!value || parseInt(value.includes(':') ? value.split(':')[1] : value) === 0) {
+                            if (!value || parseFloat(value.includes(':') ? value.split(':')[1] : value) === 0) {
                                 return
                             }
+                            console.log(value)
 
                             // @ts-ignore
                             if (!isNaN(value)) {
@@ -369,18 +370,18 @@ export default function TimeCard({
                     }
                 </CardActions>
             </div> :
-            <div style={{marginTop: '8px',  marginBottom: '25px'}}>
-                <Typography variant={'h3'} style={{color:'#1d575c'}}>{runningTime}</Typography>
+            <div style={{marginTop: '8px',  marginBottom: '0.5em'}}>
+                <Typography style={{ color:'#1d575c'}} variant={'h3'}>{runningTime}</Typography>
                 <CardContent sx={{ paddingLeft: 0, paddingRight: 0 }}>
                         {localRunningTimeLog ?
                           <TButton color="info" variant="contained" size="small"
-                                  sx={{width: 200, height: '58px', marginTop: -1}}
+                                  sx={{width: '100%', height: '58px', marginTop: -1}}
                                   onClick={stopButtonClicked}
                                   disabled={startButtonDisabled}
                                   disableElevation>{isUpdateLoading ?
                             <CircularProgress color="inherit" size={20}/> : "STOP"}</TButton> :
                           <TButton color="success" variant="contained" size="small"
-                                  sx={{width: 200, height: '58px', marginTop: -1}}
+                                  sx={{width: '100%', height: '58px', marginTop: -1}}
                                   onClick={startButtonClicked}
                                   disabled={startButtonDisabled}
                                   disableElevation>{isUpdating ?
