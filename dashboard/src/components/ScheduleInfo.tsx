@@ -32,69 +32,14 @@ export default function ScheduleInfo(props: ScheduleInfoProps) {
                     day: 'numeric', month: 'short'
                 }))
                 setScheduleDate(dates)
-                let lastDay = null
                 const grids:any = []
-                let emptySchedules = 0
-                for (const date of result.dates) {
-                    for (const schedule of result.schedules) {
-                        const startTime = schedule.start_time.split('T')[0]
-                        const endTime = schedule.end_time.split('T')[0]
-                        if (startTime == date) {
-                            if (startTime == result.dates[0]) {
-                                grids.push({
-                                    'duration': getDaysBetweenDates(endTime, startTime) + 1,
-                                    'schedule': schedule,
-                                    'startTime': startTime,
-                                    'endTime': endTime
-                                })
-                                lastDay = endTime
-                            } else {
-                                if (!lastDay || new Date(startTime) <= new Date(lastDay)) {
-                                    if (lastDay && getDaysBetweenDates(lastDay, result.dates[result.dates.length - 1]) > 0) {
-                                        const emptySchedule = {
-                                            'duration': getDaysBetweenDates(lastDay, result.dates[result.dates.length - 1]),
-                                            'schedule': null,
-                                            'endTime': result.dates[result.dates.length - 1],
-                                            'startTime': result.dates[result.dates.indexOf(lastDay) + 1]
-                                        }
-                                        grids.push(emptySchedule)
-                                        emptySchedules += 1
-                                    }
-                                    const emptySchedule = {
-                                        'duration': getDaysBetweenDates(startTime, result.dates[0]),
-                                        'schedule': null,
-                                        'endTime': result.dates[0],
-                                        'startTime': result.dates[result.dates.indexOf(startTime) + 1]
-                                    }
-                                    grids.push(emptySchedule)
-                                    emptySchedules += 1
-                                }
-                                const duration = getDaysBetweenDates(endTime, startTime) + 1
-                                let emptyScheduleFound = false
-                                if (emptySchedules > 0) {
-                                    let index = 0;
-                                    for (const gridSchedule of grids) {
-                                        index += 1
-                                        if (gridSchedule.schedule) continue
-                                        if (gridSchedule.duration == duration && gridSchedule.startTime == startTime && gridSchedule.endTime == endTime) {
-                                            grids[index - 1].schedule = schedule
-                                            emptyScheduleFound = true
-                                            break
-                                        }
-                                    }
-                                }
-                                if (!emptyScheduleFound) {
-                                    grids.push({
-                                        'duration': duration,
-                                        'schedule': schedule,
-                                        'startTime': startTime,
-                                        'endTime': endTime
-                                    })
-                                }
-                                lastDay = endTime
-                            }
-                        }
-                    }
+                for (const schedule of result.schedules) {
+                    grids.push({
+                        'duration': schedule.duration,
+                        'schedule': schedule.id ? schedule : null,
+                        'startTime': schedule.start_time,
+                        'endTime': schedule.end_time
+                    })
                 }
                 setScheduleData(grids);
             })

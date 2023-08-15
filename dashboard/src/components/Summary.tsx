@@ -94,6 +94,7 @@ const REPORT_DATA_API_URL = (
 )
 
 const IS_STAFF = (window as any).isStaff
+const IS_AUTHENTICATED = (window as any).isLoggedIn
 
 export default function Summary(props: any) {
     const [chartData, setChartData] = useState<any>(null)
