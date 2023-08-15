@@ -10,6 +10,7 @@
     <script>
         const csrfToken = "{{ csrf_token }}";
         window.isStaff = {% if user.is_staff %}true{% else %}false{% endif %};
+        window.isLoggedIn = {% if user.is_authenticated %}true{% else %}false{% endif %};
     </script>
     <style>
         @font-face {

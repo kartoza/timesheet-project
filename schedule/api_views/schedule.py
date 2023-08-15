@@ -347,6 +347,12 @@ class ScheduleList(APIView):
 class WeeklyScheduleList(APIView):
     permission_classes = [IsAuthenticated, ]
 
+    def duration(self, start_time: str, end_time: str) -> int:
+        start_date = datetime.strptime(start_time, "%Y-%m-%d").date()
+        end_date = datetime.strptime(end_time, "%Y-%m-%d").date()
+        return (end_date - start_date).days + 1
+
+
     def get(self, request, format=None):
         today = datetime.today()
         start_of_week = today - timedelta(days=today.weekday())
@@ -356,12 +362,68 @@ class WeeklyScheduleList(APIView):
             user_project__user=request.user,
             start_time__gte=_naive(dates[0]),
             start_time__lte=_naive(dates[4])
-        ).order_by('start_time')
+        ).order_by('id')
+
+        schedules_data = ScheduleSerializer(
+            schedules, many=True
+        ).data
+
+        dates = [str(_naive(date)).split(' ')[0] for date in dates]
+
+        # Extracting the dates from the schedules
+        last_schedule = None
+        index = 0
+        processed_schedules = []
+        for schedule in schedules_data:
+            start_time = schedule['start_time'].split('T')[0]
+            end_time = schedule['end_time'].split('T')[0]
+            if not last_schedule:
+                if start_time != dates[0]:
+                    processed_schedules.insert(index, {
+                        'id': None,
+                        'start_time': dates[0],
+                        'end_time': datetime.strptime(start_time, '%Y-%m-%d').date() - timedelta(days=1),
+                        'duration': self.duration(dates[0], str(
+                            datetime.strptime(start_time, '%Y-%m-%d').date() - timedelta(days=1)))
+                    })
+                    index += 1
+            else:
+                if schedule['start_time'] != last_schedule['end_time']:
+                    new_start_time = (
+                         datetime.strptime(
+                             last_schedule['end_time'].split('T')[0], '%Y-%m-%d').date() + timedelta(days=1)
+                    )
+                    new_end_time = datetime.strptime(start_time, '%Y-%m-%d').date() - timedelta(days=1)
+                    if new_start_time > datetime.strptime(dates[-1], '%Y-%m-%d').date():
+                        new_start_time = dates[0]
+                    elif new_end_time < new_start_time:
+                        processed_schedules.insert(index, {
+                            'id': None,
+                            'start_time': new_start_time,
+                            'end_time': dates[-1],
+                            'duration': self.duration(str(new_start_time), dates[-1])
+                        })
+                        index += 1
+                        new_start_time = dates[0]
+
+                    processed_schedules.insert(index, {
+                        'id': None,
+                        'start_time': new_start_time,
+                        'end_time': new_end_time,
+                        'duration': self.duration(str(new_start_time), str(new_end_time))
+                    })
+                    index += 1
+            processed_schedules.append(schedule)
+            last_schedule = schedule
+            index += 1
+
+            schedule['start_time'] = start_time
+            schedule['end_time'] = end_time
+            schedule['duration'] = self.duration(start_time, end_time)
+
         return Response({
-            'dates': [str(_naive(date)).split(' ')[0] for date in dates],
-            'schedules': ScheduleSerializer(
-                schedules, many=True
-            ).data
+            'dates': dates,
+            'schedules': processed_schedules
         })
 
 
