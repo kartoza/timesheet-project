@@ -46,6 +46,9 @@ class PublicTimelineAdmin(admin.ModelAdmin):
         'end_time',
         'active'
     )
+    filter_horizontal = (
+        'projects',
+    )
 
 
 admin.site.register(UserProjectSlot, UserProjectSlotAdmin)
