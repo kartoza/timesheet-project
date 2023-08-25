@@ -174,7 +174,10 @@ class UserLeaderBoard(APIView):
         for key, value in last_week_data.items():
             status = 'same'
             current_rank = list(last_week_data.keys()).index(key)
-            last_rank = list(last_two_week.keys()).index(key)
+            try:
+                last_rank = list(last_two_week.keys()).index(key)
+            except ValueError:
+                continue
             if value > last_two_week[key]:
                 status = 'up'
                 if current_rank < last_rank - 2:
