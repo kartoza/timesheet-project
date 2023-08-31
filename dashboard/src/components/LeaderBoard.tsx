@@ -38,12 +38,12 @@ export default function LeaderBoard(props: any) {
             <Typography fontSize={13}>Leaderboard</Typography>
             <List>
                 { leaderboardData ? leaderboardData['leaderboard'].map(
-                    (data: any, index) => <ListItem style={{ display: 'flex', paddingTop: 2, paddingLeft: 4, paddingBottom: 2 }} divider>
+                    (data: any, index) => <ListItem key={ 'leaderboard-' + index } style={{ display: 'flex', paddingTop: 2, paddingLeft: 4, paddingBottom: 2 }} divider>
                         <Typography fontSize={9} style={{ paddingRight: 6 }}>
                             <LeaderboardStatus status={data['status']} />
                         </Typography>
                         <Typography fontSize={9} align={'left'}>{data['name'].split(' ')[0]}</Typography>
-                        { index == 0 ? <EmojiEventsIcon style={{ color: 'yellow' }}/> : null }
+                        { index == 0 ? <EmojiEventsIcon style={{ color: 'color(srgb 0.906 0.7592 0.2892)' }}/> : null }
                         <Typography fontSize={9} style={{marginLeft: 'auto'}}>{data['hours'].toFixed(2)}</Typography>
                     </ListItem>
                 ) : <Typography fontSize={10}>Fetching...</Typography>}

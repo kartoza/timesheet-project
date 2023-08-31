@@ -193,6 +193,8 @@ export default function TimeCard({
             task_id = '-'
         }
 
+        const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
         addTimesheet({
             start_time: formatTime(new Date()),
             task: {
@@ -201,7 +203,8 @@ export default function TimeCard({
             activity: {
                 'id': activity.id
             },
-            description: description
+            description: description,
+            timezone: currentTimeZone
         })
     }
 

@@ -136,7 +136,8 @@ class TimelogSerializer(serializers.ModelSerializer):
             'employee_name',
             'running',
             'submitted',
-            'project_active'
+            'project_active',
+            'timezone'
         ]
 
 
