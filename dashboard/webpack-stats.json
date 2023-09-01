@@ -1,21 +1,21 @@
 {
   "status": "done",
   "assets": {
-    "App.de13fbe0c0db29b6ed48.js": {
-      "name": "App.de13fbe0c0db29b6ed48.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/App.de13fbe0c0db29b6ed48.js"
+    "App.82ad2fab9bd5e279a527.js": {
+      "name": "App.82ad2fab9bd5e279a527.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/App.82ad2fab9bd5e279a527.js"
     },
     "Space.d51025dea20612cce32e.js": {
       "name": "Space.d51025dea20612cce32e.js",
       "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Space.d51025dea20612cce32e.js"
     },
-    "Summary.b607b4873bc5c504a293.js": {
-      "name": "Summary.b607b4873bc5c504a293.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Summary.b607b4873bc5c504a293.js"
+    "Summary.f129cf2ad586a1eb15c4.js": {
+      "name": "Summary.f129cf2ad586a1eb15c4.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Summary.f129cf2ad586a1eb15c4.js"
     },
-    "PublicSummary.93959a222b06cffc4165.js": {
-      "name": "PublicSummary.93959a222b06cffc4165.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.93959a222b06cffc4165.js"
+    "PublicSummary.6d3b9c56aa81c01e9ba3.js": {
+      "name": "PublicSummary.6d3b9c56aa81c01e9ba3.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.6d3b9c56aa81c01e9ba3.js"
     },
     "Planner.ab4c6021d5b67f4bc0d4.js": {
       "name": "Planner.ab4c6021d5b67f4bc0d4.js",
@@ -25,9 +25,9 @@
       "name": "150.55d5ad576edcf6d91faf.js",
       "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/150.55d5ad576edcf6d91faf.js"
     },
-    "722.497bade54fecde23284c.js": {
-      "name": "722.497bade54fecde23284c.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/722.497bade54fecde23284c.js"
+    "722.7734ce6a268c8257d2ef.js": {
+      "name": "722.7734ce6a268c8257d2ef.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/722.7734ce6a268c8257d2ef.js"
     },
     "336.7dac35f971ee8beb6eac.js": {
       "name": "336.7dac35f971ee8beb6eac.js",
@@ -149,39 +149,39 @@
       "name": "762.3c9e2283db5a7d9b5d83.js.LICENSE.txt",
       "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/762.3c9e2283db5a7d9b5d83.js.LICENSE.txt"
     },
-    "App.de13fbe0c0db29b6ed48.js.LICENSE.txt": {
-      "name": "App.de13fbe0c0db29b6ed48.js.LICENSE.txt",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/App.de13fbe0c0db29b6ed48.js.LICENSE.txt"
+    "App.82ad2fab9bd5e279a527.js.LICENSE.txt": {
+      "name": "App.82ad2fab9bd5e279a527.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/App.82ad2fab9bd5e279a527.js.LICENSE.txt"
     },
     "Planner.ab4c6021d5b67f4bc0d4.js.LICENSE.txt": {
       "name": "Planner.ab4c6021d5b67f4bc0d4.js.LICENSE.txt",
       "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Planner.ab4c6021d5b67f4bc0d4.js.LICENSE.txt"
     },
-    "PublicSummary.93959a222b06cffc4165.js.LICENSE.txt": {
-      "name": "PublicSummary.93959a222b06cffc4165.js.LICENSE.txt",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.93959a222b06cffc4165.js.LICENSE.txt"
+    "PublicSummary.6d3b9c56aa81c01e9ba3.js.LICENSE.txt": {
+      "name": "PublicSummary.6d3b9c56aa81c01e9ba3.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.6d3b9c56aa81c01e9ba3.js.LICENSE.txt"
     },
     "Space.d51025dea20612cce32e.js.LICENSE.txt": {
       "name": "Space.d51025dea20612cce32e.js.LICENSE.txt",
       "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Space.d51025dea20612cce32e.js.LICENSE.txt"
     },
-    "Summary.b607b4873bc5c504a293.js.LICENSE.txt": {
-      "name": "Summary.b607b4873bc5c504a293.js.LICENSE.txt",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Summary.b607b4873bc5c504a293.js.LICENSE.txt"
+    "Summary.f129cf2ad586a1eb15c4.js.LICENSE.txt": {
+      "name": "Summary.f129cf2ad586a1eb15c4.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Summary.f129cf2ad586a1eb15c4.js.LICENSE.txt"
     }
   },
   "chunks": {
     "App": [
-      "App.de13fbe0c0db29b6ed48.js"
+      "App.82ad2fab9bd5e279a527.js"
     ],
     "Space": [
       "Space.d51025dea20612cce32e.js"
     ],
     "Summary": [
-      "Summary.b607b4873bc5c504a293.js"
+      "Summary.f129cf2ad586a1eb15c4.js"
     ],
     "PublicSummary": [
-      "PublicSummary.93959a222b06cffc4165.js"
+      "PublicSummary.6d3b9c56aa81c01e9ba3.js"
     ],
     "Planner": [
       "Planner.ab4c6021d5b67f4bc0d4.js"

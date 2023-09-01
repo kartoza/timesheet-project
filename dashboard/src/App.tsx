@@ -35,6 +35,7 @@ import {
 } from './loadable/Icon';
 import Loader from './loadable/Loader';
 import LeaderBoard from './components/LeaderBoard';
+import UserActivities from "./components/UserActivities";
 const Standup = React.lazy(() => import('./components/Standup'));
 const TimeCard = React.lazy(() => import('./components/TimeCard'));
 const TReactQuill = React.lazy(() => import('./components/ReactQuill'));
@@ -640,7 +641,9 @@ function App() {
                         </Grid>
                     </Grid>
                     </Grid>
-                    <Grid item md={2} xs={12}></Grid>
+                    <Grid item md={2} xs={12} sx={{ display: { xs: 'none', md: 'block' } }} >
+                        <UserActivities/>
+                    </Grid>
                 </Grid>
             </div>
             <TimeLogs editTimeLog={editTimeLog} copyTimeLog={copyTimeLog}/>

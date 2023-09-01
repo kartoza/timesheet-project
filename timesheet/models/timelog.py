@@ -2,6 +2,10 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
+import pytz
+
+TIMEZONES = tuple(zip(pytz.all_timezones, pytz.all_timezones))
+
 
 class Timelog(models.Model):
 
@@ -31,6 +35,13 @@ class Timelog(models.Model):
 
     start_time = models.DateTimeField(
         default=timezone.now
+    )
+
+    timezone = models.CharField(
+        max_length=100,
+        choices=TIMEZONES,
+        default='',
+        blank=True
     )
 
     end_time = models.DateTimeField(

@@ -1,10 +1,9 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import serializers
-from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone as tzone
@@ -55,78 +54,134 @@ class UserTimelogSerializer(serializers.ModelSerializer):
         ]
 
 
-class UserSerializer(GeoFeatureModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
 
-    point = serializers.SerializerMethodField()
     is_active = serializers.SerializerMethodField()
     task = serializers.SerializerMethodField()
     avatar = serializers.SerializerMethodField()
+    duration = serializers.SerializerMethodField()
+    total = serializers.SerializerMethodField()
 
     def get_avatar(self, obj):
         if obj.profile.profile_picture:
             return obj.profile.profile_picture.url
         return '/static/user_icon.png'
-    
+
     def get_is_active(self, obj):
         now = convert_time_to_user_timezone(
             tzone.now(),
-            obj
+            obj.profile.timezone
         )
-        user_timelogs = Timelog.objects.filter(
-            user=obj
+        today_min = tzone.make_aware(tzone.datetime.combine(now.date(), time.min))
+        today_max = tzone.make_aware(tzone.datetime.combine(now.date(), time.max))
+
+        user_timelogs_today = Timelog.objects.filter(
+            user=obj,
+            start_time__gte=today_min,
+            start_time__lte=today_max
         ).order_by('end_time')
-        timelog = user_timelogs.filter(
+
+        total_duration = timedelta()
+
+        for timelog in user_timelogs_today:
+            end_time = timelog.end_time if timelog.end_time else now
+            duration = end_time - timelog.start_time
+            total_duration += duration
+
+        total_duration_hours = total_duration.total_seconds() / 3600.0
+        self.context['total_duration_today'] = total_duration_hours
+
+        timelog = user_timelogs_today.filter(
             Q(start_time__lte=now),
             Q(end_time__gte=now),
         ).last()
+
         if timelog:
+            now = convert_time_to_user_timezone(
+                tzone.now(),
+                timelog.timezone if timelog.timezone else obj.profile.timezone
+            )
+
             self.context['timelog'] = timelog
             if timelog.start_time and not timelog.end_time:
                 return True
             if timelog.end_time:
-                utc_time = convert_time(timelog.end_time, obj)
-                return utc_time > tzone.now()
-        if user_timelogs.count() > 0 and not timelog:
-            timelog = user_timelogs.filter(
+                return timelog.end_time > now
+
+        if user_timelogs_today.count() > 0 and not timelog:
+            timelog = user_timelogs_today.filter(
                 start_time__lte=now,
-                end_time__isnull=True).last()
+                end_time__isnull=True
+            ).last()
             if timelog:
                 self.context['timelog'] = timelog
-            return True
-        if user_timelogs.count() > 0 and not timelog:
-            timelog = user_timelogs.last()
+                return True
+
+        if user_timelogs_today.count() > 0 and not timelog:
+            timelog = user_timelogs_today.last()
             self.context['timelog'] = timelog
+
         return False
 
-    def get_point(self, obj):
-        return {
-            "type": "Point",
-            "coordinates": [obj.profile.lon, obj.profile.lat],
-        }
-
     def get_task(self, obj):
-        if self.context['timelog'] and self.context['timelog'].task:
-            return (
-                '{project} - {task}'.format(
-                    task=self.context['timelog'].task.name,
-                    project=self.context['timelog'].task.project.name)
-            )
-        if self.context['timelog'] and self.context['timelog'].activity:
-            return 'Kartoza - {}'.format(self.context['timelog'].activity.name)
-        if self.context['timelog']:
-            return 'Kartoza'
-        return ''
+        timelog = self.context.get('timelog', None)
+
+        if not timelog:
+            return ''
+
+        if timelog.user != obj:
+            return ''
+
+        task = timelog.task
+        activity = timelog.activity
+
+        if task:
+            return f"{task.project.name} - {task.name}"
+
+        if activity:
+            return f"Kartoza - {activity.name}"
+
+        return 'Kartoza'
+
+    def get_duration(self, obj):
+        timelog = self.context.get('timelog', None)
+        duration = 0
+        duration_timedelta = None
+        if not timelog or timelog.user != obj:
+            return 0
+
+        if timelog.timezone and timelog.timezone != obj.profile.timezone:
+            obj.profile.timezone = timelog.timezone
+            obj.profile.save()
+
+        now = convert_time_to_user_timezone(
+            tzone.now(),
+            timelog.timezone if timelog.timezone else obj.profile.timezone
+        )
+
+        if timelog.start_time and timelog.end_time and timelog.end_time < now:
+            duration_timedelta = timelog.end_time - timelog.start_time
+        elif timelog.start_time:
+            duration_timedelta = now - timelog.start_time
+
+        if duration_timedelta is not None:
+            duration = duration_timedelta.total_seconds() / 3600.0
+        return duration
+
+    def get_total(self, obj):
+        return self.context.get('total_duration_today', 0)
 
     class Meta:
         model = get_user_model()
-        geo_field = 'point'
         fields = [
             'id',
             'first_name',
             'last_name',
             'avatar',
             'is_active',
-            'task'
+            'task',
+            'duration',
+            'total'
         ]
 
 
@@ -135,16 +190,18 @@ class UserActivities(APIView):
 
     def get(self, request, **kwargs):
         user_model = get_user_model()
-        users = user_model.objects.filter(
-            profile__lat__isnull=False
-        ).exclude(
+        users = user_model.objects.exclude(
             first_name=''
         )
 
+        serialized_data = UserSerializer(
+            users, many=True, context={'timelog': {}}).data
+
+        sorted_data = sorted(
+            serialized_data, key=lambda x: (not x['is_active'], -x['total']))
+
         return Response(
-            UserSerializer(users, many=True, context={
-                'timelog': {}
-            }).data
+            sorted_data
         )
 
 

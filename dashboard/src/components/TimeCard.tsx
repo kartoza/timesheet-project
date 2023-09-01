@@ -193,6 +193,8 @@ export default function TimeCard({
             task_id = '-'
         }
 
+        const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
         addTimesheet({
             start_time: formatTime(new Date()),
             task: {
@@ -201,7 +203,8 @@ export default function TimeCard({
             activity: {
                 'id': activity.id
             },
-            description: description
+            description: description,
+            timezone: currentTimeZone
         })
     }
 
@@ -226,6 +229,7 @@ export default function TimeCard({
         }
         let startTimeStr = formatTime(_startTime)
         let endTimeStr = formatTime(endTime)
+        const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         addTimesheet({
             start_time: startTimeStr,
             end_time: endTimeStr,
@@ -235,7 +239,8 @@ export default function TimeCard({
             activity: {
                 'id': activity.id
             },
-            description: description
+            description: description,
+            timezone: currentTimeZone
         })
     }
 

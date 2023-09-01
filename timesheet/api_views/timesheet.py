@@ -45,6 +45,7 @@ class TimesheetSerializer(serializers.ModelSerializer):
             'user',
             'task',
             'activity',
+            'timezone',
             'editing'
         ]
 
@@ -76,6 +77,7 @@ class TimesheetSerializer(serializers.ModelSerializer):
         end_time = validated_data.get('end_time', None)
         activity = validated_data.pop('activity')
         description = validated_data.pop('description', '')
+        _timezone = validated_data.pop('timezone', '')
 
         if not user:
             if self.context['request'].user.is_anonymous:
@@ -105,7 +107,8 @@ class TimesheetSerializer(serializers.ModelSerializer):
             activity=activity,
             start_time=start_time,
             end_time=end_time,
-            description=description
+            description=description,
+            timezone=_timezone
         )
         return timesheet
 
