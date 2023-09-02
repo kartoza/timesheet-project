@@ -4,7 +4,7 @@ import CardActions from "@mui/material/CardActions";
 import { LocalizationProvider, DatePicker, TimePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import moment from "moment";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { useAddTimesheetMutation, 
     useUpdateTimesheetMutation, 
     useClearSubmittedTimesheetsMutation } from "../services/api";
@@ -23,20 +23,22 @@ interface TimeCardProps {
     task?: any | null,
     activity?: any | null,
     description?: String | '',
-    clearAllFields?: any
+    parent?: string
+    clearAllFields?: any,
 }
 
 
 let interval: any = null;
 
-export default function TimeCard({ 
+export const TimeCard = forwardRef(({
     runningTimeLog, 
     editingTimeLog, 
     toggleTimer, 
     task, 
     activity, 
-    description, 
-    clearAllFields } : TimeCardProps) {
+    description,
+    parent,
+    clearAllFields }: TimeCardProps, ref) => {
     const [startTime, setStartTime] = React.useState<any | null>(new Date());
     const [hours, setHours] = React.useState<Number | null>(null);
     const [hourString, setHourString] = React.useState<string>('');
@@ -178,6 +180,7 @@ export default function TimeCard({
     }
 
     const startButtonClicked = async () => {
+        setIsLogging(false)
         setStartButtonDisabled(true);
         clearInterval(interval);
         toggleTimer(true);
@@ -204,9 +207,14 @@ export default function TimeCard({
                 'id': activity.id
             },
             description: description,
-            timezone: currentTimeZone
+            timezone: currentTimeZone,
+            parent: parent
         })
     }
+
+    useImperativeHandle(ref, () => ({
+        startButtonClicked,
+    }));
 
     const addButtonClicked = async () => {
         // Calculate start-time and end-time
@@ -418,4 +426,6 @@ export default function TimeCard({
             </div>
         </LocalizationProvider>
     )
-}
+});
+
+export default TimeCard;

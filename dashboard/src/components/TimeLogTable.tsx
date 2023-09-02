@@ -12,6 +12,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import {generateColor, getColorFromTaskLabel} from "../utils/Theme";
 import {TimeLog, useDeleteTimeLogMutation} from "../services/api";
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import moment from "moment";
 import React, {useEffect, useState} from "react";
 import TButton from '../loadable/Button';
@@ -24,6 +25,7 @@ import {
     AssignmentIcon, 
     EngineeringIcon 
 } from '../loadable/Icon';
+import Chip from "@mui/material/Chip";
 
 
 function TimeLogItem(prop : TimeLog)    {
@@ -78,6 +80,11 @@ function TimeLogItem(prop : TimeLog)    {
         setAnchorEl(null);
     }
 
+    const resumeTimeLogClicked = () => {
+        handleClose();
+        prop.resume_button_clicked(prop);
+    }
+
     return (
         <Grid container spacing={1} className={"time-log-row" + (prop.submitted ? " timelog-submitted": "")}>
             <Grid className="time-log-item left-item" item xs={12} md={8}>
@@ -118,6 +125,7 @@ function TimeLogItem(prop : TimeLog)    {
                     { prop.submitted ? <TaskAltIcon color={'success'} style={{marginLeft: '0.2em'}}/> : null }
                 </Typography>
                 <div>
+                    { prop.total_children > 0 ? <Chip size={'small'} label={prop.total_children + 1} style={{ marginRight: 5 }}/> : ''}
                     { getTime(prop.from_time) } { !prop.running ? '- ' + getTime(prop.to_time) : '' }
                 </div>
             </Grid>
@@ -148,6 +156,7 @@ function TimeLogItem(prop : TimeLog)    {
                         <MenuItem onClick={deleteTimeLogClicked}><DeleteSweepIcon/></MenuItem>
                         { prop.submitted ? null : <MenuItem onClick={editTimeLogClicked}><EditIcon/></MenuItem> }
                         <MenuItem onClick={copyTimeLogClicked}><ContentCopyIcon/></MenuItem>
+                        <MenuItem onClick={resumeTimeLogClicked}><PlayArrowIcon/></MenuItem>
                     </Menu>
                 </Grid>
         </Grid>
@@ -155,7 +164,7 @@ function TimeLogItem(prop : TimeLog)    {
 }
 
 function TimeLogTable(props: any) {
-    const { data, date, editTimeLog, copyTimeLog } = props;
+    const { data, date, editTimeLog, copyTimeLog, resumeTimeLog } = props;
 
     const totalHours = () => {
         let _totalHours = 0;
@@ -175,6 +184,10 @@ function TimeLogTable(props: any) {
 
     const onCopyButtonClicked = (timelog: TimeLog) => {
         copyTimeLog(timelog);
+    }
+
+    const onResumeButtonClicked = (timelog: TimeLog) => {
+        resumeTimeLog(timelog);
     }
 
     return (
@@ -201,12 +214,14 @@ function TimeLogTable(props: any) {
             />
             <CardContent sx={{padding: 0}}>
                 {data.map((timeLogData: TimeLog) => {
-                  if (!timeLogData.running) {
+                  if (!timeLogData.running && !timeLogData.parent) {
                     return (
                       <div key={timeLogData.id}>
                         <TimeLogItem {...timeLogData}
                             edit_button_clicked={onEditButtonClicked}
-                            copy_button_clicked={onCopyButtonClicked}/>
+                            copy_button_clicked={onCopyButtonClicked}
+                            resume_button_clicked={onResumeButtonClicked}
+                        />
                         <Divider sx={{marginBottom: 1}}/>
                       </div>
                     )

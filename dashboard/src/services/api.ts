@@ -10,6 +10,7 @@ const apiHeaders = {
 }
 
 export interface TimeLog {
+    parent?: string;
     project_active: any;
     id: string
     description: string
@@ -28,6 +29,8 @@ export interface TimeLog {
     activity_id: string
     edit_button_clicked?: any
     copy_button_clicked?: any
+    resume_button_clicked?: any
+    total_children: number
 }
 
 

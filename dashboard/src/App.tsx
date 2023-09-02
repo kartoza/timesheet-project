@@ -78,7 +78,7 @@ const confettiStyle: CSSProperties = {
 }
 
 const TimeLogs = (props: any) => {
-    const { editTimeLog, copyTimeLog } = props;
+    const { editTimeLog, copyTimeLog, resumeTimeLog } = props;
 
     const { data: timesheetData, isLoading, isSuccess } = useGetTimeLogsQuery()
     let totalDraftHours = 0
@@ -133,7 +133,9 @@ const TimeLogs = (props: any) => {
                                         data={timesheetData.logs[key]}
                                         date={key}
                                         editTimeLog={editTimeLog}
-                                        copyTimeLog={copyTimeLog}/>
+                                        copyTimeLog={copyTimeLog}
+                                        resumeTimeLog={resumeTimeLog}
+                                    />
                                 </Suspense>
                             </div>
                         )
@@ -190,12 +192,15 @@ function App() {
     const [runningTimeLog, setRunningTimeLog] = useState<TimeLog | null>(null)
     const [editingTimeLog, setEditingTimeLog] = useState<TimeLog | null>(null)
     const [timerStarted, setTimerStarted] = useState(false);
+    const [parent, setParent] = useState("")
     const refAnimationInstance = useRef(null);
     const [fadeProp, setFadeProp] = useState({
         fade: 'fade-out'
     })
     const [compliment, setCompliment] = useState(randomCompliments[0])
     const [submitTimesheet, { isLoading: isUpdating, isSuccess, isError }] = useSubmitTimesheetMutation();
+
+    const timeCardRef = useRef(null);
 
      const getInstance = useCallback((instance) => {
         refAnimationInstance.current = instance;
@@ -222,6 +227,7 @@ function App() {
     }, [isSuccessFetching])
 
     const updateSelectedTimeLog = (data: TimeLog) => {
+        console.log('data', data);
         setDescription(data.description)
         setSelectedActivity({
             id: data.activity_id,
@@ -239,7 +245,19 @@ function App() {
             id: data.task_id,
             label: data.task_name
         })
+        if (data.parent) {
+           setParent(data.parent)
+        }
     }
+
+    useEffect(() => {
+        if (parent && !timerStarted) {
+            setTimeout(() => {
+                // @ts-ignore
+                timeCardRef.current?.startButtonClicked();
+            }, 200)
+        }
+    }, [parent, timerStarted]);
 
     useEffect(() => {
         if (editingTimeLog) {
@@ -427,7 +445,22 @@ function App() {
         updateSelectedTimeLog(data);
     }
 
+    const resumeTimeLog = (data: TimeLog) => {
+        if (timerStarted) {
+            alert('Please stop the running timer first.');
+            return;
+        }
+        if (editingTimeLog) {
+            setEditingTimeLog(null);
+        }
+        const newData = { ...data, parent: data.id };
+        updateSelectedTimeLog(newData);
+    }
+
     const toggleTimer = (timerStartedValue: boolean) => {
+        if (!timerStartedValue) {
+            setParent('')
+        }
         setTimerStarted(timerStartedValue);
     }
 
@@ -477,7 +510,7 @@ function App() {
                 </Grid>
                 <Grid container style={{ marginTop: "50px" }}>
                     <Grid item md={2} xs={12} sx={{ display: { xs: 'none', md: 'block' } }} >
-                        <LeaderBoard/>
+                        {/*<LeaderBoard/>*/}
                     </Grid>
                     <Grid item md={8} xs={12}>
                         <Grid container spacing={1} className="timesheet-container">
@@ -487,6 +520,7 @@ function App() {
                                     disablePortal
                                     id="activity-options"
                                     options={activities}
+                                    disabled={parent !== ''}
                                     loading={activities.length > 0}
                                     getOptionLabel={ (options: any) => (options['label'])}
                                     isOptionEqualToValue={(option: any, value: any) => option['id'] == value['id']}
@@ -535,6 +569,7 @@ function App() {
                                             setSelectedTask(null)
                                         }
                                     }}
+                                    disabled={parent !== ''}
                                     value={selectedProject}
                                     onInputChange={(event, newInputValue) => {
                                         setProjectInput(newInputValue)
@@ -567,6 +602,7 @@ function App() {
                                     id="combo-box-demo"
                                     // @ts-ignore
                                     options={tasks}
+                                    disabled={parent !== ''}
                                     getOptionLabel={ (options: any) => (options['label'])}
                                     isOptionEqualToValue={(option: any, value: any) => option['id'] == value['id']}
                                     onChange={(event: any, value: any) => {
@@ -629,11 +665,13 @@ function App() {
                             <Box className="time-box">
                                 <Suspense>
                                     <TimeCard
+                                        ref={timeCardRef}
                                         runningTimeLog={runningTimeLog}
                                         editingTimeLog={editingTimeLog}
                                         task={selectedTask}
                                         activity={selectedActivity}
                                         description={description}
+                                        parent={parent}
                                         toggleTimer={toggleTimer}
                                         clearAllFields={clearAllFields}/>
                                 </Suspense>
@@ -646,7 +684,7 @@ function App() {
                     </Grid>
                 </Grid>
             </div>
-            <TimeLogs editTimeLog={editTimeLog} copyTimeLog={copyTimeLog}/>
+            <TimeLogs editTimeLog={editTimeLog} copyTimeLog={copyTimeLog} resumeTimeLog={resumeTimeLog}/>
             { isEmpty() ? <div><CircularProgress style={{ marginTop: '50px' }} /></div> : null }
             { quote ?
                 <div className='quote-container'>

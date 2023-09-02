@@ -54,5 +54,13 @@ class Timelog(models.Model):
         default=False
     )
 
+    parent = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='children'
+    )
+
     def __str__(self):
         return f'{self.user} - {self.task}'
