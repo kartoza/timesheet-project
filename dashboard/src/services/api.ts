@@ -31,6 +31,9 @@ export interface TimeLog {
     copy_button_clicked?: any
     resume_button_clicked?: any
     total_children: number
+    all_from_time: string
+    all_to_time: string
+    all_hours: string
 }
 
 

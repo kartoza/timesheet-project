@@ -14,6 +14,9 @@ class TimelogSerializer(serializers.ModelSerializer):
     task = serializers.SerializerMethodField()
     activity_type = serializers.SerializerMethodField()
     activity_id = serializers.SerializerMethodField()
+    all_from_time = serializers.SerializerMethodField()
+    all_to_time = serializers.SerializerMethodField()
+    all_hours = serializers.SerializerMethodField()
     from_time = serializers.SerializerMethodField()
     to_time = serializers.SerializerMethodField()
     hours = serializers.SerializerMethodField()
@@ -99,17 +102,35 @@ class TimelogSerializer(serializers.ModelSerializer):
     def get_activity_id(self, obj):
         return obj.activity.id if obj.activity else ''
 
-    def get_from_time(self, obj: Timelog):
-        return obj.start_time.strftime('%Y-%m-%d %H:%M:%S')
+    def get_all_from_time(self, obj: Timelog):
+        children = obj.children.all().order_by('start_time')
+        last_child_start_time = (
+            children.first().start_time if children.exists() else None
+        )
+        if last_child_start_time and last_child_start_time < obj.start_time:
+            return last_child_start_time.strftime('%Y-%m-%d %H:%M:%S')
+        elif obj.start_time:
+            return obj.start_time.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            return ''
 
-    def get_to_time(self, obj: Timelog):
+    def get_all_to_time(self, obj: Timelog):
         children = obj.children.all().order_by('-end_time')
         last_child_end_time = (
             children.first().end_time if children.exists() else None
         )
-        if last_child_end_time:
+        if last_child_end_time and last_child_end_time > obj.end_time:
             return last_child_end_time.strftime('%Y-%m-%d %H:%M:%S')
         elif obj.end_time:
+            return obj.end_time.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            return ''
+
+    def get_from_time(self, obj: Timelog):
+        return obj.start_time.strftime('%Y-%m-%d %H:%M:%S')
+
+    def get_to_time(self, obj: Timelog):
+        if obj.end_time:
             return obj.end_time.strftime('%Y-%m-%d %H:%M:%S')
         else:
             return ''
@@ -117,7 +138,7 @@ class TimelogSerializer(serializers.ModelSerializer):
     def get_total_children(self, obj: Timelog):
         return obj.children.filter(end_time__isnull=False).count()
 
-    def get_hours(self, obj: Timelog):
+    def get_all_hours(self, obj: Timelog):
         total_hours = 0.0
 
         # Calculate parent hours
@@ -131,7 +152,13 @@ class TimelogSerializer(serializers.ModelSerializer):
                 total_hours += round(
                     (child.end_time - child.start_time).total_seconds() / 3600, 2)
 
-        return total_hours
+        return round(total_hours, 2)
+
+    def get_hours(self, obj: Timelog):
+        if not obj.end_time:
+            return 0
+        return round(
+            (obj.end_time - obj.start_time).total_seconds() / 3600, 2)
 
     class Meta:
         model = Timelog
@@ -160,7 +187,10 @@ class TimelogSerializer(serializers.ModelSerializer):
             'project_active',
             'timezone',
             'parent',
-            'total_children'
+            'total_children',
+            'all_from_time',
+            'all_to_time',
+            'all_hours'
         ]
 
 

@@ -121,12 +121,12 @@ function TimeLogItem(prop : TimeLog)    {
             <Divider orientation="vertical" variant="middle" flexItem />
             <Grid className="time-log-item center-item"  item xs={2.8} sx={{ fontSize: "0.85em", letterSpacing: 0.8 }}>
                 <Typography sx={{ fontSize: "2em", fontWeight: "bolder" }} color="text.primary">
-                    { !prop.running ? prop.hours : calculateHours(prop.from_time) }
+                    { !prop.running ? prop.all_hours : calculateHours(prop.from_time) }
                     { prop.submitted ? <TaskAltIcon color={'success'} style={{marginLeft: '0.2em'}}/> : null }
                 </Typography>
                 <div>
                     { prop.total_children > 0 ? <Chip size={'small'} label={prop.total_children + 1} style={{ marginRight: 5 }}/> : ''}
-                    { getTime(prop.from_time) } { !prop.running ? '- ' + getTime(prop.to_time) : '' }
+                    { getTime(prop.all_from_time) } { !prop.running ? '- ' + getTime(prop.all_to_time) : '' }
                 </div>
             </Grid>
             <Divider orientation="vertical" variant="middle" flexItem />

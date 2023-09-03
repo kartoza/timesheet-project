@@ -72,9 +72,25 @@ class TimesheetSerializer(serializers.ModelSerializer):
         instance.end_time = end_time
         instance.save()
 
+        related = []
         if parent:
-            parent.description = instance.description
-            parent.save()
+            related.append(parent.id)
+            related += list(
+                parent.children.all().exclude(
+                    id=instance.id).values_list('id', flat=True)
+            )
+        if instance.children.count() > 0:
+            related += list(
+                instance.children.all().values_list('id', flat=True)
+            )
+        if len(related) > 0:
+            Timelog.objects.filter(
+                id__in=related
+            ).update(
+                description=instance.description,
+                task_id=instance.task.id,
+                activity_id=instance.activity.id
+            )
 
         return instance
 

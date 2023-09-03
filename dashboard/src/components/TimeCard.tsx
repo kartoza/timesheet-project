@@ -5,9 +5,11 @@ import { LocalizationProvider, DatePicker, TimePicker } from "@mui/x-date-picker
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import moment from "moment";
 import React, { useCallback, useEffect, useState, forwardRef, useImperativeHandle } from "react";
-import { useAddTimesheetMutation, 
-    useUpdateTimesheetMutation, 
-    useClearSubmittedTimesheetsMutation } from "../services/api";
+import {
+    useAddTimesheetMutation,
+    useUpdateTimesheetMutation,
+    useClearSubmittedTimesheetsMutation, TimeLog
+} from "../services/api";
 import { addHours, formatTime } from "../utils/time";
 import TButton from "../loadable/Button";
 import { ListIcon, PlayCircleIcon, ClearAllIcon } from "../loadable/Icon";
@@ -212,8 +214,16 @@ export const TimeCard = forwardRef(({
         })
     }
 
+    const updateHours = (data: TimeLog) => {
+        // @ts-ignore
+        setHours(data.hours);
+        setHourString(data.hours);
+        setStartTime(moment(data.from_time, 'YYYY-MM-DD hh:mm:ss'));
+    }
+
     useImperativeHandle(ref, () => ({
         startButtonClicked,
+        updateHours
     }));
 
     const addButtonClicked = async () => {

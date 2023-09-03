@@ -2,7 +2,6 @@ import React, {
     useEffect, useState, Suspense, CSSProperties, useRef, useCallback
 } from 'react';
 import './styles/App.scss';
-import Container from '@mui/material/Container';
 import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -31,11 +30,11 @@ import {
     SendIcon, 
     LightModeIcon, 
     DarkModeIcon,
-    MapIcon 
 } from './loadable/Icon';
 import Loader from './loadable/Loader';
 import LeaderBoard from './components/LeaderBoard';
 import UserActivities from "./components/UserActivities";
+import TimeLogChildList from "./components/TimeLogChildList";
 const Standup = React.lazy(() => import('./components/Standup'));
 const TimeCard = React.lazy(() => import('./components/TimeCard'));
 const TReactQuill = React.lazy(() => import('./components/ReactQuill'));
@@ -199,6 +198,7 @@ function App() {
     })
     const [compliment, setCompliment] = useState(randomCompliments[0])
     const [submitTimesheet, { isLoading: isUpdating, isSuccess, isError }] = useSubmitTimesheetMutation();
+    const [timeLogChildList, setTimeLogChildList] = useState<any>([])
 
     const timeCardRef = useRef(null);
 
@@ -226,8 +226,7 @@ function App() {
         }
     }, [isSuccessFetching])
 
-    const updateSelectedTimeLog = (data: TimeLog) => {
-        console.log('data', data);
+    const updateSelectedTimeLog = (data: TimeLog, checkParent = true) => {
         setDescription(data.description)
         setSelectedActivity({
             id: data.activity_id,
@@ -245,9 +244,11 @@ function App() {
             id: data.task_id,
             label: data.task_name
         })
-        if (data.parent) {
+        if (checkParent && data.parent) {
            setParent(data.parent)
         }
+        // @ts-ignore
+        timeCardRef.current?.updateHours(data);
     }
 
     useEffect(() => {
@@ -261,9 +262,9 @@ function App() {
 
     useEffect(() => {
         if (editingTimeLog) {
-            updateSelectedTimeLog(editingTimeLog);
+            updateSelectedTimeLog(editingTimeLog, timeLogChildList.length === 0);
         }
-    }, [editingTimeLog])
+    }, [editingTimeLog, timeLogChildList])
 
     useEffect(() => {
         if (runningTimeLog) {
@@ -428,7 +429,28 @@ function App() {
 
     const editTimeLog = (data: TimeLog) => {
         if (!timerStarted) {
-            setEditingTimeLog(data);
+            if (data.total_children === 0) {
+                setEditingTimeLog(data);
+            } else {
+                if (timesheetData && timesheetData['logs']) {
+                    let combinedTimelogs: TimeLog[] = [data];
+                    for (const timeLogByDate in timesheetData['logs']) {
+                        // Get the array of time logs for that date
+                        // @ts-ignore
+                        const timeLogsForDate: TimeLog[] = timesheetData['logs'][timeLogByDate];
+                        if (timeLogsForDate && timeLogsForDate.length > 0) {
+                            for (const timeLog of timeLogsForDate) {
+                                if (timeLog.parent === data.id) {
+                                    combinedTimelogs.push(timeLog)
+                                }
+                            }
+                        }
+                    }
+                    const sortedCombinedTimeLogs = combinedTimelogs.sort(
+                        (a, b) => parseInt(a.id) - parseInt(b.id))
+                    setTimeLogChildList(sortedCombinedTimeLogs)
+                }
+            }
         } else {
             alert('Please stop the running timer first.');
         }
@@ -684,6 +706,10 @@ function App() {
                     </Grid>
                 </Grid>
             </div>
+            <TimeLogChildList
+                timeLogChildren={timeLogChildList}
+                timeLogSelected={(timelog: TimeLog) => setEditingTimeLog(timelog)}
+                onClose={() => setTimeLogChildList([])}/>
             <TimeLogs editTimeLog={editTimeLog} copyTimeLog={copyTimeLog} resumeTimeLog={resumeTimeLog}/>
             { isEmpty() ? <div><CircularProgress style={{ marginTop: '50px' }} /></div> : null }
             { quote ?
