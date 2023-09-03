@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from timesheet.models import Timelog, Task, Activity
 from timesheet.serializers.timesheet import TimelogSerializer
 from timesheet.utils.erp import push_timesheet_to_erp
+from timesheet.utils.time import convert_time_to_user_timezone
 
 
 class UserSerializer(serializers.Serializer):
@@ -71,6 +72,29 @@ class TimesheetSerializer(serializers.ModelSerializer):
         instance.activity = Activity.objects.get(id=activity.get('id'))
         instance.end_time = end_time
         instance.save()
+
+        date_changed = False
+        if parent or instance.children.count() > 0:
+            if parent:
+                if instance.start_time.date() != parent.start_time.date():
+                    date_changed = True
+                    instance.parent = None
+                    instance.save()
+            else:
+                first_child = Timelog.objects.get(id=instance.children.first().id)
+                if instance.start_time.date() != first_child.start_time.date():
+                    date_changed = True
+                    first_child.parent = None
+                    first_child.save()
+                    if instance.children.count() > 0:
+                        instance.children.all().exclude(
+                            id=first_child.id
+                        ).update(
+                            parent=first_child
+                        )
+
+        if date_changed:
+            return instance
 
         related = []
         if parent:
@@ -210,7 +234,8 @@ class TimesheetViewSet(viewsets.ViewSet):
 
     def list(self, request):
 
-        today = timezone.now()
+        today = convert_time_to_user_timezone(
+            timezone.now(), request.user.profile.timezone)
         start_of_week = today - timedelta(days=today.weekday())
         start_of_last_week = start_of_week - timedelta(days=7)
 
