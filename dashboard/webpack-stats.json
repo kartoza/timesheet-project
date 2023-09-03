@@ -1,208 +1,190 @@
 {
   "status": "done",
   "assets": {
-    "App.js": {
-      "name": "App.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/App.js",
-      "publicPath": "http://localhost:9000/static/App.js"
+    "App.0411d867588e41578b96.js": {
+      "name": "App.0411d867588e41578b96.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/App.0411d867588e41578b96.js"
     },
-    "Space.js": {
-      "name": "Space.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Space.js",
-      "publicPath": "http://localhost:9000/static/Space.js"
+    "Space.b7a8077018a397e9f23b.js": {
+      "name": "Space.b7a8077018a397e9f23b.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Space.b7a8077018a397e9f23b.js"
     },
-    "Summary.js": {
-      "name": "Summary.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Summary.js",
-      "publicPath": "http://localhost:9000/static/Summary.js"
+    "Summary.65b3298b5cc003dc9689.js": {
+      "name": "Summary.65b3298b5cc003dc9689.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Summary.65b3298b5cc003dc9689.js"
     },
-    "PublicSummary.js": {
-      "name": "PublicSummary.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.js"
+    "PublicSummary.c498f6eaee96197d8976.js": {
+      "name": "PublicSummary.c498f6eaee96197d8976.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.c498f6eaee96197d8976.js"
     },
-    "Planner.js": {
-      "name": "Planner.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Planner.js",
-      "publicPath": "http://localhost:9000/static/Planner.js"
+    "Planner.d875c65ba2be1b28c25c.js": {
+      "name": "Planner.d875c65ba2be1b28c25c.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Planner.d875c65ba2be1b28c25c.js"
     },
-    "node_modules_moment_locale_sync_recursive_-src_components_Standup_tsx.js": {
-      "name": "node_modules_moment_locale_sync_recursive_-src_components_Standup_tsx.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_moment_locale_sync_recursive_-src_components_Standup_tsx.js",
-      "publicPath": "http://localhost:9000/static/node_modules_moment_locale_sync_recursive_-src_components_Standup_tsx.js"
+    "174.038826c682e72d2a8619.js": {
+      "name": "174.038826c682e72d2a8619.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/174.038826c682e72d2a8619.js"
     },
-    "node_modules_moment_locale_sync_recursive_-src_components_TimeCard_tsx.js": {
-      "name": "node_modules_moment_locale_sync_recursive_-src_components_TimeCard_tsx.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_moment_locale_sync_recursive_-src_components_TimeCard_tsx.js",
-      "publicPath": "http://localhost:9000/static/node_modules_moment_locale_sync_recursive_-src_components_TimeCard_tsx.js"
+    "722.05c09a808169b46be4d3.js": {
+      "name": "722.05c09a808169b46be4d3.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/722.05c09a808169b46be4d3.js"
     },
-    "src_components_ReactQuill_tsx.js": {
-      "name": "src_components_ReactQuill_tsx.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/src_components_ReactQuill_tsx.js",
-      "publicPath": "http://localhost:9000/static/src_components_ReactQuill_tsx.js"
+    "336.9ca624403909ad8e3016.js": {
+      "name": "336.9ca624403909ad8e3016.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/336.9ca624403909ad8e3016.js"
     },
-    "node_modules_moment_locale_sync_recursive_-src_components_TimeLogTable_tsx.js": {
-      "name": "node_modules_moment_locale_sync_recursive_-src_components_TimeLogTable_tsx.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_moment_locale_sync_recursive_-src_components_TimeLogTable_tsx.js",
-      "publicPath": "http://localhost:9000/static/node_modules_moment_locale_sync_recursive_-src_components_TimeLogTable_tsx.js"
+    "511.bdf006978870c307e308.js": {
+      "name": "511.bdf006978870c307e308.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/511.bdf006978870c307e308.js"
     },
-    "src_components_ScheduleInfo_tsx.js": {
-      "name": "src_components_ScheduleInfo_tsx.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/src_components_ScheduleInfo_tsx.js",
-      "publicPath": "http://localhost:9000/static/src_components_ScheduleInfo_tsx.js"
+    "841.c0556d03b247d77ed601.js": {
+      "name": "841.c0556d03b247d77ed601.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/841.c0556d03b247d77ed601.js"
     },
-    "vendors-node_modules_react-canvas-confetti_dist_index_js.js": {
-      "name": "vendors-node_modules_react-canvas-confetti_dist_index_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_react-canvas-confetti_dist_index_js.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_react-canvas-confetti_dist_index_js.js"
+    "155.5bb1e640f6cff4b09779.js": {
+      "name": "155.5bb1e640f6cff4b09779.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/155.5bb1e640f6cff4b09779.js"
     },
-    "node_modules_mui_material_Button_index_js.js": {
-      "name": "node_modules_mui_material_Button_index_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_material_Button_index_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_material_Button_index_js.js"
+    "718.84c33c69bb0d12afb915.js": {
+      "name": "718.84c33c69bb0d12afb915.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/718.84c33c69bb0d12afb915.js"
     },
-    "node_modules_mui_icons-material_Settings_js.js": {
-      "name": "node_modules_mui_icons-material_Settings_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_Settings_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_Settings_js.js"
+    "331.2da7f67d352ad79b96c5.js": {
+      "name": "331.2da7f67d352ad79b96c5.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/331.2da7f67d352ad79b96c5.js"
     },
-    "node_modules_mui_icons-material_Send_js.js": {
-      "name": "node_modules_mui_icons-material_Send_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_Send_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_Send_js.js"
+    "307.7092dd37c43b3044a964.js": {
+      "name": "307.7092dd37c43b3044a964.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/307.7092dd37c43b3044a964.js"
     },
-    "node_modules_mui_icons-material_LightMode_js.js": {
-      "name": "node_modules_mui_icons-material_LightMode_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_LightMode_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_LightMode_js.js"
+    "646.9c7e3e7dab569ebf31ff.js": {
+      "name": "646.9c7e3e7dab569ebf31ff.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/646.9c7e3e7dab569ebf31ff.js"
     },
-    "node_modules_mui_icons-material_DarkMode_js.js": {
-      "name": "node_modules_mui_icons-material_DarkMode_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_DarkMode_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_DarkMode_js.js"
+    "78.8c0549b8a94876787bf9.js": {
+      "name": "78.8c0549b8a94876787bf9.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/78.8c0549b8a94876787bf9.js"
     },
-    "node_modules_mui_icons-material_EmojiPeople_js.js": {
-      "name": "node_modules_mui_icons-material_EmojiPeople_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_EmojiPeople_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_EmojiPeople_js.js"
+    "309.69e60c3c98ce66cba438.js": {
+      "name": "309.69e60c3c98ce66cba438.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/309.69e60c3c98ce66cba438.js"
     },
-    "node_modules_mui_icons-material_ContentCopy_js.js": {
-      "name": "node_modules_mui_icons-material_ContentCopy_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_ContentCopy_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_ContentCopy_js.js"
+    "899.bd4c2047a92963624025.js": {
+      "name": "899.bd4c2047a92963624025.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/899.bd4c2047a92963624025.js"
     },
-    "node_modules_mui_icons-material_List_js.js": {
-      "name": "node_modules_mui_icons-material_List_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_List_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_List_js.js"
+    "893.8006e807611f4f53babb.js": {
+      "name": "893.8006e807611f4f53babb.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/893.8006e807611f4f53babb.js"
     },
-    "node_modules_mui_icons-material_PlayCircle_js.js": {
-      "name": "node_modules_mui_icons-material_PlayCircle_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_PlayCircle_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_PlayCircle_js.js"
+    "522.b35652f5ab95442cbbb0.js": {
+      "name": "522.b35652f5ab95442cbbb0.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/522.b35652f5ab95442cbbb0.js"
     },
-    "node_modules_mui_icons-material_ClearAll_js.js": {
-      "name": "node_modules_mui_icons-material_ClearAll_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_ClearAll_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_ClearAll_js.js"
+    "911.5b89dc3109cc1593e37f.js": {
+      "name": "911.5b89dc3109cc1593e37f.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/911.5b89dc3109cc1593e37f.js"
     },
-    "node_modules_mui_icons-material_DeleteSweep_js.js": {
-      "name": "node_modules_mui_icons-material_DeleteSweep_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_DeleteSweep_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_DeleteSweep_js.js"
+    "142.0c33a73fdc3dac903039.js": {
+      "name": "142.0c33a73fdc3dac903039.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/142.0c33a73fdc3dac903039.js"
     },
-    "node_modules_mui_icons-material_MoreVert_js.js": {
-      "name": "node_modules_mui_icons-material_MoreVert_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_MoreVert_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_MoreVert_js.js"
+    "976.a2b760260e8c0f74a571.js": {
+      "name": "976.a2b760260e8c0f74a571.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/976.a2b760260e8c0f74a571.js"
     },
-    "node_modules_mui_icons-material_Edit_js.js": {
-      "name": "node_modules_mui_icons-material_Edit_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_Edit_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_Edit_js.js"
+    "957.20905c068a29391a233d.js": {
+      "name": "957.20905c068a29391a233d.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/957.20905c068a29391a233d.js"
     },
-    "node_modules_mui_icons-material_TaskAlt_js.js": {
-      "name": "node_modules_mui_icons-material_TaskAlt_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_TaskAlt_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_TaskAlt_js.js"
+    "971.e4eee401d6ed18d35e94.js": {
+      "name": "971.e4eee401d6ed18d35e94.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/971.e4eee401d6ed18d35e94.js"
     },
-    "node_modules_mui_icons-material_Assignment_js.js": {
-      "name": "node_modules_mui_icons-material_Assignment_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_Assignment_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_Assignment_js.js"
+    "98.82038de83adc5de10f6c.js": {
+      "name": "98.82038de83adc5de10f6c.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/98.82038de83adc5de10f6c.js"
     },
-    "node_modules_mui_icons-material_Engineering_js.js": {
-      "name": "node_modules_mui_icons-material_Engineering_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_Engineering_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_Engineering_js.js"
+    "637.1234ed6cf84a13ee45a9.js": {
+      "name": "637.1234ed6cf84a13ee45a9.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/637.1234ed6cf84a13ee45a9.js"
     },
-    "node_modules_mui_icons-material_Map_js.js": {
-      "name": "node_modules_mui_icons-material_Map_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_Map_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_Map_js.js"
+    "161.90b49250933003467216.js": {
+      "name": "161.90b49250933003467216.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/161.90b49250933003467216.js"
     },
-    "node_modules_mui_icons-material_Download_js.js": {
-      "name": "node_modules_mui_icons-material_Download_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_Download_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_Download_js.js"
+    "441.cb146fb486000921cac9.js": {
+      "name": "441.cb146fb486000921cac9.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/441.cb146fb486000921cac9.js"
     },
-    "node_modules_web-vitals_dist_web-vitals_js.js": {
-      "name": "node_modules_web-vitals_dist_web-vitals_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_web-vitals_dist_web-vitals_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_web-vitals_dist_web-vitals_js.js"
+    "131.12a5b79910ec38252dd7.js": {
+      "name": "131.12a5b79910ec38252dd7.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/131.12a5b79910ec38252dd7.js"
     },
-    "vendors-node_modules_react-clock_dist_esm_index_js.js": {
-      "name": "vendors-node_modules_react-clock_dist_esm_index_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_react-clock_dist_esm_index_js.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_react-clock_dist_esm_index_js.js"
+    "80.b81bf34258500fff4696.js": {
+      "name": "80.b81bf34258500fff4696.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/80.b81bf34258500fff4696.js"
     },
-    "node_modules_mui_material_Popover_index_js.js": {
-      "name": "node_modules_mui_material_Popover_index_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_material_Popover_index_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_material_Popover_index_js.js"
+    "21.00e21a3b7875345bff68.js": {
+      "name": "21.00e21a3b7875345bff68.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/21.00e21a3b7875345bff68.js"
     },
-    "vendors-node_modules_moment_locale_af_js-node_modules_moment_locale_ar-dz_js-node_modules_mom-248d90.js": {
-      "name": "vendors-node_modules_moment_locale_af_js-node_modules_moment_locale_ar-dz_js-node_modules_mom-248d90.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_moment_locale_af_js-node_modules_moment_locale_ar-dz_js-node_modules_mom-248d90.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_moment_locale_af_js-node_modules_moment_locale_ar-dz_js-node_modules_mom-248d90.js"
+    "762.3c9e2283db5a7d9b5d83.js": {
+      "name": "762.3c9e2283db5a7d9b5d83.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/762.3c9e2283db5a7d9b5d83.js"
     },
-    "vendors-node_modules_mui_icons-material_Filter8_js-node_modules_mui_icons-material_Looks3_js--4d7dc4.js": {
-      "name": "vendors-node_modules_mui_icons-material_Filter8_js-node_modules_mui_icons-material_Looks3_js--4d7dc4.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_mui_icons-material_Filter8_js-node_modules_mui_icons-material_Looks3_js--4d7dc4.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_mui_icons-material_Filter8_js-node_modules_mui_icons-material_Looks3_js--4d7dc4.js"
+    "130.0973cec96c4872d2de7b.js": {
+      "name": "130.0973cec96c4872d2de7b.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/130.0973cec96c4872d2de7b.js"
     },
-    "vendors-node_modules_mui_material_Button_Button_js.js": {
-      "name": "vendors-node_modules_mui_material_Button_Button_js.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_mui_material_Button_Button_js.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_mui_material_Button_Button_js.js"
+    "229.dc5d291384e72f8b8fed.js": {
+      "name": "229.dc5d291384e72f8b8fed.js",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/229.dc5d291384e72f8b8fed.js"
     },
-    "vendors-node_modules_date-io_date-fns_build_index_esm_js-node_modules_mui_material_CardAction-b41f92.js": {
-      "name": "vendors-node_modules_date-io_date-fns_build_index_esm_js-node_modules_mui_material_CardAction-b41f92.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_date-io_date-fns_build_index_esm_js-node_modules_mui_material_CardAction-b41f92.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_date-io_date-fns_build_index_esm_js-node_modules_mui_material_CardAction-b41f92.js"
+    "130.0973cec96c4872d2de7b.js.LICENSE.txt": {
+      "name": "130.0973cec96c4872d2de7b.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/130.0973cec96c4872d2de7b.js.LICENSE.txt"
     },
-    "vendors-node_modules_mui_icons-material_PlayArrow_js-node_modules_mui_material_Card_Card_js-n-580b85.js": {
-      "name": "vendors-node_modules_mui_icons-material_PlayArrow_js-node_modules_mui_material_Card_Card_js-n-580b85.js",
-      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_mui_icons-material_PlayArrow_js-node_modules_mui_material_Card_Card_js-n-580b85.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_mui_icons-material_PlayArrow_js-node_modules_mui_material_Card_Card_js-n-580b85.js"
+    "762.3c9e2283db5a7d9b5d83.js.LICENSE.txt": {
+      "name": "762.3c9e2283db5a7d9b5d83.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/762.3c9e2283db5a7d9b5d83.js.LICENSE.txt"
+    },
+    "App.0411d867588e41578b96.js.LICENSE.txt": {
+      "name": "App.0411d867588e41578b96.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/App.0411d867588e41578b96.js.LICENSE.txt"
+    },
+    "Planner.d875c65ba2be1b28c25c.js.LICENSE.txt": {
+      "name": "Planner.d875c65ba2be1b28c25c.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Planner.d875c65ba2be1b28c25c.js.LICENSE.txt"
+    },
+    "PublicSummary.c498f6eaee96197d8976.js.LICENSE.txt": {
+      "name": "PublicSummary.c498f6eaee96197d8976.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.c498f6eaee96197d8976.js.LICENSE.txt"
+    },
+    "Space.b7a8077018a397e9f23b.js.LICENSE.txt": {
+      "name": "Space.b7a8077018a397e9f23b.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Space.b7a8077018a397e9f23b.js.LICENSE.txt"
+    },
+    "Summary.65b3298b5cc003dc9689.js.LICENSE.txt": {
+      "name": "Summary.65b3298b5cc003dc9689.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Projects/timesheet-project/dashboard/assets/webpack_bundles/Summary.65b3298b5cc003dc9689.js.LICENSE.txt"
     }
   },
   "chunks": {
     "App": [
-      "App.js"
+      "App.0411d867588e41578b96.js"
     ],
     "Space": [
-      "Space.js"
+      "Space.b7a8077018a397e9f23b.js"
     ],
     "Summary": [
-      "Summary.js"
+      "Summary.65b3298b5cc003dc9689.js"
     ],
     "PublicSummary": [
-      "PublicSummary.js"
+      "PublicSummary.c498f6eaee96197d8976.js"
     ],
     "Planner": [
-      "Planner.js"
+      "Planner.d875c65ba2be1b28c25c.js"
     ]
-  },
-  "publicPath": "http://localhost:9000/static/"
+  }
 }

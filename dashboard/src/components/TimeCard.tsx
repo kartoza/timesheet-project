@@ -229,9 +229,13 @@ export const TimeCard = forwardRef(({
     const addButtonClicked = async () => {
         // Calculate start-time and end-time
         let endTime: any = null
-        if (hours && startTime) {
+        if (hours != null && startTime) {
             let startTimeCopy = new Date(startTime.toISOString())
-            endTime = addHours(hours, startTimeCopy)
+            if (hours > 0) {
+                endTime = addHours(hours, startTimeCopy)
+            } else {
+                endTime = startTimeCopy
+            }
         }
         if (!endTime || !startTime || !activity) {
             return
@@ -342,7 +346,7 @@ export const TimeCard = forwardRef(({
                             const value = event.target.value;
                             setHours(null)
                             setHourString(value)
-                            if (!value || parseFloat(value.includes(':') ? value.split(':')[1] : value) === 0) {
+                            if (!value) {
                                 return
                             }
                             // @ts-ignore
