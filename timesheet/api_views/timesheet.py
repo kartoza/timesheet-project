@@ -1,4 +1,5 @@
 import time
+from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -12,6 +13,7 @@ from rest_framework.response import Response
 from timesheet.models import Timelog, Task, Activity
 from timesheet.serializers.timesheet import TimelogSerializer
 from timesheet.utils.erp import push_timesheet_to_erp
+from timesheet.utils.time import convert_time_to_user_timezone
 
 
 class UserSerializer(serializers.Serializer):
@@ -46,6 +48,7 @@ class TimesheetSerializer(serializers.ModelSerializer):
             'task',
             'activity',
             'timezone',
+            'parent',
             'editing'
         ]
 
@@ -54,6 +57,7 @@ class TimesheetSerializer(serializers.ModelSerializer):
         if instance.end_time and not editing:
             return instance
         start_time = validated_data.pop('start_time', None)
+        parent = validated_data.pop('parent', None)
         if start_time:
             instance.start_time = start_time
         end_time = validated_data.get('end_time', None)
@@ -68,6 +72,50 @@ class TimesheetSerializer(serializers.ModelSerializer):
         instance.activity = Activity.objects.get(id=activity.get('id'))
         instance.end_time = end_time
         instance.save()
+
+        date_changed = False
+        if parent or instance.children.count() > 0:
+            if parent:
+                if instance.start_time.date() != parent.start_time.date():
+                    date_changed = True
+                    instance.parent = None
+                    instance.save()
+            else:
+                first_child = Timelog.objects.get(id=instance.children.first().id)
+                if instance.start_time.date() != first_child.start_time.date():
+                    date_changed = True
+                    first_child.parent = None
+                    first_child.save()
+                    if instance.children.count() > 0:
+                        instance.children.all().exclude(
+                            id=first_child.id
+                        ).update(
+                            parent=first_child
+                        )
+
+        if date_changed:
+            return instance
+
+        related = []
+        if parent:
+            related.append(parent.id)
+            related += list(
+                parent.children.all().exclude(
+                    id=instance.id).values_list('id', flat=True)
+            )
+        if instance.children.count() > 0:
+            related += list(
+                instance.children.all().values_list('id', flat=True)
+            )
+        if len(related) > 0:
+            Timelog.objects.filter(
+                id__in=related
+            ).update(
+                description=instance.description,
+                task=instance.task,
+                activity=instance.activity
+            )
+
         return instance
 
     def create(self, validated_data):
@@ -77,6 +125,7 @@ class TimesheetSerializer(serializers.ModelSerializer):
         end_time = validated_data.get('end_time', None)
         activity = validated_data.pop('activity')
         description = validated_data.pop('description', '')
+        parent = validated_data.pop('parent', None)
         _timezone = validated_data.pop('timezone', '')
 
         if not user:
@@ -100,6 +149,21 @@ class TimesheetSerializer(serializers.ModelSerializer):
             end_time=timezone.now()
         )
 
+        # Check if a parent Timelog exists
+        # If the start_date of the new Timelog differs from that of the parent,
+        # remove the association to the parent
+        if parent:
+            parent_start_time = parent.start_time
+            if start_time.date() != parent_start_time.date():
+                parent = None
+
+        if parent and isinstance(parent, Timelog):
+            parent_timelog = Timelog.objects.get(
+                id=parent.id
+            )
+            parent_timelog.description = description
+            parent_timelog.save()
+
         # Create a new timesheet
         timesheet = Timelog.objects.create(
             user=user,
@@ -108,7 +172,8 @@ class TimesheetSerializer(serializers.ModelSerializer):
             start_time=start_time,
             end_time=end_time,
             description=description,
-            timezone=_timezone
+            timezone=_timezone,
+            parent=parent
         )
         return timesheet
 
@@ -168,8 +233,16 @@ class TimesheetViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
     def list(self, request):
+
+        today = convert_time_to_user_timezone(
+            timezone.now(), request.user.profile.timezone)
+        start_of_week = today - timedelta(days=today.weekday())
+        start_of_last_week = start_of_week - timedelta(days=7)
+
         queryset = Timelog.objects.filter(
-            user=self.request.user
+            user=self.request.user,
+            start_time__gte=start_of_last_week,
+            start_time__lt=start_of_week + timedelta(days=7)
         ).order_by('-start_time')
         serializer = TimelogSerializer(queryset, many=True)
         return Response(serializer.data)
@@ -181,6 +254,16 @@ class TimeLogDeleteAPIView(APIView):
         timelog = Timelog.objects.get(
             id=timelog_id
         )
+        if timelog.children.count() > 0:
+            new_parent = Timelog.objects.get(
+                id=timelog.children.first().id
+            )
+            new_parent.parent = None
+            new_parent.save()
+            if timelog.children.count() > 0:
+                timelog.children.all().exclude(
+                    id=new_parent.id
+                ).update(parent=new_parent)
         timelog.delete()
         return Response(status=200)
 

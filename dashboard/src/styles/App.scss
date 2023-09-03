@@ -32,6 +32,9 @@
   .MuiTypography-root a {
     color: white;
   }
+  .modal {
+    color: white;
+  }
 }
 
 .App-logo {
@@ -105,14 +108,14 @@
   .leaderboard-container {
     position: absolute;
     text-align: left;
-    font-family: 'Handjet', cursive;
+    //font-family: 'Handjet', cursive;
     width: 14.5%;
     margin-left: 10px;
     padding: 10px;
 
-    p {
-      font-family: 'Press Start 2P', cursive;
-    }
+    //p {
+    //  font-family: 'Press Start 2P', cursive;
+    //}
   }
 
 }
@@ -157,7 +160,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 50px;
+  margin-bottom: 50px;
 }
 
 .MuiAutocomplete-listbox {

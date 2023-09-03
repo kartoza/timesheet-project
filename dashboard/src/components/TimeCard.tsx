@@ -4,10 +4,12 @@ import CardActions from "@mui/material/CardActions";
 import { LocalizationProvider, DatePicker, TimePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import moment from "moment";
-import React, { useCallback, useEffect, useState } from "react";
-import { useAddTimesheetMutation, 
-    useUpdateTimesheetMutation, 
-    useClearSubmittedTimesheetsMutation } from "../services/api";
+import React, { useCallback, useEffect, useState, forwardRef, useImperativeHandle } from "react";
+import {
+    useAddTimesheetMutation,
+    useUpdateTimesheetMutation,
+    useClearSubmittedTimesheetsMutation, TimeLog
+} from "../services/api";
 import { addHours, formatTime } from "../utils/time";
 import TButton from "../loadable/Button";
 import { ListIcon, PlayCircleIcon, ClearAllIcon } from "../loadable/Icon";
@@ -23,20 +25,22 @@ interface TimeCardProps {
     task?: any | null,
     activity?: any | null,
     description?: String | '',
-    clearAllFields?: any
+    parent?: string
+    clearAllFields?: any,
 }
 
 
 let interval: any = null;
 
-export default function TimeCard({ 
+export const TimeCard = forwardRef(({
     runningTimeLog, 
     editingTimeLog, 
     toggleTimer, 
     task, 
     activity, 
-    description, 
-    clearAllFields } : TimeCardProps) {
+    description,
+    parent,
+    clearAllFields }: TimeCardProps, ref) => {
     const [startTime, setStartTime] = React.useState<any | null>(new Date());
     const [hours, setHours] = React.useState<Number | null>(null);
     const [hourString, setHourString] = React.useState<string>('');
@@ -178,6 +182,7 @@ export default function TimeCard({
     }
 
     const startButtonClicked = async () => {
+        setIsLogging(false)
         setStartButtonDisabled(true);
         clearInterval(interval);
         toggleTimer(true);
@@ -204,16 +209,33 @@ export default function TimeCard({
                 'id': activity.id
             },
             description: description,
-            timezone: currentTimeZone
+            timezone: currentTimeZone,
+            parent: parent
         })
     }
+
+    const updateHours = (data: TimeLog) => {
+        // @ts-ignore
+        setHours(data.hours);
+        setHourString(data.hours);
+        setStartTime(moment(data.from_time, 'YYYY-MM-DD hh:mm:ss'));
+    }
+
+    useImperativeHandle(ref, () => ({
+        startButtonClicked,
+        updateHours
+    }));
 
     const addButtonClicked = async () => {
         // Calculate start-time and end-time
         let endTime: any = null
-        if (hours && startTime) {
+        if (hours != null && startTime) {
             let startTimeCopy = new Date(startTime.toISOString())
-            endTime = addHours(hours, startTimeCopy)
+            if (hours > 0) {
+                endTime = addHours(hours, startTimeCopy)
+            } else {
+                endTime = startTimeCopy
+            }
         }
         if (!endTime || !startTime || !activity) {
             return
@@ -324,11 +346,9 @@ export default function TimeCard({
                             const value = event.target.value;
                             setHours(null)
                             setHourString(value)
-                            if (!value || parseFloat(value.includes(':') ? value.split(':')[1] : value) === 0) {
+                            if (!value) {
                                 return
                             }
-                            console.log(value)
-
                             // @ts-ignore
                             if (!isNaN(value)) {
                                 setHours(parseFloat(value))
@@ -418,4 +438,6 @@ export default function TimeCard({
             </div>
         </LocalizationProvider>
     )
-}
+});
+
+export default TimeCard;

@@ -198,6 +198,8 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
     for serializer_data in serializer.data:
         from_time = datetime.strptime(serializer_data['from_time'], datetime_format)
         to_time = datetime.strptime(serializer_data['to_time'], datetime_format)
+        if from_time == to_time:
+            continue
         project_name = serializer_data['project_name']
         if project_name not in timelogs:
             timelogs[project_name] = {

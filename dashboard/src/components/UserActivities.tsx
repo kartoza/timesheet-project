@@ -53,7 +53,7 @@ export default function UserActivities(props: any) {
 
     return (
         <Paper className={'leaderboard-container'}>
-            <Typography fontSize={13}>Today's</Typography>
+            <Typography fontSize={15}>Today's</Typography>
             <List>
                 { activities ? activities.map(
                     (data: any, index) => <ListItem key={index} style={{ paddingTop: 5, paddingLeft: 4, paddingBottom: 5, flexDirection: 'column', alignItems: 'flex-start' }} divider>
@@ -61,15 +61,15 @@ export default function UserActivities(props: any) {
                             <div style={{ paddingRight: 6 }}>
                                 <ActivityStatus active={data['is_active']} />
                             </div>
-                            <Typography fontSize={9} align={'left'}>{data['first_name']}</Typography>
-                            <Typography fontSize={9} style={{marginLeft: 'auto'}}>{data['total'].toFixed(2)}</Typography>
+                            <Typography fontSize={12} align={'left'}>{data['first_name']}</Typography>
+                            <Typography fontSize={12} style={{marginLeft: 'auto'}}>{data['total'].toFixed(2)}</Typography>
                         </ListItem>
                         { data['task'] ?
                         <ListItem disablePadding style={{ paddingBottom: 4, paddingTop: 5 }}>
-                            <Typography fontSize={9} style={{ paddingRight: 6 }}>
+                            <Typography fontSize={10} style={{ paddingRight: 6 }}>
                                 &nbsp;
                             </Typography>
-                            <Typography fontSize={9} style={{marginLeft: 'auto'}}>
+                            <Typography fontSize={12} style={{marginLeft: 'auto'}}>
                                 {data['task']} - (<span>{data['duration'].toFixed(2)}</span>)
                             </Typography>
                         </ListItem> : null }

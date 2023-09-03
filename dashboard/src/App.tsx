@@ -2,7 +2,6 @@ import React, {
     useEffect, useState, Suspense, CSSProperties, useRef, useCallback
 } from 'react';
 import './styles/App.scss';
-import Container from '@mui/material/Container';
 import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -16,7 +15,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { generateColor, getColorFromTaskLabel, getTaskColor } from "./utils/Theme";
 import {
-    TimeLog,
+    TimeLog, useDeleteTimeLogMutation,
     useGetTimeLogsQuery,
     useSubmitTimesheetMutation
 } from "./services/api";
@@ -31,11 +30,11 @@ import {
     SendIcon, 
     LightModeIcon, 
     DarkModeIcon,
-    MapIcon 
 } from './loadable/Icon';
 import Loader from './loadable/Loader';
 import LeaderBoard from './components/LeaderBoard';
 import UserActivities from "./components/UserActivities";
+import TimeLogChildList from "./components/TimeLogChildList";
 const Standup = React.lazy(() => import('./components/Standup'));
 const TimeCard = React.lazy(() => import('./components/TimeCard'));
 const TReactQuill = React.lazy(() => import('./components/ReactQuill'));
@@ -78,7 +77,7 @@ const confettiStyle: CSSProperties = {
 }
 
 const TimeLogs = (props: any) => {
-    const { editTimeLog, copyTimeLog } = props;
+    const { editTimeLog, copyTimeLog, resumeTimeLog, deleteTimeLog } = props;
 
     const { data: timesheetData, isLoading, isSuccess } = useGetTimeLogsQuery()
     let totalDraftHours = 0
@@ -133,7 +132,10 @@ const TimeLogs = (props: any) => {
                                         data={timesheetData.logs[key]}
                                         date={key}
                                         editTimeLog={editTimeLog}
-                                        copyTimeLog={copyTimeLog}/>
+                                        copyTimeLog={copyTimeLog}
+                                        resumeTimeLog={resumeTimeLog}
+                                        deleteTimeLog={deleteTimeLog}
+                                    />
                                 </Suspense>
                             </div>
                         )
@@ -189,13 +191,19 @@ function App() {
     const [quote, setQuote] = useState<any>({})
     const [runningTimeLog, setRunningTimeLog] = useState<TimeLog | null>(null)
     const [editingTimeLog, setEditingTimeLog] = useState<TimeLog | null>(null)
+    const [editMode, setEditMode] = useState<boolean>(true)
     const [timerStarted, setTimerStarted] = useState(false);
+    const [parent, setParent] = useState("")
     const refAnimationInstance = useRef(null);
     const [fadeProp, setFadeProp] = useState({
         fade: 'fade-out'
     })
     const [compliment, setCompliment] = useState(randomCompliments[0])
     const [submitTimesheet, { isLoading: isUpdating, isSuccess, isError }] = useSubmitTimesheetMutation();
+    const [deleteTimeLog, { isLoading: isDeleteLoading, isSuccess: isDeleteSuccess, isError: isDeleteError }] = useDeleteTimeLogMutation();
+    const [timeLogChildList, setTimeLogChildList] = useState<any>([])
+
+    const timeCardRef = useRef(null);
 
      const getInstance = useCallback((instance) => {
         refAnimationInstance.current = instance;
@@ -221,7 +229,7 @@ function App() {
         }
     }, [isSuccessFetching])
 
-    const updateSelectedTimeLog = (data: TimeLog) => {
+    const updateSelectedTimeLog = (data: TimeLog, checkParent = true) => {
         setDescription(data.description)
         setSelectedActivity({
             id: data.activity_id,
@@ -239,32 +247,45 @@ function App() {
             id: data.task_id,
             label: data.task_name
         })
+        if (checkParent && data.parent) {
+           setParent(data.parent)
+        }
+        // @ts-ignore
+        timeCardRef.current?.updateHours(data);
     }
 
     useEffect(() => {
-        if (editingTimeLog) {
-            updateSelectedTimeLog(editingTimeLog);
+        if (parent && !timerStarted) {
+            setTimeout(() => {
+                window.scrollTo(0, 0);
+                // @ts-ignore
+                timeCardRef.current?.startButtonClicked();
+            }, 200)
         }
-    }, [editingTimeLog])
+    }, [parent, timerStarted]);
+
+    useEffect(() => {
+        if (isDeleteLoading) {
+            setLoading(true)
+        }
+        if (isDeleteSuccess || isDeleteError) {
+            setLoading(false)
+        }
+    }, [isDeleteLoading, isDeleteSuccess, isDeleteError])
+
+    useEffect(() => {
+        if (editingTimeLog) {
+            // Scroll to top
+            window.scrollTo(0, 0);
+            updateSelectedTimeLog(editingTimeLog, timeLogChildList.length === 0);
+        }
+    }, [editingTimeLog, timeLogChildList])
 
     useEffect(() => {
         if (runningTimeLog) {
             updateSelectedTimeLog(runningTimeLog);
         }
     }, [runningTimeLog])
-
-    useEffect(() => {
-        if (typeof timesheetData !== 'undefined') {
-            if (Object.keys(timesheetData.logs).length === 0) {
-                fetch('https://api.quotable.io/random?tags=wisdom|future|humor').then(response => response.json()).then(
-                    data => setQuote(data)
-                );
-            } else {
-                setQuote(undefined)
-            }
-        }
-
-    }, [timesheetData])
 
     useEffect(() => {
         fetch('/activity-list/').then(
@@ -274,8 +295,9 @@ function App() {
                 setActivities(json)
             }
         )
-
-
+        fetch('https://api.quotable.io/random?tags=wisdom|future|humor').then(response => response.json()).then(
+            data => setQuote(data)
+        );
     }, [])
 
     useEffect(() => {
@@ -357,6 +379,7 @@ function App() {
         }
         setDescription('')
         setEditingTimeLog(null)
+        setEditMode(false)
         setRunningTimeLog(null)
     }
     const makeShot = useCallback((particleRatio, opts) => {
@@ -408,9 +431,36 @@ function App() {
         return false
     }
 
+    const getTimeLogChild = (data: TimeLog) => {
+        if (timesheetData && timesheetData['logs']) {
+            let combinedTimelogs: TimeLog[] = [data];
+            for (const timeLogByDate in timesheetData['logs']) {
+                // Get the array of time logs for that date
+                // @ts-ignore
+                const timeLogsForDate: TimeLog[] = timesheetData['logs'][timeLogByDate];
+                if (timeLogsForDate && timeLogsForDate.length > 0) {
+                    for (const timeLog of timeLogsForDate) {
+                        if (timeLog.parent === data.id) {
+                            combinedTimelogs.push(timeLog)
+                        }
+                    }
+                }
+            }
+            const sortedCombinedTimeLogs = combinedTimelogs.sort(
+                (a, b) => parseInt(a.id) - parseInt(b.id))
+            return sortedCombinedTimeLogs
+        }
+        return []
+    }
+
     const editTimeLog = (data: TimeLog) => {
         if (!timerStarted) {
-            setEditingTimeLog(data);
+            setEditMode(true)
+            if (data.total_children === 0) {
+                setEditingTimeLog(data);
+            } else {
+                setTimeLogChildList(getTimeLogChild(data))
+            }
         } else {
             alert('Please stop the running timer first.');
         }
@@ -423,11 +473,41 @@ function App() {
         }
         if (editingTimeLog) {
             setEditingTimeLog(null);
+            setEditMode(false)
         }
         updateSelectedTimeLog(data);
     }
 
+    const handleDeleteTimeLog = (data: TimeLog, checkParent = true) => {
+        if (checkParent && data.total_children > 0) {
+            setEditMode(false)
+            setTimeLogChildList(getTimeLogChild(data))
+            return
+        }
+        if (window.confirm('Are you sure you want to delete this record?')) {
+            deleteTimeLog({
+                'id': data.id
+            })
+        }
+    }
+
+    const resumeTimeLog = (data: TimeLog) => {
+        if (timerStarted) {
+            alert('Please stop the running timer first.');
+            return;
+        }
+        if (editingTimeLog) {
+            setEditingTimeLog(null);
+            setEditMode(false)
+        }
+        const newData = { ...data, parent: data.id };
+        updateSelectedTimeLog(newData);
+    }
+
     const toggleTimer = (timerStartedValue: boolean) => {
+        if (!timerStartedValue) {
+            setParent('')
+        }
         setTimerStarted(timerStartedValue);
     }
 
@@ -487,6 +567,7 @@ function App() {
                                     disablePortal
                                     id="activity-options"
                                     options={activities}
+                                    disabled={parent !== ''}
                                     loading={activities.length > 0}
                                     getOptionLabel={ (options: any) => (options['label'])}
                                     isOptionEqualToValue={(option: any, value: any) => option['id'] == value['id']}
@@ -535,6 +616,7 @@ function App() {
                                             setSelectedTask(null)
                                         }
                                     }}
+                                    disabled={parent !== ''}
                                     value={selectedProject}
                                     onInputChange={(event, newInputValue) => {
                                         setProjectInput(newInputValue)
@@ -567,6 +649,7 @@ function App() {
                                     id="combo-box-demo"
                                     // @ts-ignore
                                     options={tasks}
+                                    disabled={parent !== ''}
                                     getOptionLabel={ (options: any) => (options['label'])}
                                     isOptionEqualToValue={(option: any, value: any) => option['id'] == value['id']}
                                     onChange={(event: any, value: any) => {
@@ -629,11 +712,13 @@ function App() {
                             <Box className="time-box">
                                 <Suspense>
                                     <TimeCard
+                                        ref={timeCardRef}
                                         runningTimeLog={runningTimeLog}
                                         editingTimeLog={editingTimeLog}
                                         task={selectedTask}
                                         activity={selectedActivity}
                                         description={description}
+                                        parent={parent}
                                         toggleTimer={toggleTimer}
                                         clearAllFields={clearAllFields}/>
                                 </Suspense>
@@ -646,16 +731,24 @@ function App() {
                     </Grid>
                 </Grid>
             </div>
-            <TimeLogs editTimeLog={editTimeLog} copyTimeLog={copyTimeLog}/>
-            { isEmpty() ? <div><CircularProgress style={{ marginTop: '50px' }} /></div> : null }
-            { quote ?
-                <div className='quote-container'>
-                    <Typography className='quote'>{quote['content']}</Typography>
-                    {quote['author'] ?
-                        <Typography className='quote-author'> — {quote['author']}</Typography>
-                        : ''
+            <TimeLogChildList
+                timeLogChildren={timeLogChildList}
+                editMode={editMode}
+                timeLogSelected={(timelog: TimeLog) => {
+                    if (editMode) {
+                        setEditingTimeLog(timelog)
+                    } else {
+                        handleDeleteTimeLog(timelog, false)
                     }
-                </div> :
+                }}
+                onClose={() => setTimeLogChildList([])}/>
+            <TimeLogs
+                editTimeLog={editTimeLog}
+                copyTimeLog={copyTimeLog}
+                deleteTimeLog={handleDeleteTimeLog}
+                resumeTimeLog={resumeTimeLog}/>
+            { isEmpty() ? <div><CircularProgress style={{ marginTop: '50px' }} /></div> : null }
+            { timesheetData && Object.keys(timesheetData.logs).length > 0 ?
             <Grid container>
                 <Grid item xs={12} md={4}></Grid>
                 <Grid item xs={12} md={4}>
@@ -664,8 +757,16 @@ function App() {
                 </TButton>
                 </Grid>
                 <Grid item xs={12} md={4}></Grid>
-            </Grid>
+            </Grid> : <div style={{ height: 50 }}>&nbsp;</div>
             }
+            { quote ?
+            <div className='quote-container'>
+                <Typography className='quote'>{quote['content']}</Typography>
+                {quote['author'] ?
+                    <Typography className='quote-author'> — {quote['author']}</Typography>
+                    : ''
+                }
+            </div> : ''}
         </div>
         </CssVarsProvider>
     );
