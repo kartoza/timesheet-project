@@ -345,8 +345,6 @@ export const TimeCard = forwardRef(({
                             if (!value || parseFloat(value.includes(':') ? value.split(':')[1] : value) === 0) {
                                 return
                             }
-                            console.log(value)
-
                             // @ts-ignore
                             if (!isNaN(value)) {
                                 setHours(parseFloat(value))

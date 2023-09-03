@@ -43,7 +43,9 @@ export default function Standup(props: StandupProp) {
                 if (logs[todayDate]) {
                     for (const todayLog of logs[todayDate]) {
                         if (today[todayLog.project_name]) {
-                            today[todayLog.project_name] += todayLog.description
+                            if (!today[todayLog.project_name].includes(todayLog.description)) {
+                                today[todayLog.project_name] += todayLog.description
+                            }
                         } else {
                             today[todayLog.project_name] = todayLog.description
                         }
@@ -55,7 +57,9 @@ export default function Standup(props: StandupProp) {
                         yesterdayDate = log
                         for (const yesterdayLog of logs[log]) {
                             if (yesterday[yesterdayLog.project_name]) {
-                                yesterday[yesterdayLog.project_name] += yesterdayLog.description
+                                if (!yesterday[yesterdayLog.project_name].includes(yesterdayLog.description)) {
+                                    yesterday[yesterdayLog.project_name] += yesterdayLog.description
+                                }
                             } else {
                                 yesterday[yesterdayLog.project_name] = yesterdayLog.description
                             }

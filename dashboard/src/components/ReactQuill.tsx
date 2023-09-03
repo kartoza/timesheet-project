@@ -72,6 +72,9 @@ export default function TReactQuill(props: any) {
     useEffect(() => {
         if (quill.current) {
             const _quill = (quill as any).current.getEditor();
+            _quill.clipboard.addMatcher('h1,h2,h3,h4,h5,h6', (node, delta) => {
+                return new Delta().insert(node.innerText, { header: false });
+            });
             _quill.clipboard.addMatcher(Node.ELEMENT_NODE, (node: any, delta: any) => {
                 return delta.compose(new Delta().retain(delta.length(), 
                 { color: false,

@@ -13,7 +13,6 @@ const style = {
     border: '2px solid #000',
     boxShadow: 24,
     p: 4,
-    color: 'white'
 };
 
 function TimeLogChildList(props: any) {
@@ -48,7 +47,7 @@ function TimeLogChildList(props: any) {
             aria-labelledby="modal-modal-title"
             aria-describedby="modal-modal-description"
         >
-            <Box sx={style}>
+            <Box sx={style} className={'modal'}>
                 <Typography id="modal-modal-title" variant="h6" component="h2">
                     Choose timelog to {props.editMode ? 'edit' : 'delete'}
                 </Typography>

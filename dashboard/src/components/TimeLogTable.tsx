@@ -139,10 +139,10 @@ function TimeLogItem(prop : TimeLog)    {
                             'aria-labelledby': 'basic-button',
                         }}
                     >
-                        <MenuItem onClick={deleteTimeLogClicked}><DeleteSweepIcon/></MenuItem>
+                        <MenuItem onClick={resumeTimeLogClicked}><PlayArrowIcon/></MenuItem>
                         { prop.submitted ? null : <MenuItem onClick={editTimeLogClicked}><EditIcon/></MenuItem> }
                         <MenuItem onClick={copyTimeLogClicked}><ContentCopyIcon/></MenuItem>
-                        <MenuItem onClick={resumeTimeLogClicked}><PlayArrowIcon/></MenuItem>
+                        <MenuItem onClick={deleteTimeLogClicked}><DeleteSweepIcon/></MenuItem>
                     </Menu>
                 </Grid>
         </Grid>

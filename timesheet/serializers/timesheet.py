@@ -140,9 +140,11 @@ class TimelogSerializer(serializers.ModelSerializer):
 
     def get_all_hours(self, obj: Timelog):
         total_hours = 0.0
+        total_seconds = 0
 
         # Calculate parent hours
         if obj.end_time and obj.start_time:
+            total_seconds = (obj.end_time - obj.start_time).total_seconds()
             total_hours += round(
                 (obj.end_time - obj.start_time).total_seconds() / 3600, 2)
 
@@ -152,13 +154,23 @@ class TimelogSerializer(serializers.ModelSerializer):
                 total_hours += round(
                     (child.end_time - child.start_time).total_seconds() / 3600, 2)
 
-        return round(total_hours, 2)
+        hours = round(total_hours, 2)
+        if total_seconds > 0 and hours == 0:
+            hours = 0.01
 
-    def get_hours(self, obj: Timelog):
+        return hours
+
+    def get_hours(self, obj):
         if not obj.end_time:
             return 0
-        return round(
-            (obj.end_time - obj.start_time).total_seconds() / 3600, 2)
+        total_seconds = (obj.end_time - obj.start_time).total_seconds()
+
+        hours = round(total_seconds / 3600, 2)
+
+        if total_seconds > 0 and hours == 0:
+            hours = 0.01
+
+        return hours
 
     class Meta:
         model = Timelog

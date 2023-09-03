@@ -288,19 +288,6 @@ function App() {
     }, [runningTimeLog])
 
     useEffect(() => {
-        if (typeof timesheetData !== 'undefined') {
-            if (Object.keys(timesheetData.logs).length === 0) {
-                fetch('https://api.quotable.io/random?tags=wisdom|future|humor').then(response => response.json()).then(
-                    data => setQuote(data)
-                );
-            } else {
-                setQuote(undefined)
-            }
-        }
-
-    }, [timesheetData])
-
-    useEffect(() => {
         fetch('/activity-list/').then(
             response => response.json()
         ).then(
@@ -308,8 +295,9 @@ function App() {
                 setActivities(json)
             }
         )
-
-
+        fetch('https://api.quotable.io/random?tags=wisdom|future|humor').then(response => response.json()).then(
+            data => setQuote(data)
+        );
     }, [])
 
     useEffect(() => {
@@ -569,7 +557,7 @@ function App() {
                 </Grid>
                 <Grid container style={{ marginTop: "50px" }}>
                     <Grid item md={2} xs={12} sx={{ display: { xs: 'none', md: 'block' } }} >
-                        {/*<LeaderBoard/>*/}
+                        <LeaderBoard/>
                     </Grid>
                     <Grid item md={8} xs={12}>
                         <Grid container spacing={1} className="timesheet-container">
@@ -760,14 +748,7 @@ function App() {
                 deleteTimeLog={handleDeleteTimeLog}
                 resumeTimeLog={resumeTimeLog}/>
             { isEmpty() ? <div><CircularProgress style={{ marginTop: '50px' }} /></div> : null }
-            { quote ?
-                <div className='quote-container'>
-                    <Typography className='quote'>{quote['content']}</Typography>
-                    {quote['author'] ?
-                        <Typography className='quote-author'> — {quote['author']}</Typography>
-                        : ''
-                    }
-                </div> :
+            { timesheetData && Object.keys(timesheetData.logs).length > 0 ?
             <Grid container>
                 <Grid item xs={12} md={4}></Grid>
                 <Grid item xs={12} md={4}>
@@ -776,8 +757,16 @@ function App() {
                 </TButton>
                 </Grid>
                 <Grid item xs={12} md={4}></Grid>
-            </Grid>
+            </Grid> : <div style={{ height: 50 }}>&nbsp;</div>
             }
+            { quote ?
+            <div className='quote-container'>
+                <Typography className='quote'>{quote['content']}</Typography>
+                {quote['author'] ?
+                    <Typography className='quote-author'> — {quote['author']}</Typography>
+                    : ''
+                }
+            </div> : ''}
         </div>
         </CssVarsProvider>
     );
