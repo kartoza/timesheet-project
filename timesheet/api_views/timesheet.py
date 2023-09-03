@@ -88,8 +88,8 @@ class TimesheetSerializer(serializers.ModelSerializer):
                 id__in=related
             ).update(
                 description=instance.description,
-                task_id=instance.task.id,
-                activity_id=instance.activity.id
+                task=instance.task,
+                activity=instance.activity
             )
 
         return instance
@@ -229,6 +229,16 @@ class TimeLogDeleteAPIView(APIView):
         timelog = Timelog.objects.get(
             id=timelog_id
         )
+        if timelog.children.count() > 0:
+            new_parent = Timelog.objects.get(
+                id=timelog.children.first().id
+            )
+            new_parent.parent = None
+            new_parent.save()
+            if timelog.children.count() > 0:
+                timelog.children.all().exclude(
+                    id=new_parent.id
+                ).update(parent=new_parent)
         timelog.delete()
         return Response(status=200)
 

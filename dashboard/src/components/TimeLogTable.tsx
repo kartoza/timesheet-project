@@ -29,7 +29,6 @@ import Chip from "@mui/material/Chip";
 
 
 function TimeLogItem(prop : TimeLog)    {
-    const [deleteTimeLog, { isLoading: isUpdating, isSuccess, isError }] = useDeleteTimeLogMutation();
     const [loading, setLoading] = useState(false);
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     // @ts-ignore
@@ -44,22 +43,9 @@ function TimeLogItem(prop : TimeLog)    {
         return moment.duration(moment().diff(fromTimeObj)).asHours().toFixed(2)
     }
 
-    useEffect(() => {
-        if (isUpdating) {
-            setLoading(true)
-        }
-        if (isSuccess) {
-            setLoading(false)
-        }
-    }, [isUpdating, isSuccess])
-
     const deleteTimeLogClicked = () => {
         handleClose();
-        if (window.confirm('Are you sure you want to delete this record?')) {
-            deleteTimeLog({
-               'id': prop.id
-            })
-        }
+        prop.delete_button_clicked(prop);
     }
 
     const editTimeLogClicked = () => {
@@ -164,7 +150,7 @@ function TimeLogItem(prop : TimeLog)    {
 }
 
 function TimeLogTable(props: any) {
-    const { data, date, editTimeLog, copyTimeLog, resumeTimeLog } = props;
+    const { data, date, editTimeLog, copyTimeLog, resumeTimeLog, deleteTimeLog } = props;
 
     const totalHours = () => {
         let _totalHours = 0;
@@ -188,6 +174,10 @@ function TimeLogTable(props: any) {
 
     const onResumeButtonClicked = (timelog: TimeLog) => {
         resumeTimeLog(timelog);
+    }
+
+    const onDeleteButtonClicked = (timelog: TimeLog) => {
+        deleteTimeLog(timelog);
     }
 
     return (
@@ -221,6 +211,7 @@ function TimeLogTable(props: any) {
                             edit_button_clicked={onEditButtonClicked}
                             copy_button_clicked={onCopyButtonClicked}
                             resume_button_clicked={onResumeButtonClicked}
+                            delete_button_clicked={onDeleteButtonClicked}
                         />
                         <Divider sx={{marginBottom: 1}}/>
                       </div>

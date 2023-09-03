@@ -50,13 +50,13 @@ function TimeLogChildList(props: any) {
         >
             <Box sx={style}>
                 <Typography id="modal-modal-title" variant="h6" component="h2">
-                    Choose timelog to edit
+                    Choose timelog to {props.editMode ? 'edit' : 'delete'}
                 </Typography>
                 <List>
                     { props.timeLogChildren ? props.timeLogChildren.map(
                         (data: TimeLog, index) => (
                             <ListItem key={index} divider onClick={() => timelogSelected(data)} style={getListItemStyle(index)}>
-                                {data.from_time.split(' ').slice(-1)} - {data.to_time.split(' ').slice(-1)}
+                                {data.from_time.split(' ').slice(-1)} - {data.to_time.split(' ').slice(-1)} ({data.hours})
                             </ListItem>
                         )) : null
                     }

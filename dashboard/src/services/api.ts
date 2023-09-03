@@ -30,6 +30,7 @@ export interface TimeLog {
     edit_button_clicked?: any
     copy_button_clicked?: any
     resume_button_clicked?: any
+    delete_button_clicked?: any
     total_children: number
     all_from_time: string
     all_to_time: string
