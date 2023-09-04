@@ -194,11 +194,17 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
 
     datetime_format = '%Y-%m-%d %H:%M:%S'
     timelogs = {}
+    parent_ids = []
 
     for serializer_data in serializer.data:
         from_time = datetime.strptime(serializer_data['from_time'], datetime_format)
         to_time = datetime.strptime(serializer_data['to_time'], datetime_format)
         if from_time == to_time:
+            try:
+                if Timelog.objects.get(id=serializer_data.get('id')).children.count() > 0:
+                    parent_ids.append(serializer_data.get('id'))
+            except Timelog.DoesNotExist:
+                pass
             continue
         project_name = serializer_data['project_name']
         if project_name not in timelogs:
@@ -252,9 +258,14 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
         if response.status_code == 200:
             logger.info('Timesheet submitted successfully')
             
-            timelogs = Timelog.objects.filter(
+            Timelog.objects.filter(
                 id__in=value['ids']
             ).update(submitted=True)
+
+            if parent_ids:
+                Timelog.objects.filter(
+                    id__in=parent_ids
+                ).update(submitted=True)
 
         else:
             logger.error(response.text)
