@@ -11,7 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <script>
         const csrfToken = "{{ csrf_token }}";
-        window.hasKeys = {% if has_keys %}true{% else %}false{% endif %}
+        window.hasKeys = {% if has_keys %}true{% else %}false{% endif %};
+        window.isLoggedIn = {% if user.is_authenticated %}true{% else %}false{% endif %};
     </script>
     <style>
         @font-face {

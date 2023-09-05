@@ -45,6 +45,7 @@ import {BurndownChart} from "./BurndownChart";
 import {BurndownTable} from "./BurndownTable";
 import {UserReportTable} from "./UserReportTable";
 import {TaskReportTable} from "./TaskReportTable";
+const CircularMenu = React.lazy(() => import('./Menu'));
 
 ChartJS.register(
     CategoryScale,
@@ -244,6 +245,7 @@ export default function Summary(props: any) {
     return (
         <CssVarsProvider theme={modeTheme}>
         <div className="App">
+            <CircularMenu/>
             <div className="App-header" style={{ padding: '2vh', fontSize: '15pt' }}>
                 <Typography color={"text.primary"} style={{ cursor: "pointer" }} variant="h5" component="div" onClick={() => window.location.href = '/summary'}>
                     Burndown Chart
