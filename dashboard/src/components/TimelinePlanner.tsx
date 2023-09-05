@@ -21,6 +21,7 @@ import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox
 import {Button, TextField, InputAdornment, Backdrop, CircularProgress} from "@mui/material";
 import TimelineProjectForm from "./TimelineProjectForm";
 import SearchIcon from '@mui/icons-material/Search';
+const CircularMenu = React.lazy(() => import('./Menu'));
 
 export const canEdit = (window as any).isStaff
 
@@ -80,6 +81,7 @@ export default function TimelineDashboard() {
 
   return (
     <div>
+      <CircularMenu/>
       <TimelineSearchInput searchValue={searchText} onChange={(value) => setSearchText(value)} toggleAllGroups={toggleAllGroups} />
       <TimelinePlanner searchValue={searchText} ref={timelinePlanner}/>
     </div>

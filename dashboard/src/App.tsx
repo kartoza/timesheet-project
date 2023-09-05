@@ -32,15 +32,16 @@ import {
     DarkModeIcon,
 } from './loadable/Icon';
 import Loader from './loadable/Loader';
-import LeaderBoard from './components/LeaderBoard';
-import UserActivities from "./components/UserActivities";
 import TimeLogChildList from "./components/TimeLogChildList";
+const CircularMenu = React.lazy(() => import('./components/Menu'));
 const Standup = React.lazy(() => import('./components/Standup'));
 const TimeCard = React.lazy(() => import('./components/TimeCard'));
 const TReactQuill = React.lazy(() => import('./components/ReactQuill'));
 const TimeLogTable = React.lazy(() => import("./components/TimeLogTable"));
 const ScheduleInfo = React.lazy(() => import("./components/ScheduleInfo"));
 const ReactCanvasConfetti = React.lazy(() => import('react-canvas-confetti'));
+const UserActivities = React.lazy(() => import('./components/UserActivities'));
+const LeaderBoard = React.lazy(() => import('./components/LeaderBoard'));
 
 const randomCompliments = [
     'Good job!',
@@ -514,6 +515,7 @@ function App() {
     return (
         <CssVarsProvider theme={modeTheme}>
         <div className="App">
+            <CircularMenu/>
             <Suspense>
                 <ReactCanvasConfetti
                     style={confettiStyle}

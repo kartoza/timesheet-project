@@ -106,10 +106,8 @@ class UserSerializer(serializers.ModelSerializer):
 
             self.context['timelog'] = timelog
             if timelog.start_time and not timelog.end_time:
-                self.context['is_active'] = True
                 return True
             if timelog.end_time:
-                self.context['is_active'] = timelog.end_time > now
                 return timelog.end_time > now
 
         if user_timelogs_today.count() > 0 and not timelog:
@@ -119,14 +117,12 @@ class UserSerializer(serializers.ModelSerializer):
             ).last()
             if timelog:
                 self.context['timelog'] = timelog
-                self.context['is_active'] = True
-                return self.context['is_active']
+                return True
 
         if user_timelogs_today.count() > 0 and not timelog:
             timelog = user_timelogs_today.last()
             self.context['timelog'] = timelog
 
-        self.context['is_active'] = False
         return False
 
     def get_task(self, obj):
@@ -176,10 +172,13 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_clock(self, obj):
         timelog = self.context.get('timelog', None)
-        is_active = self.context.get('is_active', False)
         if timelog and timelog.user != obj:
             timelog = None
         timezone = obj.profile.timezone
+
+        if timezone == 'UTC':
+            return ''
+
         if timelog and timelog.timezone:
             timezone = timelog.timezone
         now = convert_time_to_user_timezone(
@@ -196,17 +195,7 @@ class UserSerializer(serializers.ModelSerializer):
         ).exists():
             return 'On Leave'
 
-        current_hour = now.hour
-
-        if 5 <= current_hour < 18:
-            clock_time = '☀️'
-        else:
-            if is_active:
-                clock_time = '🌙'
-            else:
-                clock_time = '🌑'
-
-        clock_time += ' ' + now.strftime('%I:%M %p')
+        clock_time = now.strftime('%I:%M %p')
         return clock_time
 
     def get_total(self, obj):

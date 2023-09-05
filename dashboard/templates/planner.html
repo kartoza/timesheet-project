@@ -16,6 +16,7 @@
         window.publicTimelineId = {% if public_timeline %}{{ public_timeline.id }}{% else %}null{% endif %};
         window.startTime = {% if public_timeline %}new Date("{{ public_timeline.start_time}}"){% else %}null{% endif %};
         window.endTime = {% if public_timeline %}new Date("{{ public_timeline.end_time }}"){% else %}null{% endif %};
+        window.isLoggedIn = {% if user.is_authenticated %}true{% else %}false{% endif %};
     </script>
     <style>
         @font-face {
