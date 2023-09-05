@@ -1,6 +1,7 @@
 import {Paper, Typography, ListItem, List} from "@mui/material";
 import { useEffect, useState } from "react";
 import '../styles/UserActivties.scss'
+import Chip from "@mui/material/Chip";
 
 const green500 = "76, 175, 80";
 
@@ -62,6 +63,7 @@ export default function UserActivities(props: any) {
                                 <ActivityStatus active={data['is_active']} />
                             </div>
                             <Typography fontSize={12} align={'left'}>{data['first_name']}</Typography>
+                            &nbsp;<Chip size={'small'} label={data['clock']} style={{ fontSize: 11}} />
                             <Typography fontSize={12} style={{marginLeft: 'auto'}}>{data['total'].toFixed(2)}</Typography>
                         </ListItem>
                         { data['task'] ?

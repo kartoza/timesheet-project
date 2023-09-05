@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone as tzone
 from django.db.models import Q
 
+from schedule.models import Schedule
 from timesheet.models.timelog import Timelog
 from timesheet.utils.erp import get_detailed_report_data
 from timesheet.utils.time import convert_time, convert_time_to_user_timezone
@@ -61,6 +62,7 @@ class UserSerializer(serializers.ModelSerializer):
     avatar = serializers.SerializerMethodField()
     duration = serializers.SerializerMethodField()
     total = serializers.SerializerMethodField()
+    clock = serializers.SerializerMethodField()
 
     def get_avatar(self, obj):
         if obj.profile.profile_picture:
@@ -104,8 +106,10 @@ class UserSerializer(serializers.ModelSerializer):
 
             self.context['timelog'] = timelog
             if timelog.start_time and not timelog.end_time:
+                self.context['is_active'] = True
                 return True
             if timelog.end_time:
+                self.context['is_active'] = timelog.end_time > now
                 return timelog.end_time > now
 
         if user_timelogs_today.count() > 0 and not timelog:
@@ -115,12 +119,14 @@ class UserSerializer(serializers.ModelSerializer):
             ).last()
             if timelog:
                 self.context['timelog'] = timelog
-                return True
+                self.context['is_active'] = True
+                return self.context['is_active']
 
         if user_timelogs_today.count() > 0 and not timelog:
             timelog = user_timelogs_today.last()
             self.context['timelog'] = timelog
 
+        self.context['is_active'] = False
         return False
 
     def get_task(self, obj):
@@ -168,6 +174,41 @@ class UserSerializer(serializers.ModelSerializer):
             duration = duration_timedelta.total_seconds() / 3600.0
         return duration
 
+    def get_clock(self, obj):
+        timelog = self.context.get('timelog', None)
+        is_active = self.context.get('is_active', False)
+        if timelog and timelog.user != obj:
+            timelog = None
+        timezone = obj.profile.timezone
+        if timelog and timelog.timezone:
+            timezone = timelog.timezone
+        now = convert_time_to_user_timezone(
+            tzone.now(),
+            timezone
+        )
+
+        # Check leave status
+        if Schedule.objects.filter(
+            user=obj,
+            activity__name__icontains='leave',
+            start_time__lte=now,
+            end_time__gte=now
+        ).exists():
+            return 'On Leave'
+
+        current_hour = now.hour
+
+        if 5 <= current_hour < 18:
+            clock_time = '☀️'
+        else:
+            if is_active:
+                clock_time = '🌙'
+            else:
+                clock_time = '🌑'
+
+        clock_time += ' ' + now.strftime('%I:%M %p')
+        return clock_time
+
     def get_total(self, obj):
         return self.context.get('total_duration_today', 0)
 
@@ -181,7 +222,8 @@ class UserSerializer(serializers.ModelSerializer):
             'is_active',
             'task',
             'duration',
-            'total'
+            'total',
+            'clock'
         ]
 
 
