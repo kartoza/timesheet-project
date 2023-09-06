@@ -4,7 +4,7 @@ import '../styles/UserActivties.scss'
 import Chip from "@mui/material/Chip";
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import NightsStayIcon from '@mui/icons-material/NightsStay';
-import HotelIcon from '@mui/icons-material/Hotel';
+import BedtimeIcon from '@mui/icons-material/Bedtime';
 
 const green500 = "76, 175, 80";
 
@@ -89,13 +89,13 @@ export default function UserActivities(props: any) {
 
         let clockTime = <></>;
 
-        if (currentHour >= 5 && currentHour < 18) {
+        if (currentHour >= 5 && currentHour < 17) {
             clockTime = <WbSunnyIcon/>;
         } else {
             if (activity['is_active']) {
                 clockTime = <NightsStayIcon/>;
             } else {
-                clockTime = <HotelIcon/>;
+                clockTime = <BedtimeIcon/>;
             }
         }
 
