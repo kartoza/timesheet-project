@@ -352,6 +352,42 @@ class WeeklyScheduleList(APIView):
         end_date = datetime.strptime(end_time, "%Y-%m-%d").date()
         return (end_date - start_date).days + 1
 
+    def fill_null_ids(self, schedules):
+        index = 0
+        updated_schedule_ids = []
+        updated_schedules = schedules
+        for schedule in schedules:
+            if schedule['id'] is None:
+                start_time_null = schedule['start_time']
+                end_time_null = schedule['end_time']
+
+                for reversed_schedule in reversed(schedules):
+                    if reversed_schedule['id'] is not None:
+                        start_time = reversed_schedule['start_time']
+                        end_time = reversed_schedule['end_time']
+
+                        if start_time >= start_time_null and end_time <= end_time_null and schedule['duration'] > 0:
+                            if reversed_schedule['id'] not in updated_schedule_ids:
+                                updated_schedules.insert(index, reversed_schedule)
+                                schedule['duration'] -= reversed_schedule['duration']
+                                updated_schedule_ids.append(reversed_schedule['id'])
+                            else:
+                                continue
+                            break
+            index += 1
+
+        updated_schedule_ids = []
+        all_schedules = []
+        for _schedule in updated_schedules:
+            if _schedule['duration'] == 0:
+                continue
+            if _schedule['id'] in updated_schedule_ids:
+                continue
+            updated_schedule_ids.append(_schedule['id'])
+            all_schedules.append(_schedule)
+
+        return all_schedules
+
 
     def get(self, request, format=None):
         today = datetime.today()
@@ -381,7 +417,7 @@ class WeeklyScheduleList(APIView):
                 if start_time != dates[0]:
                     processed_schedules.insert(index, {
                         'id': None,
-                        'start_time': dates[0],
+                        'start_time': datetime.strptime(dates[0], '%Y-%m-%d').date(),
                         'end_time': datetime.strptime(start_time, '%Y-%m-%d').date() - timedelta(days=1),
                         'duration': self.duration(dates[0], str(
                             datetime.strptime(start_time, '%Y-%m-%d').date() - timedelta(days=1)))
@@ -390,21 +426,20 @@ class WeeklyScheduleList(APIView):
             else:
                 if schedule['start_time'] != last_schedule['end_time']:
                     new_start_time = (
-                         datetime.strptime(
-                             last_schedule['end_time'].split('T')[0], '%Y-%m-%d').date() + timedelta(days=1)
+                         last_schedule['end_time'] + timedelta(days=1)
                     )
                     new_end_time = datetime.strptime(start_time, '%Y-%m-%d').date() - timedelta(days=1)
                     if new_start_time > datetime.strptime(dates[-1], '%Y-%m-%d').date():
-                        new_start_time = dates[0]
+                        new_start_time = datetime.strptime(dates[0], '%Y-%m-%d').date()
                     elif new_end_time < new_start_time:
                         processed_schedules.insert(index, {
                             'id': None,
                             'start_time': new_start_time,
-                            'end_time': dates[-1],
+                            'end_time': datetime.strptime(dates[-1], '%Y-%m-%d').date(),
                             'duration': self.duration(str(new_start_time), dates[-1])
                         })
                         index += 1
-                        new_start_time = dates[0]
+                        new_start_time = datetime.strptime(dates[0], '%Y-%m-%d').date()
 
                     processed_schedules.insert(index, {
                         'id': None,
@@ -417,9 +452,13 @@ class WeeklyScheduleList(APIView):
             last_schedule = schedule
             index += 1
 
-            schedule['start_time'] = start_time
-            schedule['end_time'] = end_time
+            schedule['start_time'] = datetime.strptime(start_time, '%Y-%m-%d').date()
+            schedule['end_time'] = datetime.strptime(end_time, '%Y-%m-%d').date()
             schedule['duration'] = self.duration(start_time, end_time)
+
+        processed_schedules = self.fill_null_ids(
+            processed_schedules
+        )
 
         return Response({
             'dates': dates,

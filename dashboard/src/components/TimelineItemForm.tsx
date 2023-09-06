@@ -44,6 +44,7 @@ export default function ItemForm(props: ItemFormInterface) {
       setOpen(true)
       setDuration(1)
       setIsLoading(false)
+      setNotes('')
     }
     if (props.startTime) {
       setStartTime(props.startTime)
@@ -159,7 +160,6 @@ export default function ItemForm(props: ItemFormInterface) {
                <Grid item xs={12}>
                  <TaskAutocomplete selectedProjectId={props.selectedGroup?.projectId}
                                    onTaskSelected={(task) => {
-                                     console.log(task)
                                      setSelectedTask(task)
                                    }}/>
                </Grid>
