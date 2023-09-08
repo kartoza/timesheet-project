@@ -260,7 +260,7 @@ function App() {
             setTimeout(() => {
                 window.scrollTo(0, 0);
                 // @ts-ignore
-                timeCardRef.current?.startButtonClicked();
+                timeCardRef.current?.startButtonClicked(true);
             }, 200)
         }
     }, [parent, timerStarted]);

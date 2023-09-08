@@ -14,6 +14,7 @@ import { addHours, formatTime } from "../utils/time";
 import TButton from "../loadable/Button";
 import { ListIcon, PlayCircleIcon, ClearAllIcon } from "../loadable/Icon";
 import AccessibleIcon from "@mui/icons-material/Accessible";
+import RunningTime from "./RunningTime";
 
 
 
@@ -181,7 +182,7 @@ export const TimeCard = forwardRef(({
         updateTimesheet(runningTimeClone);
     }
 
-    const startButtonClicked = async () => {
+    const startButtonClicked = async (startFromZero: boolean = false) => {
         setIsLogging(false)
         setStartButtonDisabled(true);
         clearInterval(interval);
@@ -200,8 +201,27 @@ export const TimeCard = forwardRef(({
 
         const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+        let _runningTime = runningTime;
+        if (startFromZero) {
+            _runningTime = '00:00:00';
+        }
+
+        console.log(_runningTime, startFromZero)
+
+        let _startTime = formatTime(new Date());
+        if (_runningTime !== '00:00:00') {
+            const [hours, minutes, seconds] = _runningTime.split(':').map(Number);
+
+            // Calculate the total running time in milliseconds
+            const runningTimeInMs = ((hours * 60 * 60) + (minutes * 60) + seconds) * 1000;
+
+            // Calculate the new start time
+            // @ts-ignore
+            const newStartTime = new Date(new Date() - runningTimeInMs);
+            _startTime = formatTime(newStartTime);
+        }
         addTimesheet({
-            start_time: formatTime(new Date()),
+            start_time: _startTime,
             task: {
                 'id': task_id
             },
@@ -396,7 +416,8 @@ export const TimeCard = forwardRef(({
                 </CardActions>
             </div> :
             <div style={{marginTop: '8px',  marginBottom: '0.5em'}}>
-                <Typography style={{ color:'#1d575c'}} variant={'h3'}>{runningTime}</Typography>
+                <RunningTime disabled={localRunningTimeLog} runningTime={runningTime} onChange={(newRunningTime) => setRunningTime(newRunningTime)}/>
+                {/*<Typography style={{ color:'#1d575c'}} variant={'h3'}>{runningTime}</Typography>*/}
                 <CardContent sx={{ paddingLeft: 0, paddingRight: 0 }}>
                         {localRunningTimeLog ?
                           <TButton color="info" variant="contained" size="small"
@@ -407,7 +428,7 @@ export const TimeCard = forwardRef(({
                             <CircularProgress color="inherit" size={20}/> : "STOP"}</TButton> :
                           <TButton color="success" variant="contained" size="small"
                                   sx={{width: '100%', height: '58px', marginTop: -1}}
-                                  onClick={startButtonClicked}
+                                  onClick={() => startButtonClicked(false)}
                                   disabled={startButtonDisabled}
                                   disableElevation>{isUpdating ?
                             <CircularProgress color="inherit" size={20}/> : "START"}</TButton>
