@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from datetime import datetime, timedelta, date
+from dateutil.relativedelta import relativedelta
 
 from schedule.models import Schedule, UserProjectSlot
 from timesheet.models import Task
@@ -328,8 +329,9 @@ class ScheduleList(APIView):
             if request.user.is_anonymous:
                 return Response([])
         current_year = date.today().year
+        current_date = date.today()
         # Define the start and end dates for the current year
-        start_date = date(current_year, 1, 1)
+        start_date = current_date - relativedelta(months=2)
         end_date = date(current_year, 12, 31)
 
         schedules = Schedule.objects.filter(
