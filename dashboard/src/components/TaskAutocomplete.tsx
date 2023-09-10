@@ -2,16 +2,18 @@ import React, {useEffect, useState, Suspense} from 'react';
 import {TextField} from "@mui/material";
 import {getColorFromTaskLabel} from "../utils/Theme";
 import Autocomplete from "@mui/material/Autocomplete";
+import {ItemTaskInterface} from "./TimelineItemForm";
 
 
 interface TaskAutocompleteInterface {
   selectedProjectId?: string,
   isRunningProject?: boolean,
+  selectedTask?: ItemTaskInterface | null,
   onTaskSelected?: Function,
 }
 
 export default function TaskAutocomplete(props: TaskAutocompleteInterface) {
-  const [selectedTask, setSelectedTask] = useState<any>(null)
+  const [selectedTask, setSelectedTask] = useState<any>(props.selectedTask)
   const [tasks, setTasks] = useState<any>([])
 
   useEffect(() => {

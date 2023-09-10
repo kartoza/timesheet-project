@@ -15,7 +15,7 @@ import {
 } from "../utils/schedule_data";
 import {getColorFromTaskLabel, getTaskColor} from "../utils/Theme";
 import '../styles/Planner.scss';
-import ItemForm from "./TimelineItemForm";
+import ItemForm, {ItemTaskInterface} from "./TimelineItemForm";
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
 import {Button, TextField, InputAdornment, Backdrop, CircularProgress} from "@mui/material";
@@ -53,7 +53,9 @@ interface ItemInterface {
   bgColor?: string,
   selectedBgColor?: string,
   canMove?: boolean,
-  task_label?: string
+  task_label?: string,
+  task_id?: string,
+  notes?: string
 }
 
 export interface GroupInterface {
@@ -144,11 +146,14 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
   const [groups, setGroups] = useState<GroupInterface[]>([])
   const [renderedGroups, setRenderedGroups] = useState<GroupInterface[]>([])
   const [items, setItems] = useState<ItemInterface[]>([])
+  const [selectedItem, setSelectedItem] = useState<ItemInterface | null>(null)
   const [openGroups, setOpenGroups] = useState<any>({})
   const [openForm, setOpenForm] = useState<boolean>(false)
   const [openProjectForm, setOpenProjectForm] = useState<boolean>(false)
   const [selectedGroup, setSelectedGroup] = useState<GroupInterface | null>(null)
   const [selectedTime, setSelectedTime] = useState<Date | null>(null)
+  const [scheduleEndTime, setScheduleEndTime] = useState<Date | null>(null)
+  const [selectedTask, setSelectedTask] = useState<ItemTaskInterface | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
 
   useImperativeHandle(ref, () => ({
@@ -185,6 +190,8 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
                 selectedBgColor: ItemSelectedColor,
                 canMove: false,
                 canResize: false,
+                task_id: item.task_id,
+                task_label: item.task_label,
                 group: group ? group.parent : 0,
                 title: group ? group.title : item.title
               })
@@ -513,6 +520,24 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
             e.preventDefault()
             deleteItem(item.id)
           }}>✕</div> : null }
+          { canEdit && item.task_label !== '-' ?
+          <div className={'edit-item'} onClick={(e) => {
+            e.stopPropagation()
+            e.preventDefault()
+            const group = groups.find(group => group.id === item.group)
+            if (group) {
+              setSelectedGroup(group)
+            }
+            const task: ItemTaskInterface = {
+              id: item.task_id,
+              label: item.task_label
+            }
+            setSelectedItem(item)
+            setSelectedTime(item.start)
+            setSelectedTask(task)
+            setScheduleEndTime(item.end)
+            setOpenForm(true)
+          }}>✎</div> : null }
         </div>
 
         {itemContext.useResizeHandle ? <div {...rightResizeProps} /> : null}
@@ -526,11 +551,32 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
         <CircularProgress color="inherit" />
       </Backdrop>
       
-      <ItemForm open={openForm} selectedGroup={selectedGroup} startTime={selectedTime}
+      <ItemForm open={openForm}
+                selectedGroup={selectedGroup}
+                selectedTask={selectedTask}
+                startTime={selectedTime}
+                endTime={scheduleEndTime}
+                notes={selectedItem?.notes ? selectedItem.notes : ''}
+                onUpdate={(startTime: Date, notes: string, selectedTask: ItemTaskInterface, duration: number) => {
+                  if (selectedItem) {
+                    setLoading(true)
+                    const endTime = new Date(startTime.getTime())
+                    const end = new Date(endTime.setDate(endTime.getDate() + duration));
+                    updateSchedule(parseInt(selectedItem.id), startTime.getTime(), end.getTime(), notes, selectedTask?.id).then((updatedSchedules: any) => {
+                      setLoading(false)
+                      if (updatedSchedules) {
+                        setItems(items.map(item => updatedSchedules[item.id] ? Object.assign({}, item, updatedSchedules[item.id]) : item))
+                      }
+                    })
+                  }
+                }}
                 onClose={() =>
                   {
+                    setSelectedItem(null)
                     setOpenForm(false)
                     setSelectedGroup(null)
+                    setSelectedTask(null)
+                    setScheduleEndTime(null)
                   }}
                 onAdd={(item: ItemInterface, updatedSchedules: any) => {
                   if (item) {
