@@ -12,11 +12,17 @@ from dateutil.relativedelta import relativedelta
 from schedule.models import Schedule, UserProjectSlot
 from timesheet.models import Task
 
+START_TIME = 'start_time'
+END_TIME = 'end_time'
+DURATION = 'duration'
+SCHEDULES = 'schedules'
+ID = 'id'
+
 
 def _naive(date_obj):
     return date_obj.astimezone(pytz.UTC).replace(tzinfo=None).replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
+        hour=0, minute=0, second=0, microsecond=0
+    )
 
 
 def update_countdown(task: Task, hours=7):
@@ -43,8 +49,8 @@ def update_countdown(task: Task, hours=7):
         end_time = _naive(schedule.end_time)
         schedule.first_day_number = remaining_days
         remaining_days -= ((
-               end_time - start_time
-        ).days - 1)
+                                   end_time - start_time
+                           ).days - 1)
         remaining_days -= 1
         schedule.last_day_number = remaining_days
         schedule.save()
@@ -61,8 +67,8 @@ def update_countdown(task: Task, hours=7):
         end_time = _naive(schedule.end_time)
         schedule.first_day_number = remaining_days
         remaining_days += ((
-           end_time - start_time
-        ).days - 1)
+                                   end_time - start_time
+                           ).days - 1)
         remaining_days += 1
         schedule.last_day_number = remaining_days
         schedule.save()
@@ -119,22 +125,22 @@ def calculate_remaining_task_days(
             prev_start_time = _naive(prev_schedule.start_time)
             prev_end_time = _naive(prev_schedule.end_time)
             if (
-                prev_end_time <
-                last_task_update
+                    prev_end_time <
+                    last_task_update
             ):
                 remaining_task_day += (
-                    prev_end_time - prev_start_time
-                ).days + 1
+                                              prev_end_time - prev_start_time
+                                      ).days + 1
             else:
                 remaining_task_day += (
-                    last_task_update - prev_start_time
+                        last_task_update - prev_start_time
                 ).days
         if end_time > last_task_update:
             end_time = last_task_update
         return (
-            remaining_task_day +
-            (end_time - start_time).days +
-            (1 if end_time < last_task_update else 0)
+                remaining_task_day +
+                (end_time - start_time).days +
+                (1 if end_time < last_task_update else 0)
         )
     else:
         # Calculate remaining days
@@ -154,12 +160,12 @@ def calculate_remaining_task_days(
             prev_start_time = _naive(previous_schedule.start_time)
             if prev_start_time > last_task_update:
                 remaining_task_day -= (
-                    prev_end_time - prev_start_time
-                ).days + 1
+                                              prev_end_time - prev_start_time
+                                      ).days + 1
             elif prev_start_time <= last_task_update:
                 remaining_task_day -= (
-                    prev_end_time - last_task_update
-                ).days + 1
+                                              prev_end_time - last_task_update
+                                      ).days + 1
         return remaining_task_day
 
 
@@ -193,8 +199,8 @@ def update_previous_schedules(
 
             # Calculate the duration of the current previous schedule
             duration = (
-                prev_schedule.end_time -
-                prev_schedule.start_time
+                    prev_schedule.end_time -
+                    prev_schedule.start_time
             ).days
 
             # Update the first_day value for the next
@@ -243,9 +249,9 @@ def update_subsequent_schedules(start_time,
         for sub_schedule in sub_schedules:
             sub_schedule.first_day_number = last_day_number - 1
             last_day_number = (
-                (last_day_number - 1) - (
+                    (last_day_number - 1) - (
                     sub_schedule.end_time - sub_schedule.start_time
-                ).days
+            ).days
             )
             sub_schedule.last_day_number = last_day_number
             sub_schedule.save()
@@ -354,43 +360,6 @@ class WeeklyScheduleList(APIView):
         end_date = datetime.strptime(end_time, "%Y-%m-%d").date()
         return (end_date - start_date).days + 1
 
-    def fill_null_ids(self, schedules):
-        index = 0
-        updated_schedule_ids = []
-        updated_schedules = schedules
-        for schedule in schedules:
-            if schedule['id'] is None:
-                start_time_null = schedule['start_time']
-                end_time_null = schedule['end_time']
-
-                for reversed_schedule in reversed(schedules):
-                    if reversed_schedule['id'] is not None:
-                        start_time = reversed_schedule['start_time']
-                        end_time = reversed_schedule['end_time']
-
-                        if start_time >= start_time_null and end_time <= end_time_null and schedule['duration'] > 0:
-                            if reversed_schedule['id'] not in updated_schedule_ids:
-                                updated_schedules.insert(index, reversed_schedule)
-                                schedule['duration'] -= reversed_schedule['duration']
-                                updated_schedule_ids.append(reversed_schedule['id'])
-                            else:
-                                continue
-                            break
-            index += 1
-
-        updated_schedule_ids = []
-        all_schedules = []
-        for _schedule in updated_schedules:
-            if _schedule['duration'] == 0:
-                continue
-            if _schedule['id'] in updated_schedule_ids:
-                continue
-            updated_schedule_ids.append(_schedule['id'])
-            all_schedules.append(_schedule)
-
-        return all_schedules
-
-
     def get(self, request, format=None):
         today = datetime.today()
         start_of_week = today - timedelta(days=today.weekday())
@@ -400,7 +369,7 @@ class WeeklyScheduleList(APIView):
             user_project__user=request.user,
             start_time__gte=_naive(dates[0]),
             start_time__lte=_naive(dates[4])
-        ).order_by('id')
+        ).order_by('start_time', 'end_time').distinct()
 
         schedules_data = ScheduleSerializer(
             schedules, many=True
@@ -413,20 +382,20 @@ class WeeklyScheduleList(APIView):
         index = 0
         processed_schedules = []
         for schedule in schedules_data:
-            start_time = schedule['start_time'].split('T')[0]
-            end_time = schedule['end_time'].split('T')[0]
+            start_time = schedule[START_TIME].split('T')[0]
+            end_time = schedule[END_TIME].split('T')[0]
             if not last_schedule:
                 if start_time != dates[0]:
                     processed_schedules.insert(index, {
-                        'id': None,
-                        'start_time': datetime.strptime(dates[0], '%Y-%m-%d').date(),
-                        'end_time': datetime.strptime(start_time, '%Y-%m-%d').date() - timedelta(days=1),
-                        'duration': self.duration(dates[0], str(
+                        ID: None,
+                        START_TIME: datetime.strptime(dates[0], '%Y-%m-%d').date(),
+                        END_TIME: datetime.strptime(start_time, '%Y-%m-%d').date() - timedelta(days=1),
+                        DURATION: self.duration(dates[0], str(
                             datetime.strptime(start_time, '%Y-%m-%d').date() - timedelta(days=1)))
                     })
                     index += 1
             else:
-                if schedule['start_time'] != last_schedule['end_time']:
+                if datetime.strptime(start_time, '%Y-%m-%d').date() != last_schedule[END_TIME] + timedelta(days=1):
                     new_start_time = (
                          last_schedule['end_time'] + timedelta(days=1)
                     )
@@ -454,13 +423,9 @@ class WeeklyScheduleList(APIView):
             last_schedule = schedule
             index += 1
 
-            schedule['start_time'] = datetime.strptime(start_time, '%Y-%m-%d').date()
-            schedule['end_time'] = datetime.strptime(end_time, '%Y-%m-%d').date()
-            schedule['duration'] = self.duration(start_time, end_time)
-
-        processed_schedules = self.fill_null_ids(
-            processed_schedules
-        )
+            schedule[START_TIME] = datetime.strptime(start_time, '%Y-%m-%d').date()
+            schedule[END_TIME] = datetime.strptime(end_time, '%Y-%m-%d').date()
+            schedule[DURATION] = self.duration(start_time, end_time)
 
         return Response({
             'dates': dates,
@@ -583,7 +548,7 @@ class AddSchedule(APIView):
         )
 
         last_day_number = (
-            remaining_task_days - (end_time - start_time).days
+                remaining_task_days - (end_time - start_time).days
         )
         schedule = Schedule.objects.create(
             user_project=user_project,
