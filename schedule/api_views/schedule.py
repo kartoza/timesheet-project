@@ -268,6 +268,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
     project_name = serializers.SerializerMethodField()
     task_name = serializers.SerializerMethodField()
     task_label = serializers.SerializerMethodField()
+    task_id = serializers.SerializerMethodField()
     first_day = serializers.IntegerField(source='first_day_number')
     last_day = serializers.IntegerField(source='last_day_number')
 
@@ -287,6 +288,11 @@ class ScheduleSerializer(serializers.ModelSerializer):
             if obj.activity:
                 return obj.activity.name
             return '-'
+
+    def get_task_id(self, obj: Schedule):
+        if obj.task:
+            return obj.task.id
+        return ''
 
     def get_project_name(self, obj: Schedule):
         return obj.user_project.project.name if obj.user_project else 'Kartoza'
@@ -318,6 +324,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
             'start_time',
             'end_time',
             'project_name',
+            'task_id',
             'task_name',
             'task_label',
             'first_day',
@@ -493,8 +500,10 @@ class UpdateSchedule(APIView):
 
     def put(self, request):
         schedule_id = request.data.get('schedule_id', None)
+        notes = request.data.get('notes', '')
         if not schedule_id:
             raise Http404()
+        task_id = request.data.get('taskId', None)
         start_time = datetime.strptime(
             request.data.get('start_time'),
             '%d/%m/%Y')
@@ -507,6 +516,9 @@ class UpdateSchedule(APIView):
         pre_start_time = _naive(schedule.start_time)
         schedule.start_time = start_time
         schedule.end_time = end_time
+        schedule.notes = notes
+        if task_id:
+            schedule.task_id = task_id
         schedule.save()
 
         task = schedule.task

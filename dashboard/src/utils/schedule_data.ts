@@ -63,11 +63,15 @@ export function deleteSchedule(scheduleId: string) {
     })
 }
 
-export function updateSchedule(scheduleId: number, startTime: number, endTime: number) {
+export function updateSchedule(scheduleId: number, startTime: number, endTime: number, notes: string = "", taskId: string | null = null) {
   const formData = new FormData()
   formData.append('schedule_id', scheduleId + '')
   formData.append('start_time', getDateString(startTime, 1))
   formData.append('end_time', getDateString(endTime))
+  formData.append('notes', notes)
+  if (taskId) {
+    formData.append('taskId', taskId)
+  }
   const url = '/api/update-schedule/'
   return fetch(url, {
     credentials: 'include',
@@ -92,6 +96,9 @@ export function updateSchedule(scheduleId: number, startTime: number, endTime: n
             group: result.group,
             first_day: result.first_day,
             last_day: result.last_day,
+            notes: result.notes,
+            task_id: result.task_id,
+            task_label: result.task_label,
             bgColor: getColorFromTaskLabel(result.task_label)
           }
         }

@@ -23,12 +23,21 @@ const style = {
   p: 4,
 };
 
+export interface ItemTaskInterface {
+  id: string,
+  label: string
+}
+
 export interface ItemFormInterface {
   open: boolean,
   onClose: Function,
+  onUpdate?: Function,
   onAdd: Function,
   selectedGroup: GroupInterface | null,
-  startTime?: Date | null
+  startTime?: Date | null,
+  endTime?: Date | null,
+  selectedTask?: ItemTaskInterface | null,
+  notes?: string
 }
 
 export default function ItemForm(props: ItemFormInterface) {
@@ -36,7 +45,7 @@ export default function ItemForm(props: ItemFormInterface) {
   const [startTime, setStartTime] = useState<any | null>(new Date());
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [duration, setDuration] = useState<number>(1)
-  const [selectedTask, setSelectedTask] = useState<any>(null)
+  const [selectedTask, setSelectedTask] = useState<ItemTaskInterface | null>(null)
   const [notes, setNotes] = useState<string>('');
 
   useEffect(() => {
@@ -44,17 +53,33 @@ export default function ItemForm(props: ItemFormInterface) {
       setOpen(true)
       setDuration(1)
       setIsLoading(false)
-      setNotes('')
     }
     if (props.startTime) {
       setStartTime(props.startTime)
     }
     if (props.selectedGroup) {
-      console.log(props.selectedGroup)
+    }
+    if (props.selectedTask) {
+      setSelectedTask(props.selectedTask)
+    } else {
+      setSelectedTask(null)
+    }
+    if (props.endTime && props.startTime) {
+      let _startTime = props.startTime
+      let _endTime = props.endTime
+      if (props.startTime.constructor === Number) {
+        _startTime = new Date(props.startTime)
+        setStartTime(_startTime)
+      }
+      if (props.endTime.constructor === Number) {
+        _endTime = new Date(props.endTime)
+      }
+      setDuration( _endTime.getDate() - _startTime.getDate())
     }
   }, [props])
 
   const handleClose = () => {
+    setNotes('')
     if (isLoading) return
     setOpen(false)
     props.onClose()
@@ -103,7 +128,10 @@ export default function ItemForm(props: ItemFormInterface) {
             first_day: item.first_day,
             last_day: item.last_day,
             group: props.selectedGroup ? props.selectedGroup.id : null,
-            bgColor: selectedTask ? getColorFromTaskLabel(selectedTask.label) : '#FFF'
+            bgColor: selectedTask ? getColorFromTaskLabel(selectedTask.label) : '#FFF',
+            task_id: item.task_id,
+            task_label: item.task_label,
+            notes: item.notes
           }
           const updated: any = {}
           if (result['updated']) {
@@ -118,6 +146,9 @@ export default function ItemForm(props: ItemFormInterface) {
                 group: item.group,
                 first_day: item.first_day,
                 last_day: item.last_day,
+                task_id: item.task_id,
+                task_label: item.task_label,
+                notes: item.notes,
                 bgColor: getColorFromTaskLabel(item.task_label)
               }
             }
@@ -140,7 +171,7 @@ export default function ItemForm(props: ItemFormInterface) {
     >
       <Box sx={style}>
         <Typography id="modal-modal-title" variant="h6" component="h2">
-          Add new data
+          { props.selectedTask ? 'Update data' : 'Add new data' }
         </Typography>
         <div>
            <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -159,7 +190,8 @@ export default function ItemForm(props: ItemFormInterface) {
                </Grid>
                <Grid item xs={12}>
                  <TaskAutocomplete selectedProjectId={props.selectedGroup?.projectId}
-                                   onTaskSelected={(task) => {
+                                   selectedTask={selectedTask}
+                                   onTaskSelected={(task: ItemTaskInterface | null) => {
                                      setSelectedTask(task)
                                    }}/>
                </Grid>
@@ -189,7 +221,7 @@ export default function ItemForm(props: ItemFormInterface) {
                </Grid>
                <Grid item xs={12}>
                  <TextField
-                     value={notes}
+                     value={notes ? notes : (props.notes ? props.notes : '')}
                      id={'notes'}
                      label="Notes"
                      multiline
@@ -201,12 +233,29 @@ export default function ItemForm(props: ItemFormInterface) {
                  />
                </Grid>
                <Grid item xs={12}>
-                 <TButton color="success" variant="contained" size="large" sx={{width: '100%', marginTop: -1}}
-                      onClick={submitAdd}
-                      disabled={isLoading || !selectedTask}
-                      disableElevation>{isLoading ?
-                      <CircularProgress color="inherit" size={20}/> : "Add"}
-                 </TButton>
+                 { props.selectedTask ?
+                   <TButton color="success" variant="contained" size="large" sx={{width: '100%', marginTop: -1}}
+                        onClick={() => {
+                          setIsLoading(false)
+                          if (props.onUpdate) {
+                            handleClose()
+                            props.onUpdate(
+                                startTime,
+                                notes,
+                                selectedTask,
+                                duration
+                            )
+                          }
+                        }}
+                        disabled={isLoading || !selectedTask}
+                        disableElevation>{isLoading ?
+                        <CircularProgress color="inherit" size={20}/> : "Update"}
+                   </TButton> : <TButton color="success" variant="contained" size="large" sx={{width: '100%', marginTop: -1}}
+                                         onClick={submitAdd}
+                                         disabled={isLoading || !selectedTask}
+                                         disableElevation>{isLoading ?
+                         <CircularProgress color="inherit" size={20}/> : "Add"}
+                     </TButton> }
                </Grid>
              </Grid>
            </LocalizationProvider>
