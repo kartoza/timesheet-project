@@ -1,8 +1,6 @@
 import factory
 import datetime
 
-from django.contrib.auth import get_user_model
-
 from timesheet.models import *
 
 
@@ -15,11 +13,20 @@ class UserFactory(factory.django.DjangoModelFactory):
     password = factory.PostGenerationMethodCall('set_password', 'password')
 
 
+class ProjectFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Project
+
+    name = factory.Sequence(lambda n: 'Project %s' % n)
+    is_active = True
+
+
 class TaskFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Task
 
     name = factory.Sequence(lambda n: 'Task %s' % n)
+    project = factory.SubFactory(ProjectFactory)
 
 
 class TimelogFactory(factory.django.DjangoModelFactory):
@@ -28,4 +35,5 @@ class TimelogFactory(factory.django.DjangoModelFactory):
 
     user = factory.SubFactory(UserFactory)
     start_time = factory.LazyFunction(datetime.datetime.now)
+    end_time = factory.LazyFunction(lambda: datetime.datetime.now() + datetime.timedelta(hours=1))
     task = factory.SubFactory(TaskFactory)
