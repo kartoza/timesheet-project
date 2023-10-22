@@ -3,6 +3,7 @@ import html2text
 
 from rest_framework import serializers
 from timesheet.models import Timelog
+from timesheet.utils.time import localize_and_convert_to_utc
 
 
 class TimelogSerializer(serializers.ModelSerializer):
@@ -31,7 +32,7 @@ class TimelogSerializer(serializers.ModelSerializer):
     total_children = serializers.SerializerMethodField()
 
     def get_project_active(self, obj: Timelog):
-        if obj.task:
+        if obj.task and obj.task.project:
             return obj.task.project.is_active
         return True
 
@@ -74,17 +75,17 @@ class TimelogSerializer(serializers.ModelSerializer):
         return ''
 
     def get_project_name(self, obj: Timelog):
-        if obj.task:
+        if obj.task and obj.task.project:
             return obj.task.project.name
         return 'Kartoza'
 
     def get_project(self, obj: Timelog):
-        if obj.task:
+        if obj.task and obj.task.project:
             return obj.task.project.name
         return ''
 
     def get_project_id(self, obj: Timelog):
-        if obj.task:
+        if obj.task and obj.task.project:
             return obj.task.project.id
         return ''
 
@@ -127,11 +128,23 @@ class TimelogSerializer(serializers.ModelSerializer):
             return ''
 
     def get_from_time(self, obj: Timelog):
-        return obj.start_time.strftime('%Y-%m-%d %H:%M:%S')
+        start_time = obj.start_time
+        if obj.timezone:
+            start_time = localize_and_convert_to_utc(
+                obj.start_time,
+                obj.timezone
+            )
+        return start_time.strftime('%Y-%m-%d %H:%M:%S')
 
     def get_to_time(self, obj: Timelog):
         if obj.end_time:
-            return obj.end_time.strftime('%Y-%m-%d %H:%M:%S')
+            end_time = obj.end_time
+            if obj.timezone:
+                end_time = localize_and_convert_to_utc(
+                    obj.end_time,
+                    obj.timezone
+                )
+            return end_time.strftime('%Y-%m-%d %H:%M:%S')
         else:
             return ''
 

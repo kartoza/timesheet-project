@@ -75,7 +75,7 @@ def generate_api_secret(user: get_user_model()):
 def pull_user_data_from_erp(user: get_user_model()):
 
     users = get_erp_data(
-        DocType.USER, preferences.TimesheetPreferences.admin_token, 
+        DocType.USER, preferences.TimesheetPreferences.admin_token,
         f'[["email", "=", "{user.email}"]]'
     )
     if len(users) > 0:
@@ -85,9 +85,9 @@ def pull_user_data_from_erp(user: get_user_model()):
 
     if not user.profile.api_secret:
         generate_api_secret(user)
-    
+
     employee = get_erp_data(
-        DocType.EMPLOYEE, user.profile.token, 
+        DocType.EMPLOYEE, user.profile.token,
         f'[["company_email", "=", "{user.email}"]]'
     )
     if len(employee) > 0:
@@ -121,7 +121,7 @@ def pull_projects_from_erp(user: get_user_model()):
             user=user,
             project=_project
         )
-    
+
     # Check inactive projects
     inactive = UserProject.objects.exclude(
         project__updated=updated
@@ -169,13 +169,6 @@ def pull_projects_from_erp(user: get_user_model()):
                 actual_time=task['actual_time']
             )
             updated_tasks.append(latest_task.id)
-        # deleted_tasks = Task.objects.filter(
-        #     project=project
-        # ).exclude(
-        #     id__in=updated_tasks
-        # )
-        # if deleted_tasks.exists():
-        #     deleted_tasks.delete()
 
     activities = get_erp_data(
         DocType.ACTIVITY, user.profile.token)
@@ -257,7 +250,7 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
         )
         if response.status_code == 200:
             logger.info('Timesheet submitted successfully')
-            
+
             Timelog.objects.filter(
                 id__in=value['ids']
             ).update(submitted=True)
@@ -314,7 +307,7 @@ def get_detailed_report_data(project_name: str, filters: str = ''):
 
 
 def get_burndown_chart_data(project_name: str):
-    
+
     def week_of_month(dt):
         """ Returns the week of the month for the specified date.
         """
@@ -334,7 +327,7 @@ def get_burndown_chart_data(project_name: str):
             total_actual_hours=Sum('actual_time')
         )
     timesheet_detail = get_detailed_report_data(project_name)
-    
+
     hours_by_week = {}
     for timesheet_date in timesheet_detail:
         if 'Date' not in timesheet_date:
