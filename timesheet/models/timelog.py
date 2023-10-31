@@ -21,6 +21,13 @@ class Timelog(models.Model):
         on_delete=models.SET_NULL
     )
 
+    project = models.ForeignKey(
+        'timesheet.Project',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
+
     activity = models.ForeignKey(
         'timesheet.Activity',
         null=True,

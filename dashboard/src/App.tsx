@@ -25,10 +25,10 @@ import {
     useColorScheme,
 } from '@mui/material/styles';
 import TButton from './loadable/Button';
-import { 
-    SettingsIcon, 
-    SendIcon, 
-    LightModeIcon, 
+import {
+    SettingsIcon,
+    SendIcon,
+    LightModeIcon,
     DarkModeIcon,
 } from './loadable/Icon';
 import Loader from './loadable/Loader';
@@ -44,9 +44,10 @@ const UserActivities = React.lazy(() => import('./components/UserActivities'));
 const LeaderBoard = React.lazy(() => import('./components/LeaderBoard'));
 
 const randomCompliments = [
-    'Good job!',
-    'Great job!',
-    'Awesome!'
+    'Nice!',
+    'Clocking out like a pro!',
+    'Timesheet superstar!',
+    'Like clockwork!',
 ]
 
 export function ModeToggle() {
@@ -333,7 +334,7 @@ function App() {
         const celebrate = async () => {
             if (isSuccess) {
                 setCompliment(
-                    randomCompliments[Math.floor(Math.random() * 3)]
+                    randomCompliments[Math.floor(Math.random() * randomCompliments.length)]
                 )
                 fireConfetti()
                 setFadeProp({
@@ -687,7 +688,7 @@ function App() {
 
                                 <Suspense fallback={<Loader/>}>
                                     <TReactQuill
-                                        formats={['bold', 'link', 'strike', 
+                                        formats={['bold', 'link', 'strike',
                                         'italic', 'list', 'indent', 'align', 'code-block']}
                                         modules={{
                                             toolbar: [
@@ -718,6 +719,7 @@ function App() {
                                         runningTimeLog={runningTimeLog}
                                         editingTimeLog={editingTimeLog}
                                         task={selectedTask}
+                                        project={selectedProject}
                                         activity={selectedActivity}
                                         description={description}
                                         parent={parent}
