@@ -24,6 +24,7 @@ interface TimeCardProps {
     editingTimeLog?: any | null,
     toggleTimer?: any,
     task?: any | null,
+    project?: any | null,
     activity?: any | null,
     description?: String | '',
     parent?: string
@@ -34,11 +35,12 @@ interface TimeCardProps {
 let interval: any = null;
 
 export const TimeCard = forwardRef(({
-    runningTimeLog, 
-    editingTimeLog, 
-    toggleTimer, 
-    task, 
-    activity, 
+    runningTimeLog,
+    editingTimeLog,
+    toggleTimer,
+    task,
+    project,
+    activity,
     description,
     parent,
     clearAllFields }: TimeCardProps, ref) => {
@@ -56,7 +58,7 @@ export const TimeCard = forwardRef(({
     const [addTimesheet, { isLoading: isUpdating, isSuccess, isError, data: newData }] = useAddTimesheetMutation();
     const [updateTimesheet, {  isLoading: isUpdateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError, data: updatedData }] = useUpdateTimesheetMutation();
     const [clearTimesheets, {
-        isLoading: isClearLoading, 
+        isLoading: isClearLoading,
         isSuccess: isClearSuccess, isError: isClearError }] = useClearSubmittedTimesheetsMutation();
 
     useEffect(() => {
@@ -103,8 +105,8 @@ export const TimeCard = forwardRef(({
                 clearData();
             }
         }
-    }, [localRunningTimeLog, 
-        editingTimeLog, 
+    }, [localRunningTimeLog,
+        editingTimeLog,
         isUpdateSuccess,
         updatedTimesheet,
         clearData])
@@ -177,6 +179,9 @@ export const TimeCard = forwardRef(({
         runningTimeClone['activity'] = {
             'id': activity.id
         }
+        runningTimeClone['project'] = {
+            'id': project ? project.id : ''
+        }
         runningTimeClone['description'] = description;
         runningTimeClone['end_time'] = formatTime(new Date());
         updateTimesheet(runningTimeClone);
@@ -205,9 +210,6 @@ export const TimeCard = forwardRef(({
         if (startFromZero) {
             _runningTime = '00:00:00';
         }
-
-        console.log(_runningTime, startFromZero)
-
         let _startTime = formatTime(new Date());
         if (_runningTime !== '00:00:00') {
             const [hours, minutes, seconds] = _runningTime.split(':').map(Number);
@@ -227,6 +229,9 @@ export const TimeCard = forwardRef(({
             },
             activity: {
                 'id': activity.id
+            },
+            project: {
+                'id': project ? project.id : ''
             },
             description: description,
             timezone: currentTimeZone,
@@ -281,6 +286,9 @@ export const TimeCard = forwardRef(({
             activity: {
                 'id': activity.id
             },
+            project: {
+                'id': project ? project.id : ''
+            },
             description: description,
             timezone: currentTimeZone
         })
@@ -310,6 +318,9 @@ export const TimeCard = forwardRef(({
             }
             editingTimeClone['activity'] = {
                 'id': activity.id
+            }
+            editingTimeClone['project'] = {
+                'id': project ? project.id : ''
             }
             editingTimeClone['description'] = description;
             editingTimeClone['end_time'] = formatTime(endTime);
@@ -342,7 +353,7 @@ export const TimeCard = forwardRef(({
                 <CardContent sx={{ paddingLeft: 0, paddingRight: 0, paddingTop: 0 }}>
                     <Grid container spacing={0.6}>
                         <Grid item xs={7} className="time-picker">
-                            <DatePicker 
+                            <DatePicker
                                 value={startTime}
                                 onChange={(newValue) => setStartTime(newValue)}
                                 renderInput={(params) => <TextField {...params} variant="standard" sx={{ width: "100%" }} />}
@@ -354,7 +365,7 @@ export const TimeCard = forwardRef(({
                                 ampm={false}
                                 value={startTime}
                                 onChange={(newValue) => setStartTime(newValue)}
-                                renderInput={(params) => 
+                                renderInput={(params) =>
                                     <TextField {...params} variant="standard" sx={{ width: "100%" }} />}
                             />
                         </Grid>
@@ -450,11 +461,11 @@ export const TimeCard = forwardRef(({
                 </Grid>
             </div>
             <div style={{ marginTop: 'auto'}}>
-                <TButton 
+                <TButton
                     onClick={handleClearSubmitted}
                     style={{ width: '100%' }}
                     startIcon={<ClearAllIcon/>}
-                    variant={'outlined'} 
+                    variant={'outlined'}
                     color={'warning'}>Clear Submitted</TButton>
             </div>
         </LocalizationProvider>

@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from timesheet.models import Timelog, Task, Activity
+from timesheet.models import Timelog, Task, Activity, Project
 from timesheet.serializers.timesheet import TimelogSerializer
 from timesheet.utils.erp import push_timesheet_to_erp
 from timesheet.utils.time import convert_time_to_user_timezone
@@ -29,9 +29,14 @@ class ActivitySerializer(serializers.Serializer):
     id = serializers.CharField(max_length=100)
 
 
+class ProjectSerializer(serializers.Serializer):
+    id = serializers.CharField(max_length=100)
+
+
 class TimesheetSerializer(serializers.ModelSerializer):
     user = UserSerializer(required=False)
     task = TaskSerializer(required=False)
+    project = ProjectSerializer(required=False)
     activity = ActivitySerializer(required=False)
     editing = serializers.SerializerMethodField()
 
@@ -46,6 +51,7 @@ class TimesheetSerializer(serializers.ModelSerializer):
             'end_time',
             'user',
             'task',
+            'project',
             'activity',
             'timezone',
             'parent',
@@ -64,9 +70,13 @@ class TimesheetSerializer(serializers.ModelSerializer):
         task = validated_data.pop('task')
         activity = validated_data.pop('activity')
         instance.description = validated_data.pop('description', '')
+        project_data = validated_data.pop('project')
         task_id = task.get('id')
+        instance.project = Project.objects.get(
+            id=project_data.get('id')
+        )
         if task_id != '-':
-            instance.task = Task.objects.get(id=task.get('id'))
+            instance.task = Task.objects.get(id=task_id)
         else:
             instance.task = None
         instance.activity = Activity.objects.get(id=activity.get('id'))
@@ -121,6 +131,7 @@ class TimesheetSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = validated_data.pop('user', None)
         task = validated_data.pop('task')
+        project_data = validated_data.pop('project')
         start_time = validated_data.pop('start_time')
         end_time = validated_data.get('end_time', None)
         activity = validated_data.pop('activity')
@@ -135,8 +146,11 @@ class TimesheetSerializer(serializers.ModelSerializer):
         else:
             user = get_user_model().objects.get(id=user.get('id'))
         task_id = task.get('id')
+        project = Project.objects.get(
+            id=project_data.get('id')
+        )
         if task_id != '-':
-            task = Task.objects.get(id=task.get('id'))
+            task = Task.objects.get(id=task_id)
         else:
             task = None
         activity = Activity.objects.get(id=activity.get('id'))
@@ -173,7 +187,8 @@ class TimesheetSerializer(serializers.ModelSerializer):
             end_time=end_time,
             description=description,
             timezone=_timezone,
-            parent=parent
+            parent=parent,
+            project=project
         )
         return timesheet
 
