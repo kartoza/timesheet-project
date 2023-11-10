@@ -48,16 +48,18 @@ export const getTaskColor = (ratio: any) => {
     return '#' + hex(r) + hex(g) + hex(b);
 }
 
-export const getColorFromTaskLabel = (taskLabel: String) => {
+export const getColorFromTaskLabel = (taskLabel: any) => {
     const re = /([[+-]?(\d*[.])?\d+(\/)[[+-]?(\d*[.])?\d+)/;
-    let taskColor = '#FFFFFF00';
+    let taskColor = '#FFFFFF';
     if (taskLabel) {
         try {
             // @ts-ignore
             const times = taskLabel.match(re)[0];
             const timeUsed = parseFloat(times.split('/')[0])
             const timeBudget = parseFloat(times.split('/')[1])
-            taskColor = getTaskColor(timeUsed/timeBudget)
+            if (timeUsed >= 0 && timeBudget > 0) {
+                taskColor = getTaskColor(timeUsed/timeBudget)
+            }
         } catch (e) {
         }
     }
@@ -88,3 +90,13 @@ declare module '@mui/material/Button' {
     }
 }
 
+export const isColorLight = (color) => {
+    console.log(color);
+    if (!color) return false;
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness > 155;
+};
