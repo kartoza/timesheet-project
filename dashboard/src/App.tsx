@@ -13,7 +13,7 @@ import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
-import { generateColor, getColorFromTaskLabel, getTaskColor } from "./utils/Theme";
+import {generateColor, getColorFromTaskLabel, getTaskColor, isColorLight} from "./utils/Theme";
 import {
     TimeLog, useDeleteTimeLogMutation,
     useGetTimeLogsQuery,
@@ -663,29 +663,49 @@ function App() {
                                         }
                                     }}
                                     renderOption={(props, option) => {
-                                        return (<li {...props}
-                                                    style={{ backgroundColor: option.color ? option.color : 'rgba(255,255,255,0)' }}>
-                                            {option.label}</li>)
+                                        const backgroundColor = option.color ? option.color : 'rgba(255,255,255,1)';
+                                        const textColor = isColorLight(backgroundColor) ? '#000000' : '#FFFFFF';
+                                        return (
+                                            <li {...props}
+                                                style={{
+                                                    backgroundColor: backgroundColor,
+                                                    color: textColor
+                                            }}>
+                                            {option.label}</li>
+                                        )
                                     }}
                                     value={selectedTask}
                                     renderInput={(params) => {
+                                        let backgroundColor = 'inherit'
+                                        let textColor = 'inherit';
+                                        if (params.inputProps.value) {
+                                            backgroundColor = getColorFromTaskLabel(params.inputProps.value);
+                                            textColor = isColorLight(backgroundColor) ? '#000000' : '#FFFFFF'
+                                        }
                                         return <TextField
                                             {...params}
                                             label="Task"
                                             variant="filled"
                                             className="headerInput"
                                             // @ts-ignore
-                                            style={{ backgroundColor: params?.inputProps?.value !== '' ? getColorFromTaskLabel(params.inputProps.value) : 'rgba(255,255,255,0)' }}
+                                            style={{
+                                                backgroundColor: backgroundColor
+                                            }}
                                             InputProps={{
                                                 ...params.InputProps,
                                                 disableUnderline: true,
+                                                style: {
+                                                    color: textColor
+                                                }
+                                            }}
+                                            InputLabelProps={{
+                                                style: params.inputProps.value ? { color: textColor } : {}
                                             }}
                                         />
                                     }}
                                 />
                             </Grid>
                             <Grid item xs={12} style={{ marginRight: 5, minHeight: 110 }}>
-
                                 <Suspense fallback={<Loader/>}>
                                     <TReactQuill
                                         formats={['bold', 'link', 'strike',

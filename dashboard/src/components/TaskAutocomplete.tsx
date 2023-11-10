@@ -1,6 +1,6 @@
 import React, {useEffect, useState, Suspense} from 'react';
 import {TextField} from "@mui/material";
-import {getColorFromTaskLabel} from "../utils/Theme";
+import {getColorFromTaskLabel, isColorLight} from "../utils/Theme";
 import Autocomplete from "@mui/material/Autocomplete";
 import {ItemTaskInterface} from "./TimelineItemForm";
 
@@ -11,6 +11,7 @@ interface TaskAutocompleteInterface {
   selectedTask?: ItemTaskInterface | null,
   onTaskSelected?: Function,
 }
+
 
 export default function TaskAutocomplete(props: TaskAutocompleteInterface) {
   const [selectedTask, setSelectedTask] = useState<any>(props.selectedTask)
@@ -57,23 +58,44 @@ export default function TaskAutocomplete(props: TaskAutocompleteInterface) {
         }
       }}
       renderOption={(props, option) => {
+        const backgroundColor = option.color ? option.color : 'rgba(255,255,255,0)';
+        const textColor = isColorLight(backgroundColor) ? '#000000' : '#FFFFFF';
+
         return (<li {...props}
-                    style={{backgroundColor: option.color ? option.color : 'rgba(255,255,255,0)'}}>
+                    style={{
+                      backgroundColor: backgroundColor,
+                      color: textColor
+                    }}>
           {option.label}</li>)
       }}
       value={selectedTask}
       renderInput={(params) => {
-        return <TextField
-          {...params}
-          label="Task"
-          variant="filled"
-          className="headerInput"
-          // @ts-ignore
-          style={{backgroundColor: params?.inputProps?.value !== '' ? getColorFromTaskLabel(params.inputProps.value) : 'rgba(255,255,255,0)'}}
-          InputProps={{
-            ...params.InputProps, disableUnderline: true,
-          }}
-        />
+          let backgroundColor = 'inherit'
+          let textColor = 'inherit';
+          if (params.inputProps.value) {
+              backgroundColor = getColorFromTaskLabel(params.inputProps.value);
+              textColor = isColorLight(backgroundColor) ? '#000000' : '#FFFFFF'
+          }
+          return <TextField
+              {...params}
+              label="Task"
+              variant="filled"
+              className="headerInput"
+              // @ts-ignore
+              style={{
+                  backgroundColor: backgroundColor
+              }}
+              InputProps={{
+                  ...params.InputProps,
+                  disableUnderline: true,
+                  style: {
+                      color: textColor
+                  }
+              }}
+              InputLabelProps={{
+                  style: params.inputProps.value ? { color: textColor } : {}
+              }}
+          />
       }}
     />)
 }
