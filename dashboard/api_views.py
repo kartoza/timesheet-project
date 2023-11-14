@@ -152,6 +152,16 @@ class ReportData(UserPassesTestMixin, APIView):
                 total_costing[attr]
             ) * 100 if total_costing[attr] > 0 else 0
 
+        sorted_employee_contributions = (
+            sorted(employee_contributions.items(),
+                   key=lambda x: x[1],
+                   reverse=True)
+        )
+
+        employee_contributions = dict(
+            sorted_employee_contributions
+        )
+
         return {
             'total_billable_hours': total_billable_hours,
             'total_hours': total_hours,

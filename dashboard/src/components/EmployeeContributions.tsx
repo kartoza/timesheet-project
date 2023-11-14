@@ -1,7 +1,7 @@
 import {Box} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import React from "react";
-import {generateColor} from "../utils/Theme";
+import {generateUniqueColors} from "../utils/Theme";
 
 export interface EmployeeContributions {
     [name: string]: number
@@ -16,15 +16,18 @@ export const EmployeeContributionsSlider = (props : SliderProps) => {
     const marks = Object.values(props.data).map((value, index) => {
         accumulatedValue += value;
         return {
-            value: accumulatedValue,
-            label: `${Object.keys(props.data)[index]}: ${value.toFixed(2)}%`,
+            accumulatedValue: accumulatedValue,
+            label: `${Object.keys(props.data)[index]}: ${value.toFixed(2)}%`
         };
     });
 
+    const colors = generateUniqueColors(Object.keys(props.data).length)
+
     const trackStyle = (label: string) => {
+        const index = Object.keys(props.data).indexOf(label.split(':')[0])
         return {
-            backgroundColor: generateColor(label.split(':')[0], '50%'),
-            height: 8,
+            backgroundColor: (colors && colors[index] ? colors[index] : '#FFFFFF') as string,
+            height: 12,
         };
     };
 
@@ -51,8 +54,8 @@ export const EmployeeContributionsSlider = (props : SliderProps) => {
                         sx={{
                             ...trackStyle(mark.label),
                             position: 'absolute',
-                            left: index === 0 ? '0%' : `${marks[index - 1].value}%`,
-                            width: `${mark.value - (index === 0 ? 0 : marks[index - 1].value)}%`,
+                            left: index === 0 ? '0%' : `${marks[index - 1].accumulatedValue}%`,
+                            width: `${mark.accumulatedValue - (index === 0 ? 0 : marks[index - 1].accumulatedValue)}%`,
                         }}
                     />
                 ))}
@@ -63,7 +66,13 @@ export const EmployeeContributionsSlider = (props : SliderProps) => {
             }}>
                 {marks.map((mark, index) => (
                     <div style={{ display: 'flex', marginTop: 5 }}>
-                        <span style={{ width: 30, borderRadius: 25, marginRight: 5, backgroundColor: generateColor(mark.label.split(':')[0], '50%') }}>&nbsp;</span>
+                        <span style={{
+                            width: 30,
+                            borderRadius: 25,
+                            marginRight: 5,
+                            // @ts-ignore
+                            backgroundColor: colors && colors[index] ? colors[index] : ''
+                        }}>&nbsp;</span>
                         <Typography color={'text.primary'} fontSize={14}>{mark.label}</Typography>
                     </div>
                 ))}
