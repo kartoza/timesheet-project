@@ -31,6 +31,17 @@ export const generateColor = (id: string, brightness = '25%') => {
     return `hsl(${(hash % 360)}, 40%, ${brightness})`;
 }
 
+export const generateUniqueColors = (count) => {
+    const colors = new Set();
+
+    while (colors.size < count) {
+        const color = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+        colors.add(color);
+    }
+
+    return Array.from(colors);
+}
+
 export const getTaskColor = (ratio: any) => {
     let green = '99FF33';
     let red = '660000';

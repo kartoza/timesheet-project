@@ -31,7 +31,7 @@ import {
 import React from "react";
 import { useEffect, useState } from "react";
 import { Line } from 'react-chartjs-2';
-  
+
 import '../styles/App.scss';
 import {DownloadIcon} from "../loadable/Icon";
 import TButton from "../loadable/Button";
@@ -305,7 +305,7 @@ export default function Summary(props: any) {
                 <Grid item xs={1}></Grid>
                 <Grid item xs={10}>
                     { chartLoading ? <div className="loading-container">
-                        <CircularProgress/></div> : chartData ? 
+                        <CircularProgress/></div> : chartData ?
                             <div>
                                 { publicMode ?
                                     <Typography variant={'h5'} color={'text.primary'}>{summaryName}</Typography> : null }
@@ -313,7 +313,7 @@ export default function Summary(props: any) {
                                 <div style={{ padding: 35, marginBottom: 20 }}>
                                     <BurndownTable rows={tableRows} />
                                 </div>
-                            </div> : 
+                            </div> :
                             <Typography color={"text.primary"}  style={{ fontStyle: 'italic', marginTop: 30, fontSize: 25 }}>
                                 Choose a project to get the chart</Typography> }
 
@@ -321,7 +321,9 @@ export default function Summary(props: any) {
                         <Grid container>
                             <Grid item xs={1}></Grid>
                             <Grid item xs={10}>
-                                <EmployeeContributionsSlider data={reportData['user_based_analysis']['employee_contributions']}/>
+                                <EmployeeContributionsSlider
+                                    data={reportData['user_based_analysis']['employee_contributions']}
+                                />
                                 <UserReportTable data={reportData['user_based_analysis']}/>
                                 <TaskReportTable data={reportData['task_based_analysis']}/>
                             </Grid>
@@ -342,7 +344,7 @@ export default function Summary(props: any) {
                         </TButton>
                     </div> : null }
 
-                    { publicMode ? null : 
+                    { publicMode ? null :
                         <div style={{ marginTop: 20, marginBottom: 20, textAlign: 'left' }}>
                             <Typography variant={'h5'} style={{ marginBottom: 10 }} color={"text.primary"}>Saved Charts</Typography>
                             {summaries.map(summary =>
