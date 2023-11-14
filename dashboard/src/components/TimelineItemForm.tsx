@@ -76,6 +76,9 @@ export default function ItemForm(props: ItemFormInterface) {
       }
       setDuration( _endTime.getDate() - _startTime.getDate())
     }
+    if (props.notes) {
+      setNotes(props.notes)
+    }
   }, [props])
 
   const handleClose = () => {
@@ -221,7 +224,7 @@ export default function ItemForm(props: ItemFormInterface) {
                </Grid>
                <Grid item xs={12}>
                  <TextField
-                     value={notes ? notes : (props.notes ? props.notes : '')}
+                     value={notes}
                      id={'notes'}
                      label="Notes"
                      multiline
