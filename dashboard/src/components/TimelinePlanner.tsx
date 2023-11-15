@@ -234,9 +234,13 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
         .then(response => response.json())
         .then((result: any) => {
           setLoading(false);
-          setGroups(groups.filter(group => group.id !== groupId));
-          updateGroups(renderedGroups.filter(g => g.id !== groupId));
-          setSelectedGroup(null);
+          if (result['detail'] === 'Not found.') {
+            alert('Could not delete the project, try again later.')
+          } else {
+            setGroups(groups.filter(group => group.id !== groupId));
+            updateGroups(renderedGroups.filter(g => g.id !== groupId));
+            setSelectedGroup(null);
+          }
         })
     }
   }
@@ -275,8 +279,11 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
             </div>
           ) : (
             <div className='project-name-container'>
+              { canEdit ?
               <ClearIcon className='delete-project-button'
-                         onClick={() => removeProjectFromUser(group.userId, group.projectId, group.id)}/>
+                         onClick={() => removeProjectFromUser(group.userId, group.projectId, group.id)}/> :
+                  <div style={{ paddingLeft: 20 }}/>
+              }
               <div>{group.rightTitle}</div>
             </div>
           )

@@ -2660,28 +2660,478 @@
       "name": "Planner.950f53482b768893e79b.hot-update.json",
       "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.950f53482b768893e79b.hot-update.json",
       "publicPath": "http://localhost:9000/static/Planner.950f53482b768893e79b.hot-update.json"
+    },
+    "App.fcfe920f8207e6e15a81.hot-update.js": {
+      "name": "App.fcfe920f8207e6e15a81.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.fcfe920f8207e6e15a81.hot-update.js",
+      "publicPath": "http://localhost:9000/static/App.fcfe920f8207e6e15a81.hot-update.js"
+    },
+    "Space.fcfe920f8207e6e15a81.hot-update.js": {
+      "name": "Space.fcfe920f8207e6e15a81.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.fcfe920f8207e6e15a81.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Space.fcfe920f8207e6e15a81.hot-update.js"
+    },
+    "Summary.fcfe920f8207e6e15a81.hot-update.js": {
+      "name": "Summary.fcfe920f8207e6e15a81.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.fcfe920f8207e6e15a81.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Summary.fcfe920f8207e6e15a81.hot-update.js"
+    },
+    "PublicSummary.fcfe920f8207e6e15a81.hot-update.js": {
+      "name": "PublicSummary.fcfe920f8207e6e15a81.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.fcfe920f8207e6e15a81.hot-update.js",
+      "publicPath": "http://localhost:9000/static/PublicSummary.fcfe920f8207e6e15a81.hot-update.js"
+    },
+    "Planner.fcfe920f8207e6e15a81.hot-update.js": {
+      "name": "Planner.fcfe920f8207e6e15a81.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.fcfe920f8207e6e15a81.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Planner.fcfe920f8207e6e15a81.hot-update.js"
+    },
+    "App.fcfe920f8207e6e15a81.hot-update.json": {
+      "name": "App.fcfe920f8207e6e15a81.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.fcfe920f8207e6e15a81.hot-update.json",
+      "publicPath": "http://localhost:9000/static/App.fcfe920f8207e6e15a81.hot-update.json"
+    },
+    "Space.fcfe920f8207e6e15a81.hot-update.json": {
+      "name": "Space.fcfe920f8207e6e15a81.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.fcfe920f8207e6e15a81.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Space.fcfe920f8207e6e15a81.hot-update.json"
+    },
+    "Summary.fcfe920f8207e6e15a81.hot-update.json": {
+      "name": "Summary.fcfe920f8207e6e15a81.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.fcfe920f8207e6e15a81.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Summary.fcfe920f8207e6e15a81.hot-update.json"
+    },
+    "PublicSummary.fcfe920f8207e6e15a81.hot-update.json": {
+      "name": "PublicSummary.fcfe920f8207e6e15a81.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.fcfe920f8207e6e15a81.hot-update.json",
+      "publicPath": "http://localhost:9000/static/PublicSummary.fcfe920f8207e6e15a81.hot-update.json"
+    },
+    "Planner.fcfe920f8207e6e15a81.hot-update.json": {
+      "name": "Planner.fcfe920f8207e6e15a81.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.fcfe920f8207e6e15a81.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Planner.fcfe920f8207e6e15a81.hot-update.json"
+    },
+    "App.fca1d0c11ecd78ec765e.hot-update.js": {
+      "name": "App.fca1d0c11ecd78ec765e.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.fca1d0c11ecd78ec765e.hot-update.js",
+      "publicPath": "http://localhost:9000/static/App.fca1d0c11ecd78ec765e.hot-update.js"
+    },
+    "Space.fca1d0c11ecd78ec765e.hot-update.js": {
+      "name": "Space.fca1d0c11ecd78ec765e.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.fca1d0c11ecd78ec765e.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Space.fca1d0c11ecd78ec765e.hot-update.js"
+    },
+    "Summary.fca1d0c11ecd78ec765e.hot-update.js": {
+      "name": "Summary.fca1d0c11ecd78ec765e.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.fca1d0c11ecd78ec765e.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Summary.fca1d0c11ecd78ec765e.hot-update.js"
+    },
+    "PublicSummary.fca1d0c11ecd78ec765e.hot-update.js": {
+      "name": "PublicSummary.fca1d0c11ecd78ec765e.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.fca1d0c11ecd78ec765e.hot-update.js",
+      "publicPath": "http://localhost:9000/static/PublicSummary.fca1d0c11ecd78ec765e.hot-update.js"
+    },
+    "Planner.fca1d0c11ecd78ec765e.hot-update.js": {
+      "name": "Planner.fca1d0c11ecd78ec765e.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.fca1d0c11ecd78ec765e.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Planner.fca1d0c11ecd78ec765e.hot-update.js"
+    },
+    "App.fca1d0c11ecd78ec765e.hot-update.json": {
+      "name": "App.fca1d0c11ecd78ec765e.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.fca1d0c11ecd78ec765e.hot-update.json",
+      "publicPath": "http://localhost:9000/static/App.fca1d0c11ecd78ec765e.hot-update.json"
+    },
+    "Space.fca1d0c11ecd78ec765e.hot-update.json": {
+      "name": "Space.fca1d0c11ecd78ec765e.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.fca1d0c11ecd78ec765e.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Space.fca1d0c11ecd78ec765e.hot-update.json"
+    },
+    "Summary.fca1d0c11ecd78ec765e.hot-update.json": {
+      "name": "Summary.fca1d0c11ecd78ec765e.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.fca1d0c11ecd78ec765e.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Summary.fca1d0c11ecd78ec765e.hot-update.json"
+    },
+    "PublicSummary.fca1d0c11ecd78ec765e.hot-update.json": {
+      "name": "PublicSummary.fca1d0c11ecd78ec765e.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.fca1d0c11ecd78ec765e.hot-update.json",
+      "publicPath": "http://localhost:9000/static/PublicSummary.fca1d0c11ecd78ec765e.hot-update.json"
+    },
+    "Planner.fca1d0c11ecd78ec765e.hot-update.json": {
+      "name": "Planner.fca1d0c11ecd78ec765e.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.fca1d0c11ecd78ec765e.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Planner.fca1d0c11ecd78ec765e.hot-update.json"
+    },
+    "App.5da0a04cba118de6296e.hot-update.js": {
+      "name": "App.5da0a04cba118de6296e.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.5da0a04cba118de6296e.hot-update.js",
+      "publicPath": "http://localhost:9000/static/App.5da0a04cba118de6296e.hot-update.js"
+    },
+    "Space.5da0a04cba118de6296e.hot-update.js": {
+      "name": "Space.5da0a04cba118de6296e.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.5da0a04cba118de6296e.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Space.5da0a04cba118de6296e.hot-update.js"
+    },
+    "Summary.5da0a04cba118de6296e.hot-update.js": {
+      "name": "Summary.5da0a04cba118de6296e.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.5da0a04cba118de6296e.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Summary.5da0a04cba118de6296e.hot-update.js"
+    },
+    "PublicSummary.5da0a04cba118de6296e.hot-update.js": {
+      "name": "PublicSummary.5da0a04cba118de6296e.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.5da0a04cba118de6296e.hot-update.js",
+      "publicPath": "http://localhost:9000/static/PublicSummary.5da0a04cba118de6296e.hot-update.js"
+    },
+    "Planner.5da0a04cba118de6296e.hot-update.js": {
+      "name": "Planner.5da0a04cba118de6296e.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.5da0a04cba118de6296e.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Planner.5da0a04cba118de6296e.hot-update.js"
+    },
+    "App.5da0a04cba118de6296e.hot-update.json": {
+      "name": "App.5da0a04cba118de6296e.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.5da0a04cba118de6296e.hot-update.json",
+      "publicPath": "http://localhost:9000/static/App.5da0a04cba118de6296e.hot-update.json"
+    },
+    "Space.5da0a04cba118de6296e.hot-update.json": {
+      "name": "Space.5da0a04cba118de6296e.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.5da0a04cba118de6296e.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Space.5da0a04cba118de6296e.hot-update.json"
+    },
+    "Summary.5da0a04cba118de6296e.hot-update.json": {
+      "name": "Summary.5da0a04cba118de6296e.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.5da0a04cba118de6296e.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Summary.5da0a04cba118de6296e.hot-update.json"
+    },
+    "PublicSummary.5da0a04cba118de6296e.hot-update.json": {
+      "name": "PublicSummary.5da0a04cba118de6296e.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.5da0a04cba118de6296e.hot-update.json",
+      "publicPath": "http://localhost:9000/static/PublicSummary.5da0a04cba118de6296e.hot-update.json"
+    },
+    "Planner.5da0a04cba118de6296e.hot-update.json": {
+      "name": "Planner.5da0a04cba118de6296e.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.5da0a04cba118de6296e.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Planner.5da0a04cba118de6296e.hot-update.json"
+    },
+    "App.90efbc3d5ed2dd2d606f.hot-update.js": {
+      "name": "App.90efbc3d5ed2dd2d606f.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.90efbc3d5ed2dd2d606f.hot-update.js",
+      "publicPath": "http://localhost:9000/static/App.90efbc3d5ed2dd2d606f.hot-update.js"
+    },
+    "Space.90efbc3d5ed2dd2d606f.hot-update.js": {
+      "name": "Space.90efbc3d5ed2dd2d606f.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.90efbc3d5ed2dd2d606f.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Space.90efbc3d5ed2dd2d606f.hot-update.js"
+    },
+    "Summary.90efbc3d5ed2dd2d606f.hot-update.js": {
+      "name": "Summary.90efbc3d5ed2dd2d606f.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.90efbc3d5ed2dd2d606f.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Summary.90efbc3d5ed2dd2d606f.hot-update.js"
+    },
+    "PublicSummary.90efbc3d5ed2dd2d606f.hot-update.js": {
+      "name": "PublicSummary.90efbc3d5ed2dd2d606f.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.90efbc3d5ed2dd2d606f.hot-update.js",
+      "publicPath": "http://localhost:9000/static/PublicSummary.90efbc3d5ed2dd2d606f.hot-update.js"
+    },
+    "Planner.90efbc3d5ed2dd2d606f.hot-update.js": {
+      "name": "Planner.90efbc3d5ed2dd2d606f.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.90efbc3d5ed2dd2d606f.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Planner.90efbc3d5ed2dd2d606f.hot-update.js"
+    },
+    "App.90efbc3d5ed2dd2d606f.hot-update.json": {
+      "name": "App.90efbc3d5ed2dd2d606f.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.90efbc3d5ed2dd2d606f.hot-update.json",
+      "publicPath": "http://localhost:9000/static/App.90efbc3d5ed2dd2d606f.hot-update.json"
+    },
+    "Space.90efbc3d5ed2dd2d606f.hot-update.json": {
+      "name": "Space.90efbc3d5ed2dd2d606f.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.90efbc3d5ed2dd2d606f.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Space.90efbc3d5ed2dd2d606f.hot-update.json"
+    },
+    "Summary.90efbc3d5ed2dd2d606f.hot-update.json": {
+      "name": "Summary.90efbc3d5ed2dd2d606f.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.90efbc3d5ed2dd2d606f.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Summary.90efbc3d5ed2dd2d606f.hot-update.json"
+    },
+    "PublicSummary.90efbc3d5ed2dd2d606f.hot-update.json": {
+      "name": "PublicSummary.90efbc3d5ed2dd2d606f.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.90efbc3d5ed2dd2d606f.hot-update.json",
+      "publicPath": "http://localhost:9000/static/PublicSummary.90efbc3d5ed2dd2d606f.hot-update.json"
+    },
+    "Planner.90efbc3d5ed2dd2d606f.hot-update.json": {
+      "name": "Planner.90efbc3d5ed2dd2d606f.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.90efbc3d5ed2dd2d606f.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Planner.90efbc3d5ed2dd2d606f.hot-update.json"
+    },
+    "App.6d62cd5a6cbdf5c0934d.hot-update.js": {
+      "name": "App.6d62cd5a6cbdf5c0934d.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.6d62cd5a6cbdf5c0934d.hot-update.js",
+      "publicPath": "http://localhost:9000/static/App.6d62cd5a6cbdf5c0934d.hot-update.js"
+    },
+    "Space.6d62cd5a6cbdf5c0934d.hot-update.js": {
+      "name": "Space.6d62cd5a6cbdf5c0934d.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.6d62cd5a6cbdf5c0934d.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Space.6d62cd5a6cbdf5c0934d.hot-update.js"
+    },
+    "Summary.6d62cd5a6cbdf5c0934d.hot-update.js": {
+      "name": "Summary.6d62cd5a6cbdf5c0934d.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.6d62cd5a6cbdf5c0934d.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Summary.6d62cd5a6cbdf5c0934d.hot-update.js"
+    },
+    "PublicSummary.6d62cd5a6cbdf5c0934d.hot-update.js": {
+      "name": "PublicSummary.6d62cd5a6cbdf5c0934d.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.6d62cd5a6cbdf5c0934d.hot-update.js",
+      "publicPath": "http://localhost:9000/static/PublicSummary.6d62cd5a6cbdf5c0934d.hot-update.js"
+    },
+    "Planner.6d62cd5a6cbdf5c0934d.hot-update.js": {
+      "name": "Planner.6d62cd5a6cbdf5c0934d.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.6d62cd5a6cbdf5c0934d.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Planner.6d62cd5a6cbdf5c0934d.hot-update.js"
+    },
+    "App.6d62cd5a6cbdf5c0934d.hot-update.json": {
+      "name": "App.6d62cd5a6cbdf5c0934d.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.6d62cd5a6cbdf5c0934d.hot-update.json",
+      "publicPath": "http://localhost:9000/static/App.6d62cd5a6cbdf5c0934d.hot-update.json"
+    },
+    "Space.6d62cd5a6cbdf5c0934d.hot-update.json": {
+      "name": "Space.6d62cd5a6cbdf5c0934d.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.6d62cd5a6cbdf5c0934d.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Space.6d62cd5a6cbdf5c0934d.hot-update.json"
+    },
+    "Summary.6d62cd5a6cbdf5c0934d.hot-update.json": {
+      "name": "Summary.6d62cd5a6cbdf5c0934d.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.6d62cd5a6cbdf5c0934d.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Summary.6d62cd5a6cbdf5c0934d.hot-update.json"
+    },
+    "PublicSummary.6d62cd5a6cbdf5c0934d.hot-update.json": {
+      "name": "PublicSummary.6d62cd5a6cbdf5c0934d.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.6d62cd5a6cbdf5c0934d.hot-update.json",
+      "publicPath": "http://localhost:9000/static/PublicSummary.6d62cd5a6cbdf5c0934d.hot-update.json"
+    },
+    "Planner.6d62cd5a6cbdf5c0934d.hot-update.json": {
+      "name": "Planner.6d62cd5a6cbdf5c0934d.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.6d62cd5a6cbdf5c0934d.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Planner.6d62cd5a6cbdf5c0934d.hot-update.json"
+    },
+    "App.ec57982baafa1472cd20.hot-update.js": {
+      "name": "App.ec57982baafa1472cd20.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.ec57982baafa1472cd20.hot-update.js",
+      "publicPath": "http://localhost:9000/static/App.ec57982baafa1472cd20.hot-update.js"
+    },
+    "Space.ec57982baafa1472cd20.hot-update.js": {
+      "name": "Space.ec57982baafa1472cd20.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.ec57982baafa1472cd20.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Space.ec57982baafa1472cd20.hot-update.js"
+    },
+    "Summary.ec57982baafa1472cd20.hot-update.js": {
+      "name": "Summary.ec57982baafa1472cd20.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.ec57982baafa1472cd20.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Summary.ec57982baafa1472cd20.hot-update.js"
+    },
+    "PublicSummary.ec57982baafa1472cd20.hot-update.js": {
+      "name": "PublicSummary.ec57982baafa1472cd20.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.ec57982baafa1472cd20.hot-update.js",
+      "publicPath": "http://localhost:9000/static/PublicSummary.ec57982baafa1472cd20.hot-update.js"
+    },
+    "Planner.ec57982baafa1472cd20.hot-update.js": {
+      "name": "Planner.ec57982baafa1472cd20.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.ec57982baafa1472cd20.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Planner.ec57982baafa1472cd20.hot-update.js"
+    },
+    "App.ec57982baafa1472cd20.hot-update.json": {
+      "name": "App.ec57982baafa1472cd20.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.ec57982baafa1472cd20.hot-update.json",
+      "publicPath": "http://localhost:9000/static/App.ec57982baafa1472cd20.hot-update.json"
+    },
+    "Space.ec57982baafa1472cd20.hot-update.json": {
+      "name": "Space.ec57982baafa1472cd20.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.ec57982baafa1472cd20.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Space.ec57982baafa1472cd20.hot-update.json"
+    },
+    "Summary.ec57982baafa1472cd20.hot-update.json": {
+      "name": "Summary.ec57982baafa1472cd20.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.ec57982baafa1472cd20.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Summary.ec57982baafa1472cd20.hot-update.json"
+    },
+    "PublicSummary.ec57982baafa1472cd20.hot-update.json": {
+      "name": "PublicSummary.ec57982baafa1472cd20.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.ec57982baafa1472cd20.hot-update.json",
+      "publicPath": "http://localhost:9000/static/PublicSummary.ec57982baafa1472cd20.hot-update.json"
+    },
+    "Planner.ec57982baafa1472cd20.hot-update.json": {
+      "name": "Planner.ec57982baafa1472cd20.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.ec57982baafa1472cd20.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Planner.ec57982baafa1472cd20.hot-update.json"
+    },
+    "App.b6e1c06294c296d0c140.hot-update.js": {
+      "name": "App.b6e1c06294c296d0c140.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.b6e1c06294c296d0c140.hot-update.js",
+      "publicPath": "http://localhost:9000/static/App.b6e1c06294c296d0c140.hot-update.js"
+    },
+    "Space.b6e1c06294c296d0c140.hot-update.js": {
+      "name": "Space.b6e1c06294c296d0c140.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.b6e1c06294c296d0c140.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Space.b6e1c06294c296d0c140.hot-update.js"
+    },
+    "Summary.b6e1c06294c296d0c140.hot-update.js": {
+      "name": "Summary.b6e1c06294c296d0c140.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.b6e1c06294c296d0c140.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Summary.b6e1c06294c296d0c140.hot-update.js"
+    },
+    "PublicSummary.b6e1c06294c296d0c140.hot-update.js": {
+      "name": "PublicSummary.b6e1c06294c296d0c140.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.b6e1c06294c296d0c140.hot-update.js",
+      "publicPath": "http://localhost:9000/static/PublicSummary.b6e1c06294c296d0c140.hot-update.js"
+    },
+    "Planner.b6e1c06294c296d0c140.hot-update.js": {
+      "name": "Planner.b6e1c06294c296d0c140.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.b6e1c06294c296d0c140.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Planner.b6e1c06294c296d0c140.hot-update.js"
+    },
+    "App.b6e1c06294c296d0c140.hot-update.json": {
+      "name": "App.b6e1c06294c296d0c140.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.b6e1c06294c296d0c140.hot-update.json",
+      "publicPath": "http://localhost:9000/static/App.b6e1c06294c296d0c140.hot-update.json"
+    },
+    "Space.b6e1c06294c296d0c140.hot-update.json": {
+      "name": "Space.b6e1c06294c296d0c140.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.b6e1c06294c296d0c140.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Space.b6e1c06294c296d0c140.hot-update.json"
+    },
+    "Summary.b6e1c06294c296d0c140.hot-update.json": {
+      "name": "Summary.b6e1c06294c296d0c140.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.b6e1c06294c296d0c140.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Summary.b6e1c06294c296d0c140.hot-update.json"
+    },
+    "PublicSummary.b6e1c06294c296d0c140.hot-update.json": {
+      "name": "PublicSummary.b6e1c06294c296d0c140.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.b6e1c06294c296d0c140.hot-update.json",
+      "publicPath": "http://localhost:9000/static/PublicSummary.b6e1c06294c296d0c140.hot-update.json"
+    },
+    "Planner.b6e1c06294c296d0c140.hot-update.json": {
+      "name": "Planner.b6e1c06294c296d0c140.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.b6e1c06294c296d0c140.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Planner.b6e1c06294c296d0c140.hot-update.json"
+    },
+    "App.99c3bb463840fa61db16.hot-update.js": {
+      "name": "App.99c3bb463840fa61db16.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.99c3bb463840fa61db16.hot-update.js",
+      "publicPath": "http://localhost:9000/static/App.99c3bb463840fa61db16.hot-update.js"
+    },
+    "Space.99c3bb463840fa61db16.hot-update.js": {
+      "name": "Space.99c3bb463840fa61db16.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.99c3bb463840fa61db16.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Space.99c3bb463840fa61db16.hot-update.js"
+    },
+    "Summary.99c3bb463840fa61db16.hot-update.js": {
+      "name": "Summary.99c3bb463840fa61db16.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.99c3bb463840fa61db16.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Summary.99c3bb463840fa61db16.hot-update.js"
+    },
+    "PublicSummary.99c3bb463840fa61db16.hot-update.js": {
+      "name": "PublicSummary.99c3bb463840fa61db16.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.99c3bb463840fa61db16.hot-update.js",
+      "publicPath": "http://localhost:9000/static/PublicSummary.99c3bb463840fa61db16.hot-update.js"
+    },
+    "Planner.99c3bb463840fa61db16.hot-update.js": {
+      "name": "Planner.99c3bb463840fa61db16.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.99c3bb463840fa61db16.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Planner.99c3bb463840fa61db16.hot-update.js"
+    },
+    "App.99c3bb463840fa61db16.hot-update.json": {
+      "name": "App.99c3bb463840fa61db16.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.99c3bb463840fa61db16.hot-update.json",
+      "publicPath": "http://localhost:9000/static/App.99c3bb463840fa61db16.hot-update.json"
+    },
+    "Space.99c3bb463840fa61db16.hot-update.json": {
+      "name": "Space.99c3bb463840fa61db16.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.99c3bb463840fa61db16.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Space.99c3bb463840fa61db16.hot-update.json"
+    },
+    "Summary.99c3bb463840fa61db16.hot-update.json": {
+      "name": "Summary.99c3bb463840fa61db16.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.99c3bb463840fa61db16.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Summary.99c3bb463840fa61db16.hot-update.json"
+    },
+    "PublicSummary.99c3bb463840fa61db16.hot-update.json": {
+      "name": "PublicSummary.99c3bb463840fa61db16.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.99c3bb463840fa61db16.hot-update.json",
+      "publicPath": "http://localhost:9000/static/PublicSummary.99c3bb463840fa61db16.hot-update.json"
+    },
+    "Planner.99c3bb463840fa61db16.hot-update.json": {
+      "name": "Planner.99c3bb463840fa61db16.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.99c3bb463840fa61db16.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Planner.99c3bb463840fa61db16.hot-update.json"
+    },
+    "App.c41a314b00f5b48f6b20.hot-update.js": {
+      "name": "App.c41a314b00f5b48f6b20.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.c41a314b00f5b48f6b20.hot-update.js",
+      "publicPath": "http://localhost:9000/static/App.c41a314b00f5b48f6b20.hot-update.js"
+    },
+    "Space.c41a314b00f5b48f6b20.hot-update.js": {
+      "name": "Space.c41a314b00f5b48f6b20.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.c41a314b00f5b48f6b20.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Space.c41a314b00f5b48f6b20.hot-update.js"
+    },
+    "Summary.c41a314b00f5b48f6b20.hot-update.js": {
+      "name": "Summary.c41a314b00f5b48f6b20.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.c41a314b00f5b48f6b20.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Summary.c41a314b00f5b48f6b20.hot-update.js"
+    },
+    "PublicSummary.c41a314b00f5b48f6b20.hot-update.js": {
+      "name": "PublicSummary.c41a314b00f5b48f6b20.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.c41a314b00f5b48f6b20.hot-update.js",
+      "publicPath": "http://localhost:9000/static/PublicSummary.c41a314b00f5b48f6b20.hot-update.js"
+    },
+    "Planner.c41a314b00f5b48f6b20.hot-update.js": {
+      "name": "Planner.c41a314b00f5b48f6b20.hot-update.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.c41a314b00f5b48f6b20.hot-update.js",
+      "publicPath": "http://localhost:9000/static/Planner.c41a314b00f5b48f6b20.hot-update.js"
+    },
+    "App.c41a314b00f5b48f6b20.hot-update.json": {
+      "name": "App.c41a314b00f5b48f6b20.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.c41a314b00f5b48f6b20.hot-update.json",
+      "publicPath": "http://localhost:9000/static/App.c41a314b00f5b48f6b20.hot-update.json"
+    },
+    "Space.c41a314b00f5b48f6b20.hot-update.json": {
+      "name": "Space.c41a314b00f5b48f6b20.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.c41a314b00f5b48f6b20.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Space.c41a314b00f5b48f6b20.hot-update.json"
+    },
+    "Summary.c41a314b00f5b48f6b20.hot-update.json": {
+      "name": "Summary.c41a314b00f5b48f6b20.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.c41a314b00f5b48f6b20.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Summary.c41a314b00f5b48f6b20.hot-update.json"
+    },
+    "PublicSummary.c41a314b00f5b48f6b20.hot-update.json": {
+      "name": "PublicSummary.c41a314b00f5b48f6b20.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.c41a314b00f5b48f6b20.hot-update.json",
+      "publicPath": "http://localhost:9000/static/PublicSummary.c41a314b00f5b48f6b20.hot-update.json"
+    },
+    "Planner.c41a314b00f5b48f6b20.hot-update.json": {
+      "name": "Planner.c41a314b00f5b48f6b20.hot-update.json",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.c41a314b00f5b48f6b20.hot-update.json",
+      "publicPath": "http://localhost:9000/static/Planner.c41a314b00f5b48f6b20.hot-update.json"
     }
   },
   "chunks": {
     "App": [
       "App.js",
-      "App.950f53482b768893e79b.hot-update.js"
+      "App.c41a314b00f5b48f6b20.hot-update.js"
     ],
     "Space": [
       "Space.js",
-      "Space.950f53482b768893e79b.hot-update.js"
+      "Space.c41a314b00f5b48f6b20.hot-update.js"
     ],
     "Summary": [
       "Summary.js",
-      "Summary.950f53482b768893e79b.hot-update.js"
+      "Summary.c41a314b00f5b48f6b20.hot-update.js"
     ],
     "PublicSummary": [
       "PublicSummary.js",
-      "PublicSummary.950f53482b768893e79b.hot-update.js"
+      "PublicSummary.c41a314b00f5b48f6b20.hot-update.js"
     ],
     "Planner": [
       "Planner.js",
-      "Planner.950f53482b768893e79b.hot-update.js"
+      "Planner.c41a314b00f5b48f6b20.hot-update.js"
     ]
   },
   "publicPath": "http://localhost:9000/static/",
