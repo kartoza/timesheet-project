@@ -477,7 +477,11 @@ function App() {
             setEditingTimeLog(null);
             setEditMode(false)
         }
+
         updateSelectedTimeLog(data);
+
+        // @ts-ignore
+        timeCardRef.current?.resetStartTime();
     }
 
     const handleDeleteTimeLog = (data: TimeLog, checkParent = true) => {
