@@ -33,7 +33,7 @@ class UserProjectSerializer(serializers.ModelSerializer):
 
 class UserProjectList(APIView):
     permission_classes = []
-    
+
     def get(self, request, format=None):
         timeline_id = self.request.GET.get('timelineId', None)
         if not timeline_id:
@@ -53,7 +53,8 @@ class UserProjectList(APIView):
         users_data = []
         for user in users:
             user_projects = UserProjectSlot.objects.filter(
-                user=user
+                user=user,
+                active=True
             )
             if timeline_id:
                 user_projects = user_projects.filter(
@@ -85,11 +86,36 @@ class AddUserProjectSlot(APIView):
         order = (
             UserProjectSlot.objects.filter(user_id=user_id).count() + 1
         )
-        user_project = UserProjectSlot.objects.create(
+        user_project, created = UserProjectSlot.objects.get_or_create(
             user_id=user_id,
             project=project,
-            order=order
+            defaults={
+                'order': order,
+                'active': True
+            }
         )
         return Response(
             UserProjectSerializer(user_project, many=False).data
         )
+
+
+class RemoveUserProject(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        project_id = request.data.get('project_id', None)
+        user_id = request.data.get('user_id', None)
+        if not project_id or not user_id:
+            raise Http404()
+        try:
+            user_project = UserProjectSlot.objects.get(
+                user_id=user_id,
+                project_id=project_id
+            )
+            user_project.active = False
+            user_project.save()
+            return Response({
+                'updated': True
+            })
+        except UserProjectSlot.DoesNotExist:
+            raise Http404()

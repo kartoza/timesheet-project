@@ -17,6 +17,7 @@ import {getColorFromTaskLabel, getTaskColor} from "../utils/Theme";
 import '../styles/Planner.scss';
 import ItemForm, {ItemTaskInterface} from "./TimelineItemForm";
 import AddBoxIcon from '@mui/icons-material/AddBox';
+import ClearIcon from '@mui/icons-material/Clear';
 import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
 import {Button, TextField, InputAdornment, Backdrop, CircularProgress} from "@mui/material";
 import TimelineProjectForm from "./TimelineProjectForm";
@@ -212,6 +213,34 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
     });
   }
 
+  const removeProjectFromUser = (userId?: string, projectId?: string, groupId?: string) => {
+    if (!userId || !projectId || !groupId) return;
+    let confirmation = confirm('Are you sure?')
+    if (confirmation) {
+      setLoading(true);
+      const url = '/api/remove-user-project-slot/';
+      const formData = new FormData();
+      formData.append('user_id', userId);
+      formData.append('project_id', projectId);
+      fetch(url, {
+        credentials: 'include',
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json',
+          'X-CSRFToken': (window as any).csrftoken
+        },
+      })
+        .then(response => response.json())
+        .then((result: any) => {
+          setLoading(false);
+          setGroups(groups.filter(group => group.id !== groupId));
+          updateGroups(renderedGroups.filter(g => g.id !== groupId));
+          setSelectedGroup(null);
+        })
+    }
+  }
+
   const updateGroups = (groupsData: GroupInterface[]) => {
     let _openGroups = openGroups;
     if (renderedGroups.length === 0) {
@@ -235,15 +264,21 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
           title: group.root ? (
             <div className={"root-parent"} onClick={() => toggleGroup(parseInt(group.id))}>
               {_openGroups[parseInt(group.id)] ?
-                <IndeterminateCheckBoxIcon style={{ color: props.searchValue ? 'gray' : 'black' }}/> : <AddBoxIcon style={{ color: props.searchValue ? 'gray' : 'black' }}/>} {group.rightTitle} <div className={'add-project-container'}>
-                  { canEdit ? <Button onClick={(event) => {
-                    event.stopPropagation()
-                    handleProjectAdd(group.id)
-                  }} sx={{ m: 0, p: 0 }} variant={'contained'} size={'small'} style={{ fontSize: 10, minWidth: 35 }}>Add</Button> : null }
-              </div>
+                <IndeterminateCheckBoxIcon style={{ color: props.searchValue ? 'gray' : 'black' }}/> :
+                  <AddBoxIcon style={{ color: props.searchValue ? 'gray' : 'black' }}/>} {group.rightTitle}
+                  <div className={'add-project-container'}>
+                      { canEdit ? <Button onClick={(event) => {
+                        event.stopPropagation()
+                        handleProjectAdd(group.id)
+                      }} sx={{ m: 0, p: 0 }} variant={'contained'} size={'small'} style={{ fontSize: 10, minWidth: 35 }}>Add</Button> : null }
+                  </div>
             </div>
           ) : (
-            <div style={{ paddingLeft: 20 }}>{group.rightTitle}</div>
+            <div className='project-name-container'>
+              <ClearIcon className='delete-project-button'
+                         onClick={() => removeProjectFromUser(group.userId, group.projectId, group.id)}/>
+              <div>{group.rightTitle}</div>
+            </div>
           )
         });
       })
@@ -550,7 +585,7 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
       <Backdrop open={loading} sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <CircularProgress color="inherit" />
       </Backdrop>
-      
+
       <ItemForm open={openForm}
                 selectedGroup={selectedGroup}
                 selectedTask={selectedTask}

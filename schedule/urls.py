@@ -1,7 +1,7 @@
 from django.urls import path
 from schedule.api_views.user_projects import (
     UserProjectList,
-    AddUserProjectSlot
+    AddUserProjectSlot, RemoveUserProject
 )
 from schedule.api_views.schedule import (
     ScheduleList,
@@ -24,6 +24,9 @@ urlpatterns = [
     path('api/add-user-project-slot/',
          AddUserProjectSlot.as_view(),
          name='add-user-project-slot'),
+    path('api/remove-user-project-slot/',
+         RemoveUserProject.as_view(),
+         name='remove-user-project-slot'),
     path('api/add-schedule/',
          AddSchedule.as_view(),
          name='add-schedule'),

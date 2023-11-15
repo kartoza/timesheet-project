@@ -94,3 +94,18 @@
 .react-calendar-timeline .rct-dateHeader-primary {
   background-color: #414042;
 }
+
+.project-name-container {
+  display: flex;
+  align-items: center;
+}
+
+.delete-project-button {
+  visibility: hidden;
+  transition: visibility 0.3s;
+  cursor: pointer;
+}
+
+.project-name-container:hover .delete-project-button {
+  visibility: visible;
+}

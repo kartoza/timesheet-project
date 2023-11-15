@@ -9,6 +9,9 @@ from timesheet.utils.erp import (
     pull_projects_from_erp,
     pull_user_data_from_erp
 )
+from schedule.models.user_project_slot import (
+    UserProjectSlot
+)
 
 
 class PullProjects(APIView):
@@ -51,12 +54,18 @@ class ProjectAutocomplete(APIView):
                 userproject__user=user,
             )
             if user_id:
+                user_project_slots = UserProjectSlot.objects.filter(
+                    user=user,
+                    active=True
+                )
                 self.queryset = self.queryset.exclude(
-                    userprojectslot__user=user
+                    id__in=list(
+                        user_project_slots.values_list(
+                            'project_id', flat=True))
                 )
 
         return Response(
             self.queryset.annotate(label=F('name')).values(
                 'id', 'label'
-            )
+            ).distinct()
         )
