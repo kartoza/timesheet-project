@@ -239,6 +239,10 @@ export const TimeCard = forwardRef(({
         })
     }
 
+    const resetStartTime = () => {
+        setStartTime(moment());
+    }
+
     const updateHours = (data: TimeLog) => {
         // @ts-ignore
         setHours(data.hours);
@@ -248,7 +252,8 @@ export const TimeCard = forwardRef(({
 
     useImperativeHandle(ref, () => ({
         startButtonClicked,
-        updateHours
+        updateHours,
+        resetStartTime,
     }));
 
     const addButtonClicked = async () => {
