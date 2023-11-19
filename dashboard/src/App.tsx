@@ -33,6 +33,8 @@ import {
 } from './loadable/Icon';
 import Loader from './loadable/Loader';
 import TimeLogChildList from "./components/TimeLogChildList";
+import {cloneTimeLogSignal, deleteTimeLogSignal, editTimeLogSignal, resumeTimeLogSignal} from "./utils/sharedSignals";
+
 const CircularMenu = React.lazy(() => import('./components/Menu'));
 const Standup = React.lazy(() => import('./components/Standup'));
 const TimeCard = React.lazy(() => import('./components/TimeCard'));
@@ -42,6 +44,7 @@ const ScheduleInfo = React.lazy(() => import("./components/ScheduleInfo"));
 const ReactCanvasConfetti = React.lazy(() => import('react-canvas-confetti'));
 const UserActivities = React.lazy(() => import('./components/UserActivities'));
 const LeaderBoard = React.lazy(() => import('./components/LeaderBoard'));
+
 
 const randomCompliments = [
     'Nice!',
@@ -79,7 +82,7 @@ const confettiStyle: CSSProperties = {
 }
 
 const TimeLogs = (props: any) => {
-    const { editTimeLog, copyTimeLog, resumeTimeLog, deleteTimeLog } = props;
+    const { resumeTimeLog, deleteTimeLog } = props;
 
     const { data: timesheetData, isLoading, isSuccess } = useGetTimeLogsQuery()
     let totalDraftHours = 0
@@ -133,8 +136,6 @@ const TimeLogs = (props: any) => {
                                         key={key}
                                         data={timesheetData.logs[key]}
                                         date={key}
-                                        editTimeLog={editTimeLog}
-                                        copyTimeLog={copyTimeLog}
                                         resumeTimeLog={resumeTimeLog}
                                         deleteTimeLog={deleteTimeLog}
                                     />
@@ -455,20 +456,20 @@ function App() {
         return []
     }
 
-    const editTimeLog = (data: TimeLog) => {
+    editTimeLogSignal.value = (timeLog: TimeLog) => {
         if (!timerStarted) {
             setEditMode(true)
-            if (data.total_children === 0) {
-                setEditingTimeLog(data);
+            if (timeLog.total_children === 0) {
+                setEditingTimeLog(timeLog);
             } else {
-                setTimeLogChildList(getTimeLogChild(data))
+                setTimeLogChildList(getTimeLogChild(timeLog))
             }
         } else {
             alert('Please stop the running timer first.');
         }
     }
 
-    const copyTimeLog = (data: TimeLog) => {
+    cloneTimeLogSignal.value = (data: TimeLog) => {
         if (timerStarted) {
             alert('Please stop the running timer first.');
             return;
@@ -484,7 +485,7 @@ function App() {
         timeCardRef.current?.resetStartTime();
     }
 
-    const handleDeleteTimeLog = (data: TimeLog, checkParent = true) => {
+    const onDeleteTimelog = (data: TimeLog, checkParent = true) => {
         if (checkParent && data.total_children > 0) {
             setEditMode(false)
             setTimeLogChildList(getTimeLogChild(data))
@@ -497,7 +498,11 @@ function App() {
         }
     }
 
-    const resumeTimeLog = (data: TimeLog) => {
+    deleteTimeLogSignal.value = (data: TimeLog, checkParent = true) => {
+        onDeleteTimelog(data, checkParent);
+    }
+
+    resumeTimeLogSignal.value = (data: TimeLog) => {
         if (timerStarted) {
             alert('Please stop the running timer first.');
             return;
@@ -766,15 +771,11 @@ function App() {
                     if (editMode) {
                         setEditingTimeLog(timelog)
                     } else {
-                        handleDeleteTimeLog(timelog, false)
+                        onDeleteTimelog(timelog, false)
                     }
                 }}
                 onClose={() => setTimeLogChildList([])}/>
-            <TimeLogs
-                editTimeLog={editTimeLog}
-                copyTimeLog={copyTimeLog}
-                deleteTimeLog={handleDeleteTimeLog}
-                resumeTimeLog={resumeTimeLog}/>
+            <TimeLogs/>
             { isEmpty() ? <div><CircularProgress style={{ marginTop: '50px' }} /></div> : null }
             { timesheetData && Object.keys(timesheetData.logs).length > 0 ?
             <Grid container>
