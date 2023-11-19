@@ -4,7 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        
+
         {
             "name":"Python: Django",
             "type":"python",
@@ -14,7 +14,7 @@
             "django":true,
             "justMyCode":true,
             "env": {
-                "DJANGO_SETTINGS_MODULE": "onairdjango.settings.core"
+                "DJANGO_SETTINGS_MODULE": "core.settings.core"
             }
         },
         {
@@ -26,7 +26,7 @@
             "django":true,
             "justMyCode":true,
             "env": {
-                "DJANGO_SETTINGS_MODULE": "onairdjango.settings.prod"
+                "DJANGO_SETTINGS_MODULE": "core.settings.prod"
             }
         },
         {
@@ -38,7 +38,7 @@
             "django":true,
             "justMyCode":true,
             "env": {
-                "DJANGO_SETTINGS_MODULE": "onairdjango.settings.prod"
+                "DJANGO_SETTINGS_MODULE": "core.settings.prod"
             }
         },
         {
@@ -50,7 +50,7 @@
             "django":true,
             "justMyCode":true,
             "env": {
-                "DJANGO_SETTINGS_MODULE": "onairdjango.settings.prod"
+                "DJANGO_SETTINGS_MODULE": "core.settings.prod"
             }
         },
     ]

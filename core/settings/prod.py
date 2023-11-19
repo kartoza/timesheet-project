@@ -11,4 +11,4 @@ MEDIA_ROOT = '/home/web/media'
 STATIC_ROOT = '/home/web/static'
 ALLOWED_HOSTS = ['timesheets.kartoza.com']
 
-STATICFILES_STORAGE = 'onairdjango.storage.BigBlindManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'core.storage.BigBlindManifestStaticFilesStorage'
