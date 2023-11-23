@@ -60,7 +60,7 @@ class UserProjectList(APIView):
                 user_projects = user_projects.filter(
                     project__publictimeline__id=timeline_id
                 )
-            users_data.append({
+            user_data = {
                 'user_id': user.id,
                 'user_name': (
                     user.first_name if user.first_name else user.username
@@ -68,7 +68,11 @@ class UserProjectList(APIView):
                 'slotted_projects': UserProjectSerializer(
                     user_projects, many=True
                 ).data
-            })
+            }
+            if self.request.user.id == user.id:
+                users_data.insert(0, user_data)
+            else:
+                users_data.append(user_data)
         return Response(
             users_data
         )
