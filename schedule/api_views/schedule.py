@@ -521,12 +521,24 @@ class UpdateSchedule(APIView):
             schedule.task_id = task_id
         schedule.save()
 
-        task = schedule.task
+        latest_schedule = Schedule.objects.filter(
+            task_id=schedule.task
+        ).order_by('-start_time').first()
 
-        updated = update_countdown(task)
-
+        remaining_task_days = calculate_remaining_task_days(
+            schedule.task,
+            latest_schedule.start_time,
+            latest_schedule.end_time
+        )
+        updated = update_previous_schedules(
+            latest_schedule.start_time,
+            schedule.task.id,
+            remaining_task_days
+        )
         return Response(
-            ScheduleSerializer(updated, many=True).data
+            ScheduleSerializer(Schedule.objects.filter(
+                id__in=updated + [schedule.id]
+            ), many=True).data
         )
 
 

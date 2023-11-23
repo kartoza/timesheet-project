@@ -413,3 +413,12 @@ def pull_leave_data_from_erp(user):
                 'notes': leave['description']
             }
         )
+        leave = Schedule.objects.filter(
+            start_time=leave['from_date'],
+            end_time=leave['to_date'],
+            user=user
+        )
+        if leave.count() > 1:
+            leave.exclude(
+                id=leave.last().id
+            ).delete()

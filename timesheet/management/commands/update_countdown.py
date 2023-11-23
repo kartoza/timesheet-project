@@ -1,18 +1,12 @@
-import logging
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
-from schedule.api_views.schedule import calculate_remaining_task_days, update_previous_schedules
 from schedule.models import Schedule
-from timesheet.utils.erp import (
-    pull_projects_from_erp, pull_leave_data_from_erp
-)
-
-logger = logging.getLogger(__name__)
+from schedule.api_views.schedule import update_previous_schedules, calculate_remaining_task_days
 
 
 class Command(BaseCommand):
-    help = 'Harvest data from erp'
+    help = 'Update schedule countdown'
 
     def update_schedule_countdown(self, user):
         schedules = Schedule.objects.filter(
@@ -45,10 +39,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         users = get_user_model().objects.all()
-        print(f'Total user : {users.count()}')
         for user in users:
-            if user.profile.api_secret:
-                print(f'Updating {user}')
-                pull_projects_from_erp(user)
-                pull_leave_data_from_erp(user)
-                self.update_schedule_countdown(user)
+            self.update_schedule_countdown(user)
