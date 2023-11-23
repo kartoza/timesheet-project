@@ -696,7 +696,15 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
                 )
               }}
             </SidebarHeader>
-            <DateHeader unit="primaryHeader" />
+            <DateHeader
+                unit="primaryHeader"
+                intervalRenderer={({ getIntervalProps, intervalContext, data }) => {
+                  return <div {...getIntervalProps()} className='DateHeaderContainer' onClick={() => {}}>
+                    <div className='DateHeaderText'>
+                      {intervalContext.intervalText}
+                    </div>
+                  </div>
+                }} />
             <DateHeader />
           </TimelineHeaders>
           <TimelineMarkers>
