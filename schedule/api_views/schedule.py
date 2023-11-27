@@ -271,6 +271,14 @@ class ScheduleSerializer(serializers.ModelSerializer):
     task_id = serializers.SerializerMethodField()
     first_day = serializers.IntegerField(source='first_day_number')
     last_day = serializers.IntegerField(source='last_day_number')
+    user = serializers.SerializerMethodField()
+
+    def get_user(self, obj: Schedule):
+        if obj.user:
+            return obj.user.first_name + obj.user.last_name
+        if obj.user_project and obj.user_project.user:
+            return obj.user_project.user.first_name + obj.user_project.user.last_name
+        return ''
 
     def get_task_label(self, obj: Schedule):
         if not obj.task:
@@ -329,7 +337,8 @@ class ScheduleSerializer(serializers.ModelSerializer):
             'task_label',
             'first_day',
             'last_day',
-            'notes'
+            'notes',
+            'user'
         ]
 
 
