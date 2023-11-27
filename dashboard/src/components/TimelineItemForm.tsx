@@ -127,7 +127,7 @@ export default function ItemForm(props: ItemFormInterface) {
             start: _startTime,
             end: _endTime,
             title: item.task_name,
-            info: item.task_label,
+            info: item.project_name + ' : ' + item.task_label,
             first_day: item.first_day,
             last_day: item.last_day,
             group: props.selectedGroup ? props.selectedGroup.id : null,

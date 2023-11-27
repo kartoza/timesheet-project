@@ -109,6 +109,7 @@ def pull_projects_from_erp(user: get_user_model()):
         raise ProjectsNotFound
 
     updated = timezone.now()
+    updated_projects = []
     for project in projects:
         _project, _ = Project.objects.update_or_create(
             name=project['name'],
@@ -121,6 +122,7 @@ def pull_projects_from_erp(user: get_user_model()):
             user=user,
             project=_project
         )
+        updated_projects.append(_project.id)
 
     # Check inactive projects
     inactive = UserProject.objects.exclude(
@@ -134,7 +136,6 @@ def pull_projects_from_erp(user: get_user_model()):
         Project.objects.filter(
             id__in=inactive_projects.values('id')
         ).delete()
-
 
     tasks = get_erp_data(
         DocType.TASK, user.profile.token
@@ -169,6 +170,16 @@ def pull_projects_from_erp(user: get_user_model()):
                 actual_time=task['actual_time']
             )
             updated_tasks.append(latest_task.id)
+
+    # Check inactive tasks
+    inactive_tasks = Task.objects.filter(
+        project_id__in=updated_projects
+    ).exclude(
+        id__in=updated_tasks
+    ).distinct()
+    print('inactive_tasks : {}'.format(inactive_tasks.count()))
+    if inactive_tasks:
+        inactive_tasks.update(active=False)
 
     activities = get_erp_data(
         DocType.ACTIVITY, user.profile.token)
@@ -402,3 +413,12 @@ def pull_leave_data_from_erp(user):
                 'notes': leave['description']
             }
         )
+        leave = Schedule.objects.filter(
+            start_time=leave['from_date'],
+            end_time=leave['to_date'],
+            user=user
+        )
+        if leave.count() > 1:
+            leave.exclude(
+                id=leave.last().id
+            ).delete()

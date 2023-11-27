@@ -37,6 +37,10 @@ class Task(models.Model):
         default=timezone.now
     )
 
+    active = models.BooleanField(
+        default=True
+    )
+
     def save(self, *args, **kwargs):
         disable_auto_update = kwargs.pop('disable_auto_update', False)
         if not disable_auto_update:

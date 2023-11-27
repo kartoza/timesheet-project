@@ -50,6 +50,7 @@ interface ItemInterface {
   end: number,
   group?: number,
   title?: string,
+  info?: string,
   color?: string,
   bgColor?: string,
   selectedBgColor?: string,
@@ -66,7 +67,7 @@ export interface GroupInterface {
   title: string,
   rightTitle?: string,
   userId?: string,
-  projectId?: string
+  projectId?: string,
 }
 
 interface TimelinePlannerInterface {
@@ -76,9 +77,9 @@ interface TimelinePlannerInterface {
 export default function TimelineDashboard() {
   const timelinePlanner = useRef(null);
   const [searchText, setSearchText] = useState<string | undefined>(undefined)
-  const toggleAllGroups = () => {
+  const toggleAllGroups = (newStatus: OpenCloseStatus) => {
     if (timelinePlanner.current) {
-      (timelinePlanner.current as any).toggleAllGroups();
+      (timelinePlanner.current as any).toggleAllGroups(newStatus);
     }
   }
 
@@ -96,6 +97,9 @@ const ItemSelectedColor = '#c19e16'
 function TimelineSearchInput({searchValue, onChange, toggleAllGroups}) {
   const [searchText, setSearchText] = useState<string>('')
   const [focus, setFocus] = useState<boolean>(true)
+  const [currentToggle, setCurrentToggle] = (
+      useState<OpenCloseStatus>(OpenCloseStatus.OPEN)
+  )
 
   useEffect(() => {
     setSearchText(searchValue);
@@ -104,6 +108,10 @@ function TimelineSearchInput({searchValue, onChange, toggleAllGroups}) {
   useEffect(() => {
     setFocus(true)
   }, [searchText])
+
+  const Icon = (
+      currentToggle === OpenCloseStatus.OPEN ? IndeterminateCheckBoxIcon : AddBoxIcon
+  )
 
   return (<TextField id="timeline-filter"
                  style={{
@@ -129,7 +137,20 @@ function TimelineSearchInput({searchValue, onChange, toggleAllGroups}) {
                      <SearchIcon/>
                    </InputAdornment>),
                    endAdornment: (<InputAdornment position="end">
-                     <IndeterminateCheckBoxIcon style={{ cursor: 'pointer', color: searchText ? 'gray' : 'black' }} onClick={() => toggleAllGroups()}/>
+                     <Icon style={{ cursor: 'pointer', color: searchText ? 'gray' : 'black' }}
+                                                onClick={() => {
+                                                  if (searchText) {
+                                                    return;
+                                                  }
+                                                  if (currentToggle === OpenCloseStatus.CLOSE) {
+                                                    toggleAllGroups(OpenCloseStatus.OPEN)
+                                                    setCurrentToggle(OpenCloseStatus.OPEN)
+                                                  } else {
+                                                    toggleAllGroups(OpenCloseStatus.CLOSE);
+                                                    setCurrentToggle(OpenCloseStatus.CLOSE);
+                                                  }
+                                                  return;
+                                                }}/>
                    </InputAdornment>)
                  }}
   />)
@@ -147,6 +168,7 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
   const [groups, setGroups] = useState<GroupInterface[]>([])
   const [renderedGroups, setRenderedGroups] = useState<GroupInterface[]>([])
   const [items, setItems] = useState<ItemInterface[]>([])
+  const [renderedItems, setRenderedItems] = useState<ItemInterface[]>([]);
   const [selectedItem, setSelectedItem] = useState<ItemInterface | null>(null)
   const [openGroups, setOpenGroups] = useState<any>({})
   const [openForm, setOpenForm] = useState<boolean>(false)
@@ -162,6 +184,10 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
       toggleAll(newStatus)
     },
   }));
+
+  useEffect(() => {
+    setRenderedItems(items);
+  }, [items]);
 
   const toggleAll = (newStatus = OpenCloseStatus.CLOSE) => {
     if (typeof props.searchValue !== 'undefined' && props.searchValue !== "") {
@@ -184,7 +210,9 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
       const groupItems = items
           .filter(item => item.group ? childrenGroups.includes('' + item.group) : false)
           .map(item => {
-              const group = item.group ? groups.find(group => parseInt(group.id, 10) === item.group) : null;
+              const group = item.group ? groups.find(
+                  group => parseInt(group.id, 10) === item.group
+              ) : null;
               return Object.assign({}, item, {
                 id: parseInt(item.id) * 1000,
                 color: '#FFF',
@@ -199,7 +227,10 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
           });
       setItems((oldItems) => [...oldItems, ...groupItems])
     } else {
-      const groupItems = items.filter(item => item.group ? openedGroups.includes(item.group) && item.task_label !== '-' : false).map(item => item.id)
+      const groupItems = items.filter(
+          item => item.group ? openedGroups.includes(
+              item.group) && item.task_label !== '-' : false
+      ).map(item => item.id)
       if (groupItems.length > 0) {
         setItems(items.filter(item => !groupItems.includes(item.id)))
       }
@@ -292,14 +323,28 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
     )
   }
 
+  const updateRenderedItems = (searchValue: string) => {
+    if (!searchValue) {
+      setRenderedItems(items)
+    } else {
+      setRenderedItems(items.filter(schedule => schedule.info ? schedule.info.toLowerCase().includes(searchValue) : false))
+    }
+  }
+
   const filterGroups = (searchText: string) => {
     const searchValue = searchText.toLowerCase()
+    updateRenderedItems(searchValue);
+    console.log(renderedGroups, openGroups);
     const updatedGroups = groups.filter((group) => {
       const groupTitle = group.rightTitle ? group.rightTitle.toLowerCase() : ''
       if (group.root && !groupTitle.includes(searchValue)) {
-        const children = groups.filter(childGroup => childGroup.parent === group.id)
+        const children = groups.filter(
+            childGroup => childGroup.parent === group.id
+        )
         if (children.length > 0) {
-          return children.filter(child => child.rightTitle ? child.rightTitle.toLowerCase().includes(searchValue) : false).length > 0
+          return children.filter(
+              child => child.rightTitle ?
+                  child.rightTitle.toLowerCase().includes(searchValue) : false).length > 0
         }
       }
       if (!group.root && !groupTitle.includes(searchValue)) {
@@ -331,7 +376,7 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
         endTime.setDate(endTime.getDate() + 1);
         return Object.assign({}, schedule, {
           title: schedule.task_name,
-          info: schedule.task_label,
+          info: schedule.project_name + ' : ' + schedule.task_label,
           start: startTime.getTime(),
           end: endTime.getTime(),
           color: '#FFF',
@@ -664,7 +709,7 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
           horizontalLineClassNamesForGroup={(group) => group.root ? ["row-root"] : []}
           sidebarWidth={225}
           groups={renderedGroups}
-          items={items}
+          items={renderedItems}
           keys={keys}
           sidebarContent={<div>Planning</div>}
           itemsSorted
@@ -696,7 +741,15 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
                 )
               }}
             </SidebarHeader>
-            <DateHeader unit="primaryHeader" />
+            <DateHeader
+                unit="primaryHeader"
+                intervalRenderer={({ getIntervalProps, intervalContext, data }) => {
+                  return <div {...getIntervalProps()} className='DateHeaderContainer' onClick={() => {}}>
+                    <div className='DateHeaderText'>
+                      {intervalContext.intervalText}
+                    </div>
+                  </div>
+                }} />
             <DateHeader />
           </TimelineHeaders>
           <TimelineMarkers>

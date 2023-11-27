@@ -22,7 +22,8 @@ class TaskAutocomplete(APIView):
 
         self.queryset = self.queryset.filter(
             project=project,
-            name__icontains=query
+            name__icontains=query,
+            active=True
         )
 
         tasks = self.queryset.annotate(
