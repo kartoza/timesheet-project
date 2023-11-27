@@ -376,7 +376,7 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
         endTime.setDate(endTime.getDate() + 1);
         return Object.assign({}, schedule, {
           title: schedule.task_name,
-          info: schedule.project_name + ' : ' + schedule.task_label,
+          info: schedule.project_name + ' : ' + schedule.task_label + schedule.user,
           start: startTime.getTime(),
           end: endTime.getTime(),
           color: '#FFF',
