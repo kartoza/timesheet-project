@@ -522,6 +522,8 @@ class UpdateSchedule(APIView):
         schedule = Schedule.objects.get(
             id=schedule_id
         )
+        task = schedule.task
+        last_task_update = _naive(task.last_update)
         pre_start_time = _naive(schedule.start_time)
         schedule.start_time = start_time
         schedule.end_time = end_time
@@ -536,14 +538,36 @@ class UpdateSchedule(APIView):
 
         remaining_task_days = calculate_remaining_task_days(
             schedule.task,
-            latest_schedule.start_time,
-            latest_schedule.end_time
+            schedule.start_time,
+            schedule.end_time
         )
-        updated = update_previous_schedules(
-            latest_schedule.start_time,
-            schedule.task.id,
-            remaining_task_days
+
+        last_day_number = (
+                remaining_task_days - (end_time - start_time).days
         )
+
+        schedule.first_day_number = remaining_task_days
+        schedule.last_day_number = last_day_number
+        schedule.save()
+
+        updated = update_subsequent_schedules(
+            start_time=start_time,
+            task_id=task.id,
+            last_day_number=last_day_number,
+            excluded_schedule=schedule
+        )
+
+        if start_time < last_task_update:
+            excluded_schedules = updated
+            excluded_schedules.append(schedule.id)
+            updated_previous = update_previous_schedules(
+                start_time,
+                task.id,
+                remaining_task_days,
+                excluded_schedules=excluded_schedules
+            )
+            updated += updated_previous
+
         return Response(
             ScheduleSerializer(Schedule.objects.filter(
                 id__in=updated + [schedule.id]
@@ -581,8 +605,9 @@ class AddSchedule(APIView):
         )
 
         last_day_number = (
-                remaining_task_days - (end_time - start_time).days
+            remaining_task_days - (end_time - start_time).days
         )
+
         schedule = Schedule.objects.create(
             user_project=user_project,
             start_time=start_time,
