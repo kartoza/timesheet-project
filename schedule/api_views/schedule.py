@@ -350,11 +350,11 @@ class ScheduleList(APIView):
         if not timeline_id:
             if request.user.is_anonymous:
                 return Response([])
-        current_year = date.today().year
+
         current_date = date.today()
-        # Define the start and end dates for the current year
-        start_date = current_date - relativedelta(months=2)
-        end_date = date(current_year, 12, 31)
+
+        start_date = current_date - relativedelta(months=6)
+        end_date = current_date + relativedelta(months=6)
 
         schedules = Schedule.objects.filter(
             start_time__range=(start_date, end_date)
