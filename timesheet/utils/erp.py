@@ -380,6 +380,15 @@ def pull_leave_data_from_erp(user):
         DocType.LEAVE, preferences.TimesheetPreferences.admin_token,
         str(filters).replace('\'', '"')
     )
+    from django.db.models import Q
+
+    # Delete all leave first
+    user_leave = Schedule.objects.filter(
+        Q(activity__name__icontains='leave -') | Q(activity__name__icontains='lieu'),
+        user=user
+    )
+    user_leave.delete()
+
     leave_type = {
         'Paid Annual leave': 'Leave - Paid',
         'Paid Sick Leave': 'Leave - Sick',
