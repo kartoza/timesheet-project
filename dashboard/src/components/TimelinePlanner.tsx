@@ -57,7 +57,8 @@ interface ItemInterface {
   canMove?: boolean,
   task_label?: string,
   task_id?: string,
-  notes?: string
+  notes?: string,
+  hoursPerDay?: number
 }
 
 export interface GroupInterface {
@@ -385,7 +386,8 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
           canSelect: _canEdit,
           canChangeGroup: false,
           canMove: _canEdit,
-          canResize: _canEdit
+          canResize: _canEdit,
+          hoursPerDay: schedule.hours_per_day
         })
       }))
       setLoading(false)
@@ -549,6 +551,7 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
     const totalHour = parseFloat(taskTimeInfo.split('/')[1])
     const totalDays = totalHour/7
     const remainingHour = totalHour - usedHour
+    const hoursPerDayPercentage = item.hoursPerDay ? item.hoursPerDay / 7 * 100 : 100
     let remainingDays = parseInt((remainingHour / 7) + "")
     const countdown:any = []
     let days = 0;
@@ -591,11 +594,16 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
       >
         {itemContext.useResizeHandle ? <div {...leftResizeProps} /> : null}
         <div
-          className={'timeline-item'}
           style={{
+            height: '100%',
             background: background,
             borderRadius: '4px'
-          }}
+          }}>
+        <div
+          className={'timeline-item'}
+          style={ hoursPerDayPercentage < 100 ? {
+            background: `linear-gradient(to bottom, rgba(0, 0, 0, 0) ${hoursPerDayPercentage}%, rgba(255,255,255, 0.3) ${100-hoursPerDayPercentage}%)`
+          } : {}}
         >
           <div className={'timeline-item-title'}>{itemContext.title}</div>
           <div className={'timeline-item-sub'}>
@@ -629,6 +637,7 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
 
         {itemContext.useResizeHandle ? <div {...rightResizeProps} /> : null}
       </div>
+      </div>
     );
   };
 
@@ -643,13 +652,15 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
                 selectedTask={selectedTask}
                 startTime={selectedTime}
                 endTime={scheduleEndTime}
+                hoursPerDay={selectedItem?.hoursPerDay}
                 notes={selectedItem?.notes ? selectedItem.notes : ''}
-                onUpdate={(startTime: Date, notes: string, selectedTask: ItemTaskInterface, duration: number) => {
+                onUpdate={(startTime: Date, notes: string, selectedTask: ItemTaskInterface, duration: number, hoursPerDay: number) => {
                   if (selectedItem) {
                     setLoading(true)
                     const endTime = new Date(startTime.getTime())
                     const end = new Date(endTime.setDate(endTime.getDate() + duration));
-                    updateSchedule(parseInt(selectedItem.id), startTime.getTime(), end.getTime(), notes, selectedTask?.id).then((updatedSchedules: any) => {
+                    updateSchedule(
+                      parseInt(selectedItem.id), startTime.getTime(), end.getTime(), notes, selectedTask?.id, hoursPerDay).then((updatedSchedules: any) => {
                       setLoading(false)
                       if (updatedSchedules) {
                         setItems(items.map(item => updatedSchedules[item.id] ? Object.assign({}, item, updatedSchedules[item.id]) : item))

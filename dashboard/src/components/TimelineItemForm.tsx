@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {
-  Box, CircularProgress, Grid, Modal, TextField, Typography
+  Box, Checkbox, CircularProgress, FormControlLabel, Grid, Modal, TextField, Typography
 } from "@mui/material";
 import {DatePicker, LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDateFns} from "@mui/x-date-pickers/AdapterDateFns";
@@ -37,7 +37,8 @@ export interface ItemFormInterface {
   startTime?: Date | null,
   endTime?: Date | null,
   selectedTask?: ItemTaskInterface | null,
-  notes?: string
+  notes?: string,
+  hoursPerDay?: number
 }
 
 export default function ItemForm(props: ItemFormInterface) {
@@ -47,8 +48,14 @@ export default function ItemForm(props: ItemFormInterface) {
   const [duration, setDuration] = useState<number>(1)
   const [selectedTask, setSelectedTask] = useState<ItemTaskInterface | null>(null)
   const [notes, setNotes] = useState<string>('');
+  const [halfDay, setHalfDay] = useState<boolean>(false);
 
   useEffect(() => {
+    if (props.hoursPerDay && props.hoursPerDay < 7) {
+      setHalfDay(true)
+    } else {
+      setHalfDay(false)
+    }
     if (props.open) {
       setOpen(true)
       setDuration(1)
@@ -74,7 +81,8 @@ export default function ItemForm(props: ItemFormInterface) {
       if (props.endTime.constructor === Number) {
         _endTime = new Date(props.endTime)
       }
-      setDuration( _endTime.getDate() - _startTime.getDate())
+      // @ts-ignore
+      setDuration( (_endTime - _startTime)  / (1000 * 60 * 60 * 24));
     }
     if (props.notes) {
       setNotes(props.notes)
@@ -98,6 +106,8 @@ export default function ItemForm(props: ItemFormInterface) {
     formData.append('start_time', '' + start.getTime())
     formData.append('end_time', '' + end.getTime())
     formData.append('notes', notes)
+    // @ts-ignore
+    formData.append('hours_per_day', halfDay ? 3.5 : 7)
     if (selectedTask) {
       formData.append('task_id', selectedTask.id)
     }
@@ -134,7 +144,8 @@ export default function ItemForm(props: ItemFormInterface) {
             bgColor: selectedTask ? getColorFromTaskLabel(selectedTask.label) : '#FFF',
             task_id: item.task_id,
             task_label: item.task_label,
-            notes: item.notes
+            notes: item.notes,
+            hoursPerDay: item.hours_per_day
           }
           const updated: any = {}
           if (result['updated']) {
@@ -152,7 +163,8 @@ export default function ItemForm(props: ItemFormInterface) {
                 task_id: item.task_id,
                 task_label: item.task_label,
                 notes: item.notes,
-                bgColor: getColorFromTaskLabel(item.task_label)
+                bgColor: getColorFromTaskLabel(item.task_label),
+                hoursPerDay: item.hours_per_day
               }
             }
           }
@@ -221,6 +233,16 @@ export default function ItemForm(props: ItemFormInterface) {
                      setDuration(newDuration)
                    }}
                  />
+                 <FormControlLabel
+                   control={
+                     <Checkbox
+                       checked={halfDay}
+                       onChange={(event) => setHalfDay(event.target.checked)}
+                       name="halfDay"
+                     />
+                   }
+                   label="Half Day"
+                 />
                </Grid>
                <Grid item xs={12}>
                  <TextField
@@ -246,7 +268,8 @@ export default function ItemForm(props: ItemFormInterface) {
                                 startTime,
                                 notes,
                                 selectedTask,
-                                duration
+                                duration,
+                                halfDay ? 3.5 : 7
                             )
                           }
                         }}

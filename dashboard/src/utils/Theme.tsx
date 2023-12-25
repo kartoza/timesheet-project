@@ -102,7 +102,6 @@ declare module '@mui/material/Button' {
 }
 
 export const isColorLight = (color) => {
-    console.log(color);
     if (!color) return false;
     const hex = color.replace('#', '');
     const r = parseInt(hex.substr(0, 2), 16);

@@ -338,7 +338,8 @@ class ScheduleSerializer(serializers.ModelSerializer):
             'first_day',
             'last_day',
             'notes',
-            'user'
+            'user',
+            'hours_per_day'
         ]
 
 
@@ -510,6 +511,9 @@ class UpdateSchedule(APIView):
     def put(self, request):
         schedule_id = request.data.get('schedule_id', None)
         notes = request.data.get('notes', '')
+        hours_per_day = request.data.get('hours_per_day')
+        if hours_per_day:
+            hours_per_day = float(hours_per_day)
         if not schedule_id:
             raise Http404()
         task_id = request.data.get('taskId', None)
@@ -528,6 +532,8 @@ class UpdateSchedule(APIView):
         schedule.start_time = start_time
         schedule.end_time = end_time
         schedule.notes = notes
+        if hours_per_day:
+            schedule.hours_per_day = hours_per_day
         if task_id:
             schedule.task_id = task_id
         schedule.save()
@@ -581,6 +587,7 @@ class AddSchedule(APIView):
     def post(self, request):
         task_id = request.data.get('task_id', None)
         user_id = request.data.get('user_id', None)
+        hours_per_day = request.data.get('hours_per_day', None)
         notes = request.data.get('notes', '')
         start_time = datetime.fromtimestamp(
             int(request.data.get('start_time')) / 1000
@@ -588,6 +595,8 @@ class AddSchedule(APIView):
         end_time = datetime.fromtimestamp(
             int(request.data.get('end_time')) / 1000
         )
+        if hours_per_day:
+            hours_per_day = float(hours_per_day)
         start_time = _naive(start_time)
         end_time = _naive(end_time)
 
@@ -615,7 +624,8 @@ class AddSchedule(APIView):
             task=task,
             first_day_number=remaining_task_days,
             last_day_number=last_day_number,
-            notes=notes
+            notes=notes,
+            hours_per_day=hours_per_day
         )
 
         updated = update_subsequent_schedules(
