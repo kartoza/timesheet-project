@@ -297,3 +297,12 @@
     opacity: 0;
     transition: opacity 1s ease;
 }
+
+.unavailable-message {
+  background: yellow;
+  font-size: 13pt;
+  font-weight: bold;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 10px;
+}

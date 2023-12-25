@@ -34,6 +34,7 @@ import {
 import Loader from './loadable/Loader';
 import TimeLogChildList from "./components/TimeLogChildList";
 import {cloneTimeLogSignal, deleteTimeLogSignal, editTimeLogSignal, resumeTimeLogSignal} from "./utils/sharedSignals";
+import {isTodayInDates} from "./utils/time";
 
 const CircularMenu = React.lazy(() => import('./components/Menu'));
 const Standup = React.lazy(() => import('./components/Standup'));
@@ -44,8 +45,7 @@ const ScheduleInfo = React.lazy(() => import("./components/ScheduleInfo"));
 const ReactCanvasConfetti = React.lazy(() => import('react-canvas-confetti'));
 const UserActivities = React.lazy(() => import('./components/UserActivities'));
 const LeaderBoard = React.lazy(() => import('./components/LeaderBoard'));
-
-
+const unavailableDates = (window as any).unavailableDates;
 const randomCompliments = [
     'Nice!',
     'Clocking out like a pro!',
@@ -58,10 +58,10 @@ export function ModeToggle() {
     return (
         <ToggleButtonGroup value={mode} exclusive
                            onChange={() => setMode(mode === 'light' ? 'dark' : 'light')}>
-            <ToggleButton value={"light"}>
+            <ToggleButton value={"light"} style={{ height: 40 }}>
                 <LightModeIcon/>
             </ToggleButton>
-            <ToggleButton value={"dark"}>
+            <ToggleButton value={"dark"} style={{ height: 40 }}>
                 <DarkModeIcon/>
             </ToggleButton>
         </ToggleButtonGroup>
@@ -205,6 +205,7 @@ function App() {
     const [submitTimesheet, { isLoading: isUpdating, isSuccess, isError }] = useSubmitTimesheetMutation();
     const [deleteTimeLog, { isLoading: isDeleteLoading, isSuccess: isDeleteSuccess, isError: isDeleteError }] = useDeleteTimeLogMutation();
     const [timeLogChildList, setTimeLogChildList] = useState<any>([])
+    const [isUnavailable, setIsUnavailable] = useState<boolean>(false);
 
     const timeCardRef = useRef(null);
 
@@ -301,6 +302,10 @@ function App() {
         fetch('https://api.quotable.io/random?tags=wisdom|future|humor').then(response => response.json()).then(
             data => setQuote(data)
         );
+
+        if (isTodayInDates(unavailableDates)) {
+            setIsUnavailable(true);
+        }
     }, [])
 
     useEffect(() => {
@@ -547,7 +552,7 @@ function App() {
             <div className="App-header">
                 <Grid container className="app-title-container">
                     <Grid item md={2} xs={12}></Grid>
-                    <Grid item md={4} xs={12}>
+                    <Grid item md={5} xs={12}>
                     <div className="app-title">
                         Timesheet
                         <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -558,6 +563,11 @@ function App() {
                             />
                         </div>
                     </div>
+
+                    { isUnavailable ? <div className={'unavailable-message'}>
+                        ⚠️ Today, timesheet submission to ERPNext will be unavailable.
+                        Additionally, the app will be unavailable on the following dates: { unavailableDates }.
+                    </div> : null}
                     </Grid>
                     <Grid item xs={12} md={4} style={{ display: 'flex', justifyContent: 'end', alignContent: 'center'}}>
                         <Suspense fallback={<div></div>}>
@@ -565,7 +575,7 @@ function App() {
                         </Suspense>
                         <ModeToggle />
                     </Grid>
-                    <Grid item xs={12} md={2}></Grid>
+                    <Grid item xs={12} md={1}></Grid>
                 </Grid>
                 <Grid container style={{ marginTop: "50px" }}>
                     <Grid item md={2} xs={12} sx={{ display: { xs: 'none', md: 'block' } }} >
@@ -753,6 +763,7 @@ function App() {
                                         description={description}
                                         parent={parent}
                                         toggleTimer={toggleTimer}
+                                        isUnavailable={isUnavailable}
                                         clearAllFields={clearAllFields}/>
                                 </Suspense>
                             </Box>
@@ -781,7 +792,7 @@ function App() {
             <Grid container>
                 <Grid item xs={12} md={4}></Grid>
                 <Grid item xs={12} md={4}>
-                <TButton variant="contained" endIcon={<SendIcon />} className="send-erpnext-btn" onClick={submitTimesheetClicked} style={{ marginBottom: 50 }}>
+                <TButton variant="contained" disabled={isUnavailable} endIcon={<SendIcon />} className="send-erpnext-btn" onClick={submitTimesheetClicked} style={{ marginBottom: 50 }}>
                     Send To Erpnext
                 </TButton>
                 </Grid>
