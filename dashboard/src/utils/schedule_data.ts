@@ -63,12 +63,15 @@ export function deleteSchedule(scheduleId: string) {
     })
 }
 
-export function updateSchedule(scheduleId: number, startTime: number, endTime: number, notes: string = "", taskId: string | null = null) {
+export function updateSchedule(scheduleId: number, startTime: number, endTime: number, notes: string = "", taskId: string | null = null, hoursPerDay: number | null = null) {
   const formData = new FormData()
   formData.append('schedule_id', scheduleId + '')
   formData.append('start_time', getDateString(startTime, 1))
   formData.append('end_time', getDateString(endTime))
   formData.append('notes', notes)
+  if (hoursPerDay) {
+    formData.append('hours_per_day', hoursPerDay + '')
+  }
   if (taskId) {
     formData.append('taskId', taskId)
   }
@@ -99,7 +102,8 @@ export function updateSchedule(scheduleId: number, startTime: number, endTime: n
             notes: result.notes,
             task_id: result.task_id,
             task_label: result.task_label,
-            bgColor: getColorFromTaskLabel(result.task_label)
+            bgColor: getColorFromTaskLabel(result.task_label),
+            hoursPerDay: result.hours_per_day
           }
         }
         return  items;
