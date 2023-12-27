@@ -29,6 +29,7 @@ interface TimeCardProps {
     description?: String | '',
     parent?: string
     clearAllFields?: any,
+    isUnavailable?: boolean
 }
 
 
@@ -43,6 +44,7 @@ export const TimeCard = forwardRef(({
     activity,
     description,
     parent,
+    isUnavailable,
     clearAllFields }: TimeCardProps, ref) => {
     const [startTime, setStartTime] = React.useState<any | null>(new Date());
     const [hours, setHours] = React.useState<Number | null>(null);
@@ -415,17 +417,17 @@ export const TimeCard = forwardRef(({
                         <div style={{width: '100%'}}>
                             <TButton color="warning" variant="contained" size="small" sx={{width: '50%', marginTop: -1}}
                                     onClick={cancelEditingTimeLog}
-                                    disabled={isUpdateLoading}
+                                    disabled={isUpdateLoading || isUnavailable}
                                     disableElevation>Cancel</TButton>
                             <TButton color="success" variant="contained" size="small" sx={{width: '50%', marginTop: -1}}
                                 onClick={submitEditedTimeLog}
-                                disabled={addButtonDisabled || isUpdateLoading}
+                                disabled={addButtonDisabled || isUpdateLoading || isUnavailable}
                                 disableElevation>{isUpdateLoading ?
                             <CircularProgress color="inherit" size={20}/> : "Save"}</TButton>
                         </div>:
                         <TButton variant="contained" size="small" sx={{width: '100%', marginTop: -1}}
                                 onClick={addButtonClicked}
-                                disabled={addButtonDisabled || isUpdating}
+                                disabled={addButtonDisabled || isUpdating || isUnavailable}
                                 disableElevation>{isUpdating ?
                             <CircularProgress color="inherit" size={20}/> : "Add"}</TButton>
                     }
@@ -445,7 +447,7 @@ export const TimeCard = forwardRef(({
                           <TButton color="success" variant="contained" size="small"
                                   sx={{width: '100%', height: '58px', marginTop: -1}}
                                   onClick={() => startButtonClicked(false)}
-                                  disabled={startButtonDisabled}
+                                  disabled={startButtonDisabled || isUnavailable}
                                   disableElevation>{isUpdating ?
                             <CircularProgress color="inherit" size={20}/> : "START"}</TButton>
                         }

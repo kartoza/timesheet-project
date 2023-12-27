@@ -24,3 +24,11 @@ class TimesheetPreferences(Preferences):
         blank=True
     )
 
+    unavailable_dates = models.TextField(
+        default='',
+        blank=True,
+        help_text=(
+            'Enter the dates when timesheet submission is not available, separated by commas. '
+            'E.g., "2023-12-24,2023-12-25". On these dates, users will not be able to submit timesheet.'
+        )
+    )

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Suspense} from 'react';
 import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 import './index.scss';
@@ -6,6 +6,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { store } from './app/store';
 import ErrorBoundary from "./components/ErrorBoundary";
+import Loader from "./loadable/Loader";
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -13,7 +14,9 @@ const root = ReactDOM.createRoot(
 root.render(
   <Provider store={store}>
       <ErrorBoundary>
-        <App/>
+        <Suspense fallback={<Loader/>}>
+          <App/>
+        </Suspense>
       </ErrorBoundary>
   </Provider>
 );

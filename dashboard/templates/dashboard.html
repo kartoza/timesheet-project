@@ -13,6 +13,7 @@
         const csrfToken = "{{ csrf_token }}";
         window.hasKeys = {% if has_keys %}true{% else %}false{% endif %};
         window.isLoggedIn = {% if user.is_authenticated %}true{% else %}false{% endif %};
+        window.unavailableDates = "{{ preferences.TimesheetPreferences.unavailable_dates }}";
     </script>
     <style>
         @font-face {

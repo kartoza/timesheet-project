@@ -1,14 +1,16 @@
 import time
-from datetime import timedelta
+from datetime import timedelta, datetime
+import pytz
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.utils import timezone
 from rest_framework import serializers, viewsets, status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from preferences import preferences
 
 from timesheet.models import Timelog, Task, Activity, Project
 from timesheet.serializers.timesheet import TimelogSerializer
@@ -285,6 +287,16 @@ class TimeLogDeleteAPIView(APIView):
 
 class SubmitTimeLogsAPIView(APIView):
     def post(self, request):
+        unavailable_dates = preferences.TimesheetPreferences.unavailable_dates
+
+        if unavailable_dates:
+            unavailable_dates = [_date.strip() for _date in unavailable_dates.split(',') if _date.strip()]
+            today = datetime.now(pytz.timezone(preferences.TimesheetPreferences.erp_timezone)).date()
+
+            if str(today) in unavailable_dates:
+                return JsonResponse(
+                    {'error': 'Timesheet submission is unavailable today.'}, status=403)
+
         queryset = Timelog.objects.filter(
             user=self.request.user,
             submitted=False
