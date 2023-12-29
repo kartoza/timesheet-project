@@ -99,18 +99,24 @@ class ReportData(UserPassesTestMixin, APIView):
                 continue
             task = Task.objects.filter(
                 erp_id=report[REPORT_TASK]
-            )
-            if task.exists():
-                task = task.first().name
-            else:
-                task = report[REPORT_TASK]
+            ).first()
+            task_name = report[REPORT_TASK]
+            if task:
+                task_name = task.name
 
-            if task not in tasks:
-                tasks[task] = {}
-            if report[REPORT_USER] not in tasks[task]:
-                tasks[task][report[REPORT_USER]] = report[REPORT_HOURS]
+            if task_name not in tasks:
+                tasks[task_name] = {}
+                if task:
+                    tasks[task_name] = {
+                        'summary': {
+                            'allocated_hours': task.expected_time,
+                            'used_hours': task.actual_time
+                        }
+                    }
+            if report[REPORT_USER] not in tasks[task_name]:
+                tasks[task_name][report[REPORT_USER]] = report[REPORT_HOURS]
             else:
-                tasks[task][report[REPORT_USER]] += report[REPORT_HOURS]
+                tasks[task_name][report[REPORT_USER]] += report[REPORT_HOURS]
         return tasks
 
     def user_based_analysis(self, report_data):
