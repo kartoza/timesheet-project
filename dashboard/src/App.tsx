@@ -37,6 +37,7 @@ import {cloneTimeLogSignal, deleteTimeLogSignal, editTimeLogSignal, resumeTimeLo
 import {isTodayInDates} from "./utils/time";
 
 const CircularMenu = React.lazy(() => import('./components/Menu'));
+const ReportButton = React.lazy(() => import('./components/ReportButton'));
 const Standup = React.lazy(() => import('./components/Standup'));
 const TimeCard = React.lazy(() => import('./components/TimeCard'));
 const TReactQuill = React.lazy(() => import('./components/ReactQuill'));
@@ -531,6 +532,7 @@ function App() {
         <CssVarsProvider theme={modeTheme}>
         <div className="App">
             <CircularMenu/>
+            <ReportButton/>
             <Suspense>
                 <ReactCanvasConfetti
                     style={confettiStyle}
