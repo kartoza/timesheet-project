@@ -140,6 +140,9 @@ class UserSerializer(serializers.ModelSerializer):
         if task:
             return f"{task.project.name} - {task.name}"
 
+        if timelog.project:
+            return f"{timelog.project.name} - {activity.name}"
+
         if activity:
             return f"Kartoza - {activity.name}"
 
