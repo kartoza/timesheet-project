@@ -19,21 +19,38 @@ export const TaskReportTable = (props : any) => {
                             <Typography align={'left'} style={{ padding: 20, backgroundColor: 'rgba(116, 116, 116, 0.28)' }}>
                                 {data}
                             </Typography>
-                            <Table>
-                                <TableHead>
-                                    <TableCell width={'50%'}>Name</TableCell>
-                                    <TableCell>Total Hours</TableCell>
-                                </TableHead>
-                                <TableBody>
-                                    {Object.keys(props.data[data]).map((taskData) => (
-                                        <TableRow>
-                                            <TableCell>
-                                                {taskData}
-                                            </TableCell>
-                                            <TableCell>
-                                                {props.data[data][taskData].toFixed(2)}
-                                            </TableCell>
-                                        </TableRow>
+                          {
+                            props.data[data].hasOwnProperty('summary') ? <div style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              padding: '0 20px',
+                              marginTop: -55
+                            }}>
+                              <Typography align={'left'}>
+                              </Typography>
+                              <Typography align={'right'}>
+                                Allocated: {props.data[data]['summary']['allocated_hours']}
+                                <br/>
+                                Used: {props.data[data]['summary']['used_hours']}
+                              </Typography>
+                            </div> : null
+                          }
+                          <Table>
+                            <TableHead>
+                              <TableCell width={'50%'}>Name</TableCell>
+                              <TableCell>Total Hours</TableCell>
+                            </TableHead>
+                            <TableBody>
+                              {Object.keys(props.data[data]).map((taskData) => (
+                                taskData !== 'summary' ?
+                                  <TableRow>
+                                  <TableCell>
+                                                  {taskData}
+                                              </TableCell>
+                                              <TableCell>
+                                                  {props.data[data][taskData].toFixed(2)}
+                                              </TableCell>
+                                          </TableRow> : null
                                     ))}
                                 </TableBody>
                             </Table>
