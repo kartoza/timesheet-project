@@ -78,6 +78,15 @@ export const TimeCard = forwardRef(({
         setStartButtonDisabled(!activity)
     }, [startTime, hours, task, activity, description])
 
+    useEffect(() => {
+        if (isEndTime && !endTime && hours) {
+            let newDate = new Date(startTime.getTime());
+            // @ts-ignore
+            newDate.setHours(newDate.getHours() + parseFloat(hours));
+            setEndTime(newDate);
+        }
+    }, [isEndTime]);
+
 
     const clearData = useCallback((clearActivity = true) => {
         setHours(null);
@@ -248,14 +257,15 @@ export const TimeCard = forwardRef(({
     }
 
     const resetStartTime = () => {
-        setStartTime(moment());
+        setStartTime(moment().toDate());
     }
 
     const updateHours = (data: TimeLog) => {
         // @ts-ignore
         setHours(data.hours);
         setHourString(data.hours);
-        setStartTime(moment(data.from_time, 'YYYY-MM-DD hh:mm:ss'));
+        const _startTime = moment(data.from_time, 'YYYY-MM-DD hh:mm:ss').toDate();
+        setStartTime(_startTime);
     }
 
     useImperativeHandle(ref, () => ({

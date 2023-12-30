@@ -210,6 +210,25 @@ function App() {
 
     const timeCardRef = useRef(null);
 
+    const refreshAtMidnight = () => {
+        const now = new Date();
+        const night = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate() + 1,
+          0, 0, 0
+        );
+        const msToMidnight = night.getTime() - now.getTime();
+
+        setTimeout(() => {
+            window.location.reload();
+        }, msToMidnight);
+    };
+
+    useEffect(() => {
+        refreshAtMidnight();
+    }, []);
+
      const getInstance = useCallback((instance) => {
         refAnimationInstance.current = instance;
       }, []);
