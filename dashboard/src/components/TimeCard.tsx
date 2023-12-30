@@ -13,7 +13,7 @@ import {
 import { addHours, formatTime } from "../utils/time";
 import TButton from "../loadable/Button";
 import { ListIcon, PlayCircleIcon, ClearAllIcon } from "../loadable/Icon";
-import AccessibleIcon from "@mui/icons-material/Accessible";
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import RunningTime from "./RunningTime";
 
 
@@ -47,6 +47,7 @@ export const TimeCard = forwardRef(({
     isUnavailable,
     clearAllFields }: TimeCardProps, ref) => {
     const [startTime, setStartTime] = React.useState<any | null>(new Date());
+    const [endTime, setEndTime] = React.useState<any | null>(null);
     const [hours, setHours] = React.useState<Number | null>(null);
     const [hourString, setHourString] = React.useState<string>('');
     const [addButtonDisabled, setAddButtonDisabled] = React.useState(true);
@@ -56,6 +57,7 @@ export const TimeCard = forwardRef(({
     const [localRunningTimeLog, setLocalRunningTimeLog] = useState<any | null>(null);
     const [updatedTimesheet, setUpdatedTimesheet] = useState<any>(null)
     const [newTimesheet, setNewTimesheet] = useState<any>(null)
+    const [isEndTime, setIsEndTime] = React.useState<boolean>(false);
 
     const [addTimesheet, { isLoading: isUpdating, isSuccess, isError, data: newData }] = useAddTimesheetMutation();
     const [updateTimesheet, {  isLoading: isUpdateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError, data: updatedData }] = useUpdateTimesheetMutation();
@@ -70,7 +72,6 @@ export const TimeCard = forwardRef(({
     useEffect(() => {
         setNewTimesheet(newData)
     }, [newData])
-
 
     useEffect(() => {
         setAddButtonDisabled(startTime == null || hours == null || !activity || description === '')
@@ -117,7 +118,12 @@ export const TimeCard = forwardRef(({
         if (editingTimeLog) {
             setHours(editingTimeLog.hours);
             setHourString(editingTimeLog.hours);
-            setStartTime(moment(editingTimeLog.from_time, 'YYYY-MM-DD hh:mm:ss'));
+            const _startTime = moment(editingTimeLog.from_time, 'YYYY-MM-DD hh:mm:ss').toDate()
+            setStartTime(_startTime)
+
+            let newDate = new Date(_startTime.getTime());
+            newDate.setHours(newDate.getHours() + editingTimeLog.hours);
+            setEndTime(newDate);
         }
     }, [editingTimeLog])
 
@@ -353,6 +359,30 @@ export const TimeCard = forwardRef(({
         }
     }
 
+    const updateCurrentHours = (_startTime: Date | null, _endTime: Date | null) => {
+        if (_startTime && _endTime) {
+            [_startTime, _endTime].forEach(date => {
+                const minutes = date.getMinutes();
+                const seconds = date.getSeconds();
+                if (seconds >= 30) {
+                    date.setMinutes(minutes + 1);
+                }
+                date.setSeconds(0, 0);
+            });
+
+            let newHours = (_endTime.getTime() - _startTime.getTime()) / 3600000;
+            newHours = parseFloat(newHours.toFixed(2));
+
+            if (newHours > 0) {
+                setHours(newHours);
+                setHourString(newHours + '');
+            } else {
+                setHours(null);
+                setHourString('');
+            }
+        }
+    };
+
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
             { isLogging || editingTimeLog ?
@@ -371,46 +401,87 @@ export const TimeCard = forwardRef(({
                             <TimePicker
                                 ampm={false}
                                 value={startTime}
-                                onChange={(newValue) => setStartTime(newValue)}
+                                onChange={(newValue) => {
+                                    setStartTime(newValue)
+                                    updateCurrentHours(newValue, endTime)
+                                }}
                                 renderInput={(params) =>
                                     <TextField {...params} variant="standard" sx={{ width: "100%" }} />}
                             />
                         </Grid>
                     </Grid>
-                    <TextField
-                        error={hourString.length > 4 && !hours}
-                        value={hourString}
-                        onChange={(event) => {
-                            const value = event.target.value;
-                            setHours(null)
-                            setHourString(value)
-                            if (!value) {
-                                return
+                    <Grid container spacing={0.6}>
+                        <Grid item xs={10}>
+                            { isEndTime ? <TimePicker
+                                ampm={false}
+                                value={endTime}
+                                onChange={(newValue) => {
+                                    setEndTime(newValue);
+                                    updateCurrentHours(startTime, newValue);
+                                }}
+                                renderInput={(params) =>
+                                  <TextField {...params} variant="standard" sx={{ marginTop: 2, marginBottom: 2.7, width: "100%" }} />}
+                              /> :
+                            <TextField
+                              error={hourString.length > 4 && !hours}
+                              value={hourString}
+                              id="hour"
+                              onChange={(event) => {
+                                  const value = event.target.value;
+                                  setHours(null)
+                                  setHourString(value)
+                                  if (!value) {
+                                      return
+                                  }
+
+                                  let _startTime = startTime;
+                                  if (moment.isMoment(startTime)) {
+                                      _startTime = _startTime.toDate();
+                                      setStartTime(_startTime);
+                                  }
+                                  let newDate = new Date(_startTime.getTime());
+
+                                  // @ts-ignore
+                                  if (!isNaN(value)) {
+                                      const _hours = parseFloat(value)
+                                      setHours(_hours)
+                                      // @ts-ignore
+                                      newDate.setHours(newDate.getHours() + _hours);
+                                      setEndTime(newDate);
+
+                                      return
+                                  }
+                                  const timeData = value.match(/(0?[0-9]|1[0-2])(:|.)[0-9]{2}/g)
+                                  if (timeData && timeData.length > 0) {
+                                      const timeDataString = timeData[0]
+                                      let _hours = 0
+                                      if (timeDataString.includes(':')) {
+                                          const minutes = timeDataString.split(':')[1]
+                                          const hour = timeDataString.split(':')[0]
+                                          _hours = parseFloat((parseFloat(hour) + (parseFloat(minutes)/60)).toFixed(2))
+                                      } else {
+                                          _hours = parseFloat(timeDataString)
+                                      }
+                                      setHours(_hours)
+                                      // @ts-ignore
+                                      newDate.setHours(newDate.getHours() + _hours);
+                                      setEndTime(newDate);
+                                  }
+                              }}
+                              type="text"
+                              helperText='HH:MM or decimal'
+                              InputProps={{
+                                  inputProps: { min: 0 }
+                              }}
+                              label="Hours" variant="standard" sx={{ width: "100%" }} />
                             }
-                            // @ts-ignore
-                            if (!isNaN(value)) {
-                                setHours(parseFloat(value))
-                                return
-                            }
-                            const timeData = value.match(/(0?[0-9]|1[0-2])(:|.)[0-9]{2}/g)
-                            if (timeData && timeData.length > 0) {
-                                const timeDataString = timeData[0]
-                                if (timeDataString.includes(':')) {
-                                    const minutes = timeDataString.split(':')[1]
-                                    const hour = timeDataString.split(':')[0]
-                                    setHours(parseFloat((parseFloat(hour) + (parseFloat(minutes)/60)).toFixed(2)))
-                                } else {
-                                    setHours(parseFloat(timeDataString))
-                                }
-                            }
-                        }}
-                        id="hour"
-                        type="text"
-                        helperText='HH:MM or decimal'
-                        InputProps={{
-                            inputProps: { min: 0 }
-                        }}
-                        label="Hours" variant="standard" sx={{ width: "100%" }} />
+                        </Grid>
+                        <Grid item xs={2}>
+                            <TButton variant="text" onClick={() => setIsEndTime(!isEndTime)} style={{ minWidth: 0, paddingLeft: 4, paddingRight: 4, marginTop: 12}}>
+                                <HourglassEmptyIcon/>
+                            </TButton>
+                        </Grid>
+                    </Grid>
                 </CardContent>
                 <CardActions sx={{ justifyContent: "center", padding: 0, marginBottom: '10px', marginTop: '4px' }}>
                     {editingTimeLog ?
