@@ -1,7 +1,8 @@
+import csv
 import time
 
 import pytz
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from rest_framework import serializers
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -275,9 +276,9 @@ class ScheduleSerializer(serializers.ModelSerializer):
 
     def get_user(self, obj: Schedule):
         if obj.user:
-            return obj.user.first_name + obj.user.last_name
+            return obj.user.first_name + ' ' + obj.user.last_name
         if obj.user_project and obj.user_project.user:
-            return obj.user_project.user.first_name + obj.user_project.user.last_name
+            return obj.user_project.user.first_name + ' ' + obj.user_project.user.last_name
         return ''
 
     def get_task_label(self, obj: Schedule):
@@ -654,3 +655,41 @@ class AddSchedule(APIView):
             'new': ScheduleSerializer(schedule, many=False).data,
             'updated': ScheduleSerializer(schedules, many=True).data
         })
+
+
+class ScheduleCSVExport(APIView):
+    def get(self, request, project_id, user_id=None):
+        schedules = Schedule.objects.filter(
+            user_project__project_id=project_id,
+        )
+        if user_id:
+            schedules = schedules.filter(
+                user_project__user_id=user_id
+            )
+        schedules = schedules.distinct()
+        serializer = ScheduleSerializer(schedules, many=True)
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="schedule.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow([
+            'Project', 'User', 'Task', 'Start Time',
+            'End Time', 'Days', 'Notes', 'Hours Per Day'])
+
+        for schedule in serializer.data:
+            date1 = datetime.fromisoformat(schedule['start_time'].replace("Z", "+00:00"))
+            date2 = datetime.fromisoformat(schedule['end_time'].replace("Z", "+00:00"))
+            duration = (date2 - date1).days + 1
+            writer.writerow(
+                [
+                 schedule['project_name'],
+                 schedule['user'],
+                 schedule['task_name'],
+                 schedule['start_time'].split('T')[0],
+                 schedule['end_time'].split('T')[0],
+                 duration,
+                 schedule['notes'],
+                 schedule['hours_per_day'] if schedule['hours_per_day'] else '7'])
+
+        return response

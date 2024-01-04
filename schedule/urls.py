@@ -8,7 +8,7 @@ from schedule.api_views.schedule import (
     AddSchedule,
     UpdateSchedule,
     DeleteSchedule,
-    WeeklyScheduleList
+    WeeklyScheduleList, ScheduleCSVExport
 )
 
 urlpatterns = [
@@ -36,4 +36,10 @@ urlpatterns = [
     path('api/delete-schedule/',
          DeleteSchedule.as_view(),
          name='delete-schedule'),
+    path('api/schedule/csv/<int:project_id>/<int:user_id>/',
+         ScheduleCSVExport.as_view(),
+         name='schedule-csv-export-user'),
+    path('api/schedule/csv/<int:project_id>/',
+         ScheduleCSVExport.as_view(),
+         name='schedule-csv-export'),
 ]

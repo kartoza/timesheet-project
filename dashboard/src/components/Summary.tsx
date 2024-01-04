@@ -86,6 +86,10 @@ const DOWNLOAD_API_URL = (
     '/api/download-report-data/?id='
 )
 
+const DOWNLOAD_PLANNING_API_URL = (
+  '/api/schedule/csv/'
+)
+
 const LIST_SUMMARY_API_URL = (
     '/api/list-summary/'
 )
@@ -125,6 +129,22 @@ export default function Summary(props: any) {
                 link.parentNode?.removeChild(link);
                 setIsDownloading(false)
             });
+    };
+
+    const downloadPlanningCSV = (projectId: string, projectLabel: string) => {
+        setIsDownloading(true)
+        fetch(`${DOWNLOAD_PLANNING_API_URL}${projectId}/`)
+          .then((response) => response.blob())
+          .then((blob) => {
+              const url = window.URL.createObjectURL(new Blob([blob]));
+              const link = document.createElement('a');
+              link.href = url;
+              link.setAttribute('download', `Planning ${projectLabel}.csv`);
+              document.body.appendChild(link);
+              link.click();
+              link.parentNode?.removeChild(link);
+              setIsDownloading(false)
+          });
     };
 
     const fetchReportData = (url: string) => {
@@ -340,7 +360,20 @@ export default function Summary(props: any) {
                             disabled={isDownloading}
                             startIcon={isDownloading ? <CircularProgress size={12}/> : <DownloadIcon/>}
                             variant="outlined" size="large" color='primary'>
-                            Download
+                            Download Summary
+                        </TButton>
+                        <TButton
+                          style={{
+                              marginLeft: 10
+                          }}
+                          onClick={() => downloadPlanningCSV(
+                            selectedProject ? selectedProject.id : props.selectedProjectId,
+                            selectedProject ? selectedProject.label : summaryName)}
+                          className="DownloadPlanning"
+                          disabled={isDownloading}
+                          startIcon={isDownloading ? <CircularProgress size={12}/> : <DownloadIcon/>}
+                          variant="outlined" size="large" color='secondary'>
+                            Download Planning
                         </TButton>
                     </div> : null }
 
