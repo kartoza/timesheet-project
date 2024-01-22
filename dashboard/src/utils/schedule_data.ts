@@ -3,12 +3,22 @@ import {getColorFromTaskLabel} from "./Theme";
 
 const publicTimelineId = (window as any).publicTimelineId;
 
-export function resetTimeInDate(timestamp: number, addDate = 0) {
-  let dateTime = new Date(new Date(timestamp))
-  dateTime = new Date(Date.UTC(dateTime.getFullYear(), dateTime.getMonth(), dateTime.getDate()));
-  dateTime.setHours(0)
-  dateTime.setMinutes(0)
-  dateTime.setSeconds(0)
+export function resetTimeInDate(timestamp: any, addDate = 0) {
+  let dateTime;
+  if (typeof timestamp === 'number') {
+    dateTime = new Date(new Date(timestamp))
+    dateTime = new Date(Date.UTC(dateTime.getFullYear(), dateTime.getMonth(), dateTime.getDate()));
+    dateTime.setHours(0)
+    dateTime.setMinutes(0)
+    dateTime.setSeconds(0)
+  } else {
+    let timestampStr = timestamp.split('T')[0].split('-');
+    let year = parseInt(timestampStr[0], 10);
+    let month = parseInt(timestampStr[1], 10) - 1;
+    let day = parseInt(timestampStr[2], 10);
+    dateTime = new Date(year, month, day);
+    dateTime.setHours(0, 0, 0, 0);
+  }
   if (addDate) {
     dateTime.setDate(dateTime.getDate() + addDate)
   }
@@ -17,6 +27,9 @@ export function resetTimeInDate(timestamp: number, addDate = 0) {
 
 export function getDateString(timestamp: number, addDate = 0) {
   let dateTime = new Date(new Date(timestamp).toLocaleString('en'))
+  if (dateTime.getTimezoneOffset() >= 0) {
+    addDate -= 1
+  }
   if (addDate) {
     dateTime.setDate(dateTime.getDate() + addDate)
   }
@@ -65,9 +78,11 @@ export function deleteSchedule(scheduleId: string) {
 
 export function updateSchedule(scheduleId: number, startTime: number, endTime: number, notes: string = "", taskId: string | null = null, hoursPerDay: number | null = null) {
   const formData = new FormData()
+  const adjustedStartTime = getDateString(startTime, 1)
+  const adjustedEndTime = getDateString(endTime)
   formData.append('schedule_id', scheduleId + '')
-  formData.append('start_time', getDateString(startTime, 1))
-  formData.append('end_time', getDateString(endTime))
+  formData.append('start_time', adjustedStartTime)
+  formData.append('end_time', adjustedEndTime)
   formData.append('notes', notes)
   if (hoursPerDay) {
     formData.append('hours_per_day', hoursPerDay + '')
