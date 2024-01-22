@@ -335,7 +335,6 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
   const filterGroups = (searchText: string) => {
     const searchValue = searchText.toLowerCase()
     updateRenderedItems(searchValue);
-    console.log(renderedGroups, openGroups);
     const updatedGroups = groups.filter((group) => {
       const groupTitle = group.rightTitle ? group.rightTitle.toLowerCase() : ''
       if (group.root && !groupTitle.includes(searchValue)) {
@@ -364,17 +363,21 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
       const schedules: any = await fetchSchedules();
       setItems(schedules.map(schedule => {
         const _canEdit = canEdit && schedule.task_label !== '-';
-        let startTime = new Date(schedule.start_time)
-        let endTime = new Date(schedule.end_time)
-        startTime = new Date(Date.UTC(startTime.getFullYear(), startTime.getMonth(), startTime.getDate()));
-        endTime = new Date(Date.UTC(endTime.getFullYear(), endTime.getMonth(), endTime.getDate()));
-        startTime.setHours(0)
-        startTime.setMinutes(0)
-        startTime.setSeconds(0)
-        endTime.setHours(0)
-        endTime.setMinutes(0)
-        endTime.setSeconds(0)
-        endTime.setDate(endTime.getDate() + 1);
+        let startTimeStr = schedule.start_time.split('T')[0].split('-');
+        let year = parseInt(startTimeStr[0], 10);
+        let month = parseInt(startTimeStr[1], 10) - 1;
+        let day = parseInt(startTimeStr[2], 10);
+        let startTime = new Date(year, month, day);
+        startTime.setHours(0, 0, 0, 0);
+
+        let endTimeStr = schedule.end_time.split('T')[0].split('-');
+        year = parseInt(endTimeStr[0], 10);
+        month = parseInt(endTimeStr[1], 10) - 1;
+        day = parseInt(endTimeStr[2], 10);
+        let endTime = new Date(year, month, day);
+        endTime.setHours(0, 0, 0, 0);
+
+        endTime.setDate(endTime.getDate() + 1)
         return Object.assign({}, schedule, {
           title: schedule.task_name,
           info: schedule.project_name + ' : ' + schedule.task_label + schedule.user,
