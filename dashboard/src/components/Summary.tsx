@@ -94,6 +94,10 @@ const LIST_SUMMARY_API_URL = (
     '/api/list-summary/'
 )
 
+const LIST_PUBLIC_TIMELINE_API_URL = (
+  '/api/list-public-timeline/'
+)
+
 const REPORT_DATA_API_URL = (
     '/api/report-data/?id='
 )
@@ -112,6 +116,7 @@ export default function Summary(props: any) {
     const [publicMode, setPublicMode] = useState<boolean>(true)
     const [summaryName, setSummaryName] = useState<string>('')
     const [summaries, setSummaries] = useState<any[]>([])
+    const [publicTimelines, setPublicTimelines] = useState<any[]>([]);
     const [isDownloading, setIsDownloading] = useState<boolean>(false)
     const [reportData, setReportData] = useState<any>(null)
 
@@ -239,6 +244,11 @@ export default function Summary(props: any) {
             ).then(
                 data => setSummaries(data)
             )
+            fetch(LIST_PUBLIC_TIMELINE_API_URL).then(
+              response => response.json()
+            ).then(
+              data => setPublicTimelines(data)
+            )
         }
         if (props.summaryName) {
             setSummaryName(props.summaryName)
@@ -335,7 +345,7 @@ export default function Summary(props: any) {
                                 </div>
                             </div> :
                             <Typography color={"text.primary"}  style={{ fontStyle: 'italic', marginTop: 30, fontSize: 25 }}>
-                                Choose a project to get the chart</Typography> }
+                                Choose a project to obtain the chart</Typography> }
 
                     { IS_STAFF && reportData && chartData ?
                         <Grid container>
@@ -393,6 +403,16 @@ export default function Summary(props: any) {
                                     </div>
                                 </Card>
                             )}
+                          <Typography variant={'h5'} style={{ marginBottom: 10, marginTop: 20 }} color={"text.primary"}>Public Planning</Typography>
+                          {publicTimelines.map(timeline =>
+                            <Card variant={"outlined"} elevation={2} onClick={() => window.location.href = "/timeline/" + timeline.slug_name }>
+                              <div className="summary-container" style={{ padding: '20px 20px'}}>
+                                <Typography style={{ cursor: "pointer" }} variant="h5" component="div">
+                                  { timeline.name }
+                                </Typography>
+                              </div>
+                            </Card>
+                          )}
                         </div>
                     }
                 </Grid>

@@ -9,6 +9,7 @@ from timesheet.utils.erp import get_burndown_chart_data, get_detailed_report_dat
 from timesheet.models.project import Project
 from timesheet.models.summary import SavedSummary
 from timesheet.models.task import Task
+from schedule.models.public_timeline import PublicTimeline
 
 
 REPORT_TASK = 'Task'
@@ -37,6 +38,21 @@ class ListSummary(LoginRequiredMixin, APIView):
                 'project_name': summary.project.name
             })
         return Response(summaries_data)
+
+
+class ListPublicTimeline(LoginRequiredMixin, APIView):
+
+    def get(self, request, *args, **kwargs):
+        public_timelines = (
+            PublicTimeline.objects.all().order_by('start_time')
+        )
+        public_timelines_data = []
+        for timeline in public_timelines:
+            public_timelines_data.append({
+                'name': timeline.name,
+                'slug_name': timeline.slug_name,
+            })
+        return Response(public_timelines_data)
 
 
 class PublicBurnDownChartData(APIView):
