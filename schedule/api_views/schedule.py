@@ -661,7 +661,7 @@ class ScheduleCSVExport(APIView):
     def get(self, request, project_id, user_id=None):
         schedules = Schedule.objects.filter(
             user_project__project_id=project_id,
-        )
+        ).order_by('start_time')
         if user_id:
             schedules = schedules.filter(
                 user_project__user_id=user_id
