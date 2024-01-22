@@ -4,7 +4,8 @@ from dashboard.api_views import (
     ListSummary,
     PublicBurnDownChartData,
     DownloadReportData,
-    ReportData
+    ReportData,
+    ListPublicTimeline
 )
 from dashboard.views import (
     DashboardView, SpaceView,
@@ -30,6 +31,9 @@ urlpatterns = [
     path('api/list-summary/',
          ListSummary.as_view(),
          name='list-summary'),
+    path('api/list-public-timeline/',
+         ListPublicTimeline.as_view(),
+         name='list-public-timeline'),
     path('api/public-burndown-chart-data/',
          PublicBurnDownChartData.as_view(),
          name='public-burndown-chart-data'),
