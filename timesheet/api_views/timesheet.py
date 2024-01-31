@@ -243,6 +243,9 @@ class TimesheetModelViewSet(LoginRequiredMixin, viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
 
+MAX_TIMELOGS = 20
+
+
 class TimesheetViewSet(viewsets.ViewSet):
     """
     A ViewSet for listing time logs
@@ -250,7 +253,6 @@ class TimesheetViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
     def list(self, request):
-
         today = convert_time_to_user_timezone(
             timezone.now(), request.user.profile.timezone)
         start_of_week = today - timedelta(days=today.weekday())
@@ -258,10 +260,8 @@ class TimesheetViewSet(viewsets.ViewSet):
 
         queryset = Timelog.objects.filter(
             user=self.request.user,
-            start_time__gte=start_of_last_week,
-            start_time__lt=start_of_week + timedelta(days=7)
         ).order_by('-start_time')
-        serializer = TimelogSerializer(queryset, many=True)
+        serializer = TimelogSerializer(queryset[:MAX_TIMELOGS], many=True)
         return Response(serializer.data)
 
 
