@@ -66,6 +66,8 @@ class TimelogAdmin(admin.ModelAdmin):
     actions = [push_to_erp]
     raw_id_fields = (
         'task',
+        'project',
+        'parent',
     )
 
 
@@ -118,8 +120,8 @@ class UserAdmin(DjangoUserAdmin):
 class SavedSummaryAdmin(admin.ModelAdmin):
     raw_id_fields = ['project']
     list_display = [
-        'name', 
-        'active', 
+        'name',
+        'active',
         'last_updated'
     ]
 
