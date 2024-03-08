@@ -114,7 +114,7 @@ def pull_projects_from_erp(user: get_user_model()):
         _project, _ = Project.objects.update_or_create(
             name=project['name'],
             defaults={
-                'is_active': project['is_active'] == 'Yes',
+                'is_active': project.get('status', '') == 'Open',
                 'updated': updated
             }
         )
