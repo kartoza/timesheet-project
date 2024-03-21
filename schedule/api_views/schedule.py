@@ -3,6 +3,8 @@ import time
 
 import pytz
 from django.http import Http404, HttpResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page, never_cache
 from rest_framework import serializers
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -347,6 +349,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
 class ScheduleList(APIView):
     permission_classes = []
 
+    @method_decorator(cache_page(60 * 60 * 24), name='dispatch')
     def get(self, request, format=None):
         timeline_id = self.request.GET.get('timelineId', None)
         if not timeline_id:
@@ -365,9 +368,16 @@ class ScheduleList(APIView):
             schedules = schedules.filter(
                 user_project__project__publictimeline__id=timeline_id
             ).distinct()
-        return Response(ScheduleSerializer(
+
+        response = Response(ScheduleSerializer(
             schedules, many=True
         ).data)
+
+        response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
+
+        return response
 
 
 class WeeklyScheduleList(APIView):

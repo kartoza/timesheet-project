@@ -128,11 +128,11 @@ def pull_holiday_list(user):
     for leave in public_holidays:
         Schedule.objects.update_or_create(
             erp_id=leave['description'],
+            user=user,
+            activity=activity,
+            start_time=leave['holiday_date'],
+            end_time=leave['holiday_date'],
             defaults={
-                'user': user,
-                'activity': activity,
-                'start_time': leave['holiday_date'],
-                'end_time': leave['holiday_date'],
                 'notes': leave['description']
             }
         )
