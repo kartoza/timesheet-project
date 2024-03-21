@@ -6,7 +6,7 @@ from schedule.api_views.schedule import calculate_remaining_task_days, update_pr
     update_subsequent_schedules, _naive
 from schedule.models import Schedule
 from timesheet.utils.erp import (
-    pull_projects_from_erp, pull_leave_data_from_erp
+    pull_projects_from_erp, pull_leave_data_from_erp, pull_holiday_list
 )
 
 logger = logging.getLogger(__name__)
@@ -74,4 +74,5 @@ class Command(BaseCommand):
                 print(f'Updating {user}')
                 pull_projects_from_erp(user)
                 pull_leave_data_from_erp(user)
+                pull_holiday_list(user)
                 self.update_schedule_countdown(user)

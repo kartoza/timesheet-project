@@ -8,6 +8,15 @@ import pytz
 TIMEZONES = tuple(zip(pytz.all_timezones, pytz.all_timezones))
 
 
+def get_country_code_from_timezone(timezone_str):
+    timezone_country = {}
+    for countrycode in pytz.country_timezones:
+        timezones = pytz.country_timezones[countrycode]
+        for timezone in timezones:
+            timezone_country[timezone] = countrycode
+    return timezone_country[timezone_str]
+
+
 class Profile(models.Model):
     user = models.OneToOneField(
         get_user_model(),
@@ -53,7 +62,7 @@ class Profile(models.Model):
         blank=True,
         null=True
     )
-    
+
     profile_picture = models.FileField(
         null=True,
         blank=True
