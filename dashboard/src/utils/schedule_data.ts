@@ -60,6 +60,7 @@ export function deleteSchedule(scheduleId: string) {
             title: item.task_name,
             info: item.project_name + ' : ' + item.task_label + item.user,
             group: item.group,
+            desc: item.title,
             first_day: item.first_day,
             last_day: item.last_day,
             bgColor: getColorFromTaskLabel(item.task_label)
@@ -110,6 +111,7 @@ export function updateSchedule(scheduleId: number, startTime: number, endTime: n
             start: resetTimeInDate(result.start_time),
             end: resetTimeInDate(result.end_time, 1),
             title: result.task_name,
+            desc: result.title,
             info: result.project_name + ' : ' + result.task_label + result.user,
             group: result.group,
             first_day: result.first_day,

@@ -19,7 +19,7 @@ import ItemForm, {ItemTaskInterface} from "./TimelineItemForm";
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import ClearIcon from '@mui/icons-material/Clear';
 import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
-import {Button, TextField, InputAdornment, Backdrop, CircularProgress} from "@mui/material";
+import {Button, TextField, InputAdornment, Backdrop, CircularProgress, Typography, Popover} from "@mui/material";
 import TimelineProjectForm from "./TimelineProjectForm";
 import SearchIcon from '@mui/icons-material/Search';
 const CircularMenu = React.lazy(() => import('./Menu'));
@@ -179,6 +179,19 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
   const [scheduleEndTime, setScheduleEndTime] = useState<Date | null>(null)
   const [selectedTask, setSelectedTask] = useState<ItemTaskInterface | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
+  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+  const [popoverText, setPopoverText] = useState<string>('')
+
+  const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>, text: string) => {
+    setPopoverText(text)
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handlePopoverClose = () => {
+    setAnchorEl(null);
+  };
+
+  const popoverOpen = Boolean(anchorEl);
 
   useImperativeHandle(ref, () => ({
     toggleAllGroups(newStatus = OpenCloseStatus.CLOSE) {
@@ -381,6 +394,7 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
         return Object.assign({}, schedule, {
           title: schedule.task_name,
           info: schedule.project_name + ' : ' + schedule.task_label + schedule.user,
+          desc: schedule.title,
           start: startTime.getTime(),
           end: endTime.getTime(),
           color: '#FFF',
@@ -545,6 +559,14 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
     return item !== null && typeof item === 'number';
   }
 
+  const isPublicHoliday = (item: any) => {
+    return item.title === 'Public holiday'
+  }
+
+  const isLeave = (item: any) => {
+    return item.title.includes('Leave')
+  }
+
   const itemRenderer = ({ item, timelineContext, itemContext, getItemProps, getResizeProps }) => {
     const { left: leftResizeProps, right: rightResizeProps } = getResizeProps();
 
@@ -576,7 +598,7 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
     }
     const firstColor = getTaskColor((totalDays - countdown[0]) / totalDays)
     const lastColor = getTaskColor((totalDays - countdown[countdown.length - 1]) / totalDays)
-    const background = item.task_label !== '-' ? `linear-gradient(90deg, ${firstColor} 0%, ${lastColor} 100%)` : '#626262';
+    const background = item.task_label !== '-' ? `linear-gradient(90deg, ${firstColor} 0%, ${lastColor} 100%)` : (item.title === 'Public holiday' ? '#42BF8B' : '#626262');
     return (
       <div
         {...getItemProps({
@@ -594,6 +616,8 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
             // console.log("on item click", item);
           }
         })}
+        onMouseEnter={(e: any) => {isPublicHoliday(itemContext) || isLeave(itemContext) ? handlePopoverOpen(e, item.desc) : null}}
+        onMouseLeave={(e: any) => {isPublicHoliday(itemContext) || isLeave(itemContext) ? handlePopoverClose() : null}}
       >
         {itemContext.useResizeHandle ? <div {...leftResizeProps} /> : null}
         <div
@@ -608,10 +632,12 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
             background: `linear-gradient(to bottom, rgba(0, 0, 0, 0) ${hoursPerDayPercentage}%, rgba(255,255,255, 0.3) ${100-hoursPerDayPercentage}%)`
           } : {}}
         >
-          <div className={'timeline-item-title'}>{itemContext.title}</div>
+          <div className={'timeline-item-title'}>{isPublicHoliday(itemContext) ? item.desc : itemContext.title}</div>
           <div className={'timeline-item-sub'}>
-            {countdown.map(day => <div className={'timeline-item-countdown'} style={countDownStyle}>
-              <div className={'timeline-item-sub-text'}>{!isNaN(day) ? day : ''}</div> </div>)}
+            {isPublicHoliday(itemContext) ? '🏖️' :
+              countdown.map(day => <div className={'timeline-item-countdown'} style={countDownStyle}>
+                <div className={'timeline-item-sub-text'}>{!isNaN(day) ? day : ''}</div> </div>)
+            }
           </div>
           { canEdit && item.task_label !== '-' ? <div className={'remove-item'} onClick={(e) => {
             e.stopPropagation()
@@ -649,6 +675,27 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
       <Backdrop open={loading} sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <CircularProgress color="inherit" />
       </Backdrop>
+
+      <Popover
+        id="mouse-over-popover"
+        sx={{
+          pointerEvents: 'none',
+        }}
+        open={popoverOpen}
+        anchorEl={anchorEl}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        onClose={handlePopoverClose}
+        disableRestoreFocus
+      >
+        <Typography sx={{ p: 1 }}>{popoverText}</Typography>
+      </Popover>
 
       <ItemForm open={openForm}
                 selectedGroup={selectedGroup}

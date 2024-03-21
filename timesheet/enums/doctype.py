@@ -9,4 +9,6 @@ class DocType(Enum):
     USER = 'User'
     TIMESHEET_DETAIL = 'Timesheet Detail'
     LEAVE = 'Leave Application'
-    
+    HOLIDAY_LIST = 'Holiday List'
+    HOLIDAY = 'Holiday'
+

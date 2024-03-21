@@ -11,7 +11,7 @@ from timesheet.models import (
 from timesheet.models.clock import Clock
 from timesheet.utils.erp import (
     push_timesheet_to_erp, pull_projects_from_erp, pull_user_data_from_erp,
-    pull_leave_data_from_erp
+    pull_leave_data_from_erp, pull_holiday_list
 )
 from timesheet.models.profile import Profile
 from timesheet.models.user_project import UserProject
@@ -48,6 +48,7 @@ def pull_leave_data(modeladmin, request, queryset: get_user_model()):
         if not user.profile.token:
             continue
         pull_leave_data_from_erp(user)
+        pull_holiday_list(user)
 
 
 class TimelogAdmin(admin.ModelAdmin):

@@ -2,17 +2,20 @@ import json
 from datetime import datetime
 from collections import OrderedDict
 import requests
+from django.utils.dateparse import parse_date
 from preferences import preferences
 import logging
 import calendar
 from django.conf import settings
-from django.db.models import Sum
+from django.db.models import Sum, Q
 
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 
+from schedule.models import Schedule
 from timesheet.enums.doctype import DocType
 from timesheet.models import Timelog, Project, Task, Activity
+from timesheet.models.profile import get_country_code_from_timezone
 from timesheet.models.user_project import UserProject
 from timesheet.serializers.timesheet import TimelogSerializerERP
 
@@ -24,10 +27,10 @@ class ProjectsNotFound(Exception):
     pass
 
 
-def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '') -> list:
+def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '', doctype_value: str = '') -> list:
     url = (
         f'{settings.ERPNEXT_SITE_LOCATION}/api/'
-        f'resource/{doctype.value}/?limit_page_length=None&fields=["*"]'
+        f'resource/{doctype.value}/{doctype_value}?limit_page_length=None&fields=["*"]'
     )
     if filters:
         url += '&filters=' + filters
@@ -70,6 +73,79 @@ def generate_api_secret(user: get_user_model()):
         if 'message' in response_data:
             user.profile.api_secret = response_data['message']['api_secret']
             user.profile.save()
+
+
+def pull_holiday_list(user):
+    public_holidays = []
+    country_code = get_country_code_from_timezone(
+        user.profile.timezone)
+    if not country_code:
+        return
+    holiday_list = get_erp_data(
+        DocType.HOLIDAY_LIST,
+        preferences.TimesheetPreferences.admin_token,
+        f'[["country", "=", "{country_code}"]]'
+    )
+    current_year = datetime.now().year
+    first_day_of_current_year = f"{current_year}-01-01"
+    if len(holiday_list) > 0:
+        if len(holiday_list) > 1:
+            holiday_data = next(
+                (item for item in holiday_list if user.first_name.lower() in item['name'].lower()),
+                None)
+            if not holiday_data:
+                return
+            holiday_list_name = holiday_data['name']
+        else:
+            holiday_list_name = holiday_list[0]['name']
+        holidays = get_erp_data(
+            DocType.HOLIDAY_LIST,
+            preferences.TimesheetPreferences.admin_token,
+            doctype_value=holiday_list_name
+        )
+        if 'holidays' in holidays:
+            for holiday in holidays['holidays']:
+                if (
+                    holiday['description'] not in ['Saturday', 'Sunday'] and
+                    parse_date(holiday['holiday_date']) >= parse_date(first_day_of_current_year)
+                ):
+                    public_holidays.append(holiday)
+        print(public_holidays)
+
+    if len(public_holidays) == 0:
+        return
+
+    activity, _ = Activity.objects.get_or_create(
+        name='Public holiday'
+    )
+
+    user_public_holidays = Schedule.objects.filter(
+        activity__name__icontains='Public holiday',
+        user=user
+    )
+    user_public_holidays.delete()
+
+    for leave in public_holidays:
+        Schedule.objects.update_or_create(
+            erp_id=leave['description'],
+            defaults={
+                'user': user,
+                'activity': activity,
+                'start_time': leave['holiday_date'],
+                'end_time': leave['holiday_date'],
+                'notes': leave['description']
+            }
+        )
+        leave = Schedule.objects.filter(
+            erp_id=leave['description'],
+            start_time=leave['holiday_date'],
+            end_time=leave['holiday_date'],
+            user=user
+        )
+        if leave.count() > 1:
+            leave.exclude(
+                id=leave.last().id
+            ).delete()
 
 
 def pull_user_data_from_erp(user: get_user_model()):
