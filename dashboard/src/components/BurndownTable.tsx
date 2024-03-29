@@ -19,7 +19,8 @@ export function BurndownTable(props: any) {
                             <TableCell>Week</TableCell>
                             <TableCell>Hours Total</TableCell>
                             <TableCell>Hours Remaining</TableCell>
-                            <TableCell>Last Sprint Hours</TableCell>
+                            <TableCell>Last Sprint Billable</TableCell>
+                            <TableCell>Last Sprint Unbillable</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -32,6 +33,7 @@ export function BurndownTable(props: any) {
                                 <TableCell>{row[1]}</TableCell>
                                 <TableCell>{row[2]}</TableCell>
                                 <TableCell>{row[3]}</TableCell>
+                                <TableCell>{row[4]}</TableCell>
                             </TableRow>
                         ))}
                         <TableRow key={-1}>
@@ -39,6 +41,7 @@ export function BurndownTable(props: any) {
                             <TableCell></TableCell>
                             <TableCell></TableCell>
                             <TableCell><strong>{getTotalHours(3)}</strong></TableCell>
+                            <TableCell><strong>{getTotalHours(4)}</strong></TableCell>
                         </TableRow>
                     </TableBody>
                 </Table>

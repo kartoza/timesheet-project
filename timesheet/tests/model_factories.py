@@ -8,7 +8,7 @@ class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = get_user_model()
 
-    username = factory.Sequence(lambda n: 'User %s' % n)
+    username = factory.Sequence(lambda n: 'username_%s' % n)
     email = factory.LazyAttribute(lambda o: '%s@example.org' % o.username)
     password = factory.PostGenerationMethodCall('set_password', 'password')
 
@@ -37,3 +37,11 @@ class TimelogFactory(factory.django.DjangoModelFactory):
     start_time = factory.LazyFunction(datetime.datetime.now)
     end_time = factory.LazyFunction(lambda: datetime.datetime.now() + datetime.timedelta(hours=1))
     task = factory.SubFactory(TaskFactory)
+
+
+class ActivityFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Activity
+
+    name = factory.Sequence(lambda n: 'Activity %s' % n)
+

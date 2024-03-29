@@ -393,50 +393,57 @@ def get_detailed_report_data(project_name: str, filters: str = ''):
     return timesheet_detail
 
 
-def get_burndown_chart_data(project_name: str):
+def get_week_of_month(dt):
+    """Calculate the week number within the month for a given date."""
+    first_day_of_month_weekday, _ = calendar.monthrange(dt.year, dt.month)
+    # Adjust start day of the week to match ISO calendar (Monday as the first day)
+    adjusted_day = dt.day + first_day_of_month_weekday - 1
+    return (adjusted_day // 7) + 1
 
-    def week_of_month(dt):
-        """ Returns the week of the month for the specified date.
-        """
-        if dt.month == 1:
-            return dt.isocalendar()[1] + 1
-        return (dt.isocalendar()[1] - dt.replace(day=1).isocalendar()[1] + 1)
 
-    total_expected_time = 0
-    project = Project.objects.filter(
-        name=project_name
-    ).first()
-    if project:
-        total_expected_time = Task.objects.filter(
-            project=project
-        ).aggregate(
-            total_hours=Sum('expected_time'),
-            total_actual_hours=Sum('actual_time')
-        )
+def get_burndown_chart_data(project_name):
+    try:
+        project = Project.objects.get(name=project_name)
+    except Project.DoesNotExist:
+        return {'error': 'Project not found'}
+
+    aggregate_hours = Task.objects.filter(project=project).aggregate(
+        total_hours=Sum('expected_time'),
+        total_actual_hours=Sum('actual_time')
+    )
+
     timesheet_detail = get_detailed_report_data(project_name)
-
     hours_by_week = {}
-    for timesheet_date in timesheet_detail:
-        if 'Date' not in timesheet_date:
+
+    for timesheet in timesheet_detail:
+        if not isinstance(timesheet, dict):
             continue
-        date_time_obj = datetime.strptime(timesheet_date['Date'], '%Y-%m-%d')
-        week_number = week_of_month(date_time_obj)
-        week = f'{date_time_obj.isocalendar()[0]}{str(date_time_obj.isocalendar()[1]).zfill(2) }'
-        if week not in hours_by_week:
-            hours_by_week[week] = {
-                'hours': timesheet_date['Hours'],
-                'week_string' : (
-                    f'{calendar.month_abbr[date_time_obj.month]} '
-                    f'Week {week_number}'
-                )
+        date_str = timesheet.get('Date')
+        if not date_str:
+            continue
+
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+        week_key = date_obj.strftime('%Y%W')  # Year and Week number
+        week_of_month = get_week_of_month(date_obj)
+
+        if week_key not in hours_by_week:
+            hours_by_week[week_key] = {
+                'hours': 0,
+                'unbillable_hours': 0,
+                'week_string': f'{calendar.month_abbr[date_obj.month]} Week {week_of_month}',
             }
-        else:
-            hours_by_week[week]['hours'] += timesheet_date['Hours']
+
+        billable_hours = timesheet.get('Billable Hours', 0)
+        total_hours = timesheet.get('Hours', 0)
+        hours_by_week[week_key]['hours'] += billable_hours
+        hours_by_week[week_key]['unbillable_hours'] += (total_hours - billable_hours)
+
+    sorted_hours = OrderedDict(sorted(hours_by_week.items()))
 
     return {
-        'hours': OrderedDict(sorted(hours_by_week.items())),
-        'total_hours': total_expected_time,
-        'project': project.name if project else '-'
+        'hours': sorted_hours,
+        'total_hours': aggregate_hours,
+        'project': project_name
     }
 
 
