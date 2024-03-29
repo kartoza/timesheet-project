@@ -396,14 +396,14 @@ class TestCalculateRemainingTaskDays(ScheduleTestCase):
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         schedule = Schedule.objects.get(id=schedule.id)
-        self.assertEqual(schedule.first_day_number, 44)
-        self.assertEqual(schedule.last_day_number, 41)
+        self.assertEqual(schedule.first_day_number, 46)
+        self.assertEqual(schedule.last_day_number, 43)
         schedule2 = Schedule.objects.get(id=schedule_2.id)
-        self.assertEqual(schedule2.first_day_number, 47)
-        self.assertEqual(schedule2.last_day_number, 45)
+        self.assertEqual(schedule2.first_day_number, 49)
+        self.assertEqual(schedule2.last_day_number, 47)
         schedule_3 = Schedule.objects.get(id=schedule_3.id)
-        self.assertEqual(schedule_3.first_day_number, 40)
-        self.assertEqual(schedule_3.last_day_number, 38)
+        self.assertEqual(schedule_3.first_day_number, 42)
+        self.assertEqual(schedule_3.last_day_number, 40)
 
         data = {
             'schedule_id': schedule.id,
@@ -412,14 +412,14 @@ class TestCalculateRemainingTaskDays(ScheduleTestCase):
         }
         self.client.put(url, data)
         schedule = Schedule.objects.get(id=schedule.id)
-        self.assertEqual(schedule.first_day_number, 45)
-        self.assertEqual(schedule.last_day_number, 43)
+        self.assertEqual(schedule.first_day_number, 48)
+        self.assertEqual(schedule.last_day_number, 46)
         schedule2 = Schedule.objects.get(id=schedule_2.id)
-        self.assertEqual(schedule2.first_day_number, 48)
-        self.assertEqual(schedule2.last_day_number, 46)
+        self.assertEqual(schedule2.first_day_number, 51)
+        self.assertEqual(schedule2.last_day_number, 49)
         schedule_3 = Schedule.objects.get(id=schedule_3.id)
-        self.assertEqual(schedule_3.first_day_number, 42)
-        self.assertEqual(schedule_3.last_day_number, 40)
+        self.assertEqual(schedule_3.first_day_number, 45)
+        self.assertEqual(schedule_3.last_day_number, 43)
 
     def test_delete_schedule_after_last_task_update(self):
         self.client.force_authenticate(user=self.user)

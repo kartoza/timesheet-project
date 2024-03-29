@@ -176,6 +176,7 @@ export default function Summary(props: any) {
                 const rows:any = []
                 const labels:any = []
                 const lastSprintHour: any = []
+                const lastSprintUnbillable: any = []
                 const hoursRemaining: any = []
                 const hoursTotal: any = []
                 let remaining: any = 0
@@ -185,6 +186,7 @@ export default function Summary(props: any) {
                         const hoursData = data.hours[week]
                         labels.push(hoursData.week_string)
                         lastSprintHour.push(hoursData.hours)
+                        lastSprintUnbillable.push(hoursData.unbillable_hours)
                         remaining -= hoursData.hours
                         hoursRemaining.push(remaining)
                         hoursTotal.push(data.total_hours.total_hours)
@@ -193,7 +195,8 @@ export default function Summary(props: any) {
                                 hoursData.week_string,
                                 data.total_hours.total_hours,
                                 parseFloat(remaining.toFixed(2)),
-                                parseFloat(hoursData.hours.toFixed(2))
+                                parseFloat(hoursData.hours.toFixed(2)),
+                                parseFloat(hoursData.unbillable_hours.toFixed(2)),
                             ]
                         )
                     }
@@ -202,10 +205,15 @@ export default function Summary(props: any) {
                 setChartData({
                     labels,
                     datasets: [{
-                        label: 'Last Sprint Hours',
+                        label: 'Last Sprint Billable',
                         data: lastSprintHour,
                         borderColor: '#FFD321',
                         backgroundColor: '#FFD321',
+                    }, {
+                      label: 'Last Sprint Unbillable',
+                      data: lastSprintUnbillable,
+                      borderColor: 'rgba(255,159,33,0.88)',
+                      backgroundColor: 'rgba(255,159,33,0.88)',
                     }, {
                         label: 'Hours Remaining',
                         data: hoursRemaining,
