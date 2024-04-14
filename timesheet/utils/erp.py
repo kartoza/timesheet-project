@@ -254,8 +254,6 @@ def pull_projects_from_erp(user: get_user_model()):
         id__in=updated_tasks
     ).distinct()
     print('inactive_tasks : {}'.format(inactive_tasks.count()))
-    if inactive_tasks:
-        inactive_tasks.update(active=False)
 
     activities = get_erp_data(
         DocType.ACTIVITY, user.profile.token)
