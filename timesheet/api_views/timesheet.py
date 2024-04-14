@@ -243,7 +243,7 @@ class TimesheetModelViewSet(LoginRequiredMixin, viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
 
-MAX_TIMELOGS = 20
+MAX_TIMELOGS = 100
 
 
 class TimesheetViewSet(viewsets.ViewSet):

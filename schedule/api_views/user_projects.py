@@ -90,7 +90,7 @@ class AddUserProjectSlot(APIView):
         order = (
             UserProjectSlot.objects.filter(user_id=user_id).count() + 1
         )
-        user_project, created = UserProjectSlot.objects.get_or_create(
+        user_project, created = UserProjectSlot.objects.update_or_create(
             user_id=user_id,
             project=project,
             defaults={
