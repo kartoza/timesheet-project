@@ -8,11 +8,14 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.utils import timezone as tzone
 from django.db.models import Q
+from django.core.cache import cache
 
 from schedule.models import Schedule
 from timesheet.models.timelog import Timelog
 from timesheet.utils.erp import get_detailed_report_data
 from timesheet.utils.time import convert_time, convert_time_to_user_timezone
+
+CACHE_DURATION = 10
 
 
 class UserTimelogSerializer(serializers.ModelSerializer):
@@ -64,12 +67,19 @@ class UserSerializer(serializers.ModelSerializer):
     total = serializers.SerializerMethodField()
     clock = serializers.SerializerMethodField()
 
+    def get_cached_data(self, cache_key, serializer_data):
+        cached_data = cache.get(cache_key)
+        if cached_data is None:
+            cache.set(cache_key, serializer_data, CACHE_DURATION)
+            return serializer_data
+        return cached_data
+
     def get_avatar(self, obj):
         if obj.profile.profile_picture:
             return obj.profile.profile_picture.url
         return '/static/user_icon.png'
 
-    def get_is_active(self, obj):
+    def calculate_is_active(self, obj):
         now = convert_time_to_user_timezone(
             tzone.now(),
             obj.profile.timezone
@@ -124,6 +134,15 @@ class UserSerializer(serializers.ModelSerializer):
             self.context['timelog'] = timelog
 
         return False
+
+    def get_is_active(self, obj):
+        cache_key = f"user_is_active_{obj.pk}"
+        cached_data = cache.get(cache_key)
+        if cached_data is None:
+            is_active = self.calculate_is_active(obj)
+            cache.set(cache_key, is_active, CACHE_DURATION)
+            return is_active
+        return cached_data
 
     def get_task(self, obj):
         timelog = self.context.get('timelog', None)
@@ -220,23 +239,25 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserActivities(APIView):
-    permission_classes = [IsAuthenticated]
 
-    def get(self, request, **kwargs):
+    def get_users(self):
         user_model = get_user_model()
         users = user_model.objects.exclude(
             first_name=''
         )
+        return users
 
-        serialized_data = UserSerializer(
-            users, many=True, context={'timelog': {}}).data
+    def get(self, request, **kwargs):
+        cache_key = 'user_activities_sorted_data'
+        cached_data = cache.get(cache_key)
+        if cached_data is None:
+            users = self.get_users()
+            serialized_data = UserSerializer(users, many=True, context={'timelog': {}}).data
+            sorted_data = sorted(serialized_data, key=lambda x: (not x['is_active'], -x['total']))
+            cache.set(cache_key, sorted_data, CACHE_DURATION)
+            return Response(sorted_data)
 
-        sorted_data = sorted(
-            serialized_data, key=lambda x: (not x['is_active'], -x['total']))
-
-        return Response(
-            sorted_data
-        )
+        return Response(cached_data)
 
 
 class UserLeaderBoard(APIView):
