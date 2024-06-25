@@ -1,4 +1,5 @@
 import json
+import time
 from datetime import datetime
 from collections import OrderedDict
 import requests
@@ -8,10 +9,15 @@ import logging
 import calendar
 from django.conf import settings
 from django.db.models import Sum, Q
+from django.db import transaction
+from django.db.utils import OperationalError
 
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-
+from schedule.api_views.schedule import (
+    calculate_remaining_task_days, update_previous_schedules,
+    update_subsequent_schedules, _naive
+)
 from schedule.models import Schedule
 from timesheet.enums.doctype import DocType
 from timesheet.models import Timelog, Project, Task, Activity
@@ -20,6 +26,21 @@ from timesheet.models.user_project import UserProject
 from timesheet.serializers.timesheet import TimelogSerializerERP
 
 logger = logging.getLogger(__name__)
+
+
+def retry_operation(func):
+    def wrapper(*args, **kwargs):
+        attempts = 5
+        while attempts > 0:
+            try:
+                return func(*args, **kwargs)
+            except OperationalError as e:
+                if 'database is locked' in str(e) and attempts > 1:
+                    time.sleep(1)
+                    attempts -= 1
+                else:
+                    raise
+    return wrapper
 
 
 class ProjectsNotFound(Exception):
@@ -75,77 +96,79 @@ def generate_api_secret(user: get_user_model()):
             user.profile.save()
 
 
+@retry_operation
 def pull_holiday_list(user):
-    public_holidays = []
-    country_code = get_country_code_from_timezone(
-        user.profile.timezone)
-    if not country_code:
-        return
-    holiday_list = get_erp_data(
-        DocType.HOLIDAY_LIST,
-        preferences.TimesheetPreferences.admin_token,
-        f'[["country", "=", "{country_code}"]]'
-    )
-    current_year = datetime.now().year
-    first_day_of_current_year = f"{current_year}-01-01"
-    if len(holiday_list) > 0:
-        if len(holiday_list) > 1:
-            holiday_data = next(
-                (item for item in holiday_list if user.first_name.lower() in item['name'].lower()),
-                None)
-            if not holiday_data:
-                return
-            holiday_list_name = holiday_data['name']
-        else:
-            holiday_list_name = holiday_list[0]['name']
-        holidays = get_erp_data(
+    with transaction.atomic():
+        public_holidays = []
+        country_code = get_country_code_from_timezone(
+            user.profile.timezone)
+        if not country_code:
+            return
+        holiday_list = get_erp_data(
             DocType.HOLIDAY_LIST,
             preferences.TimesheetPreferences.admin_token,
-            doctype_value=holiday_list_name
+            f'[["country", "=", "{country_code}"]]'
         )
-        if 'holidays' in holidays:
-            for holiday in holidays['holidays']:
-                if (
-                    holiday['description'] not in ['Saturday', 'Sunday'] and
-                    parse_date(holiday['holiday_date']) >= parse_date(first_day_of_current_year)
-                ):
-                    public_holidays.append(holiday)
-        print(public_holidays)
+        current_year = datetime.now().year
+        first_day_of_current_year = f"{current_year}-01-01"
+        if len(holiday_list) > 0:
+            if len(holiday_list) > 1:
+                holiday_data = next(
+                    (item for item in holiday_list if user.first_name.lower() in item['name'].lower()),
+                    None)
+                if not holiday_data:
+                    return
+                holiday_list_name = holiday_data['name']
+            else:
+                holiday_list_name = holiday_list[0]['name']
+            holidays = get_erp_data(
+                DocType.HOLIDAY_LIST,
+                preferences.TimesheetPreferences.admin_token,
+                doctype_value=holiday_list_name
+            )
+            if 'holidays' in holidays:
+                for holiday in holidays['holidays']:
+                    if (
+                        holiday['description'] not in ['Saturday', 'Sunday'] and
+                        parse_date(holiday['holiday_date']) >= parse_date(first_day_of_current_year)
+                    ):
+                        public_holidays.append(holiday)
+            print(public_holidays)
 
-    if len(public_holidays) == 0:
-        return
+        if len(public_holidays) == 0:
+            return
 
-    activity, _ = Activity.objects.get_or_create(
-        name='Public holiday'
-    )
-
-    user_public_holidays = Schedule.objects.filter(
-        activity__name__icontains='Public holiday',
-        user=user
-    )
-    user_public_holidays.delete()
-
-    for leave in public_holidays:
-        Schedule.objects.update_or_create(
-            erp_id=leave['description'],
-            user=user,
-            activity=activity,
-            start_time=leave['holiday_date'],
-            end_time=leave['holiday_date'],
-            defaults={
-                'notes': leave['description']
-            }
+        activity, _ = Activity.objects.get_or_create(
+            name='Public holiday'
         )
-        leave = Schedule.objects.filter(
-            erp_id=leave['description'],
-            start_time=leave['holiday_date'],
-            end_time=leave['holiday_date'],
+
+        user_public_holidays = Schedule.objects.filter(
+            activity__name__icontains='Public holiday',
             user=user
         )
-        if leave.count() > 1:
-            leave.exclude(
-                id=leave.last().id
-            ).delete()
+        user_public_holidays.delete()
+
+        for leave in public_holidays:
+            Schedule.objects.update_or_create(
+                erp_id=leave['description'],
+                user=user,
+                activity=activity,
+                start_time=leave['holiday_date'],
+                end_time=leave['holiday_date'],
+                defaults={
+                    'notes': leave['description']
+                }
+            )
+            leave = Schedule.objects.filter(
+                erp_id=leave['description'],
+                start_time=leave['holiday_date'],
+                end_time=leave['holiday_date'],
+                user=user
+            )
+            if leave.count() > 1:
+                leave.exclude(
+                    id=leave.last().id
+                ).delete()
 
 
 def pull_user_data_from_erp(user: get_user_model()):
@@ -177,90 +200,92 @@ def pull_user_data_from_erp(user: get_user_model()):
         user.save()
 
 
+@retry_operation
 def pull_projects_from_erp(user: get_user_model()):
-    projects = get_erp_data(
-        DocType.PROJECT, user.profile.token)
+    with transaction.atomic():
+        projects = get_erp_data(
+            DocType.PROJECT, user.profile.token)
 
-    if len(projects) == 0:
-        raise ProjectsNotFound
+        if len(projects) == 0:
+            raise ProjectsNotFound
 
-    updated = timezone.now()
-    updated_projects = []
-    for project in projects:
-        _project, _ = Project.objects.update_or_create(
-            name=project['name'],
-            defaults={
-                'is_active': project.get('status', '') == 'Open',
-                'updated': updated
-            }
-        )
-        UserProject.objects.get_or_create(
-            user=user,
-            project=_project
-        )
-        updated_projects.append(_project.id)
-
-    # Check inactive projects
-    inactive = UserProject.objects.exclude(
-        project__updated=updated
-    )
-    if inactive.exists():
-        inactive_projects = Project.objects.filter(
-            id__in=inactive.values('project')
-        ).distinct()
-        inactive_projects.update(is_active=False)
-
-    tasks = get_erp_data(
-        DocType.TASK, user.profile.token
-    )
-    updated_tasks = []
-    for task in tasks:
-        try:
-            project = Project.objects.get(name=task['project'])
-        except Project.DoesNotExist:
-            continue
-        try:
-            task, _ = Task.objects.update_or_create(
-                project=project,
-                name=task['subject'],
-                erp_id=task['name'],
+        updated = timezone.now()
+        updated_projects = []
+        for project in projects:
+            _project, _ = Project.objects.update_or_create(
+                name=project['name'],
                 defaults={
-                    "expected_time": task['expected_time'],
-                    "actual_time": task['actual_time']
+                    'is_active': project.get('status', '') == 'Open',
+                    'updated': updated
                 }
             )
-            updated_tasks.append(task.id)
-        except Task.MultipleObjectsReturned:
-            tasks = Task.objects.filter(
-                project=project,
-                name=task['subject'],
-                erp_id=task['name'],
-            ).order_by('-id')
-            latest_task = tasks.first()
-            tasks.exclude(id=latest_task.id).delete()
-            tasks.update(
-                expected_time=task['expected_time'],
-                actual_time=task['actual_time']
+            UserProject.objects.get_or_create(
+                user=user,
+                project=_project
             )
-            updated_tasks.append(latest_task.id)
+            updated_projects.append(_project.id)
 
-    # Check inactive tasks
-    inactive_tasks = Task.objects.filter(
-        project_id__in=updated_projects
-    ).exclude(
-        id__in=updated_tasks
-    ).distinct()
-    print('inactive_tasks : {}'.format(inactive_tasks.count()))
-
-    activities = get_erp_data(
-        DocType.ACTIVITY, user.profile.token)
-
-    for activity in activities:
-        if 'name' not in activity:
-            continue
-        Activity.objects.get_or_create(
-            name=activity['name']
+        # Check inactive projects
+        inactive = UserProject.objects.exclude(
+            project__updated=updated
         )
+        if inactive.exists():
+            inactive_projects = Project.objects.filter(
+                id__in=inactive.values('project')
+            ).distinct()
+            inactive_projects.update(is_active=False)
+
+        tasks = get_erp_data(
+            DocType.TASK, user.profile.token
+        )
+        updated_tasks = []
+        for task in tasks:
+            try:
+                project = Project.objects.get(name=task['project'])
+            except Project.DoesNotExist:
+                continue
+            try:
+                task, _ = Task.objects.update_or_create(
+                    project=project,
+                    name=task['subject'],
+                    erp_id=task['name'],
+                    defaults={
+                        "expected_time": task['expected_time'],
+                        "actual_time": task['actual_time']
+                    }
+                )
+                updated_tasks.append(task.id)
+            except Task.MultipleObjectsReturned:
+                tasks = Task.objects.filter(
+                    project=project,
+                    name=task['subject'],
+                    erp_id=task['name'],
+                ).order_by('-id')
+                latest_task = tasks.first()
+                tasks.exclude(id=latest_task.id).delete()
+                tasks.update(
+                    expected_time=task['expected_time'],
+                    actual_time=task['actual_time']
+                )
+                updated_tasks.append(latest_task.id)
+
+        # Check inactive tasks
+        inactive_tasks = Task.objects.filter(
+            project_id__in=updated_projects
+        ).exclude(
+            id__in=updated_tasks
+        ).distinct()
+        print('inactive_tasks : {}'.format(inactive_tasks.count()))
+
+        activities = get_erp_data(
+            DocType.ACTIVITY, user.profile.token)
+
+        for activity in activities:
+            if 'name' not in activity:
+                continue
+            Activity.objects.get_or_create(
+                name=activity['name']
+            )
 
 
 def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
@@ -442,70 +467,126 @@ def get_burndown_chart_data(project_name):
     }
 
 
+@retry_operation
 def pull_leave_data_from_erp(user):
     """
     Retrieves leave days data from ERPNext and generates a leave schedule.
     """
     from schedule.models.schedule import Schedule
-    filters = []
-    if user.profile.employee_id:
-        filters.append(["employee", "=", user.profile.employee_id])
-    else:
-        filters.append(
-            ["employee_name", "=", f"{user.first_name} {user.last_name}"])
-    filters.append(["status", "=", "Approved"])
-    leave_data = get_erp_data(
-        DocType.LEAVE, preferences.TimesheetPreferences.admin_token,
-        str(filters).replace('\'', '"')
-    )
-    from django.db.models import Q
-
-    # Delete all leave first
-    user_leave = Schedule.objects.filter(
-        Q(activity__name__icontains='leave -') | Q(activity__name__icontains='lieu'),
-        user=user
-    )
-    user_leave.delete()
-
-    leave_type = {
-        'Paid Annual leave': 'Leave - Paid',
-        'Paid Sick Leave': 'Leave - Sick',
-        'Leave in lieu of time worked': 'Time in lieu'
-    }
-    for leave in leave_data:
-        if leave['leave_type'] in leave_type:
-            activity, _ = Activity.objects.get_or_create(
-                name=leave_type[leave['leave_type']]
-            )
+    with transaction.atomic():
+        filters = []
+        if user.profile.employee_id:
+            filters.append(["employee", "=", user.profile.employee_id])
         else:
-            if 'unpaid' in leave['leave_type'].lower():
-                activity, _ = Activity.objects.get_or_create(
-                    name='Leave - Unpaid'
-                )
-            elif 'family' in leave['leave_type'].lower():
-                activity, _ = Activity.objects.get_or_create(
-                    name='Leave - Paid Family Responsibility'
-                )
-            else:
-                activity, _ = Activity.objects.get_or_create(
-                    name=leave['leave_type']
-                )
-        Schedule.objects.update_or_create(
-            erp_id=leave['name'],
-            defaults={
-                'user': user,
-                'activity': activity,
-                'start_time': leave['from_date'],
-                'end_time': leave['to_date'],
-                'notes': leave['description']
-            }
+            filters.append(
+                ["employee_name", "=", f"{user.first_name} {user.last_name}"])
+        filters.append(["status", "=", "Approved"])
+        leave_data = get_erp_data(
+            DocType.LEAVE, preferences.TimesheetPreferences.admin_token,
+            str(filters).replace('\'', '"')
         )
-        leave = Schedule.objects.filter(
-            start_time=leave['from_date'],
-            end_time=leave['to_date'],
+        from django.db.models import Q
+
+        # Delete all leave first
+        user_leave = Schedule.objects.filter(
+            Q(activity__name__icontains='leave -') | Q(activity__name__icontains='lieu'),
             user=user
         )
-        if leave.count() > 1:
-            leave.exclude(
-                id=leave.last().id
-            ).delete()
+        user_leave.delete()
+
+        leave_type = {
+            'Paid Annual leave': 'Leave - Paid',
+            'Paid Sick Leave': 'Leave - Sick',
+            'Leave in lieu of time worked': 'Time in lieu'
+        }
+        for leave in leave_data:
+            if leave['leave_type'] in leave_type:
+                activity, _ = Activity.objects.get_or_create(
+                    name=leave_type[leave['leave_type']]
+                )
+            else:
+                if 'unpaid' in leave['leave_type'].lower():
+                    activity, _ = Activity.objects.get_or_create(
+                        name='Leave - Unpaid'
+                    )
+                elif 'family' in leave['leave_type'].lower():
+                    activity, _ = Activity.objects.get_or_create(
+                        name='Leave - Paid Family Responsibility'
+                    )
+                else:
+                    activity, _ = Activity.objects.get_or_create(
+                        name=leave['leave_type']
+                    )
+            Schedule.objects.update_or_create(
+                erp_id=leave['name'],
+                defaults={
+                    'user': user,
+                    'activity': activity,
+                    'start_time': leave['from_date'],
+                    'end_time': leave['to_date'],
+                    'notes': leave['description']
+                }
+            )
+            leave = Schedule.objects.filter(
+                start_time=leave['from_date'],
+                end_time=leave['to_date'],
+                user=user
+            )
+            if leave.count() > 1:
+                leave.exclude(
+                    id=leave.last().id
+                ).delete()
+
+
+@retry_operation
+def update_schedule_countdown(user):
+    with transaction.atomic():
+        schedules = Schedule.objects.filter(
+            user_project__user=user
+        ).order_by('-start_time')
+        updated_tasks = []
+        for schedule in schedules:
+            if not schedule.task:
+                continue
+            if schedule.task.id in updated_tasks:
+                continue
+            updated_tasks.append(
+                schedule.task.id
+            )
+            start_time = _naive(schedule.start_time)
+            end_time = _naive(schedule.end_time)
+            last_update = _naive(schedule.task.last_update)
+
+            remaining_task_days = calculate_remaining_task_days(
+                schedule.task,
+                start_time,
+                end_time
+            )
+            print('updating schedule {user} : {task} - {remaining_days}'.format(
+                user=user.username,
+                task=schedule.task.name,
+                remaining_days=remaining_task_days
+            ))
+            last_day_number = (
+                    remaining_task_days - (schedule.end_time - schedule.start_time).days
+            )
+            schedule.first_day_number = remaining_task_days
+            schedule.last_day_number = last_day_number
+            schedule.save()
+
+            updated = update_subsequent_schedules(
+                start_time=start_time,
+                task_id=schedule.task.id,
+                last_day_number=last_day_number,
+                excluded_schedule=schedule
+            )
+            if start_time < last_update:
+                excluded_schedules = updated
+                excluded_schedules.append(schedule.id)
+                updated_previous = update_previous_schedules(
+                    start_time,
+                    schedule.task.id,
+                    remaining_task_days,
+                    excluded_schedules=excluded_schedules
+                )
+                updated += updated_previous
