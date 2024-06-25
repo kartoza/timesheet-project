@@ -234,9 +234,6 @@ def pull_projects_from_erp(user: get_user_model()):
                 id__in=inactive.values('project')
             ).distinct()
             inactive_projects.update(is_active=False)
-            Project.objects.filter(
-                id__in=inactive_projects.values('id')
-            ).delete()
 
         tasks = get_erp_data(
             DocType.TASK, user.profile.token
