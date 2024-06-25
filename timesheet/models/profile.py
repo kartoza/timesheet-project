@@ -14,7 +14,12 @@ def get_country_code_from_timezone(timezone_str):
         timezones = pytz.country_timezones[countrycode]
         for timezone in timezones:
             timezone_country[timezone] = countrycode
-    return timezone_country[timezone_str]
+    try:
+        timezone_country = timezone_country[timezone_str]
+    except KeyError:
+        timezone_country = 'IS'
+
+    return timezone_country
 
 
 class Profile(models.Model):
