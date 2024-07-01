@@ -44,11 +44,13 @@ class UserProjectList(APIView):
                 publictimeline__id=timeline_id
             )
             users = get_user_model().objects.filter(
-                userprojectslot__project__in=projects
+                userprojectslot__project__in=projects,
+                is_active=True
             ).distinct()
         else:
             users = get_user_model().objects.filter(
-                profile__api_key__isnull=False
+                profile__api_key__isnull=False,
+                is_active=True
             )
         users_data = []
         for user in users:

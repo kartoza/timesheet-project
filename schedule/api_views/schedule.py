@@ -362,7 +362,8 @@ class ScheduleList(APIView):
         end_date = current_date + relativedelta(months=6)
 
         schedules = Schedule.objects.filter(
-            start_time__range=(start_date, end_date)
+            start_time__range=(start_date, end_date),
+            user_project__user__is_active=True
         )
         if timeline_id:
             schedules = schedules.filter(
