@@ -350,7 +350,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
 class ScheduleList(APIView):
     permission_classes = []
 
-    # @method_decorator(cache_page(60 * 60 * 24), name='dispatch')
+    @method_decorator(cache_page(60 * 60 * 24), name='dispatch')
     def get(self, request, format=None):
         timeline_id = self.request.GET.get('timelineId', None)
         if not timeline_id:
