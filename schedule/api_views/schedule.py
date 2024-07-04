@@ -2,6 +2,7 @@ import csv
 import time
 
 import pytz
+from django.db.models import Q
 from django.http import Http404, HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page, never_cache
@@ -349,7 +350,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
 class ScheduleList(APIView):
     permission_classes = []
 
-    @method_decorator(cache_page(60 * 60 * 24), name='dispatch')
+    # @method_decorator(cache_page(60 * 60 * 24), name='dispatch')
     def get(self, request, format=None):
         timeline_id = self.request.GET.get('timelineId', None)
         if not timeline_id:
@@ -362,8 +363,17 @@ class ScheduleList(APIView):
         end_date = current_date + relativedelta(months=6)
 
         schedules = Schedule.objects.filter(
+            (
+                Q(user_project__isnull=False) & Q(user_project__user__is_active=True)
+            ) | (
+                Q(user_project__isnull=True)
+            ),
+            (
+                Q(user__isnull=False) & Q(user__is_active=True)
+            ) | (
+                Q(user__isnull=True)
+            ),
             start_time__range=(start_date, end_date),
-            user_project__user__is_active=True
         )
         if timeline_id:
             schedules = schedules.filter(
