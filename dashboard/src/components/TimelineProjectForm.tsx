@@ -79,6 +79,10 @@ export default function TimelineProjectForm(props: TimelineProjectInterface) {
       }
   }, [projectInput])
 
+  useEffect(() => {
+    console.log('test')
+  }, [selectedProject]);
+
   const handleClose = () => {
     if (isLoading) return
     setOpen(false)
