@@ -14,12 +14,10 @@
     transform: translate(-50%, -50%);
     width: 50%;
     border: 2px solid #000;
-    background-color: inherit;
+    background-color: var(--mui-palette-header-main);
     box-shadow: 24;
     padding: 20px;
     border-radius: 10px;
-    background-color: white;
-    color: black;
 
     .ql-editor {
         font-size: 12pt !important;
@@ -27,11 +25,4 @@
         max-width: 100%;
     }
 
-}
-
-[data-mui-color-scheme="dark"] {
-    .StandupModal {
-      background-color: rgb(22, 26, 30);
-      color: white;
-    }
 }

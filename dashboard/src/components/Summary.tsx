@@ -13,9 +13,9 @@ import {
     TextField
 } from "@mui/material";
 import {
-    createTheme,
-    Experimental_CssVarsProvider as CssVarsProvider,
-    useColorScheme,
+  createTheme,
+  Experimental_CssVarsProvider as CssVarsProvider, ThemeProvider,
+  useColorScheme,
 } from '@mui/material/styles';
 import {
     Chart as ChartJS,
@@ -44,6 +44,7 @@ import {BurndownChart} from "./BurndownChart";
 import {BurndownTable} from "./BurndownTable";
 import {UserReportTable} from "./UserReportTable";
 import {TaskReportTable} from "./TaskReportTable";
+import {theme} from "../utils/Theme";
 const CircularMenu = React.lazy(() => import('./Menu'));
 
 ChartJS.register(
@@ -56,9 +57,6 @@ ChartJS.register(
     Legend
 );
 
-
-// @ts-ignore
-const modeTheme = extendTheme({});
 
 export const options = {
     responsive: true,
@@ -280,7 +278,7 @@ export default function Summary(props: any) {
     }, [projectInput])
 
     return (
-        <CssVarsProvider theme={modeTheme}>
+        <ThemeProvider theme={theme}>
         <div className="App">
             <CircularMenu/>
             <div className="App-header" style={{ padding: '2vh', fontSize: '15pt' }}>
@@ -426,6 +424,6 @@ export default function Summary(props: any) {
                 <Grid item xs={1}></Grid>
             </Grid>
         </div>
-        </CssVarsProvider>
+        </ThemeProvider>
     )
 }
