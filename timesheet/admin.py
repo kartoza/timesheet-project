@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django import forms
 from preferences.admin import PreferencesAdmin
 
 
@@ -16,6 +17,16 @@ from timesheet.utils.erp import (
 from timesheet.models.profile import Profile
 from timesheet.models.user_project import UserProject
 from timesheet.forms import ProfileForm
+
+
+class TimesheetPreferencesForm(forms.ModelForm):
+    class Meta:
+        model = TimesheetPreferences
+        fields = '__all__'
+        widgets = {
+            'map_api_key': forms.PasswordInput(render_value=True),
+            'admin_token': forms.PasswordInput(render_value=True),
+        }
 
 
 @admin.action(description='Push to ERP')
@@ -144,6 +155,10 @@ class UserProjectAdmin(admin.ModelAdmin):
     )
 
 
+class TimesheetPreferencesAdmin(PreferencesAdmin):
+    form = TimesheetPreferencesForm
+
+
 admin.site.register(Timelog, TimelogAdmin)
 admin.site.register(Task, TaskAdmin)
 admin.site.register(Project, ProjectAdmin)
@@ -151,6 +166,6 @@ admin.site.register(Activity, ActivityAdmin)
 admin.site.unregister(get_user_model())
 admin.site.register(get_user_model(), UserAdmin)
 admin.site.register(UserProject, UserProjectAdmin)
-admin.site.register(TimesheetPreferences, PreferencesAdmin)
+admin.site.register(TimesheetPreferences, TimesheetPreferencesAdmin)
 admin.site.register(Clock)
 admin.site.register(SavedSummary, SavedSummaryAdmin)

@@ -5,9 +5,12 @@ from timesheet.models.profile import Profile
 class ProfileForm(ModelForm):
     class Meta:
         model = Profile
-        # widgets = {
-        #     'api_secret': PasswordInput(
-        #         render_value=True
-        #     )
-        # }
+        widgets = {
+            'api_secret': PasswordInput(
+                render_value=True
+            ),
+            'api_key': PasswordInput(
+                render_value=True
+            ),
+        }
         fields = '__all__'
