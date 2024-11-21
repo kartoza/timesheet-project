@@ -189,7 +189,7 @@ SITE_ID = 1
 
 LOGIN_REDIRECT_URL = '/'
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'core.email_backend.ResendBackend'
 ACCOUNT_EMAIL_REQUIRED = True
 
 DBBACKUP_STORAGE_OPTIONS = {'location': 'backups'}
@@ -200,3 +200,9 @@ CACHES = {
         "LOCATION": absolute_path('core', 'cache'),
     }
 }
+
+DEFAULT_FROM_EMAIL = os.environ.get(
+    'DEFAULT_FROM_EMAIL',
+    'noreply@noreply.kartoza.com')
+RESEND_API_KEY = os.environ.get(
+    'RESEND_API_KEY', '')
