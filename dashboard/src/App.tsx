@@ -322,8 +322,12 @@ function App() {
                 setActivities(json)
             }
         )
-        fetch('https://api.quotable.io/random?tags=wisdom|future|humor').then(response => response.json()).then(
-            data => setQuote(data)
+        fetch('/api/quotes/').then(response => response.json()).then(
+            data => {
+                if (data.length > 0) {
+                    setQuote(data[0])
+                }
+            }
         );
 
         if (isTodayInDates(unavailableDates)) {
@@ -844,9 +848,9 @@ function App() {
             }
             { quote ?
             <div className='quote-container'>
-                <Typography className='quote'>{quote['content']}</Typography>
-                {quote['author'] ?
-                    <Typography className='quote-author'> — {quote['author']}</Typography>
+                <Typography className='quote'>{quote['q']}</Typography>
+                {quote['a'] ?
+                    <Typography className='quote-author'> — {quote['a']}</Typography>
                     : ''
                 }
             </div> : ''}

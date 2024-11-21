@@ -1,5 +1,7 @@
 from django.urls import path, include
 from rest_framework import routers
+
+from timesheet.api_views.quotes import RandomQuotes
 from timesheet.api_views.timesheet import (
     TimesheetModelViewSet,
     TimesheetViewSet,
@@ -59,5 +61,8 @@ urlpatterns = [
          name='user-activities'),
     path('api/user-leaderboard/',
          UserLeaderBoard.as_view(),
-         name='user-leaderboard')
+         name='user-leaderboard'),
+    path('api/quotes/',
+         RandomQuotes.as_view(),
+         name='random-quotes'),
 ]
