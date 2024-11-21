@@ -63,6 +63,11 @@
   color: black;
 }
 
+.project-link-container {
+  position: absolute;
+  margin-top: -45px;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
@@ -183,6 +188,21 @@
   text-align: left;
 }
 
+
+@media (min-width: 3800px) {
+
+  .project-link-container {
+    margin-top: -65px;
+  }
+}
+
+@media (max-width: 1470px) {
+
+  .project-link-container {
+    margin-top: -40px;
+  }
+}
+
 @media (max-width: 800px) {
   .timesheet-container {
     flex-direction: column-reverse !important;
@@ -194,6 +214,9 @@
     width: 100%;
     padding-left: 5px;
     padding-right: 5px;
+  }
+  .project-link-container {
+    display: none;
   }
 }
 

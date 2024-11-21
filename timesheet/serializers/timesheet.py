@@ -2,7 +2,7 @@ import re
 import html2text
 
 from rest_framework import serializers
-from timesheet.models import Timelog
+from timesheet.models import Timelog, ProjectLink
 from timesheet.utils.time import localize_and_convert_to_erp_timezone
 
 
@@ -248,3 +248,10 @@ class TimelogSerializerERP(TimelogSerializer):
         h = html2text.HTML2Text()
         h.ignore_links = False
         return h.handle(obj.description)
+
+
+class ProjectLinkSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ProjectLink
+        fields = '__all__'

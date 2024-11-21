@@ -11,7 +11,9 @@ import Chip from '@mui/material/Chip';
 import Backdrop from '@mui/material/Backdrop';
 import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
+import LinkOutlinedIcon from '@mui/icons-material/LinkOutlined';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import Tooltip from '@mui/material/Tooltip';
 
 import {generateColor, getColorFromTaskLabel, getTaskColor, isColorLight} from "./utils/Theme";
 import {
@@ -207,6 +209,7 @@ function App() {
     const [deleteTimeLog, { isLoading: isDeleteLoading, isSuccess: isDeleteSuccess, isError: isDeleteError }] = useDeleteTimeLogMutation();
     const [timeLogChildList, setTimeLogChildList] = useState<any>([])
     const [isUnavailable, setIsUnavailable] = useState<boolean>(false);
+    const [projectLinkList, setProjectLinkList] = useState<any>([])
 
     const timeCardRef = useRef(null);
 
@@ -392,6 +395,13 @@ function App() {
                         return jsonData
                     }))
                 }
+            )
+            fetch('/project-links/?id=' + selectedProject['id']).then(
+              response => response.json()
+            ).then(
+              json => {
+                  setProjectLinkList(json)
+              }
             )
         } else {
             setTasks([])
@@ -644,6 +654,17 @@ function App() {
                                 />
                             </Grid>
                             <Grid item md={6} xs={12}>
+                                <Box className={'project-link-container'}>
+                                    {
+                                        projectLinkList.map((projectLink) => (
+                                            <Tooltip title={projectLink.name} placement={'top'}>
+                                                <TButton variant={'outlined'} onClick={() => window.open(projectLink.link, '_blank')}>
+                                                    <LinkOutlinedIcon/>
+                                                </TButton>
+                                            </Tooltip>
+                                        ))
+                                    }
+                                </Box>
                                 <Autocomplete
                                     disablePortal
                                     id="combo-box-demo"
@@ -656,6 +677,7 @@ function App() {
                                             setSelectedProject(value)
                                         } else {
                                             setSelectedProject(null)
+                                            setProjectLinkList([])
                                             setSelectedTask(null)
                                         }
                                     }}

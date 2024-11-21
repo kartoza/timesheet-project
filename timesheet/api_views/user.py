@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta, time
 
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -11,6 +13,7 @@ from django.db.models import Q
 from django.core.cache import cache
 
 from schedule.models import Schedule
+from timesheet.models.profile import Profile
 from timesheet.models.timelog import Timelog
 from timesheet.utils.erp import get_detailed_report_data
 from timesheet.utils.time import convert_time, convert_time_to_user_timezone
@@ -243,7 +246,8 @@ class UserActivities(APIView):
     def get_users(self):
         user_model = get_user_model()
         users = user_model.objects.exclude(
-            first_name=''
+            Q(first_name='') |
+            Q(is_active=False)
         )
         return users
 
@@ -265,6 +269,9 @@ class UserLeaderBoard(APIView):
     current_date = datetime.now()
 
     def report_data(self, weeks):
+        active_employee_names = list(
+            Profile.objects.filter(user__is_active=True).values_list('employee_name', flat=True)
+        )
         summary_data = {}
         end_date = self.current_date - timedelta(days=self.current_date.weekday() + 1 + (weeks * 7))
         start_date = str((end_date - timedelta(days=6))).split(' ')[0]
@@ -274,9 +281,12 @@ class UserLeaderBoard(APIView):
         detailed_report = get_detailed_report_data('', filters)[:-1]
         for report in detailed_report[:-1]:
             employee = report['Employee Name']
+            if employee not in active_employee_names:
+                continue
             summary_data[employee] = summary_data.get(employee, 0) + report['Hours']
         return dict(sorted(summary_data.items(), key=lambda item: item[1], reverse=True))
 
+    @method_decorator(cache_page(60 * 60), name='dispatch')
     def get(self, request, **kwargs):
         last_week_data = self.report_data(0)
         last_two_week = self.report_data(1)

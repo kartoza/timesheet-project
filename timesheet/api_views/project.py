@@ -1,10 +1,12 @@
 import ast
 from django.db.models import F
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from timesheet.models import Project
+from timesheet.serializers.timesheet import ProjectLinkSerializer
 from timesheet.utils.erp import (
     pull_projects_from_erp,
     pull_user_data_from_erp
@@ -12,6 +14,7 @@ from timesheet.utils.erp import (
 from schedule.models.user_project_slot import (
     UserProjectSlot
 )
+from timesheet.models.project import ProjectLink
 
 
 class PullProjects(APIView):
@@ -22,6 +25,20 @@ class PullProjects(APIView):
         pull_projects_from_erp(request.user)
 
         return Response({'success': True})
+
+
+class ProjectLinkApiView(APIView):
+
+    def get(self, request, *args):
+        project = get_object_or_404(
+            Project,
+            id=request.GET.get('id', None)
+        )
+        project_links = ProjectLink.objects.filter(
+            project=project)
+        serializer = ProjectLinkSerializer(
+            project_links, many=True)
+        return Response(serializer.data)
 
 
 class ProjectAutocomplete(APIView):

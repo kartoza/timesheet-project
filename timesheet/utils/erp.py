@@ -229,11 +229,11 @@ def pull_projects_from_erp(user: get_user_model()):
         inactive = UserProject.objects.exclude(
             project__updated=updated
         )
-        if inactive.exists():
-            inactive_projects = Project.objects.filter(
-                id__in=inactive.values('project')
-            ).distinct()
-            inactive_projects.update(is_active=False)
+        # if inactive.exists():
+        #     inactive_projects = Project.objects.filter(
+        #         id__in=inactive.values('project')
+        #     ).distinct()
+        #     inactive_projects.update(is_active=False)
 
         tasks = get_erp_data(
             DocType.TASK, user.profile.token
