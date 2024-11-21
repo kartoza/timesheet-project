@@ -1,4 +1,4 @@
-asgiref==3.5.0
+asgiref==3.8.1
 certifi==2021.10.8
 charset-normalizer==2.0.12
 coverage==6.3.2
