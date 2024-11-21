@@ -35,7 +35,13 @@
     align-items: center;
     display: flex;
     font-size: 10pt;
-    color: white;
+    color: white;text-shadow:
+        -1px -1px 1px rgba(0, 0, 0, 0.7),
+        1px -1px 1px rgba(0, 0, 0, 0.7),
+        -1px 1px 1px rgba(0, 0, 0, 0.7),
+        1px 1px 1px rgba(0, 0, 0, 0.7);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
   .time-log-item {

@@ -28,3 +28,43 @@ class Project(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class ProjectLink(models.Model):
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+    )
+
+    name = models.CharField(
+        blank=True,
+        null=True,
+        max_length=512,
+        default='',
+    )
+
+    link = models.URLField(
+        blank=False,
+        null=False,
+    )
+
+    display_order = models.PositiveIntegerField(
+        default=0,
+    )
+
+    def __str__(self):
+        return f'[{self.project.name}] {self.link}'
+
+    def save(self, *args, **kwargs):
+        if self.display_order == 0:
+            last_order = (
+                ProjectLink.objects.filter(project=self.project)
+                .aggregate(
+                    max_order=models.Max('display_order')
+                )['max_order']
+            )
+            self.display_order = (last_order or 0) + 1
+        super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ['project_id', 'display_order']

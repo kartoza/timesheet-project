@@ -6,7 +6,7 @@ from preferences.admin import PreferencesAdmin
 
 from timesheet.models import (
     Timelog, Task, Project, Activity, TimesheetPreferences,
-    SavedSummary
+    SavedSummary, ProjectLink
 )
 from timesheet.models.clock import Clock
 from timesheet.utils.erp import (
@@ -89,6 +89,13 @@ class TaskAdmin(admin.ModelAdmin):
     )
 
 
+class ProjectLinkInline(admin.StackedInline):
+    model = ProjectLink
+    extra = 1
+    fields = ('name', 'link', 'display_order')
+    ordering = ('display_order',)
+
+
 class ProjectAdmin(admin.ModelAdmin):
     list_display = (
         'name',
@@ -99,6 +106,9 @@ class ProjectAdmin(admin.ModelAdmin):
     )
     list_filter = (
         'is_active',
+    )
+    inlines = (
+        ProjectLinkInline,
     )
 
 

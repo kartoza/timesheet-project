@@ -11,4 +11,5 @@ class DocType(Enum):
     LEAVE = 'Leave Application'
     HOLIDAY_LIST = 'Holiday List'
     HOLIDAY = 'Holiday'
+    ROLE = 'Role'
 
