@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdashboard=self.webpackChunkdashboard||[]).push([[441],{63441:function(e,a,d){var u=d(64836);Object.defineProperty(a,"__esModule",{value:!0}),a.default=void 0;var l=u(d(64938)),s=d(85893),t=(0,l.default)((0,s.jsx)("path",{d:"M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"}),"Download");a.default=t}}]);

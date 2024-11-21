@@ -1,8 +1,10 @@
-import { TextField, CircularProgress, Typography, Grid } from "@mui/material";
+import { TextField, CircularProgress, Typography } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import CardContent from "@mui/material/CardContent";
 import CardActions from "@mui/material/CardActions";
 import { LocalizationProvider, DatePicker, TimePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
 import moment from "moment";
 import React, { useCallback, useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import {
@@ -399,15 +401,16 @@ export const TimeCard = forwardRef(({
             <div>
                 <CardContent sx={{ paddingLeft: 0, paddingRight: 0, paddingTop: 0 }}>
                     <Grid container spacing={0.6}>
-                        <Grid item xs={7} className="time-picker">
+                        <Grid size={7} className="time-picker">
                             <DatePicker
                                 value={startTime}
                                 onChange={(newValue) => setStartTime(newValue)}
-                                renderInput={(params) => <TextField {...params} variant="standard" sx={{ width: "100%" }} />}
+                                format="dd/MM/yyyy"
+                                className="date-picker-input"
                             />
                         </Grid>
-                        <Grid item xs={1}><Typography color={'text.primary'}>:</Typography></Grid>
-                        <Grid item xs={4} className="time-picker">
+                        <Grid size={1} style={{marginTop: 15}}><Typography color={'text.primary'}>:</Typography></Grid>
+                        <Grid size={4} className="time-picker">
                             <TimePicker
                                 ampm={false}
                                 value={startTime}
@@ -415,23 +418,29 @@ export const TimeCard = forwardRef(({
                                     setStartTime(newValue)
                                     updateCurrentHours(newValue, endTime)
                                 }}
-                                renderInput={(params) =>
-                                    <TextField {...params} variant="standard" sx={{ width: "100%" }} />}
+                                viewRenderers={{
+                                    hours: renderTimeViewClock,
+                                    minutes: renderTimeViewClock,
+                                    seconds: renderTimeViewClock,
+                                }}
                             />
                         </Grid>
                     </Grid>
                     <Grid container spacing={0.6}>
-                        <Grid item xs={10}>
-                            { isEndTime ? <TimePicker
+                        <Grid size={10}>
+                            { isEndTime ? <div style={{marginLeft: "-20px"}}><TimePicker
                                 ampm={false}
                                 value={endTime}
                                 onChange={(newValue) => {
                                     setEndTime(newValue);
                                     updateCurrentHours(startTime, newValue);
                                 }}
-                                renderInput={(params) =>
-                                  <TextField {...params} variant="standard" sx={{ marginTop: 2, marginBottom: 2.7, width: "100%" }} />}
-                              /> :
+                                viewRenderers={{
+                                    hours: renderTimeViewClock,
+                                    minutes: renderTimeViewClock,
+                                    seconds: renderTimeViewClock,
+                                }}
+                              /></div> :
                             <TextField
                               error={hourString.length > 4 && !hours}
                               value={hourString}
@@ -486,7 +495,7 @@ export const TimeCard = forwardRef(({
                               label="Hours" variant="standard" sx={{ width: "100%" }} />
                             }
                         </Grid>
-                        <Grid item xs={2}>
+                        <Grid size={2}>
                             <TButton variant="text" onClick={() => setIsEndTime(!isEndTime)} style={{ minWidth: 0, paddingLeft: 4, paddingRight: 4, marginTop: 12}}>
                                 <HourglassEmptyIcon/>
                             </TButton>
@@ -536,12 +545,12 @@ export const TimeCard = forwardRef(({
             </div> }
             <div style={{ marginTop: '3px' }}>
                 <Grid container spacing={0.6}>
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                         <TButton variant={'outlined'} disabled={!isLogging || editingTimeLog} color={'success'} style={{ width: '100%' }} onClick={() => setIsLogging(false)}>
                             <PlayCircleIcon/>
                         </TButton>
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                         <TButton variant={'outlined'} disabled={isLogging || editingTimeLog || localRunningTimeLog} color={'success'} style={{ width: '100%' }} onClick={() => setIsLogging(true)}>
                             <ListIcon/>
                         </TButton>

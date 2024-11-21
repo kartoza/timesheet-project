@@ -2,7 +2,79 @@ import * as React from 'react';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 export const theme = createTheme({
+    cssVariables: {
+        colorSchemeSelector: 'class'
+    },
+    colorSchemes: {
+        light: {
+            palette: {
+                neutral: {
+                    main: '#64748B',
+                    contrastText: '#fff',
+                },
+                main: {
+                    main: '#E66F5C',
+                    contrastText: '#fff',
+                },
+                secondary: {
+                    main: '#8d1a94',
+                    contrastText: '#000'
+                },
+                success: {
+                    main: '#21791c',
+                    contrastText: '#fff',
+                },
+                header: {
+                    main: '#e7c24a',
+                    contrastText: '#000000'
+                },
+                title: {
+                    main: '#1d575c',
+                    contrastText: '#1d575c'
+                }
+            }
+        },
+        dark: {
+            palette: {
+                neutral: {
+                    main: '#64748B',
+                    contrastText: '#fff',
+                },
+                main: {
+                    main: '#E66F5C',
+                    contrastText: '#fff',
+                },
+                primary: {
+                    main: '#7c8686',
+                    contrastText: '#fff'
+                },
+                secondary: {
+                    main: '#d2b726',
+                    contrastText: '#fff'
+                },
+                success: {
+                    main: '#4eb747',
+                    contrastText: '#fff',
+                },
+                header: {
+                    main: '#001E3CFF',
+                    contrastText: '#ffffff'
+                },
+                title: {
+                    main: '#ffffff',
+                    contrastText: '#ffffff'
+                }
+            }
+        }
+    },
+});
+
+export const darkTheme = createTheme({
+    colorSchemes: {
+        light: true
+    },
     palette: {
+        mode: 'light',
         neutral: {
             main: '#64748B',
             contrastText: '#fff',
@@ -12,8 +84,8 @@ export const theme = createTheme({
             contrastText: '#fff',
         },
         secondary: {
-            main: '#d2b726',
-            contrastText: '152731'
+            main: '#0e0e0e',
+            contrastText: '#2f2f2f'
         },
         success: {
             main: '#4eb747',
@@ -21,6 +93,7 @@ export const theme = createTheme({
         }
     },
 });
+
 
 export const generateColor = (id: string, brightness = '25%') => {
     let hash = 0;

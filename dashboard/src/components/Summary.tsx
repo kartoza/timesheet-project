@@ -15,7 +15,6 @@ import {
 import {
     createTheme,
     Experimental_CssVarsProvider as CssVarsProvider,
-    experimental_extendTheme as extendTheme,
     useColorScheme,
 } from '@mui/material/styles';
 import {
