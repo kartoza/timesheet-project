@@ -215,9 +215,9 @@ export default function ItemForm(props: ItemFormInterface) {
                    value={startTime}
                    disabled={isLoading}
                    onChange={(newValue) => setStartTime(newValue)}
-                   renderInput={(params) => <TextField {...params}
-                                                       label='Start Time'
-                                                       sx={{width: "100%"}}/>}
+                   // renderInput={(params) => <TextField {...params}
+                   //                                     label='Start Time'
+                   //                                     sx={{width: "100%"}}/>}
                  />
                </Grid>
                <Grid item xs={12}>

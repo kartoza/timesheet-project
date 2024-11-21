@@ -11,17 +11,11 @@
 }
 
 [data-mui-color-scheme="dark"] {
-  .App-header {
-    background-color: rgb(0, 30, 60);
-  }
   .timelog-card-header .MuiTypography-root {
     color: white;
   }
   body {
     background-color: #121212;
-  }
-  .app-title {
-    color: mintcream !important;
   }
   .ql-editor {
     color: white;
@@ -81,7 +75,7 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   margin-bottom: 20px;
-  background-color: #e7c24a;
+  background-color: var(--mui-palette-header-main);
   padding-bottom: 10px;
 
   .MuiGrid-root {
@@ -103,7 +97,7 @@
   }
 
   .app-title {
-    color: #1d575c;
+    color: var(--mui-palette-title-main);
     margin-top: 20px;
     font-weight: bolder;
     font-size: 25px;

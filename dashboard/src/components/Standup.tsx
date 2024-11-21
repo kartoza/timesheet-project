@@ -129,7 +129,8 @@ export default function Standup(props: StandupProp) {
                         </Typography>
                     </Grid>
                     <Grid item xs={6} textAlign={"right"}>
-                        <TButton variant="outlined" 
+                        <TButton variant="outlined"
+                             color={'primary'}
                             onClick={() => {
                                 copyToClip(standupText)
                             }}

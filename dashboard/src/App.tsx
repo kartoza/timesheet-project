@@ -14,16 +14,17 @@ import ToggleButton from '@mui/material/ToggleButton';
 import LinkOutlinedIcon from '@mui/icons-material/LinkOutlined';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Tooltip from '@mui/material/Tooltip';
+import { CssBaseline } from '@mui/material';
 
-import {generateColor, getColorFromTaskLabel, getTaskColor, isColorLight} from "./utils/Theme";
+import {generateColor, getColorFromTaskLabel, getTaskColor, isColorLight, theme} from "./utils/Theme";
 import {
     TimeLog, useDeleteTimeLogMutation,
     useGetTimeLogsQuery,
     useSubmitTimesheetMutation
 } from "./services/api";
 import {
-    Experimental_CssVarsProvider as CssVarsProvider,
-    experimental_extendTheme as extendTheme,
+    createTheme,
+    ThemeProvider,
     useColorScheme,
 } from '@mui/material/styles';
 import TButton from './loadable/Button';
@@ -71,8 +72,6 @@ export function ModeToggle() {
     );
 }
 
-const modeTheme = extendTheme({
-});
 
 const confettiStyle: CSSProperties = {
     position: "fixed",
@@ -360,6 +359,7 @@ function App() {
         } else {
             setProjects([])
             setProjectLoading(false)
+            setProjectLinkList([])
         }
     }, [projectInput])
 
@@ -562,7 +562,7 @@ function App() {
     }
 
     return (
-        <CssVarsProvider theme={modeTheme}>
+        <ThemeProvider theme={theme}>
         <div className="App">
             <CircularMenu/>
             <ReportButton/>
@@ -662,7 +662,7 @@ function App() {
                                     {
                                         projectLinkList.map((projectLink) => (
                                             <Tooltip title={projectLink.name} placement={'top'}>
-                                                <TButton variant={'outlined'} onClick={() => window.open(projectLink.link, '_blank')}>
+                                                <TButton color={'secondary'} variant={'outlined'} onClick={() => window.open(projectLink.link, '_blank')}>
                                                     <LinkOutlinedIcon/>
                                                 </TButton>
                                             </Tooltip>
@@ -855,7 +855,7 @@ function App() {
                 }
             </div> : ''}
         </div>
-        </CssVarsProvider>
+        </ThemeProvider>
     );
 }
 
