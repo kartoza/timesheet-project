@@ -31,6 +31,13 @@ class Project(models.Model):
 
 
 class ProjectLink(models.Model):
+    CATEGORY_CHOICES = (
+        ('DOC', 'Documentation'),
+        ('CHA', 'Chat'),
+        ('REP', 'Repository'),
+        ('DIA', 'Diagram')
+    )
+
     project = models.ForeignKey(
         Project,
         on_delete=models.CASCADE,
@@ -41,6 +48,12 @@ class ProjectLink(models.Model):
         null=True,
         max_length=512,
         default='',
+    )
+
+    category = models.CharField(
+        blank=True,
+        choices=CATEGORY_CHOICES,
+        max_length=3
     )
 
     link = models.URLField(

@@ -12,7 +12,7 @@ from timesheet.api_views.timesheet import (
 from timesheet.api_views.activity_list import ActivityList
 from timesheet.api_views.project import (
     ProjectAutocomplete,
-    PullProjects, ProjectLinkApiView
+    PullProjects, ProjectLinkApiView, ProjectLinkListApiView
 )
 from timesheet.api_views.task import TaskAutocomplete
 from timesheet.api_views.user import (
@@ -36,8 +36,11 @@ urlpatterns = [
          ProjectAutocomplete.as_view(),
          name='project-list'),
     path('project-links/',
-         ProjectLinkApiView.as_view(),
+         ProjectLinkListApiView.as_view(),
          name='project-links'),
+    path('project-link/',
+         ProjectLinkApiView.as_view(),
+         name='project-link'),
     path('api/delete-time-log/',
          TimeLogDeleteAPIView.as_view(),
          name='delete-time-log'),

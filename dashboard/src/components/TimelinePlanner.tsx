@@ -183,7 +183,17 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
   const [popoverText, setPopoverText] = useState<string>('')
 
   const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>, text: string) => {
-    setPopoverText(text)
+    let updatedText: any = text;
+    if (text.includes('div')) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(text, 'text/html');
+
+      const paragraphs = doc.querySelectorAll('p');
+      paragraphs.forEach(p => {
+          updatedText = p.textContent;
+      });
+    }
+    setPopoverText(updatedText)
     setAnchorEl(event.currentTarget);
   };
 
@@ -632,7 +642,9 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
             background: `linear-gradient(to bottom, rgba(0, 0, 0, 0) ${hoursPerDayPercentage}%, rgba(255,255,255, 0.3) ${100-hoursPerDayPercentage}%)`
           } : {}}
         >
-          <div className={'timeline-item-title'}>{isPublicHoliday(itemContext) ? item.desc : itemContext.title}</div>
+          <div className={'timeline-item-title'}>{
+            isPublicHoliday(itemContext) ? <div dangerouslySetInnerHTML={{ __html: item.desc }}></div> : itemContext.title
+          }</div>
           <div className={'timeline-item-sub'}>
             {isPublicHoliday(itemContext) ? '🏖️' :
               countdown.map(day => <div className={'timeline-item-countdown'} style={countDownStyle}>

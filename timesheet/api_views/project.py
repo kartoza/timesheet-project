@@ -27,8 +27,7 @@ class PullProjects(APIView):
         return Response({'success': True})
 
 
-class ProjectLinkApiView(APIView):
-
+class ProjectLinkListApiView(APIView):
     def get(self, request, *args):
         project = get_object_or_404(
             Project,
@@ -39,6 +38,32 @@ class ProjectLinkApiView(APIView):
         serializer = ProjectLinkSerializer(
             project_links, many=True)
         return Response(serializer.data)
+
+
+class ProjectLinkApiView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+
+        if 'id' in data and data['id']:
+            project_link = get_object_or_404(ProjectLink, id=data.get('id'))
+            serializer = ProjectLinkSerializer(
+                project_link, data=data, partial=True)
+        else:
+            serializer = ProjectLinkSerializer(data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request, *args, **kwargs):
+        data = request.data
+        project_link = get_object_or_404(
+            ProjectLink, id=data.get('id')
+        )
+        project_link.delete()
+        return Response(status=204)
 
 
 class ProjectAutocomplete(APIView):
