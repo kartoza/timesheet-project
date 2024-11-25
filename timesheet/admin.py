@@ -103,7 +103,7 @@ class TaskAdmin(admin.ModelAdmin):
 class ProjectLinkInline(admin.StackedInline):
     model = ProjectLink
     extra = 1
-    fields = ('name', 'link', 'display_order')
+    fields = ('name', 'link', 'category', 'display_order')
     ordering = ('display_order',)
 
 

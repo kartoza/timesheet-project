@@ -11,10 +11,8 @@ import Chip from '@mui/material/Chip';
 import Backdrop from '@mui/material/Backdrop';
 import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
-import LinkOutlinedIcon from '@mui/icons-material/LinkOutlined';
+
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import Tooltip from '@mui/material/Tooltip';
-import { CssBaseline } from '@mui/material';
 
 import {generateColor, getColorFromTaskLabel, getTaskColor, isColorLight, theme} from "./utils/Theme";
 import {
@@ -49,6 +47,7 @@ const ScheduleInfo = React.lazy(() => import("./components/ScheduleInfo"));
 const ReactCanvasConfetti = React.lazy(() => import('react-canvas-confetti'));
 const UserActivities = React.lazy(() => import('./components/UserActivities'));
 const LeaderBoard = React.lazy(() => import('./components/LeaderBoard'));
+const ProjectLinks = React.lazy(() => import('./components/ProjectLink'));
 const unavailableDates = (window as any).unavailableDates;
 const randomCompliments = [
     'Nice!',
@@ -71,7 +70,6 @@ export function ModeToggle() {
         </ToggleButtonGroup>
     );
 }
-
 
 const confettiStyle: CSSProperties = {
     position: "fixed",
@@ -120,7 +118,9 @@ const TimeLogs = (props: any) => {
         <div>
             <Grid container>
                 <Grid item xs={12} md={2}></Grid>
-                <Grid item xs={12} md={8} style={{ paddingLeft: 5, paddingRight: 5 }}>
+                <Grid item xs={12} md={8} style={{
+                    paddingLeft: 5,
+                    paddingRight: 5 }}>
                     <Suspense>
                         <ScheduleInfo/>
                     </Suspense>
@@ -658,17 +658,7 @@ function App() {
                                 />
                             </Grid>
                             <Grid item md={6} xs={12}>
-                                <Box className={'project-link-container'}>
-                                    {
-                                        projectLinkList.map((projectLink) => (
-                                            <Tooltip title={projectLink.name} placement={'top'}>
-                                                <TButton color={'secondary'} variant={'outlined'} onClick={() => window.open(projectLink.link, '_blank')}>
-                                                    <LinkOutlinedIcon/>
-                                                </TButton>
-                                            </Tooltip>
-                                        ))
-                                    }
-                                </Box>
+                                <ProjectLinks project={selectedProject} projectLinkList={projectLinkList} />
                                 <Autocomplete
                                     disablePortal
                                     id="combo-box-demo"
