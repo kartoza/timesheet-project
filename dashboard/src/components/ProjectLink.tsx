@@ -18,6 +18,8 @@ import {FormControl, InputLabel, Select} from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
 import Cookies from "js-cookie";
 
+const isStaff = (window as any).isStaff;
+
 const fadeIn = keyframes`
     from {
         opacity: 0;
@@ -74,7 +76,6 @@ const ProjectLinks = (props: any) => {
   };
 
   const handleDelete = (id: number) => {
-    console.log(id);
     if (window.confirm("Are you sure you want to delete this project link?")) {
       fetch("/project-link/", {
         credentials: "include",
@@ -222,61 +223,65 @@ const ProjectLinks = (props: any) => {
                 )}
               </TButton>
 
-              <TButton
-                color="primary"
-                variant="contained"
-                onClick={(e) => handleEditClick(e, projectLink)}
-                sx={{
-                  position: "absolute",
-                  top: -6,
-                  right: -6,
-                  minWidth: 15,
-                  width: 15,
-                  height: 15,
-                  padding: 0,
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: "0px 2px 4px rgba(0,0,0,0.2)",
-                  "& .MuiButton-startIcon": {
-                    margin: 0,
-                  },
-                  "&:hover": {
-                    backgroundColor: "rgba(0,0,0,0.1)",
-                  },
-                }}
-              >
-                <EditIcon style={{ fontSize: "8pt" }} />
-              </TButton>
+              { isStaff &&
+                <TButton
+                  color="primary"
+                  variant="contained"
+                  onClick={(e) => handleEditClick(e, projectLink)}
+                  sx={{
+                    position: "absolute",
+                    top: -6,
+                    right: -6,
+                    minWidth: 15,
+                    width: 15,
+                    height: 15,
+                    padding: 0,
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0px 2px 4px rgba(0,0,0,0.2)",
+                    "& .MuiButton-startIcon": {
+                      margin: 0,
+                    },
+                    "&:hover": {
+                      backgroundColor: "rgba(0,0,0,0.1)",
+                    },
+                  }}
+                >
+                  <EditIcon style={{ fontSize: "8pt" }} />
+                </TButton>
+              }
             </Box>
           </Tooltip>
         ))}
 
         {/* Add Button */}
-        <Tooltip title={"Add new project link"} placement={"top"}>
-          <TButton
-            color={"success"}
-            variant={"outlined"}
-            onClick={handleAddClick}
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              animation: `${fadeIn} 0.1s ease-out`,
-              animationDelay: `${projectLinkList.slice(0, 5).length * 0.1}s`,
-              animationFillMode: "forwards",
-              opacity: 0,
-              transition: "transform 0.3s ease, box-shadow 0.3s ease",
-              "&:hover": {
-                transform: "scale(1.05)",
-                boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
-              },
-            }}
-          >
-            <AddIcon />
-          </TButton>
-        </Tooltip>
+        {isStaff &&
+          <Tooltip title={"Add new project link"} placement={"top"}>
+            <TButton
+              color={"success"}
+              variant={"outlined"}
+              onClick={handleAddClick}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                animation: `${fadeIn} 0.1s ease-out`,
+                animationDelay: `${projectLinkList.slice(0, 5).length * 0.1}s`,
+                animationFillMode: "forwards",
+                opacity: 0,
+                transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                "&:hover": {
+                  transform: "scale(1.05)",
+                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+                },
+              }}
+            >
+              <AddIcon />
+            </TButton>
+          </Tooltip>
+        }
       </Box>
 
       {/* Edit Modal */}
