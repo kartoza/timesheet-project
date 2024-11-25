@@ -1,4 +1,6 @@
 import ast
+
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.db.models import F
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
@@ -40,7 +42,9 @@ class ProjectLinkListApiView(APIView):
         return Response(serializer.data)
 
 
-class ProjectLinkApiView(APIView):
+class ProjectLinkApiView(UserPassesTestMixin, APIView):
+    def test_func(self):
+        return self.request.user.is_staff
 
     def post(self, request, *args, **kwargs):
         data = request.data
