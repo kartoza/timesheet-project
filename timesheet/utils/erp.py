@@ -109,6 +109,12 @@ def pull_holiday_list(user):
             preferences.TimesheetPreferences.admin_token,
             f'[["country", "=", "{country_code}"]]'
         )
+        if len(holiday_list) == 0:
+            holiday_list = get_erp_data(
+                DocType.HOLIDAY_LIST,
+                preferences.TimesheetPreferences.admin_token,
+                f'[["custom_country_code", "=", "{country_code}"]]'
+            )
         current_year = datetime.now().year
         first_day_of_current_year = f"{current_year}-01-01"
         if len(holiday_list) > 0:
