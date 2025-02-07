@@ -18,6 +18,7 @@ const MuiAssignmentIcon = React.lazy(() => import('@mui/icons-material/Assignmen
 const MuiEngineeringIcon = React.lazy(() => import('@mui/icons-material/Engineering'))
 const MuiMapIcon = React.lazy(() => import('@mui/icons-material/Map'))
 const MuiDownloadIcon = React.lazy(() => import('@mui/icons-material/Download'))
+const MuiBreakIcon = React.lazy(() => import('@mui/icons-material/Hardware'))
 
 
 function IconLoader(props: any) {
@@ -103,6 +104,15 @@ export function DeleteSweepIcon(props: any) {
         </Suspense>
     )
 }
+
+export function BreakIcon(props: any) {
+    return (
+        <Suspense fallback={<IconLoader {...props}/>}>
+            <MuiBreakIcon {...props} />
+        </Suspense>
+    )
+}
+
 
 export function MoreVertIcon(props: any) {
     return (

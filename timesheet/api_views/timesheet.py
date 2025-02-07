@@ -1,10 +1,12 @@
 import time
 from datetime import timedelta, datetime
 import pytz
+from bs4 import BeautifulSoup
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import serializers, viewsets, status
 from rest_framework.views import APIView
@@ -16,6 +18,20 @@ from timesheet.models import Timelog, Task, Activity, Project
 from timesheet.serializers.timesheet import TimelogSerializer
 from timesheet.utils.erp import push_timesheet_to_erp
 from timesheet.utils.time import convert_time_to_user_timezone
+from timesheet.utils.timelogs import split_timelog_by_description
+
+
+def remove_empty_paragraphs(html):
+    """
+    Removes empty paragraphs (e.g., <p><br></p> or paragraphs that only contain whitespace)
+    from the given HTML string.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    for p in soup.find_all("p"):
+        # If the paragraph contains no non-whitespace text, remove it.
+        if not p.get_text(strip=True):
+            p.decompose()
+    return str(soup)
 
 
 class UserSerializer(serializers.Serializer):
@@ -71,7 +87,8 @@ class TimesheetSerializer(serializers.ModelSerializer):
         end_time = validated_data.get('end_time', None)
         task = validated_data.pop('task')
         activity = validated_data.pop('activity')
-        instance.description = validated_data.pop('description', '')
+        raw_description = validated_data.pop('description', '')
+        instance.description = remove_empty_paragraphs(raw_description)
         project_data = validated_data.pop('project')
         task_id = task.get('id')
         instance.project = Project.objects.get(
@@ -137,7 +154,8 @@ class TimesheetSerializer(serializers.ModelSerializer):
         start_time = validated_data.pop('start_time')
         end_time = validated_data.get('end_time', None)
         activity = validated_data.pop('activity')
-        description = validated_data.pop('description', '')
+        raw_description = validated_data.pop('description', '')
+        description = remove_empty_paragraphs(raw_description)
         parent = validated_data.pop('parent', None)
         _timezone = validated_data.pop('timezone', '')
 
@@ -283,6 +301,27 @@ class TimeLogDeleteAPIView(APIView):
                 ).update(parent=new_parent)
         timelog.delete()
         return Response(status=200)
+
+
+class BreakTimesheet(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, timelog_id):
+        user = request.user
+        timelog = get_object_or_404(Timelog, pk=timelog_id, user=user)
+        created_count = split_timelog_by_description(timelog)
+        if created_count == 0:
+            return Response(
+                {"detail": "Not enough bullet points found to split timelog."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(
+            {
+                "detail": f"Timelog split successfully. {created_count} child timelog(s) created."
+            },
+            status=status.HTTP_200_OK
+        )
 
 
 class SubmitTimeLogsAPIView(APIView):

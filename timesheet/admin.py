@@ -1,7 +1,9 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django import forms
+from django.test import Client
+from django.urls import reverse
 from preferences.admin import PreferencesAdmin
 
 
@@ -17,6 +19,7 @@ from timesheet.utils.erp import (
 from timesheet.models.profile import Profile
 from timesheet.models.user_project import UserProject
 from timesheet.forms import ProfileForm
+from timesheet.utils.timelogs import split_timelog_by_description
 
 
 class TimesheetPreferencesForm(forms.ModelForm):
@@ -62,6 +65,17 @@ def pull_leave_data(modeladmin, request, queryset: get_user_model()):
         pull_holiday_list(user)
 
 
+@admin.action(description='Break timesheet')
+def trigger_break_timesheet_api(modeladmin, request, queryset):
+    total_created = 0
+    for timelog in queryset:
+        total_created += split_timelog_by_description(timelog)
+    messages.success(
+        request,
+        f"Split timelog successfully. {total_created} child timelog(s) created."
+    )
+
+
 class TimelogAdmin(admin.ModelAdmin):
     list_display = (
         'user',
@@ -75,7 +89,7 @@ class TimelogAdmin(admin.ModelAdmin):
         'user',
         'submitted'
     )
-    actions = [push_to_erp]
+    actions = [push_to_erp, trigger_break_timesheet_api]
     raw_id_fields = (
         'task',
         'project',

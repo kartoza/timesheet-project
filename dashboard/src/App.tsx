@@ -11,17 +11,17 @@ import Chip from '@mui/material/Chip';
 import Backdrop from '@mui/material/Backdrop';
 import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
+import { CssBaseline } from '@mui/material';
 
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import {generateColor, getColorFromTaskLabel, getTaskColor, isColorLight, theme} from "./utils/Theme";
 import {
-    TimeLog, useDeleteTimeLogMutation,
+    TimeLog, useBreakTimesheetMutation, useDeleteTimeLogMutation,
     useGetTimeLogsQuery,
     useSubmitTimesheetMutation
 } from "./services/api";
 import {
-    createTheme,
     ThemeProvider,
     useColorScheme,
 } from '@mui/material/styles';
@@ -34,7 +34,13 @@ import {
 } from './loadable/Icon';
 import Loader from './loadable/Loader';
 import TimeLogChildList from "./components/TimeLogChildList";
-import {cloneTimeLogSignal, deleteTimeLogSignal, editTimeLogSignal, resumeTimeLogSignal} from "./utils/sharedSignals";
+import {
+    breakTimeLogSignal,
+    cloneTimeLogSignal,
+    deleteTimeLogSignal,
+    editTimeLogSignal,
+    resumeTimeLogSignal
+} from "./utils/sharedSignals";
 import {isTodayInDates} from "./utils/time";
 
 const CircularMenu = React.lazy(() => import('./components/Menu'));
@@ -206,6 +212,7 @@ function App() {
     const [compliment, setCompliment] = useState(randomCompliments[0])
     const [submitTimesheet, { isLoading: isUpdating, isSuccess, isError }] = useSubmitTimesheetMutation();
     const [deleteTimeLog, { isLoading: isDeleteLoading, isSuccess: isDeleteSuccess, isError: isDeleteError }] = useDeleteTimeLogMutation();
+    const [breakTimesheet, { isLoading, error }] = useBreakTimesheetMutation();
     const [timeLogChildList, setTimeLogChildList] = useState<any>([])
     const [isUnavailable, setIsUnavailable] = useState<boolean>(false);
     const [projectLinkList, setProjectLinkList] = useState<any>([])
@@ -541,6 +548,21 @@ function App() {
         onDeleteTimelog(data, checkParent);
     }
 
+    breakTimeLogSignal.value = async (data: TimeLog) => {
+        if (timerStarted) {
+            alert('Please stop the running timer first.');
+            return;
+        }
+        if (window.confirm('Are you sure you want to break this timesheet?')) {
+            try {
+                const response = await breakTimesheet(data.id).unwrap();
+                console.log("Timelog split successfully:", response);
+            } catch (err) {
+                console.error("Error splitting timelog:", err);
+            }
+        }
+    }
+
     resumeTimeLogSignal.value = (data: TimeLog) => {
         if (timerStarted) {
             alert('Please stop the running timer first.');
@@ -563,6 +585,7 @@ function App() {
 
     return (
         <ThemeProvider theme={theme}>
+         <CssBaseline />
         <div className="App">
             <CircularMenu/>
             <ReportButton/>

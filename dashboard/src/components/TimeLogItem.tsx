@@ -6,7 +6,7 @@ import Stack from "@mui/material/Stack";
 import Paper from "@mui/material/Paper";
 import {generateColor, getColorFromTaskLabel} from "../utils/Theme";
 import {
-    AssignmentIcon,
+    AssignmentIcon, BreakIcon,
     ContentCopyIcon,
     DeleteSweepIcon,
     EditIcon,
@@ -21,7 +21,7 @@ import TButton from "../loadable/Button";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import {cloneTimeLogSignal, deleteTimeLogSignal, editTimeLogSignal, resumeTimeLogSignal} from "../utils/sharedSignals";
+import {cloneTimeLogSignal, deleteTimeLogSignal, editTimeLogSignal, resumeTimeLogSignal, breakTimeLogSignal} from "../utils/sharedSignals";
 
 
 export function TimeLogItem(prop : TimeLog)    {
@@ -42,6 +42,11 @@ export function TimeLogItem(prop : TimeLog)    {
     const deleteTimeLogClicked = () => {
         handleClose();
         deleteTimeLogSignal.value(prop, true);
+    }
+
+    const breakTimeLogClicked = () => {
+        handleClose();
+        breakTimeLogSignal.value(prop);
     }
 
     const editTimeLogClicked = () => {
@@ -135,10 +140,11 @@ export function TimeLogItem(prop : TimeLog)    {
                         'aria-labelledby': 'basic-button',
                     }}
                 >
-                    <MenuItem onClick={resumeTimeLogClicked}><PlayArrowIcon/></MenuItem>
-                    { prop.submitted ? null : <MenuItem onClick={editTimeLogClicked}><EditIcon/></MenuItem> }
-                    <MenuItem onClick={copyTimeLogClicked}><ContentCopyIcon/></MenuItem>
-                    <MenuItem onClick={deleteTimeLogClicked}><DeleteSweepIcon/></MenuItem>
+                    <MenuItem onClick={resumeTimeLogClicked}><PlayArrowIcon/>Resume</MenuItem>
+                    { prop.submitted ? null : <MenuItem onClick={editTimeLogClicked}><EditIcon/>Edit</MenuItem> }
+                    <MenuItem onClick={copyTimeLogClicked}><ContentCopyIcon/>Copy</MenuItem>
+                    <MenuItem onClick={deleteTimeLogClicked}><DeleteSweepIcon/>Delete</MenuItem>
+                    <MenuItem onClick={breakTimeLogClicked}><BreakIcon/>Break</MenuItem>
                 </Menu>
             </Grid>
         </Grid>
