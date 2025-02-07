@@ -64,32 +64,19 @@ export const theme = createTheme({
                     main: '#ffffff',
                     contrastText: '#ffffff'
                 }
+            },
+            components: {
+                MuiCssBaseline: {
+                    styleOverrides: {
+                        '.ql-editor a': {
+                            color: '#9E9EFF !important',
+                        },
+                        '.quote-container': {
+                            color: 'white',
+                        },
+                    },
+                },
             }
-        }
-    },
-});
-
-export const darkTheme = createTheme({
-    colorSchemes: {
-        light: true
-    },
-    palette: {
-        mode: 'light',
-        neutral: {
-            main: '#64748B',
-            contrastText: '#fff',
-        },
-        main: {
-            main: '#E66F5C',
-            contrastText: '#fff',
-        },
-        secondary: {
-            main: '#0e0e0e',
-            contrastText: '#2f2f2f'
-        },
-        success: {
-            main: '#4eb747',
-            contrastText: '#fff',
         }
     },
 });
