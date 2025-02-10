@@ -76,7 +76,7 @@ export const TimeCard = forwardRef(({
     }, [newData])
 
     useEffect(() => {
-        setAddButtonDisabled(startTime == null || hours == null || !activity || description === '')
+        setAddButtonDisabled(startTime == null || hours == null || !activity)
         setStartButtonDisabled(!activity)
     }, [startTime, hours, task, activity, description])
 
@@ -322,7 +322,7 @@ export const TimeCard = forwardRef(({
 
     const submitEditedTimeLog = () => {
         let endTime: any = null
-        if (hours && startTime) {
+        if (hours != null && startTime) {
             let startTimeCopy = new Date(startTime.toISOString())
             endTime = addHours(hours, startTimeCopy)
         }

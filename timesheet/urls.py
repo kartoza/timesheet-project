@@ -24,7 +24,7 @@ from timesheet.views import ManageView
 
 router = routers.DefaultRouter()
 router.register(r'timesheet', TimesheetModelViewSet)
-router.register(r'timelog', TimesheetViewSet, basename='timelog')
+router.register(r'timelog', TimesheetViewSet, basename='timelog_view')
 
 
 urlpatterns = [
