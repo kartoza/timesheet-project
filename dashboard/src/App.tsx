@@ -120,6 +120,17 @@ const TimeLogs = (props: any) => {
         }
     }
 
+    const scheduleClick = (project_id, project_name, task_id, task_name) => {
+        props.selectProject({
+            'id': project_id,
+            'label': project_name,
+        });
+        props.selectTask({
+            'id': task_id,
+            'label': task_name,
+        })
+    }
+
     return (
         <div>
             <Grid container>
@@ -128,7 +139,7 @@ const TimeLogs = (props: any) => {
                     paddingLeft: 5,
                     paddingRight: 5 }}>
                     <Suspense>
-                        <ScheduleInfo/>
+                        <ScheduleInfo scheduleClicked={scheduleClick}/>
                     </Suspense>
                 </Grid>
                 <Grid item xs={12} md={2}></Grid>
@@ -590,6 +601,16 @@ function App() {
         setTimerStarted(timerStartedValue);
     }
 
+    const selectProject = (project) => {
+        setSelectedProject(project);
+    }
+
+    const selectTask = (task) => {
+        setTimeout(() => {
+            setSelectedTask(task);
+        }, 200);
+    }
+
     return (
         <ThemeProvider theme={theme}>
          <CssBaseline />
@@ -853,7 +874,7 @@ function App() {
                     }
                 }}
                 onClose={() => setTimeLogChildList([])}/>
-            <TimeLogs/>
+            <TimeLogs selectProject={selectProject} selectTask={selectTask}/>
             { isEmpty() ? <div><CircularProgress style={{ marginTop: '50px' }} /></div> : null }
             { timesheetData && Object.keys(timesheetData.logs).length > 0 ?
             <Grid container>

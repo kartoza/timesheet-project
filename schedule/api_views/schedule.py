@@ -270,6 +270,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
     start = serializers.SerializerMethodField()
     end = serializers.SerializerMethodField()
     project_name = serializers.SerializerMethodField()
+    project_id = serializers.SerializerMethodField()
     task_name = serializers.SerializerMethodField()
     task_label = serializers.SerializerMethodField()
     task_id = serializers.SerializerMethodField()
@@ -309,6 +310,9 @@ class ScheduleSerializer(serializers.ModelSerializer):
     def get_project_name(self, obj: Schedule):
         return obj.user_project.project.name if obj.user_project else 'Kartoza'
 
+    def get_project_id(self, obj: Schedule):
+        return obj.user_project.project.id if obj.user_project else ''
+
     def get_group(self, obj: Schedule):
         if obj.user_project:
             return obj.user_project.id
@@ -336,6 +340,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
             'start_time',
             'end_time',
             'project_name',
+            'project_id',
             'task_id',
             'task_name',
             'task_label',
