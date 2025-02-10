@@ -30,7 +30,8 @@ export const theme = createTheme({
                 },
                 title: {
                     main: '#1d575c',
-                    contrastText: '#1d575c'
+                    contrastText: '#1d575c',
+                    text: '#1d575c'
                 }
             }
         },
@@ -62,7 +63,7 @@ export const theme = createTheme({
                 },
                 title: {
                     main: '#ffffff',
-                    contrastText: '#ffffff'
+                    contrastText: '#ffffff',
                 }
             },
             components: {
