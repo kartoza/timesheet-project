@@ -76,16 +76,23 @@ export function TimeLogItem(prop : TimeLog)    {
         <Grid container spacing={1} className={"time-log-row" + (prop.submitted ? " timelog-submitted": "")}>
             <Grid className="time-log-item left-item" item xs={12} md={8}>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                    <Paper className="time-log-project" sx={{
+                        bgcolor: 'neutral.main',
+                        padding: prop.project_name ? '3px 10px' : '0',
+                    }}>
+                        <Typography color={'neutral.contrastText'} fontSize={'9pt'}>
+                            { prop.activity_type }
+                        </Typography>
+                    </Paper>
                     <Paper className="time-log-project" style={{
                         padding: prop.project_name ? '3px 10px' : '0',
                         backgroundColor: generateColor(prop.project_name) }}>
-                        <EngineeringIcon style={{ marginRight: 10 }}/>
+                        <EngineeringIcon style={{ marginRight: 5 }}/>
                         { prop.project_name }
                     </Paper>
                     <Paper className='time-log-task' sx={{
                         backgroundColor: getColorFromTaskLabel(prop.task_name),
                         padding: prop.task_name ? '3px 10px' : '0'}}>
-                        { prop.task_name ? <AssignmentIcon/> : null }
                         { prop.task_name }
                     </Paper>
                     { !prop.project_active ? (
@@ -140,11 +147,11 @@ export function TimeLogItem(prop : TimeLog)    {
                         'aria-labelledby': 'basic-button',
                     }}
                 >
-                    <MenuItem onClick={resumeTimeLogClicked}><PlayArrowIcon/>Resume</MenuItem>
+                    <MenuItem onClick={resumeTimeLogClicked}><PlayArrowIcon/>{ prop.submitted ? 'Start' : 'Resume' }</MenuItem>
                     { prop.submitted ? null : <MenuItem onClick={editTimeLogClicked}><EditIcon/>Edit</MenuItem> }
+                    { prop.submitted ? null : <MenuItem onClick={breakTimeLogClicked}><BreakIcon/>Break</MenuItem> }
                     <MenuItem onClick={copyTimeLogClicked}><ContentCopyIcon/>Copy</MenuItem>
                     <MenuItem onClick={deleteTimeLogClicked}><DeleteSweepIcon/>Delete</MenuItem>
-                    <MenuItem onClick={breakTimeLogClicked}><BreakIcon/>Break</MenuItem>
                 </Menu>
             </Grid>
         </Grid>

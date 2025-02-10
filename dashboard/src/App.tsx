@@ -217,6 +217,8 @@ function App() {
     const [isUnavailable, setIsUnavailable] = useState<boolean>(false);
     const [projectLinkList, setProjectLinkList] = useState<any>([])
 
+    const [startTimer, setStartTimer] = useState(false);
+
     const timeCardRef = useRef(null);
 
     const refreshAtMidnight = () => {
@@ -262,7 +264,7 @@ function App() {
         }
     }, [isSuccessFetching])
 
-    const updateSelectedTimeLog = (data: TimeLog, checkParent = true) => {
+    const updateSelectedTimeLog = (data: TimeLog, checkParent = true, forceTimer = false) => {
         setDescription(data.description)
         setSelectedActivity({
             id: data.activity_id,
@@ -281,21 +283,26 @@ function App() {
             label: data.task_name
         })
         if (checkParent && data.parent) {
-           setParent(data.parent)
+            setParent(data.parent)
+            setStartTimer(true)
+        }
+        if (forceTimer) {
+            setStartTimer(true)
         }
         // @ts-ignore
         timeCardRef.current?.updateHours(data);
     }
 
     useEffect(() => {
-        if (parent && !timerStarted) {
+        if (startTimer && !timerStarted) {
             setTimeout(() => {
                 window.scrollTo(0, 0);
                 // @ts-ignore
                 timeCardRef.current?.startButtonClicked(true);
+                setStartTimer(false);
             }, 200)
         }
-    }, [parent, timerStarted]);
+    }, [startTimer, timerStarted]);
 
     useEffect(() => {
         if (isDeleteLoading) {
@@ -572,8 +579,8 @@ function App() {
             setEditingTimeLog(null);
             setEditMode(false)
         }
-        const newData = { ...data, parent: data.id };
-        updateSelectedTimeLog(newData);
+        const newData = { ...data, parent: data.submitted ? '' : data.id };
+        updateSelectedTimeLog(newData, true, true);
     }
 
     const toggleTimer = (timerStartedValue: boolean) => {

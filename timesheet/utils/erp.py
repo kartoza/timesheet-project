@@ -343,6 +343,9 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
 
     submitted_timelogs = []
     for key, value in timelogs.items():
+        for log in value["data"]:
+            log["is_billable"] = True
+
         erp_timesheet_data = {
             'employee_name': value['employee_name'],
             'employee': value['employee'],
