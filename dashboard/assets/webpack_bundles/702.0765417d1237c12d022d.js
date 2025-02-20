@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkdashboard=self.webpackChunkdashboard||[]).push([[702],{39702:function(a,h,s){s.r(h);var d=s(15949),e=s(85893);h.default=(0,d.Z)((0,e.jsx)("path",{d:"M5 20h14v-2H5zM19 9h-4V3H9v6H5l7 7z"}),"Download")}}]);
