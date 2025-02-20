@@ -133,22 +133,6 @@ export const timesheetApi = createApi({
       transformResponse(response: TimeLog) {
         return response;
       },
-      async onQueryStarted(
-        arg,
-        { dispatch, getState, queryFulfilled, requestId, extra, getCacheEntry }
-      ) {},
-      async onCacheEntryAdded(
-        arg,
-        {
-          dispatch,
-          getState,
-          extra,
-          requestId,
-          cacheEntryRemoved,
-          cacheDataLoaded,
-          getCacheEntry,
-        }
-      ) {},
     }),
     breakTimesheet: build.mutation({
       query: (timelogId: string) => ({
