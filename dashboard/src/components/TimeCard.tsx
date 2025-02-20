@@ -60,8 +60,10 @@ export const TimeCard = forwardRef(({
     const [updatedTimesheet, setUpdatedTimesheet] = useState<any>(null)
     const [newTimesheet, setNewTimesheet] = useState<any>(null)
     const [isEndTime, setIsEndTime] = React.useState<boolean>(false);
+    const [retryCount, setRetryCount] = useState(0);
+    const [actionType, setActionType] = useState(""); // "submit" or "start"
 
-    const [addTimesheet, { isLoading: isUpdating, isSuccess, isError, data: newData }] = useAddTimesheetMutation();
+    const [addTimesheet, { isLoading: isUpdating, isSuccess: isAddSuccess, isError: isAddError, error: addError, data: newData }] = useAddTimesheetMutation();
     const [updateTimesheet, {  isLoading: isUpdateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError, data: updatedData }] = useUpdateTimesheetMutation();
     const [clearTimesheets, {
         isLoading: isClearLoading,
@@ -99,19 +101,24 @@ export const TimeCard = forwardRef(({
     }, [clearAllFields])
 
     useEffect(() => {
-        if (isSuccess && newTimesheet) {
+        if (isAddSuccess && newTimesheet) {
             if (newTimesheet.running) {
+                toggleTimer(true)
                 setLocalRunningTimeLog(newTimesheet);
             } else {
                 setLocalRunningTimeLog(null)
+                if (endTime) {
+                    setStartTime(endTime)
+                }
                 clearData(false);
             }
         }
-    }, [isSuccess, newTimesheet, clearData])
+    }, [isAddSuccess, newTimesheet, clearData])
 
     useEffect(() => {
         if (localRunningTimeLog || editingTimeLog) {
             if (updatedTimesheet && !updatedTimesheet.running) {
+                toggleTimer(false);
                 clearInterval(interval);
                 setStartButtonDisabled(true);
                 setRunningTime('00:00:00');
@@ -175,7 +182,6 @@ export const TimeCard = forwardRef(({
 
     const stopButtonClicked = async () => {
         if (!localRunningTimeLog) return;
-        toggleTimer(false);
         clearInterval(interval);
         setStartButtonDisabled(true);
 
@@ -206,58 +212,6 @@ export const TimeCard = forwardRef(({
         updateTimesheet(runningTimeClone);
     }
 
-    const startButtonClicked = async (startFromZero: boolean = false) => {
-        setIsLogging(false)
-        setStartButtonDisabled(true);
-        clearInterval(interval);
-        toggleTimer(true);
-
-        if (!startTime || !activity) {
-            return
-        }
-        let task_id = ''
-        if (task) {
-            task_id = task.id
-        }
-        if (!task_id) {
-            task_id = '-'
-        }
-
-        const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-        let _runningTime = runningTime;
-        if (startFromZero) {
-            _runningTime = '00:00:00';
-        }
-        let _startTime = formatTime(new Date());
-        if (_runningTime !== '00:00:00') {
-            const [hours, minutes, seconds] = _runningTime.split(':').map(Number);
-
-            // Calculate the total running time in milliseconds
-            const runningTimeInMs = ((hours * 60 * 60) + (minutes * 60) + seconds) * 1000;
-
-            // Calculate the new start time
-            // @ts-ignore
-            const newStartTime = new Date(new Date() - runningTimeInMs);
-            _startTime = formatTime(newStartTime);
-        }
-        addTimesheet({
-            start_time: _startTime,
-            task: {
-                'id': task_id
-            },
-            activity: {
-                'id': activity.id
-            },
-            project: {
-                'id': project ? project.id : ''
-            },
-            description: description,
-            timezone: currentTimeZone,
-            parent: parent
-        })
-    }
-
     const resetStartTime = () => {
         setStartTime(moment().toDate());
     }
@@ -276,48 +230,101 @@ export const TimeCard = forwardRef(({
         resetStartTime,
     }));
 
-    const addButtonClicked = async () => {
-        // Calculate start-time and end-time
-        let endTime: any = null
+    const submitTimesheet = useCallback(() => {
+        let endTime: any = null;
+        setAddButtonDisabled(true);
         if (hours != null && startTime) {
-            let startTimeCopy = new Date(startTime.toISOString())
-            if (hours > 0) {
-                endTime = addHours(hours, startTimeCopy)
-            } else {
-                endTime = startTimeCopy
-            }
+            const startTimeCopy = new Date(startTime.toISOString());
+            endTime = hours > 0 ? addHours(hours, startTimeCopy) : startTimeCopy;
         }
         if (!endTime || !startTime || !activity) {
-            return
+          return;
         }
-        let task_id = '-'
-        if (task) {
-            task_id = task.id
-        }
-        setStartTime(endTime)
-        let _startTime = startTime;
-        if (typeof startTime.toDate === 'function') {
-            _startTime = startTime.toDate();
-        }
-        let startTimeStr = formatTime(_startTime)
-        let endTimeStr = formatTime(endTime)
+        const task_id = task ? task.id : "-";
+        let _startTime = typeof startTime.toDate === "function" ? startTime.toDate() : startTime;
+        const startTimeStr = formatTime(_startTime);
+        const endTimeStr = formatTime(endTime);
         const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
         addTimesheet({
             start_time: startTimeStr,
             end_time: endTimeStr,
-            task: {
-                'id': task_id
-            },
-            activity: {
-                'id': activity.id
-            },
-            project: {
-                'id': project ? project.id : ''
-            },
+            task: { id: task_id },
+            activity: { id: activity.id },
+            project: { id: project ? project.id : "" },
             description: description,
-            timezone: currentTimeZone
-        })
+            timezone: currentTimeZone,
+        });
+    }, [addTimesheet, hours, startTime, activity, task, project, description]);
+
+    const startTimesheet = useCallback(
+        (startFromZero = false) => {
+            setIsLogging(false);
+            setStartButtonDisabled(true);
+            clearInterval(interval);
+
+            if (!startTime || !activity) {
+                return;
+            }
+            const task_id = task ? task.id : "-";
+            const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            let _runningTime = runningTime;
+            if (startFromZero) {
+                _runningTime = "00:00:00";
+            }
+            let _startTime = formatTime(new Date());
+            if (_runningTime !== "00:00:00") {
+            const [hrs, mins, secs] = _runningTime.split(":").map(Number);
+            const runningTimeInMs = ((hrs * 60 * 60) + (mins * 60) + secs) * 1000;
+            const newStartTime = new Date(new Date().getTime() - runningTimeInMs);
+                _startTime = formatTime(newStartTime);
+            }
+            addTimesheet({
+                start_time: _startTime,
+                task: { id: task_id },
+                activity: { id: activity.id },
+                project: { id: project ? project.id : "" },
+                description: description,
+                timezone: currentTimeZone,
+                parent: parent,
+            });
+        },
+        [addTimesheet, startTime, activity, task, runningTime, project, description, parent, interval]
+    );
+
+  const addButtonClicked = () => {
+    setRetryCount(0);
+    setActionType("submit");
+    submitTimesheet();
+  };
+
+  const startButtonClicked = (startFromZero = false) => {
+    setRetryCount(0);
+    setActionType("start");
+    startTimesheet(startFromZero);
+  };
+
+  useEffect(() => {
+    if (isAddError) {
+      if (retryCount < 3) {
+        const timer = setTimeout(() => {
+          if (actionType === "submit") {
+            setAddButtonDisabled(true);
+            submitTimesheet();
+          } else if (actionType === "start") {
+            setStartButtonDisabled(true);
+            startTimesheet(false);
+          }
+          setRetryCount((prev) => prev + 1);
+        }, 1000);
+        return () => clearTimeout(timer);
+      } else {
+        setStartButtonDisabled(false);
+        setAddButtonDisabled(false);
+        alert("Failed to add timesheet, please try again later.");
+      }
     }
+  }, [isAddError, retryCount, actionType, submitTimesheet, startTimesheet, addError]);
 
 
     const submitEditedTimeLog = () => {
