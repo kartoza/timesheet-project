@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkdashboard=self.webpackChunkdashboard||[]).push([[85],{96085:function(a,h,s){s.r(h);var e=s(15949),d=s(85893);h.default=(0,e.Z)((0,d.jsx)("path",{d:"M5 13h14v-2H5zm-2 4h14v-2H3zM7 7v2h14V7z"}),"ClearAll")}}]);
