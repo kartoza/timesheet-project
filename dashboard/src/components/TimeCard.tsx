@@ -471,10 +471,14 @@ export const TimeCard = forwardRef(({
                                   if (!isNaN(value)) {
                                       const _hours = parseFloat(value)
                                       setHours(_hours)
+                                      const wholeHours = Math.floor(_hours);
+                                      const minutes = (_hours - wholeHours) * 60;
+
                                       // @ts-ignore
                                       newDate.setHours(newDate.getHours() + _hours);
-                                      setEndTime(newDate);
+                                      newDate.setMinutes(newDate.getMinutes() + minutes);
 
+                                      setEndTime(newDate);
                                       return
                                   }
                                   const timeData = value.match(/(0?[0-9]|1[0-2])(:|.)[0-9]{2}/g)
@@ -489,8 +493,13 @@ export const TimeCard = forwardRef(({
                                           _hours = parseFloat(timeDataString)
                                       }
                                       setHours(_hours)
+                                      const wholeHours = Math.floor(_hours);
+                                      const minutes = (_hours - wholeHours) * 60;
+
                                       // @ts-ignore
                                       newDate.setHours(newDate.getHours() + _hours);
+                                      newDate.setMinutes(newDate.getMinutes() + minutes);
+
                                       setEndTime(newDate);
                                   }
                               }}
