@@ -177,19 +177,34 @@ def pull_holiday_list(user):
                 ).delete()
 
 
-def pull_user_data_from_erp(user: get_user_model()):
-
+def generate_api_key(user: get_user_model()):
     users = get_erp_data(
         DocType.USER, preferences.TimesheetPreferences.admin_token,
         f'[["email", "=", "{user.email}"]]'
     )
+    api_key_found = False
     if len(users) > 0:
         erp_user = users[0]
         user.profile.api_key = erp_user['api_key']
         user.profile.save()
+        api_key_found = True
 
-    if not user.profile.api_secret:
-        generate_api_secret(user)
+    generate_api_secret(user)
+    if not api_key_found:
+        users = get_erp_data(
+            DocType.USER, preferences.TimesheetPreferences.admin_token,
+            f'[["email", "=", "{user.email}"]]'
+        )
+        if len(users) > 0:
+            erp_user = users[0]
+            user.profile.api_key = erp_user['api_key']
+            user.profile.save()
+
+
+def pull_user_data_from_erp(user: get_user_model()):
+
+    if not user.profile.token:
+        generate_api_key(user)
 
     employee = get_erp_data(
         DocType.EMPLOYEE, user.profile.token,
