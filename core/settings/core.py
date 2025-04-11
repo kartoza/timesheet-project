@@ -154,7 +154,7 @@ REST_FRAMEWORK = {
 
 ERPNEXT_TOKEN = os.getenv('ERPNEXT_TOKEN', '')
 ERPNEXT_SITE_LOCATION = os.getenv('ERPNEXT_SITE_LOCATION',
-                                  'https://kartoza.erpnext.com')
+                                  'https://kartoza.com')
 
 # List of finder classes that know how to find static files in
 # various locations.

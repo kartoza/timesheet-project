@@ -14,7 +14,7 @@ from timesheet.models import (
 from timesheet.models.clock import Clock
 from timesheet.utils.erp import (
     push_timesheet_to_erp, pull_projects_from_erp, pull_user_data_from_erp,
-    pull_leave_data_from_erp, pull_holiday_list
+    pull_leave_data_from_erp, pull_holiday_list, generate_api_key
 )
 from timesheet.models.profile import Profile
 from timesheet.models.user_project import UserProject
@@ -51,9 +51,13 @@ def pull_projects(modeladmin, request, queryset: get_user_model()):
 @admin.action(description='Pull user data')
 def pull_user_data(modeladmin, request, queryset: get_user_model()):
     for user in queryset:
-        if not user.profile.token:
-            continue
         pull_user_data_from_erp(user)
+
+
+@admin.action(description='Generate api key')
+def generate_api_key(modeladmin, request, queryset: get_user_model()):
+    for user in queryset:
+        generate_api_key(user)
 
 
 @admin.action(description='Pull leave data')
@@ -150,7 +154,7 @@ class ProfileInLine(admin.StackedInline):
 
 class UserAdmin(DjangoUserAdmin):
     inlines = [ProfileInLine, ]
-    actions = [pull_projects, pull_user_data, pull_leave_data]
+    actions = [pull_projects, pull_user_data, pull_leave_data, generate_api_key]
 
 
 class SavedSummaryAdmin(admin.ModelAdmin):

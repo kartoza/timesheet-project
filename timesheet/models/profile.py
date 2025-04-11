@@ -75,7 +75,9 @@ class Profile(models.Model):
 
     @property
     def token(self):
-        return f'{self.api_key}:{self.api_secret}'
+        if self.api_key and self.api_secret:
+            return f'{self.api_key}:{self.api_secret}'
+        return ''
 
 
 @receiver(post_save, sender=get_user_model())
