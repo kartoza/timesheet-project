@@ -14,7 +14,7 @@ from timesheet.models import (
 from timesheet.models.clock import Clock
 from timesheet.utils.erp import (
     push_timesheet_to_erp, pull_projects_from_erp, pull_user_data_from_erp,
-    pull_leave_data_from_erp, pull_holiday_list, generate_api_key
+    pull_leave_data_from_erp, pull_holiday_list, generate_api_key as generate_api_key_from_erp
 )
 from timesheet.models.profile import Profile
 from timesheet.models.user_project import UserProject
@@ -57,7 +57,7 @@ def pull_user_data(modeladmin, request, queryset: get_user_model()):
 @admin.action(description='Generate api key')
 def generate_api_key(modeladmin, request, queryset: get_user_model()):
     for user in queryset:
-        generate_api_key(user)
+        generate_api_key_from_erp(user)
 
 
 @admin.action(description='Pull leave data')
