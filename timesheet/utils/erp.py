@@ -257,7 +257,7 @@ def pull_projects_from_erp(user: get_user_model()):
         #     inactive_projects.update(is_active=False)
 
         tasks = get_erp_data(
-            DocType.TASK, user.profile.token
+            DocType.TASK, preferences.TimesheetPreferences.admin_token
         )
         updated_tasks = []
         for task in tasks:
@@ -479,7 +479,7 @@ def get_burndown_chart_data(project_name):
 
         billable_hours = timesheet.get('Billable Hours', 0)
         total_hours = timesheet.get('Hours', 0)
-        hours_by_week[week_key]['hours'] += billable_hours
+        hours_by_week[week_key]['hours'] += total_hours
         hours_by_week[week_key]['unbillable_hours'] += (total_hours - billable_hours)
 
     sorted_hours = OrderedDict(sorted(hours_by_week.items()))
