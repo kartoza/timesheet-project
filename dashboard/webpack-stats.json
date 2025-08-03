@@ -1,73 +1,73 @@
 {
   "status": "done",
   "assets": {
-    "App.a2479f431f7a56cf0c44.js": {
-      "name": "App.a2479f431f7a56cf0c44.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.a2479f431f7a56cf0c44.js"
+    "App.90f22be0c11c70c28db6.js": {
+      "name": "App.90f22be0c11c70c28db6.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.90f22be0c11c70c28db6.js"
     },
-    "Space.ffa72b6aa48b247ced3a.js": {
-      "name": "Space.ffa72b6aa48b247ced3a.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.ffa72b6aa48b247ced3a.js"
+    "Space.d3ee95d455271e1f9e23.js": {
+      "name": "Space.d3ee95d455271e1f9e23.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.d3ee95d455271e1f9e23.js"
     },
-    "Summary.2f131f190b3a6da039c7.js": {
-      "name": "Summary.2f131f190b3a6da039c7.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.2f131f190b3a6da039c7.js"
+    "Summary.28c44d776e711d9548ae.js": {
+      "name": "Summary.28c44d776e711d9548ae.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.28c44d776e711d9548ae.js"
     },
-    "PublicSummary.c6a9f6c544fc3ad8f734.js": {
-      "name": "PublicSummary.c6a9f6c544fc3ad8f734.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.c6a9f6c544fc3ad8f734.js"
+    "PublicSummary.435e2a59885cda34fc95.js": {
+      "name": "PublicSummary.435e2a59885cda34fc95.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.435e2a59885cda34fc95.js"
     },
-    "Planner.52c2a7592882b392ccc8.js": {
-      "name": "Planner.52c2a7592882b392ccc8.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.52c2a7592882b392ccc8.js"
+    "Planner.a379aa610e33a8a41319.js": {
+      "name": "Planner.a379aa610e33a8a41319.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.a379aa610e33a8a41319.js"
     },
-    "998.d0c400d2554221257a2d.js": {
-      "name": "998.d0c400d2554221257a2d.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/998.d0c400d2554221257a2d.js"
+    "998.d5c12cd0d1948a753f9e.js": {
+      "name": "998.d5c12cd0d1948a753f9e.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/998.d5c12cd0d1948a753f9e.js"
     },
-    "853.cb1928726793fec0b43e.js": {
-      "name": "853.cb1928726793fec0b43e.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/853.cb1928726793fec0b43e.js"
+    "853.ad307a3bb7ac4fccca89.js": {
+      "name": "853.ad307a3bb7ac4fccca89.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/853.ad307a3bb7ac4fccca89.js"
     },
-    "39.26776d5b599cfdf9e473.js": {
-      "name": "39.26776d5b599cfdf9e473.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/39.26776d5b599cfdf9e473.js"
+    "39.3c4241f76d6a23dfa275.js": {
+      "name": "39.3c4241f76d6a23dfa275.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/39.3c4241f76d6a23dfa275.js"
     },
-    "263.17636027345f89fc9d82.js": {
-      "name": "263.17636027345f89fc9d82.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/263.17636027345f89fc9d82.js"
+    "263.f77a5bc032c5f39eca7e.js": {
+      "name": "263.f77a5bc032c5f39eca7e.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/263.f77a5bc032c5f39eca7e.js"
     },
-    "553.9de3ad0c9b02af542766.js": {
-      "name": "553.9de3ad0c9b02af542766.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/553.9de3ad0c9b02af542766.js"
+    "553.0ab267f7f044171d8c05.js": {
+      "name": "553.0ab267f7f044171d8c05.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/553.0ab267f7f044171d8c05.js"
     },
-    "447.c6ca48ccd1ff91318c97.js": {
-      "name": "447.c6ca48ccd1ff91318c97.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/447.c6ca48ccd1ff91318c97.js"
+    "447.b6ac2cdf7454e7a9d8fe.js": {
+      "name": "447.b6ac2cdf7454e7a9d8fe.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/447.b6ac2cdf7454e7a9d8fe.js"
     },
-    "732.908791ce5c35c26c66e7.js": {
-      "name": "732.908791ce5c35c26c66e7.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/732.908791ce5c35c26c66e7.js"
+    "732.a8d988721070317c8f33.js": {
+      "name": "732.a8d988721070317c8f33.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/732.a8d988721070317c8f33.js"
     },
     "359.0437e025be38f3c5e4bf.js": {
       "name": "359.0437e025be38f3c5e4bf.js",
       "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/359.0437e025be38f3c5e4bf.js"
     },
-    "188.917b4c367eba1e796de5.js": {
-      "name": "188.917b4c367eba1e796de5.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/188.917b4c367eba1e796de5.js"
+    "188.2c0d177f3d368e260de4.js": {
+      "name": "188.2c0d177f3d368e260de4.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/188.2c0d177f3d368e260de4.js"
     },
-    "35.ae0b4cbaf0d40475024a.js": {
-      "name": "35.ae0b4cbaf0d40475024a.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/35.ae0b4cbaf0d40475024a.js"
+    "35.63564e73fd38ede5b7cb.js": {
+      "name": "35.63564e73fd38ede5b7cb.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/35.63564e73fd38ede5b7cb.js"
     },
-    "716.76bfebdb9e1b9745f43a.js": {
-      "name": "716.76bfebdb9e1b9745f43a.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/716.76bfebdb9e1b9745f43a.js"
+    "716.9c185fdd277e40a78a77.js": {
+      "name": "716.9c185fdd277e40a78a77.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/716.9c185fdd277e40a78a77.js"
     },
-    "729.47b96e9167befc0146b0.js": {
-      "name": "729.47b96e9167befc0146b0.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/729.47b96e9167befc0146b0.js"
+    "729.e3e6bd6ea8c69c248b3e.js": {
+      "name": "729.e3e6bd6ea8c69c248b3e.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/729.e3e6bd6ea8c69c248b3e.js"
     },
     "764.a5952c7c26e6d1157200.js": {
       "name": "764.a5952c7c26e6d1157200.js",
@@ -145,9 +145,9 @@
       "name": "364.6b5af9b2632706172928.js",
       "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/364.6b5af9b2632706172928.js"
     },
-    "110.f4468c51443f505741dc.js": {
-      "name": "110.f4468c51443f505741dc.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/110.f4468c51443f505741dc.js"
+    "110.651bcf88f9255d56df7c.js": {
+      "name": "110.651bcf88f9255d56df7c.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/110.651bcf88f9255d56df7c.js"
     },
     "294.87e3f4e223d83faf192b.js": {
       "name": "294.87e3f4e223d83faf192b.js",
@@ -157,66 +157,66 @@
       "name": "595.f9fafea132378cba657e.js",
       "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/595.f9fafea132378cba657e.js"
     },
-    "412.303e02e804120306c8c0.js": {
-      "name": "412.303e02e804120306c8c0.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/412.303e02e804120306c8c0.js"
+    "412.7d548b933887bec8f24b.js": {
+      "name": "412.7d548b933887bec8f24b.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/412.7d548b933887bec8f24b.js"
     },
-    "540.fb6ac119804f7576c384.js": {
-      "name": "540.fb6ac119804f7576c384.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/540.fb6ac119804f7576c384.js"
+    "540.f757eaee4e85efb0038a.js": {
+      "name": "540.f757eaee4e85efb0038a.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/540.f757eaee4e85efb0038a.js"
     },
-    "506.ffc672fce5fe3a178d5e.js": {
-      "name": "506.ffc672fce5fe3a178d5e.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/506.ffc672fce5fe3a178d5e.js"
+    "506.007c734c69b314a496dc.js": {
+      "name": "506.007c734c69b314a496dc.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/506.007c734c69b314a496dc.js"
     },
-    "605.e9d9cc568a6d737de3f3.js": {
-      "name": "605.e9d9cc568a6d737de3f3.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/605.e9d9cc568a6d737de3f3.js"
+    "605.9a29fe263273ba2bb38f.js": {
+      "name": "605.9a29fe263273ba2bb38f.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/605.9a29fe263273ba2bb38f.js"
     },
-    "412.303e02e804120306c8c0.js.LICENSE.txt": {
-      "name": "412.303e02e804120306c8c0.js.LICENSE.txt",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/412.303e02e804120306c8c0.js.LICENSE.txt"
+    "412.7d548b933887bec8f24b.js.LICENSE.txt": {
+      "name": "412.7d548b933887bec8f24b.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/412.7d548b933887bec8f24b.js.LICENSE.txt"
     },
     "595.f9fafea132378cba657e.js.LICENSE.txt": {
       "name": "595.f9fafea132378cba657e.js.LICENSE.txt",
       "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/595.f9fafea132378cba657e.js.LICENSE.txt"
     },
-    "App.a2479f431f7a56cf0c44.js.LICENSE.txt": {
-      "name": "App.a2479f431f7a56cf0c44.js.LICENSE.txt",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.a2479f431f7a56cf0c44.js.LICENSE.txt"
+    "App.90f22be0c11c70c28db6.js.LICENSE.txt": {
+      "name": "App.90f22be0c11c70c28db6.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.90f22be0c11c70c28db6.js.LICENSE.txt"
     },
-    "Planner.52c2a7592882b392ccc8.js.LICENSE.txt": {
-      "name": "Planner.52c2a7592882b392ccc8.js.LICENSE.txt",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.52c2a7592882b392ccc8.js.LICENSE.txt"
+    "Planner.a379aa610e33a8a41319.js.LICENSE.txt": {
+      "name": "Planner.a379aa610e33a8a41319.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.a379aa610e33a8a41319.js.LICENSE.txt"
     },
-    "PublicSummary.c6a9f6c544fc3ad8f734.js.LICENSE.txt": {
-      "name": "PublicSummary.c6a9f6c544fc3ad8f734.js.LICENSE.txt",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.c6a9f6c544fc3ad8f734.js.LICENSE.txt"
+    "PublicSummary.435e2a59885cda34fc95.js.LICENSE.txt": {
+      "name": "PublicSummary.435e2a59885cda34fc95.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.435e2a59885cda34fc95.js.LICENSE.txt"
     },
-    "Space.ffa72b6aa48b247ced3a.js.LICENSE.txt": {
-      "name": "Space.ffa72b6aa48b247ced3a.js.LICENSE.txt",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.ffa72b6aa48b247ced3a.js.LICENSE.txt"
+    "Space.d3ee95d455271e1f9e23.js.LICENSE.txt": {
+      "name": "Space.d3ee95d455271e1f9e23.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.d3ee95d455271e1f9e23.js.LICENSE.txt"
     },
-    "Summary.2f131f190b3a6da039c7.js.LICENSE.txt": {
-      "name": "Summary.2f131f190b3a6da039c7.js.LICENSE.txt",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.2f131f190b3a6da039c7.js.LICENSE.txt"
+    "Summary.28c44d776e711d9548ae.js.LICENSE.txt": {
+      "name": "Summary.28c44d776e711d9548ae.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.28c44d776e711d9548ae.js.LICENSE.txt"
     }
   },
   "chunks": {
     "App": [
-      "App.a2479f431f7a56cf0c44.js"
+      "App.90f22be0c11c70c28db6.js"
     ],
     "Space": [
-      "Space.ffa72b6aa48b247ced3a.js"
+      "Space.d3ee95d455271e1f9e23.js"
     ],
     "Summary": [
-      "Summary.2f131f190b3a6da039c7.js"
+      "Summary.28c44d776e711d9548ae.js"
     ],
     "PublicSummary": [
-      "PublicSummary.c6a9f6c544fc3ad8f734.js"
+      "PublicSummary.435e2a59885cda34fc95.js"
     ],
     "Planner": [
-      "Planner.52c2a7592882b392ccc8.js"
+      "Planner.a379aa610e33a8a41319.js"
     ]
   }
 }
