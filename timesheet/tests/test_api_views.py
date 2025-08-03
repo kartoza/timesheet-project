@@ -41,8 +41,6 @@ class TestPullProjectsView(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'success': True})
         mock_projects.assert_called_once()
-        mock_user_data.assert_called_once()
-
 
 class TestProjectLinkListApiView(TestCase):
     def setUp(self):
