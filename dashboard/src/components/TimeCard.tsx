@@ -187,7 +187,7 @@ export const TimeCard = forwardRef(({
 
         const link = document.querySelector("link[rel~='icon']") as HTMLAnchorElement | null;
         if (link) {
-            link.href = '/static/default-favicon.ico';
+            link.href = '/static/timesheet-logo.png';
         }
 
         const runningTimeClone = Object.assign({}, localRunningTimeLog);
