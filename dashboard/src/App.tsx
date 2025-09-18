@@ -640,6 +640,7 @@ function App() {
                     <Grid item md={2} xs={12}></Grid>
                     <Grid item md={5} xs={12}>
                     <div className="app-title">
+                        <img src="/static/timesheet-logo.png" width={30} height={30} style={{ marginTop: 3, marginRight: 8 }}/>
                         Timesheet
                         <div style={{ display: 'flex', alignItems: 'center' }}>
                             <SettingsIcon

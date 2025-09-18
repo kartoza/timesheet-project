@@ -100,46 +100,79 @@ def generate_api_secret(user: get_user_model()):
 def pull_holiday_list(user):
     with transaction.atomic():
         public_holidays = []
-        country_code = get_country_code_from_timezone(
-            user.profile.timezone)
-        if not country_code:
+
+        employee_id = getattr(user.profile, 'employee_id', None)
+        if not employee_id:
+            pull_user_data_from_erp(user)
+            employee_id = getattr(user.profile, 'employee_id', None)
+        if not employee_id:
             return
-        holiday_list = get_erp_data(
-            DocType.HOLIDAY_LIST,
+
+        employee_docs = get_erp_data(
+            DocType.EMPLOYEE,
             preferences.TimesheetPreferences.admin_token,
-            f'[["country", "=", "{country_code}"]]'
+            f'[["name", "=", "{employee_id}"]]'
         )
-        if len(holiday_list) == 0:
+        if not employee_docs:
+            employee_docs = get_erp_data(
+                DocType.EMPLOYEE,
+                preferences.TimesheetPreferences.admin_token,
+                f'[["employee", "=", "{employee_id}"]]'
+            )
+
+        holiday_list_name = None
+        if employee_docs:
+            emp = employee_docs[0]
+            holiday_list_name = emp.get('holiday_list')
+
+        if not holiday_list_name:
+            country_code = get_country_code_from_timezone(user.profile.timezone)
+            if not country_code:
+                return
             holiday_list = get_erp_data(
                 DocType.HOLIDAY_LIST,
                 preferences.TimesheetPreferences.admin_token,
-                f'[["custom_country_code", "=", "{country_code}"]]'
+                f'[["country", "=", "{country_code}"]]'
             )
+            if len(holiday_list) == 0:
+                holiday_list = get_erp_data(
+                    DocType.HOLIDAY_LIST,
+                    preferences.TimesheetPreferences.admin_token,
+                    f'[["custom_country_code", "=", "{country_code}"]]'
+                )
+            if len(holiday_list) > 0:
+                if len(holiday_list) > 1:
+                    holiday_data = next(
+                        (item for item in holiday_list if user.first_name.lower() in str(item.get('name','')).lower()),
+                        None
+                    )
+                    if holiday_data:
+                        holiday_list_name = holiday_data['name']
+                    else:
+                        holiday_list_name = holiday_list[0]['name']
+                else:
+                    holiday_list_name = holiday_list[0]['name']
+            else:
+                return
+
         current_year = datetime.now().year
         first_day_of_current_year = f"{current_year}-01-01"
-        if len(holiday_list) > 0:
-            if len(holiday_list) > 1:
-                holiday_data = next(
-                    (item for item in holiday_list if user.first_name.lower() in item['name'].lower()),
-                    None)
-                if not holiday_data:
-                    return
-                holiday_list_name = holiday_data['name']
-            else:
-                holiday_list_name = holiday_list[0]['name']
-            holidays = get_erp_data(
+
+        holidays_doc = None
+        if holiday_list_name:
+            holidays_doc = get_erp_data(
                 DocType.HOLIDAY_LIST,
                 preferences.TimesheetPreferences.admin_token,
                 doctype_value=holiday_list_name
             )
-            if 'holidays' in holidays:
-                for holiday in holidays['holidays']:
-                    if (
-                        holiday['description'] not in ['Saturday', 'Sunday'] and
-                        parse_date(holiday['holiday_date']) >= parse_date(first_day_of_current_year)
-                    ):
-                        public_holidays.append(holiday)
-            print(public_holidays)
+
+        if isinstance(holidays_doc, dict) and 'holidays' in holidays_doc:
+            for holiday in holidays_doc['holidays']:
+                if (
+                    holiday['description'] not in ['Saturday', 'Sunday'] and
+                    parse_date(holiday['holiday_date']) >= parse_date(first_day_of_current_year)
+                ):
+                    public_holidays.append(holiday)
 
         if len(public_holidays) == 0:
             return
