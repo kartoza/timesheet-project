@@ -1,4 +1,4 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import Http404
 from django.views.generic import TemplateView
 
@@ -34,7 +34,15 @@ class SpaceView(LoginRequiredMixin, TemplateView):
 
 class SummaryView(LoginRequiredMixin, TemplateView):
     template_name = 'summary.html'
-    
+
+
+class EmployeeInsight(UserPassesTestMixin, TemplateView):
+
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.is_staff
+
+    template_name = 'employee_insight.html'
+
 
 class PublicSummaryView(TemplateView):
     template_name = 'public_summary.html'

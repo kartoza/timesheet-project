@@ -1,8 +1,10 @@
 import ast
 
 from django.contrib.auth.mixins import UserPassesTestMixin
-from django.db.models import F
+from django.contrib.auth.models import User
+from django.db.models import F, Value as V
 from django.contrib.auth import get_user_model
+from django.db.models.functions import Concat
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -68,6 +70,20 @@ class ProjectLinkApiView(UserPassesTestMixin, APIView):
         )
         project_link.delete()
         return Response(status=204)
+
+
+class UserAutocomplete(APIView):
+    queryset = User.objects.exclude(profile__employee_id='')
+    def get(self, request, format=None):
+        query = request.GET.get('q', '')
+        self.queryset = self.queryset.filter(
+            first_name__icontains=query
+        )
+        return Response(
+            self.queryset.annotate(label=Concat('first_name', V(' '), 'last_name')).values(
+                'id', 'label'
+            ).distinct()
+        )
 
 
 class ProjectAutocomplete(APIView):

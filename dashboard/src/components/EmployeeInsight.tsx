@@ -1,0 +1,979 @@
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  Grid,
+  TextField,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Chip,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  TableSortLabel, tableCellClasses, styled
+} from '@mui/material';
+import MuiTooltip from '@mui/material/Tooltip';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Line, Radar } from 'react-chartjs-2';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import UserAutocomplete from "./UserAutocomplete";
+import {theme} from "../utils/Theme";
+import {ThemeProvider} from "@mui/material/styles";
+import CircularMenu from "./Menu";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Title,
+  Tooltip,
+  Legend,
+);
+
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+  [`&.${tableCellClasses.head}`]: {
+    backgroundColor: theme.palette.action.active,
+    color: theme.palette.common.white,
+  },
+  [`&.${tableCellClasses.body}`]: {
+    fontSize: 14,
+  },
+}));
+
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+  '&:nth-of-type(odd)': {
+    backgroundColor: theme.palette.action.hover,
+  },
+  '&:last-child td, &:last-child th': {
+    border: 0,
+  },
+}));
+
+/**
+ * Simple dashboard for the Employee Summary API
+ * Endpoint expected: /api/employee-summary/:user_id?from=YYYY-MM-DD&to=YYYY-MM-DD
+ *
+ * Props:
+ *  - userId (string): required user id to query
+ *  - defaultFrom / defaultTo (YYYY-MM-DD): optional initial range
+ */
+export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultTo }: { userId?: string; defaultFrom?: string; defaultTo?: string; }) {
+  const [uid, setUid] = useState<string>(userId || '');
+  const [from, setFrom] = useState<Date | null>(defaultFrom ? new Date(defaultFrom) : null);
+  const [to, setTo] = useState<Date | null>(defaultTo ? new Date(defaultTo) : null);
+
+  const [rangePreset, setRangePreset] = useState<string>('custom');
+
+  const [taskQuery, setTaskQuery] = useState('');
+  const [taskProjectFilter, setTaskProjectFilter] = useState<'any' | string>('any');
+  const [taskIfFilter,      setTaskIfFilter]      = useState<'any' | 'within' | 'below' | 'above' | 'n/a'>('any');
+  const [taskSizeFilter,    setTaskSizeFilter]    = useState<'any' | 0 | 1 | 2 | 3 | 5 | 8>('any');
+
+  const [taskSortBy,  setTaskSortBy]  = useState<'hours'|'size'|'description'|'project'|'if'>('hours');
+  const [taskSortDir, setTaskSortDir] = useState<'asc'|'desc'>('desc');
+
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  const addDays = (d: Date, n: number) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
+  const applyPreset = (preset: string) => {
+    setRangePreset(preset);
+    const today = new Date();
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    if (preset === 'this_month') {
+      setFrom(startOfMonth);
+      setTo(today);
+    } else if (preset === 'last_7') {
+      setFrom(addDays(today, -6));
+      setTo(today);
+    } else if (preset === 'last_30') {
+      setFrom(addDays(today, -29));
+      setTo(today);
+    } else if (preset === 'this_quarter') {
+      const q = Math.floor(today.getMonth() / 3);
+      setFrom(new Date(today.getFullYear(), q * 3, 1));
+      setTo(today);
+    } else if (preset === 'this_year') {
+      setFrom(new Date(today.getFullYear(), 0, 1));
+      setTo(today);
+    }
+  };
+
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<any | null>(null);
+
+  const hasRange = from && to;
+
+  const buildUrl = () => {
+    if (!uid) return '';
+    const p = new URLSearchParams();
+    if (from) p.set('from', fmt(from));
+    if (to) p.set('to', fmt(to));
+    const qs = p.toString();
+    return `/api/employee-summary/${uid}${qs ? `?${qs}` : ''}`;
+  };
+
+  const load = () => {
+    const url = buildUrl();
+    if (!url) return;
+    setLoading(true);
+    setError(null);
+    setData(null);
+    fetch(url)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((json) => {
+        setData(json);
+      })
+      .catch((e) => setError(String(e)))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    if (userId && !uid) setUid(userId);
+  }, [userId]);
+
+  const chartData = useMemo(() => {
+    if (!data?.chart) return null;
+    const labels: string[] = data.chart.labels || [];
+    const hours: number[] = data.chart.series?.hours || [];
+    const billable: number[] = data.chart.series?.billable_hours || [];
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Hours (total)',
+          data: hours,
+          borderColor: '#004687',
+          backgroundColor: 'rgba(0,70,135,0.25)',
+          fill: true,
+          tension: 0.25,
+        },
+        {
+          label: 'Billable Hours',
+          data: billable,
+          borderColor: '#FFD321',
+          backgroundColor: 'rgba(255,211,33,0.25)',
+          fill: true,
+          tension: 0.25,
+        }
+      ],
+    };
+  }, [data]);
+
+  const chartOptions = useMemo(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top' as const },
+      title: {
+        display: true,
+        text: data?.chart?.granularity === 'monthly' ? 'Monthly Summary' : 'Weekly Summary',
+      },
+      tooltip: { mode: 'index' as const, intersect: false },
+    },
+    interaction: { mode: 'index' as const, intersect: false },
+    scales: {
+      x: {
+        title: { display: true, text: data?.chart?.granularity === 'monthly' ? 'Month' : 'Week' },
+      },
+      y: {
+        title: { display: true, text: 'Hours' },
+        beginAtZero: true,
+      },
+    },
+  }), [data]);
+
+  const activityRadarData = useMemo(() => {
+    const acts = data?.activity_overview || [];
+    if (!Array.isArray(acts) || acts.length === 0) return null;
+    const labels = acts.map((a: any) => String(a.activity || 'Unknown'));
+    const values = acts.map((a: any) => Number(a.hours_share_pct ?? 0));
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Hours share %',
+          data: values,
+          borderColor: 'rgba(0, 200, 83, 1)',
+          backgroundColor: 'rgba(0, 200, 83, 0.2)',
+          pointBackgroundColor: 'rgba(0, 200, 83, 1)',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: 'rgba(0, 200, 83, 1)'
+        }
+      ]
+    };
+  }, [data]);
+
+  const activityRadarOptions = useMemo(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: 'Activity Mix (Hours %)' },
+      tooltip: {
+        callbacks: {
+          label: (ctx: any) => `${ctx.parsed.r}%`
+        }
+      }
+    },
+    scales: {
+      r: {
+        beginAtZero: true,
+        suggestedMax: 100,
+        ticks: {
+          stepSize: 20,
+          callback: (v: any) => `${v}%`,
+          showLabelBackdrop: false,
+        },
+        grid: { circular: true }
+      }
+    }
+  }), []);
+
+  const totals = data?.totals;
+  const period = data?.period;
+  const projects = data?.breakdown?.by_project || [];
+
+  const sizeExpectedRange = (size?: number): [number | null, number | null] => {
+    if (!size && size !== 0) return [null, null];
+    switch (size) {
+      case 0: return [null, null];
+      case 1: return [0, 2];
+      case 2: return [1, 3];
+      case 3: return [2, 6];
+      case 5: return [5, 9];
+      case 8: return [8, 10];
+      default:
+        if (size <= 1) return [0, 1];
+        if (size <= 2) return [1, 2];
+        if (size <= 5) return [2, 5];
+        if (size <= 8) return [5, 8];
+        return [8, null];
+    }
+  };
+
+  const hoursVsSizeLabel = (hours: number, size?: number) => {
+    const [minH, maxH] = sizeExpectedRange(size);
+    if (minH === null && maxH === null) return 'n/a';
+    if (hours < (minH ?? 0)) return 'below';
+    if (maxH == null) return 'within';
+    if (hours <= maxH) return 'within';
+    return 'above';
+  };
+
+  const tasksTable = useMemo(() => {
+    const provided = data?.breakdown?.tasks_table;
+    if (Array.isArray(provided)) return provided as Array<any>;
+
+    const map = data?.task_descriptions || {};
+    const rows: Array<any> = Object.entries(map).map(([desc, info]: any) => {
+      const size = Number(info?.size ?? 0);
+      const hours = Number(info?.hours ?? 0);
+      return {
+        description: desc,
+        project: info?.project || 'Unknown',
+        hours,
+        size,
+        if: hoursVsSizeLabel(hours, size),
+        done: '',
+        link: info?.link || null,
+      };
+    });
+    rows.sort((a, b) => b.hours - a.hours);
+    return rows;
+  }, [data]);
+
+  // Distinct projects for filter dropdown
+  const taskProjectOptions = useMemo(
+    () => Array.from(new Set((tasksTable ?? []).map((r: any) => r.project))).sort(),
+    [tasksTable]
+  );
+
+  const filteredSortedTasks = useMemo(() => {
+    let rows = (tasksTable ?? []) as any[];
+    if (taskQuery.trim()) {
+      const q = taskQuery.toLowerCase();
+      rows = rows.filter(r =>
+        String(r.description || '').toLowerCase().includes(q) ||
+        String(r.project || '').toLowerCase().includes(q)
+      );
+    }
+    if (taskProjectFilter !== 'any') {
+      rows = rows.filter(r => r.project === taskProjectFilter);
+    }
+    if (taskIfFilter !== 'any') {
+      rows = rows.filter(r => (r.if || 'n/a') === taskIfFilter);
+    }
+    if (taskSizeFilter !== 'any') {
+      rows = rows.filter(r => Number(r.size ?? 0) === Number(taskSizeFilter));
+    }
+    const cmp = (a: any, b: any) => {
+      const dir = taskSortDir === 'asc' ? 1 : -1;
+      const key = taskSortBy;
+
+      if (key === 'hours' || key === 'size') {
+        const av = Number(a[key] ?? 0);
+        const bv = Number(b[key] ?? 0);
+        return av === bv ? 0 : (av < bv ? -1*dir : 1*dir);
+      } else if (key === 'if') {
+        // Order: within < below < above < n/a (tweak if you prefer)
+        const order = { within: 0, below: 1, above: 2, 'n/a': 3 } as any;
+        const av = order[(a.if || 'n/a')] ?? 99;
+        const bv = order[(b.if || 'n/a')] ?? 99;
+        return av === bv ? 0 : (av < bv ? -1*dir : 1*dir);
+      } else {
+        const av = String(a[key] ?? '').toLowerCase();
+        const bv = String(b[key] ?? '').toLowerCase();
+        return av === bv ? 0 : (av < bv ? -1*dir : 1*dir);
+      }
+    };
+
+    return rows.slice().sort(cmp);
+  }, [tasksTable, taskQuery, taskProjectFilter, taskIfFilter, taskSizeFilter, taskSortBy, taskSortDir]);
+
+  // ---- Export tasks table (frontend-only CSV) ----
+  const toCsv = (rows: any[]) => {
+    const cols = ['Description','Project','Hours','Size','Hrs vs Size','Link'];
+    const esc = (v: any) => {
+      if (v === null || v === undefined) return '';
+      const s = String(v);
+      // Mitigate CSV injection in Excel by prefixing risky leading chars
+      const dangerous = /^[=+\-@]/;
+      const safe = dangerous.test(s) ? '\t' + s : s;
+      return '"' + safe.replace(/"/g, '""') + '"';
+    };
+    const lines = [cols.join(',')];
+    for (const r of rows) {
+      lines.push([
+        esc(r.description),
+        esc(r.project),
+        esc(Number(r.hours).toFixed(3)),
+        esc(r.size ?? 0),
+        esc(r.if || 'n/a'),
+        esc(r.link || ''),
+      ].join(','));
+    }
+    // Add BOM so Excel opens UTF-8 correctly
+    return '\uFEFF' + lines.join('\n');
+  };
+
+  const downloadTasksCsv = () => {
+    const rows = filteredSortedTasks || [];
+    const csv = toCsv(rows);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const fromStr = from ? fmt(from) : 'start';
+    const toStr = to ? fmt(to) : 'end';
+    a.href = url;
+    a.download = `tasks_${uid || 'user'}_${fromStr}_${toStr}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // KPIs for Task Table
+  const kpiDiscipline = useMemo(() => {
+    const rows = (tasksTable ?? []) as any[];
+    const total = rows.length || 0;
+
+    // Weights: size more important than link
+    const W_SIZE = 0.7;
+    const W_LINK = 0.3;
+
+    let linkCount = 0, sizeCount = 0, scoreSum = 0;
+    for (const r of rows) {
+      const hasLink = !!r.link;
+      const hasSize = Number(r.size ?? 0) > 0;
+      if (hasLink) linkCount++;
+      if (hasSize) sizeCount++;
+      // Per-row weighted score in [0,1]
+      scoreSum += (hasSize ? W_SIZE : 0) + (hasLink ? W_LINK : 0);
+    }
+
+    const pct = (n: number) => (total ? Math.round((n / total) * 1000) / 10 : 0);
+
+    return {
+      total,
+      // Weighted completeness percentage (size carries more weight)
+      completePct: pct(scoreSum),
+      linkPct: pct(linkCount),
+      sizePct: pct(sizeCount),
+      weights: { size: W_SIZE, link: W_LINK },
+    };
+  }, [tasksTable]);
+
+  const kpiFit = useMemo(() => {
+    const rows = (tasksTable ?? []) as any[];
+    const total = rows.length || 0;
+    const cnt = { within: 0, below: 0, above: 0, na: 0 } as any;
+    for (const r of rows) {
+      const label = (r.if || 'n/a') as string;
+      if (label === 'within') cnt.within++;
+      else if (label === 'below') cnt.below++;
+      else if (label === 'above') cnt.above++;
+      else cnt.na++;
+    }
+    const pct = (n: number) => (total ? Math.round((n / total) * 1000) / 10 : 0);
+    return {
+      total,
+      withinPct: pct(cnt.within),
+      belowPct: pct(cnt.below),
+      abovePct: pct(cnt.above),
+      naPct: pct(cnt.na),
+    };
+  }, [tasksTable]);
+
+  const kpiThroughput = useMemo(() => {
+    const rows = (tasksTable ?? []) as any[];
+    const total = rows.length || 0;
+    let sumHours = 0;
+    let sumSize = 0;
+    let sized = 0;
+    for (const r of rows) {
+      sumHours += Number(r.hours ?? 0);
+      const s = Number(r.size ?? 0);
+      if (s > 0) { sumSize += s; sized++; }
+    }
+    const avgHours = total ? Math.round((sumHours / total) * 100) / 100 : 0;
+    const avgSize = sized ? Math.round((sumSize / sized) * 10) / 10 : 0;
+    return { total, avgHours, avgSize };
+  }, [tasksTable]);
+
+  const kpiActivityMix = useMemo(() => {
+    const acts = (data?.activity_overview ?? []) as any[];
+    const valid = acts.filter(a => Number(a.hours ?? a.hours_share_pct ?? 0) > 0);
+
+    if (valid.length === 0) {
+      return { activitiesCount: 0, topSharePct: 0, topName: '', hhi: 0, codingPct: 0 };
+    }
+
+    // Prefer hours if present, else fall back to hours_share_pct
+    const totalHours = valid.reduce((s, a) => s + Number(a.hours ?? 0), 0);
+    const shares = (totalHours > 0)
+      ? valid.map(a => Number(a.hours ?? 0) / totalHours)
+      : valid.map(a => Number(a.hours_share_pct ?? 0) / 100);
+
+    const hhiRaw = shares.reduce((s, x) => s + x * x, 0);
+    const topShare = Math.max(...shares);
+    const topIdx = shares.indexOf(topShare);
+    const topName = topIdx >= 0 ? String(valid[topIdx].activity || 'Top') : '';
+
+    // Coding share (if present)
+    const codingRow = acts.find(a => String(a.activity || '').toLowerCase() === 'coding');
+    let codingPct = 0;
+    if (codingRow) {
+      if (totalHours > 0 && (codingRow.hours ?? null) !== null) {
+        codingPct = (Number(codingRow.hours) / totalHours) * 100;
+      } else if ((codingRow.hours_share_pct ?? null) !== null) {
+        codingPct = Number(codingRow.hours_share_pct);
+      }
+    }
+
+    return {
+      activitiesCount: valid.length,
+      topSharePct: Math.round(topShare * 1000) / 10, // one decimal
+      topName,
+      hhi: Math.round(hhiRaw * 100) / 100,           // two decimals
+      codingPct: Math.round(codingPct * 10) / 10,
+    };
+  }, [data?.activity_overview]);
+
+  return (
+    <Box p={2}>
+      <CircularMenu/>
+      <Typography variant="h5" sx={{ mb: 2 }}>Insight</Typography>
+      {/* Controls */}
+      <Card variant="outlined" sx={{ mb: 2 }}>
+        <CardContent>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} sm={3}>
+              <UserAutocomplete onUserSelected={(selectedUser) => selectedUser && setUid(selectedUser.id)} />
+            </Grid>
+            <Grid item xs={12} sm={1}>
+              <FormControl fullWidth>
+                <InputLabel id="preset-label">Date Range</InputLabel>
+                <Select
+                  labelId="preset-label"
+                  label="Date Range"
+                  value={rangePreset}
+                  onChange={(e) => applyPreset(e.target.value as string)}
+                >
+                  <MenuItem value="this_month">This Month</MenuItem>
+                  <MenuItem value="last_7">Last 7 days</MenuItem>
+                  <MenuItem value="last_30">Last 30 days</MenuItem>
+                  <MenuItem value="this_quarter">This Quarter</MenuItem>
+                  <MenuItem value="this_year">This Year</MenuItem>
+                  <MenuItem value="custom">Custom…</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={3}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                  label="From"
+                  value={from}
+                  onChange={(newValue) => setFrom(newValue)}
+                  format="dd/MM/yyyy"
+                  slotProps={{ textField: { fullWidth: true } }}
+                  className="date-picker-input"
+                  minDate={new Date(new Date().getFullYear(), 0, 1)}
+                  maxDate={new Date(new Date().getFullYear(), 11, 31)}
+                />
+              </LocalizationProvider>
+            </Grid>
+            <Grid item xs={12} sm={3}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                  label="To"
+                  value={to}
+                  onChange={(newValue) => setTo(newValue)}
+                  format="dd/MM/yyyy"
+                  slotProps={{ textField: { fullWidth: true } }}
+                  className="date-picker-input"
+                  minDate={new Date(new Date().getFullYear(), 0, 1)}
+                  maxDate={new Date(new Date().getFullYear(), 11, 31)}
+                />
+              </LocalizationProvider>
+            </Grid>
+            <Grid item xs={12} sm={2}>
+              <Button
+                fullWidth
+                size="large"
+                variant="contained"
+                onClick={load}
+                style={{ height: 55 }}
+                disabled={!uid || !hasRange || loading}
+              >
+                {loading ? 'Loading…' : 'Load'}
+              </Button>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
+
+      {/* State */}
+      {error && (
+        <Card variant="outlined" sx={{ mb: 2 }}>
+          <CardContent>
+            <Typography color="error">{error}</Typography>
+          </CardContent>
+        </Card>
+      )}
+
+      {loading && (
+        <Box textAlign="center" py={6}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {data && !loading && (
+        <>
+          {/* KPIs */}
+          <Grid container spacing={2} sx={{ mb: 2 }}>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card variant="outlined"><CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary">Total Hours</Typography>
+                  <MuiTooltip title="Sum of all hours logged in the selected period (billable + non-billable).">
+                    <InfoOutlinedIcon fontSize="small" sx={{ opacity: 0.8 }} />
+                  </MuiTooltip>
+                </Box>
+                <Typography variant="h5">{totals?.hours?.toFixed(2)}</Typography>
+                <Chip size="small" sx={{ mt: 1 }} label={`Avg/day ${totals?.avg_hours_per_day ?? 0}`} />
+              </CardContent></Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card variant="outlined"><CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary">Billable Hours</Typography>
+                  <MuiTooltip title="Sum of hours marked billable. Utilization = Billable Hours / Total Hours × 100.">
+                    <InfoOutlinedIcon fontSize="small" sx={{ opacity: 0.8 }} />
+                  </MuiTooltip>
+                </Box>
+                <Typography variant="h5">{totals?.billable_hours?.toFixed(2)}</Typography>
+                <Chip size="small" sx={{ mt: 1 }} color="primary" label={`Utilization ${totals?.utilization_pct ?? 0}%`} />
+              </CardContent></Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card variant="outlined"><CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary">Billing</Typography>
+                  <MuiTooltip title="Total billed amount (sum of 'Total Billing') in the period. Rate = Billing / Billable Hours.">
+                    <InfoOutlinedIcon fontSize="small" sx={{ opacity: 0.8 }} />
+                  </MuiTooltip>
+                </Box>
+                <Typography variant="h5">{(totals?.billing ?? 0).toLocaleString()}</Typography>
+                <Chip size="small" sx={{ mt: 1 }} color="success" label={`Rate ${totals?.realized_rate_per_hour ?? 0}/h`} />
+              </CardContent></Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card variant="outlined"><CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary">Costing</Typography>
+                  <MuiTooltip title="Total internal cost for the period (sum of 'Total Costing'). Margin = Billing − Costing.">
+                    <InfoOutlinedIcon fontSize="small" sx={{ opacity: 0.8 }} />
+                  </MuiTooltip>
+                </Box>
+                <Typography variant="h5">{(totals?.costing ?? 0).toLocaleString()}</Typography>
+                <Chip size="small" sx={{ mt: 1 }} color="warning" label={`Margin ${(totals?.margin ?? 0).toLocaleString()}`} />
+              </CardContent></Card>
+            </Grid>
+
+            {/* New KPI Cards */}
+            <Grid item xs={12} sm={6} md={3}>
+              <Card variant="outlined"><CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary">Timesheet Discipline</Typography>
+                  <MuiTooltip title="Weighted completeness of task metadata: 70% size + 30% link. 'Size %' = share of tasks with size > 0; 'Link %' = share with a reference link.">
+                    <InfoOutlinedIcon fontSize="small" sx={{ opacity: 0.8 }} />
+                  </MuiTooltip>
+                </Box>
+                <Typography variant="h5">{kpiDiscipline.completePct}%</Typography>
+                <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  <Chip size="small" color="primary" label={`Link ${kpiDiscipline.linkPct}%`} />
+                  <Chip size="small" color="success" label={`Size ${kpiDiscipline.sizePct}%`} />
+                </Box>
+              </CardContent></Card>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <Card variant="outlined"><CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary">Hrs vs Size Fit</Typography>
+                  <MuiTooltip title="Share of tasks where actual hours fall within the expected band for their size. Labels: within/below/above/N/A using the size→hours ranges defined in this page.">
+                    <InfoOutlinedIcon fontSize="small" sx={{ opacity: 0.8 }} />
+                  </MuiTooltip>
+                </Box>
+                <Typography variant="h5">Within {kpiFit.withinPct}%</Typography>
+                <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  <Chip size="small" color="warning" label={`Below ${kpiFit.belowPct}%`} />
+                  <Chip size="small" color="error" label={`Above ${kpiFit.abovePct}%`} />
+                  <Chip size="small" label={`N/A ${kpiFit.naPct}%`} />
+                </Box>
+              </CardContent></Card>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <Card variant="outlined"><CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary">Task Throughput</Typography>
+                  <MuiTooltip title="Number of tasks in the period. Avg h/task = total hours ÷ tasks. Avg size is computed over tasks with size > 0.">
+                    <InfoOutlinedIcon fontSize="small" sx={{ opacity: 0.8 }} />
+                  </MuiTooltip>
+                </Box>
+                <Typography variant="h5">{kpiThroughput.total} tasks</Typography>
+                <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  <Chip size="small" color="primary" label={`Avg ${kpiThroughput.avgHours} h/task`} />
+                  <Chip size="small" color="success" label={`Avg size ${kpiThroughput.avgSize}`} />
+                </Box>
+              </CardContent></Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card variant="outlined"><CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary">Activity Mix Quality</Typography>
+                  <MuiTooltip title="Distribution of effort across activities. Coding % = share of hours on 'Coding'. HHI = ∑(share²) across activities; higher = more concentrated, lower = more balanced. 'Top' shows the largest activity share.">
+                    <InfoOutlinedIcon fontSize="small" sx={{ opacity: 0.8 }} />
+                  </MuiTooltip>
+                </Box>
+                <Typography variant="h5">
+                  {kpiActivityMix.codingPct > 0 ? `Coding ${kpiActivityMix.codingPct}%` : `Top ${kpiActivityMix.topName || ''} ${kpiActivityMix.topSharePct}%`}
+                </Typography>
+                <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {kpiActivityMix.topName ? (
+                    <Chip size="small" label={`Top ${kpiActivityMix.topName} ${kpiActivityMix.topSharePct}%`} />
+                  ) : null}
+                  <Chip size="small" color="primary" label={`HHI ${kpiActivityMix.hhi}`} />
+                  <Chip size="small" label={`${kpiActivityMix.activitiesCount} activities`} />
+                </Box>
+              </CardContent></Card>
+            </Grid>
+          </Grid>
+
+          {/* Period info */}
+          <Typography variant="body2" sx={{ mb: 1 }} color="text.secondary">
+            Period: {period?.from} → {period?.to} ({period?.days_count} days) · Granularity: {data?.chart?.granularity}
+          </Typography>
+
+          {/* Chart */}
+          <Grid container spacing={2} sx={{ mb: 2 }}>
+            <Grid item xs={12} sm={6} md={8}>
+              <Card variant="outlined" sx={{ mb: 3, height: 420 }}>
+                <CardContent sx={{ height: '100%' }}>
+                  {chartData ? (
+                    <Line data={chartData} options={chartOptions} />
+                  ) : (
+                    <Box py={8} textAlign="center"><Typography color="text.secondary">No chart data</Typography></Box>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <Card variant="outlined" sx={{ mb: 3, height: 420 }}>
+                <CardContent sx={{ height: '100%' }}>
+                  {activityRadarData ? (
+                    <Radar data={activityRadarData} options={activityRadarOptions} />
+                  ) : (
+                    <Box py={8} textAlign="center"><Typography color="text.secondary">No activity data</Typography></Box>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+
+          {/* By Project table */}
+          <Card variant="outlined" sx={{ mb: 3 }}>
+            <CardContent>
+              <Typography variant="h6" sx={{ mb: 1 }}>By Project</Typography>
+              <TableContainer component={Paper}>
+                <Table size="small">
+                  <TableHead>
+                    <StyledTableRow>
+                      <StyledTableCell>Project</StyledTableCell>
+                      <StyledTableCell>Type</StyledTableCell>
+                      <StyledTableCell align="right">Hours</StyledTableCell>
+                      <StyledTableCell align="right">Billable</StyledTableCell>
+                      <StyledTableCell align="right">Utilization %</StyledTableCell>
+                      <StyledTableCell align="right">Billing</StyledTableCell>
+                      <StyledTableCell align="right">Costing</StyledTableCell>
+                    </StyledTableRow>
+                  </TableHead>
+                  <TableBody>
+                    {projects.map((p: any) => (
+                      <StyledTableRow key={p.project}>
+                        <StyledTableCell>{p.project}</StyledTableCell>
+                        <StyledTableCell>{p.project_type}</StyledTableCell>
+                        <StyledTableCell align="right">{p.hours?.toFixed(2)}</StyledTableCell>
+                        <StyledTableCell align="right">{p.billable_hours?.toFixed(2)}</StyledTableCell>
+                        <StyledTableCell align="right">{p.utilization_pct?.toFixed(1)}</StyledTableCell>
+                        <StyledTableCell align="right">{(p.billing ?? 0).toLocaleString()}</StyledTableCell>
+                        <StyledTableCell align="right">{(p.costing ?? 0).toLocaleString()}</StyledTableCell>
+                      </StyledTableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+
+          <Card variant="outlined" sx={{ mb: 3 }}>
+            <CardContent>
+              <Typography variant="h6" sx={{ mb: 1 }}>By Task</Typography>
+              <Box sx={{ mb: 2 }}>
+              <Grid container spacing={2} alignItems="center">
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Search description or project"
+                    value={taskQuery}
+                    onChange={(e) => setTaskQuery(e.target.value)}
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={2}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel id="task-project-label">Project</InputLabel>
+                    <Select
+                      labelId="task-project-label"
+                      label="Project"
+                      value={taskProjectFilter}
+                      onChange={(e) => setTaskProjectFilter(e.target.value as any)}
+                    >
+                      <MenuItem value="any">All</MenuItem>
+                      {taskProjectOptions.map(p => (
+                        <MenuItem key={p} value={p}>{p}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={6} sm={3} md={2}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel id="task-if-label">Hrs vs Size</InputLabel>
+                    <Select
+                      labelId="task-if-label"
+                      label="Hrs vs Size"
+                      value={taskIfFilter}
+                      onChange={(e) => setTaskIfFilter(e.target.value as any)}
+                    >
+                      <MenuItem value="any">All</MenuItem>
+                      <MenuItem value="within">Within</MenuItem>
+                      <MenuItem value="below">Below</MenuItem>
+                      <MenuItem value="above">Above</MenuItem>
+                      <MenuItem value="n/a">N/A</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={6} sm={3} md={2}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel id="task-size-label">Size</InputLabel>
+                    <Select
+                      labelId="task-size-label"
+                      label="Size"
+                      value={taskSizeFilter}
+                      onChange={(e) => setTaskSizeFilter(e.target.value as any)}
+                    >
+                      <MenuItem value="any">Any</MenuItem>
+                      <MenuItem value={0}>0</MenuItem>
+                      <MenuItem value={1}>1</MenuItem>
+                      <MenuItem value={2}>2</MenuItem>
+                      <MenuItem value={3}>3</MenuItem>
+                      <MenuItem value={5}>5</MenuItem>
+                      <MenuItem value={8}>8</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6} md={2}>
+                  <Box sx={{ display: 'flex', justifyContent: { xs: 'stretch', md: 'flex-end' } }}>
+                    <Button
+                      onClick={downloadTasksCsv}
+                      variant="outlined"
+                      fullWidth={true}
+                      disabled={!filteredSortedTasks || filteredSortedTasks.length === 0}
+                    >
+                      Export CSV
+                    </Button>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Box>
+              <TableContainer component={Paper}>
+                <Table size="small">
+                  <TableHead>
+                    <StyledTableRow>
+                      <StyledTableCell sortDirection={taskSortBy === 'description' ? taskSortDir : false}>
+                        <TableSortLabel
+                          active={taskSortBy === 'description'}
+                          direction={taskSortBy === 'description' ? taskSortDir : 'asc'}
+                          onClick={() => setTaskSortBy(prev => (setTaskSortDir(prev === 'description' && taskSortDir === 'asc' ? 'desc' : 'asc'), 'description'))}
+                        >
+                          Description
+                        </TableSortLabel>
+                      </StyledTableCell>
+
+                      <StyledTableCell sortDirection={taskSortBy === 'project' ? taskSortDir : false}>
+                        <TableSortLabel
+                          active={taskSortBy === 'project'}
+                          direction={taskSortBy === 'project' ? taskSortDir : 'asc'}
+                          onClick={() => setTaskSortBy(prev => (setTaskSortDir(prev === 'project' && taskSortDir === 'asc' ? 'desc' : 'asc'), 'project'))}
+                        >
+                          Project
+                        </TableSortLabel>
+                      </StyledTableCell>
+
+                      <StyledTableCell align="right" sortDirection={taskSortBy === 'hours' ? taskSortDir : false}>
+                        <TableSortLabel
+                          active={taskSortBy === 'hours'}
+                          direction={taskSortBy === 'hours' ? taskSortDir : 'desc'}
+                          onClick={() => setTaskSortBy(prev => (setTaskSortDir(prev === 'hours' && taskSortDir === 'asc' ? 'desc' : 'asc'), 'hours'))}
+                        >
+                          Hours
+                        </TableSortLabel>
+                      </StyledTableCell>
+
+                      <StyledTableCell align="right" sortDirection={taskSortBy === 'size' ? taskSortDir : false}>
+                        <TableSortLabel
+                          active={taskSortBy === 'size'}
+                          direction={taskSortBy === 'size' ? taskSortDir : 'asc'}
+                          onClick={() => setTaskSortBy(prev => (setTaskSortDir(prev === 'size' && taskSortDir === 'asc' ? 'desc' : 'asc'), 'size'))}
+                        >
+                          Size
+                        </TableSortLabel>
+                      </StyledTableCell>
+
+                      <StyledTableCell align="right" sortDirection={taskSortBy === 'if' ? taskSortDir : false}>
+                        <TableSortLabel
+                          active={taskSortBy === 'if'}
+                          direction={taskSortBy === 'if' ? taskSortDir : 'asc'}
+                          onClick={() => setTaskSortBy(prev => (setTaskSortDir(prev === 'if' && taskSortDir === 'asc' ? 'desc' : 'asc'), 'if'))}
+                        >
+                          Hrs vs Size
+                        </TableSortLabel>
+                      </StyledTableCell>
+                      <StyledTableCell>Link</StyledTableCell>
+                    </StyledTableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredSortedTasks && filteredSortedTasks.length > 0 ? (
+                      filteredSortedTasks.map((row: any, idx: number) => (
+                        <StyledTableRow  key={`${row.description}-${idx}`}>
+                          <StyledTableCell>{row.description}</StyledTableCell>
+                          <StyledTableCell>{row.project}</StyledTableCell>
+                          <StyledTableCell align="right">{Number(row.hours).toFixed(3)}</StyledTableCell>
+                          <StyledTableCell align="right">{row.size ?? 0}</StyledTableCell>
+                          <StyledTableCell align="right">
+                            <Chip
+                              size="small"
+                              label={row.if || 'n/a'}
+                              color={
+                                row.if === 'within' ? 'success'
+                                : row.if === 'below' ? 'warning'
+                                : row.if === 'above' ? 'error'
+                                : 'default'
+                              }
+                              variant={row.if ? 'filled' : 'outlined'}
+                            />
+                          </StyledTableCell>
+                          <StyledTableCell>
+                            {row.link ? (
+                              <a href={row.link} target="_blank" rel="noreferrer">Open</a>
+                            ) : (
+                              <Typography variant="caption" color="text.secondary">—</Typography>
+                            )}
+                          </StyledTableCell>
+                        </StyledTableRow>
+                      ))
+                    ) : (
+                      <StyledTableRow>
+                        <StyledTableCell colSpan={7}>
+                          <Typography variant="body2" color="text.secondary">No tasks to display</Typography>
+                        </StyledTableCell>
+                      </StyledTableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+
+          {/* Meta */}
+          <Typography variant="caption" color="text.secondary">
+            Entries: {data?.meta?.entries_count ?? 0} · Generated: {data?.date_now} · Month start: {data?.start_of_month}
+          </Typography>
+        </>
+      )}
+    </Box>
+  );
+}

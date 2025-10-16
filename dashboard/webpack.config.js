@@ -17,6 +17,7 @@ let conf = {
       Space: ['./src/Space.tsx'],
       Summary: ['./src/Summary.tsx'],
       PublicSummary: ['./src/PublicSummary.tsx'],
+      EmployeeInsight: ['./src/EmployeeInsight.tsx'],
       Planner: ['./src/Planner.tsx'],
   },
   output: {

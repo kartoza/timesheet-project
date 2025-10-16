@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkdashboard=self.webpackChunkdashboard||[]).push([[629],{55629:(h,a,c)=>{c.r(a),c.d(a,{default:()=>e});var s=c(75003),d=c(74848);const e=(0,s.A)((0,d.jsx)("path",{d:"M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2m0 16H8V7h11z"}),"ContentCopy")}}]);

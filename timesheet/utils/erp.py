@@ -469,6 +469,13 @@ def get_detailed_report_data(project_name: str, filters: str = ''):
         filters)
     return timesheet_detail
 
+def get_detailed_report_data_by_employee(employee_id: str, start_date: str, end_date: str):
+    filters = f'{{"Employee ID":"{employee_id}","start_date":"{start_date}","end_date":"{end_date}"}}'
+    timesheet_detail = get_report_data(
+        'Timesheet%20Detailed%20Report',
+        preferences.TimesheetPreferences.admin_token,
+        filters)
+    return timesheet_detail
 
 def get_week_of_month(dt):
     """Calculate the week number within the month for a given date."""
