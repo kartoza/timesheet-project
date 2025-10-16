@@ -12,7 +12,7 @@ from timesheet.api_views.timesheet import (
 from timesheet.api_views.activity_list import ActivityList
 from timesheet.api_views.project import (
     ProjectAutocomplete,
-    PullProjects, ProjectLinkApiView, ProjectLinkListApiView
+    PullProjects, ProjectLinkApiView, ProjectLinkListApiView, UserAutocomplete
 )
 from timesheet.api_views.task import TaskAutocomplete
 from timesheet.api_views.user import (
@@ -35,6 +35,9 @@ urlpatterns = [
     path('project-list/',
          ProjectAutocomplete.as_view(),
          name='project-list'),
+    path('user-autocomplete/',
+         UserAutocomplete.as_view(),
+         name='user-autocomplete'),
     path('project-links/',
          ProjectLinkListApiView.as_view(),
          name='project-links'),

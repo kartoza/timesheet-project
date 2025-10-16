@@ -11,8 +11,11 @@ from dashboard.views import (
     DashboardView, SpaceView,
     SummaryView, PublicSummaryView, PlannerView, PublicTimelineView
 )
+from dashboard.api.employee_summary import EmployeeSummary
 from django.conf import settings
 from django.conf.urls.static import static
+
+from views import EmployeeInsight
 
 urlpatterns = [
     path('', DashboardView.as_view(), name='dashboard'),
@@ -22,12 +25,18 @@ urlpatterns = [
     path('summary/<slug:title>/',
          PublicSummaryView.as_view(),
          name='public-summary'),
+    path('employee-insight/',
+         EmployeeInsight.as_view(),
+         name='employee-insight'),
     path('timeline/<slug:title>/',
          PublicTimelineView.as_view(),
          name='public-timeline'),
     path('api/burndown-chart-data/',
          BurnDownChartData.as_view(),
          name='burndown-chart-data'),
+    path('api/employee-summary/<int:user_id>/',
+         EmployeeSummary.as_view(),
+         name='employee-summary'),
     path('api/list-summary/',
          ListSummary.as_view(),
          name='list-summary'),
