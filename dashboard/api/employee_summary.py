@@ -335,6 +335,14 @@ class EmployeeSummary(UserPassesTestMixin, APIView):
         buckets = defaultdict(lambda: {'hours': 0.0, 'billable_hours': 0.0, 'costing': 0.0})
         labels_map = {}
 
+        activity_map = defaultdict(lambda: {
+            "hours": 0.0,
+            "billable_hours": 0.0,
+            "costing": 0.0,
+            "billing": 0.0,
+            "entries": 0,
+        })
+
         for r in entries:
             ds = r.get('Date')
             d = None
@@ -358,6 +366,33 @@ class EmployeeSummary(UserPassesTestMixin, APIView):
             buckets[key]['hours'] += r.get('Hours', 0.0)
             buckets[key]['billable_hours'] += r.get('Billable Hours', 0.0)
             buckets[key]['costing'] += r.get('Total Costing', 0.0)
+
+            a = r.get("Activity") or "Unknown"
+            activity_map[a]["hours"] += r.get("Hours", 0.0)
+            activity_map[a]["billable_hours"] += r.get("Billable Hours", 0.0)
+            activity_map[a]["costing"] += r.get("Total Costing", 0.0)
+            activity_map[a]["billing"] += r.get("Total Billing", 0.0)
+            activity_map[a]["entries"] += 1
+
+        activity_overview = []
+        for name, v in activity_map.items():
+            hours = v["hours"]
+            billable = v["billable_hours"]
+            costing = v["costing"]
+            billing = v["billing"]
+            activity_overview.append({
+                "activity": name,
+                "hours": round(hours, 3),
+                "billable_hours": round(billable, 3),
+                "utilization_pct": round((billable / hours * 100) if hours else 0.0, 1),
+                "costing": round(costing, 2),
+                "billing": round(billing, 2),
+                "margin": round(billing - costing, 2),
+                "hours_share_pct": round((hours / total_hours * 100) if total_hours else 0.0, 1),
+                "billing_share_pct": round((billing / total_billing * 100) if total_billing else 0.0, 1),
+                "entries": v["entries"],
+            })
+        activity_overview.sort(key=lambda x: x["hours"], reverse=True)
 
         sorted_keys = sorted(buckets.keys())
 
@@ -387,6 +422,7 @@ class EmployeeSummary(UserPassesTestMixin, APIView):
             "employee_id": profile.employee_name,
             "date_now": end_date.strftime('%d-%m-%Y'),
             "start_of_month": end_date.replace(day=1).strftime('%d-%m-%Y'),
+            "activity_overview": activity_overview,
             "period": {
                 "from": start_date.strftime('%Y-%m-%d'),
                 "to": end_date.strftime('%Y-%m-%d'),

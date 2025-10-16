@@ -20,19 +20,21 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-    TableSortLabel
+  TableSortLabel, tableCellClasses, styled
 } from '@mui/material';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
+  RadialLinearScale,
   PointElement,
   LineElement,
+  Filler,
   Title,
   Tooltip,
   Legend,
 } from 'chart.js';
-import { Line } from 'react-chartjs-2';
+import { Line, Radar } from 'react-chartjs-2';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -43,12 +45,33 @@ import {ThemeProvider} from "@mui/material/styles";
 ChartJS.register(
   CategoryScale,
   LinearScale,
+  RadialLinearScale,
   PointElement,
   LineElement,
+  Filler,
   Title,
   Tooltip,
   Legend,
 );
+
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+  [`&.${tableCellClasses.head}`]: {
+    backgroundColor: theme.palette.action.active,
+    color: theme.palette.common.white,
+  },
+  [`&.${tableCellClasses.body}`]: {
+    fontSize: 14,
+  },
+}));
+
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+  '&:nth-of-type(odd)': {
+    backgroundColor: theme.palette.action.hover,
+  },
+  '&:last-child td, &:last-child th': {
+    border: 0,
+  },
+}));
 
 /**
  * Simple dashboard for the Employee Summary API
@@ -92,7 +115,10 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
       const q = Math.floor(today.getMonth() / 3);
       setFrom(new Date(today.getFullYear(), q * 3, 1));
       setTo(today);
-    } // 'custom' leaves dates as-is
+    } else if (preset === 'this_year') {
+      setFrom(new Date(today.getFullYear(), 0, 1));
+      setTo(today);
+    }
   };
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -128,17 +154,9 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
       .finally(() => setLoading(false));
   };
 
-  // Auto-load when userId provided via props
   useEffect(() => {
     if (userId && !uid) setUid(userId);
   }, [userId]);
-
-  useEffect(() => {
-    if (uid && (from || to)) {
-      load();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uid]);
 
   const chartData = useMemo(() => {
     if (!data?.chart) return null;
@@ -192,6 +210,54 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
     },
   }), [data]);
 
+  const activityRadarData = useMemo(() => {
+    const acts = data?.activity_overview || [];
+    if (!Array.isArray(acts) || acts.length === 0) return null;
+    const labels = acts.map((a: any) => String(a.activity || 'Unknown'));
+    const values = acts.map((a: any) => Number(a.hours_share_pct ?? 0));
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Hours share %',
+          data: values,
+          borderColor: 'rgba(0, 200, 83, 1)',
+          backgroundColor: 'rgba(0, 200, 83, 0.2)',
+          pointBackgroundColor: 'rgba(0, 200, 83, 1)',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: 'rgba(0, 200, 83, 1)'
+        }
+      ]
+    };
+  }, [data]);
+
+  const activityRadarOptions = useMemo(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: 'Activity Mix (Hours %)' },
+      tooltip: {
+        callbacks: {
+          label: (ctx: any) => `${ctx.parsed.r}%`
+        }
+      }
+    },
+    scales: {
+      r: {
+        beginAtZero: true,
+        suggestedMax: 100,
+        ticks: {
+          stepSize: 20,
+          callback: (v: any) => `${v}%`,
+          showLabelBackdrop: false,
+        },
+        grid: { circular: true }
+      }
+    }
+  }), []);
+
   const totals = data?.totals;
   const period = data?.period;
   const projects = data?.breakdown?.by_project || [];
@@ -227,7 +293,6 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
     const provided = data?.breakdown?.tasks_table;
     if (Array.isArray(provided)) return provided as Array<any>;
 
-    // Fallback for older API: derive from task_descriptions map
     const map = data?.task_descriptions || {};
     const rows: Array<any> = Object.entries(map).map(([desc, info]: any) => {
       const size = Number(info?.size ?? 0);
@@ -295,10 +360,8 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
   }, [tasksTable, taskQuery, taskProjectFilter, taskIfFilter, taskSizeFilter, taskSortBy, taskSortDir]);
 
   return (
-    <ThemeProvider theme={theme}>
     <Box p={2}>
-      <Typography variant="h5" sx={{ mb: 2 }}>Employee Insight</Typography>
-
+      <Typography variant="h5" sx={{ mb: 2 }}>Insight</Typography>
       {/* Controls */}
       <Card variant="outlined" sx={{ mb: 2 }}>
         <CardContent>
@@ -306,7 +369,7 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
             <Grid item xs={12} sm={3}>
               <UserAutocomplete onUserSelected={(selectedUser) => selectedUser && setUid(selectedUser.id)} />
             </Grid>
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} sm={1}>
               <FormControl fullWidth>
                 <InputLabel id="preset-label">Date Range</InputLabel>
                 <Select
@@ -315,10 +378,11 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
                   value={rangePreset}
                   onChange={(e) => applyPreset(e.target.value as string)}
                 >
-                  <MenuItem value="this_month">This Month (MTD)</MenuItem>
+                  <MenuItem value="this_month">This Month</MenuItem>
                   <MenuItem value="last_7">Last 7 days</MenuItem>
                   <MenuItem value="last_30">Last 30 days</MenuItem>
-                  <MenuItem value="this_quarter">This Quarter (QTD)</MenuItem>
+                  <MenuItem value="this_quarter">This Quarter</MenuItem>
+                  <MenuItem value="this_year">This Year</MenuItem>
                   <MenuItem value="custom">Custom…</MenuItem>
                 </Select>
               </FormControl>
@@ -332,6 +396,8 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
                   format="dd/MM/yyyy"
                   slotProps={{ textField: { fullWidth: true } }}
                   className="date-picker-input"
+                  minDate={new Date(new Date().getFullYear(), 0, 1)}
+                  maxDate={new Date(new Date().getFullYear(), 11, 31)}
                 />
               </LocalizationProvider>
             </Grid>
@@ -344,18 +410,21 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
                   format="dd/MM/yyyy"
                   slotProps={{ textField: { fullWidth: true } }}
                   className="date-picker-input"
+                  minDate={new Date(new Date().getFullYear(), 0, 1)}
+                  maxDate={new Date(new Date().getFullYear(), 11, 31)}
                 />
               </LocalizationProvider>
             </Grid>
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} sm={2}>
               <Button
                 fullWidth
                 size="large"
                 variant="contained"
                 onClick={load}
+                style={{ height: 55 }}
                 disabled={!uid || !hasRange || loading}
               >
-                {loading ? 'Loading…' : 'Load Summary'}
+                {loading ? 'Loading…' : 'Load'}
               </Button>
             </Grid>
           </Grid>
@@ -417,15 +486,30 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
           </Typography>
 
           {/* Chart */}
-          <Card variant="outlined" sx={{ mb: 3, height: 420 }}>
-            <CardContent sx={{ height: '100%' }}>
-              {chartData ? (
-                <Line data={chartData} options={chartOptions} />
-              ) : (
-                <Box py={8} textAlign="center"><Typography color="text.secondary">No chart data</Typography></Box>
-              )}
-            </CardContent>
-          </Card>
+          <Grid container spacing={2} sx={{ mb: 2 }}>
+            <Grid item xs={12} sm={6} md={8}>
+              <Card variant="outlined" sx={{ mb: 3, height: 420 }}>
+                <CardContent sx={{ height: '100%' }}>
+                  {chartData ? (
+                    <Line data={chartData} options={chartOptions} />
+                  ) : (
+                    <Box py={8} textAlign="center"><Typography color="text.secondary">No chart data</Typography></Box>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <Card variant="outlined" sx={{ mb: 3, height: 420 }}>
+                <CardContent sx={{ height: '100%' }}>
+                  {activityRadarData ? (
+                    <Radar data={activityRadarData} options={activityRadarOptions} />
+                  ) : (
+                    <Box py={8} textAlign="center"><Typography color="text.secondary">No activity data</Typography></Box>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
 
           {/* By Project table */}
           <Card variant="outlined" sx={{ mb: 3 }}>
@@ -434,27 +518,27 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
               <TableContainer component={Paper}>
                 <Table size="small">
                   <TableHead>
-                    <TableRow>
-                      <TableCell>Project</TableCell>
-                      <TableCell>Type</TableCell>
-                      <TableCell align="right">Hours</TableCell>
-                      <TableCell align="right">Billable</TableCell>
-                      <TableCell align="right">Utilization %</TableCell>
-                      <TableCell align="right">Billing</TableCell>
-                      <TableCell align="right">Costing</TableCell>
-                    </TableRow>
+                    <StyledTableRow>
+                      <StyledTableCell>Project</StyledTableCell>
+                      <StyledTableCell>Type</StyledTableCell>
+                      <StyledTableCell align="right">Hours</StyledTableCell>
+                      <StyledTableCell align="right">Billable</StyledTableCell>
+                      <StyledTableCell align="right">Utilization %</StyledTableCell>
+                      <StyledTableCell align="right">Billing</StyledTableCell>
+                      <StyledTableCell align="right">Costing</StyledTableCell>
+                    </StyledTableRow>
                   </TableHead>
                   <TableBody>
                     {projects.map((p: any) => (
-                      <TableRow key={p.project}>
-                        <TableCell>{p.project}</TableCell>
-                        <TableCell>{p.project_type}</TableCell>
-                        <TableCell align="right">{p.hours?.toFixed(2)}</TableCell>
-                        <TableCell align="right">{p.billable_hours?.toFixed(2)}</TableCell>
-                        <TableCell align="right">{p.utilization_pct?.toFixed(1)}</TableCell>
-                        <TableCell align="right">{(p.billing ?? 0).toLocaleString()}</TableCell>
-                        <TableCell align="right">{(p.costing ?? 0).toLocaleString()}</TableCell>
-                      </TableRow>
+                      <StyledTableRow key={p.project}>
+                        <StyledTableCell>{p.project}</StyledTableCell>
+                        <StyledTableCell>{p.project_type}</StyledTableCell>
+                        <StyledTableCell align="right">{p.hours?.toFixed(2)}</StyledTableCell>
+                        <StyledTableCell align="right">{p.billable_hours?.toFixed(2)}</StyledTableCell>
+                        <StyledTableCell align="right">{p.utilization_pct?.toFixed(1)}</StyledTableCell>
+                        <StyledTableCell align="right">{(p.billing ?? 0).toLocaleString()}</StyledTableCell>
+                        <StyledTableCell align="right">{(p.costing ?? 0).toLocaleString()}</StyledTableCell>
+                      </StyledTableRow>
                     ))}
                   </TableBody>
                 </Table>
@@ -533,8 +617,8 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
               <TableContainer component={Paper}>
                 <Table size="small">
                   <TableHead>
-                    <TableRow>
-                      <TableCell sortDirection={taskSortBy === 'description' ? taskSortDir : false}>
+                    <StyledTableRow>
+                      <StyledTableCell sortDirection={taskSortBy === 'description' ? taskSortDir : false}>
                         <TableSortLabel
                           active={taskSortBy === 'description'}
                           direction={taskSortBy === 'description' ? taskSortDir : 'asc'}
@@ -542,9 +626,9 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
                         >
                           Description
                         </TableSortLabel>
-                      </TableCell>
+                      </StyledTableCell>
 
-                      <TableCell sortDirection={taskSortBy === 'project' ? taskSortDir : false}>
+                      <StyledTableCell sortDirection={taskSortBy === 'project' ? taskSortDir : false}>
                         <TableSortLabel
                           active={taskSortBy === 'project'}
                           direction={taskSortBy === 'project' ? taskSortDir : 'asc'}
@@ -552,9 +636,9 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
                         >
                           Project
                         </TableSortLabel>
-                      </TableCell>
+                      </StyledTableCell>
 
-                      <TableCell align="right" sortDirection={taskSortBy === 'hours' ? taskSortDir : false}>
+                      <StyledTableCell align="right" sortDirection={taskSortBy === 'hours' ? taskSortDir : false}>
                         <TableSortLabel
                           active={taskSortBy === 'hours'}
                           direction={taskSortBy === 'hours' ? taskSortDir : 'desc'}
@@ -562,9 +646,9 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
                         >
                           Hours
                         </TableSortLabel>
-                      </TableCell>
+                      </StyledTableCell>
 
-                      <TableCell align="right" sortDirection={taskSortBy === 'size' ? taskSortDir : false}>
+                      <StyledTableCell align="right" sortDirection={taskSortBy === 'size' ? taskSortDir : false}>
                         <TableSortLabel
                           active={taskSortBy === 'size'}
                           direction={taskSortBy === 'size' ? taskSortDir : 'asc'}
@@ -572,9 +656,9 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
                         >
                           Size
                         </TableSortLabel>
-                      </TableCell>
+                      </StyledTableCell>
 
-                      <TableCell align="right" sortDirection={taskSortBy === 'if' ? taskSortDir : false}>
+                      <StyledTableCell align="right" sortDirection={taskSortBy === 'if' ? taskSortDir : false}>
                         <TableSortLabel
                           active={taskSortBy === 'if'}
                           direction={taskSortBy === 'if' ? taskSortDir : 'asc'}
@@ -582,19 +666,19 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
                         >
                           Hrs vs Size
                         </TableSortLabel>
-                      </TableCell>
-                      <TableCell>Link</TableCell>
-                    </TableRow>
+                      </StyledTableCell>
+                      <StyledTableCell>Link</StyledTableCell>
+                    </StyledTableRow>
                   </TableHead>
                   <TableBody>
                     {filteredSortedTasks && filteredSortedTasks.length > 0 ? (
                       filteredSortedTasks.map((row: any, idx: number) => (
-                        <TableRow key={`${row.description}-${idx}`}>
-                          <TableCell>{row.description}</TableCell>
-                          <TableCell>{row.project}</TableCell>
-                          <TableCell align="right">{Number(row.hours).toFixed(3)}</TableCell>
-                          <TableCell align="right">{row.size ?? 0}</TableCell>
-                          <TableCell align="right">
+                        <StyledTableRow  key={`${row.description}-${idx}`}>
+                          <StyledTableCell>{row.description}</StyledTableCell>
+                          <StyledTableCell>{row.project}</StyledTableCell>
+                          <StyledTableCell align="right">{Number(row.hours).toFixed(3)}</StyledTableCell>
+                          <StyledTableCell align="right">{row.size ?? 0}</StyledTableCell>
+                          <StyledTableCell align="right">
                             <Chip
                               size="small"
                               label={row.if || 'n/a'}
@@ -606,22 +690,22 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
                               }
                               variant={row.if ? 'filled' : 'outlined'}
                             />
-                          </TableCell>
-                          <TableCell>
+                          </StyledTableCell>
+                          <StyledTableCell>
                             {row.link ? (
                               <a href={row.link} target="_blank" rel="noreferrer">Open</a>
                             ) : (
                               <Typography variant="caption" color="text.secondary">—</Typography>
                             )}
-                          </TableCell>
-                        </TableRow>
+                          </StyledTableCell>
+                        </StyledTableRow>
                       ))
                     ) : (
-                      <TableRow>
-                        <TableCell colSpan={7}>
+                      <StyledTableRow>
+                        <StyledTableCell colSpan={7}>
                           <Typography variant="body2" color="text.secondary">No tasks to display</Typography>
-                        </TableCell>
-                      </TableRow>
+                        </StyledTableCell>
+                      </StyledTableRow>
                     )}
                   </TableBody>
                 </Table>
@@ -636,6 +720,5 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
         </>
       )}
     </Box>
-    </ThemeProvider>
   );
 }
