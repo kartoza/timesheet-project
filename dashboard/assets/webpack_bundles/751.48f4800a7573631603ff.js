@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdashboard=self.webpackChunkdashboard||[]).push([[751],{52751:(a,s,d)=>{d.r(s),d.d(s,{default:()=>r});var e=d(20561),h=d(74848);const r=(0,e.A)((0,h.jsx)("path",{d:"M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"}),"Send")}}]);
