@@ -6,8 +6,10 @@ import {
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
+import InsightsIcon from '@mui/icons-material/Insights';
 
 const IS_AUTHENTICATED = (window as any).isLoggedIn;
+const IS_STAFF = (window as any).isStaff;
 
 export const CircularMenu = (props) => {
     return (
@@ -48,6 +50,11 @@ export const CircularMenu = (props) => {
                                 tooltipPlacement={TooltipPlacement.Left}>
                     <ShowChartIcon />
                 </CircleMenuItem>
+              { IS_STAFF ? <CircleMenuItem tooltip="Insight"
+                                onClick={() => window.location.href = '/employee-insight/'}
+                                tooltipPlacement={TooltipPlacement.Left}>
+                    <InsightsIcon />
+                </CircleMenuItem> : null }
             </CircleMenu> : '' }
         </div>
     );

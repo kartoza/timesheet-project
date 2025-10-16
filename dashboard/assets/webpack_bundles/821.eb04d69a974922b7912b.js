@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkdashboard=self.webpackChunkdashboard||[]).push([[821],{98821:(a,s,d)=>{d.r(s),d.d(s,{default:()=>l});var h=d(75003),e=d(74848);const l=(0,h.A)((0,e.jsx)("path",{d:"M5 20h14v-2H5zM19 9h-4V3H9v6H5l7 7z"}),"Download")}}]);

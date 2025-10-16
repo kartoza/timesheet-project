@@ -22,6 +22,8 @@ import {
   InputLabel,
   TableSortLabel, tableCellClasses, styled
 } from '@mui/material';
+import MuiTooltip from '@mui/material/Tooltip';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -41,6 +43,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import UserAutocomplete from "./UserAutocomplete";
 import {theme} from "../utils/Theme";
 import {ThemeProvider} from "@mui/material/styles";
+import CircularMenu from "./Menu";
 
 ChartJS.register(
   CategoryScale,
@@ -359,8 +362,158 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
     return rows.slice().sort(cmp);
   }, [tasksTable, taskQuery, taskProjectFilter, taskIfFilter, taskSizeFilter, taskSortBy, taskSortDir]);
 
+  // ---- Export tasks table (frontend-only CSV) ----
+  const toCsv = (rows: any[]) => {
+    const cols = ['Description','Project','Hours','Size','Hrs vs Size','Link'];
+    const esc = (v: any) => {
+      if (v === null || v === undefined) return '';
+      const s = String(v);
+      // Mitigate CSV injection in Excel by prefixing risky leading chars
+      const dangerous = /^[=+\-@]/;
+      const safe = dangerous.test(s) ? '\t' + s : s;
+      return '"' + safe.replace(/"/g, '""') + '"';
+    };
+    const lines = [cols.join(',')];
+    for (const r of rows) {
+      lines.push([
+        esc(r.description),
+        esc(r.project),
+        esc(Number(r.hours).toFixed(3)),
+        esc(r.size ?? 0),
+        esc(r.if || 'n/a'),
+        esc(r.link || ''),
+      ].join(','));
+    }
+    // Add BOM so Excel opens UTF-8 correctly
+    return '\uFEFF' + lines.join('\n');
+  };
+
+  const downloadTasksCsv = () => {
+    const rows = filteredSortedTasks || [];
+    const csv = toCsv(rows);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const fromStr = from ? fmt(from) : 'start';
+    const toStr = to ? fmt(to) : 'end';
+    a.href = url;
+    a.download = `tasks_${uid || 'user'}_${fromStr}_${toStr}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // KPIs for Task Table
+  const kpiDiscipline = useMemo(() => {
+    const rows = (tasksTable ?? []) as any[];
+    const total = rows.length || 0;
+
+    // Weights: size more important than link
+    const W_SIZE = 0.7;
+    const W_LINK = 0.3;
+
+    let linkCount = 0, sizeCount = 0, scoreSum = 0;
+    for (const r of rows) {
+      const hasLink = !!r.link;
+      const hasSize = Number(r.size ?? 0) > 0;
+      if (hasLink) linkCount++;
+      if (hasSize) sizeCount++;
+      // Per-row weighted score in [0,1]
+      scoreSum += (hasSize ? W_SIZE : 0) + (hasLink ? W_LINK : 0);
+    }
+
+    const pct = (n: number) => (total ? Math.round((n / total) * 1000) / 10 : 0);
+
+    return {
+      total,
+      // Weighted completeness percentage (size carries more weight)
+      completePct: pct(scoreSum),
+      linkPct: pct(linkCount),
+      sizePct: pct(sizeCount),
+      weights: { size: W_SIZE, link: W_LINK },
+    };
+  }, [tasksTable]);
+
+  const kpiFit = useMemo(() => {
+    const rows = (tasksTable ?? []) as any[];
+    const total = rows.length || 0;
+    const cnt = { within: 0, below: 0, above: 0, na: 0 } as any;
+    for (const r of rows) {
+      const label = (r.if || 'n/a') as string;
+      if (label === 'within') cnt.within++;
+      else if (label === 'below') cnt.below++;
+      else if (label === 'above') cnt.above++;
+      else cnt.na++;
+    }
+    const pct = (n: number) => (total ? Math.round((n / total) * 1000) / 10 : 0);
+    return {
+      total,
+      withinPct: pct(cnt.within),
+      belowPct: pct(cnt.below),
+      abovePct: pct(cnt.above),
+      naPct: pct(cnt.na),
+    };
+  }, [tasksTable]);
+
+  const kpiThroughput = useMemo(() => {
+    const rows = (tasksTable ?? []) as any[];
+    const total = rows.length || 0;
+    let sumHours = 0;
+    let sumSize = 0;
+    let sized = 0;
+    for (const r of rows) {
+      sumHours += Number(r.hours ?? 0);
+      const s = Number(r.size ?? 0);
+      if (s > 0) { sumSize += s; sized++; }
+    }
+    const avgHours = total ? Math.round((sumHours / total) * 100) / 100 : 0;
+    const avgSize = sized ? Math.round((sumSize / sized) * 10) / 10 : 0;
+    return { total, avgHours, avgSize };
+  }, [tasksTable]);
+
+  const kpiActivityMix = useMemo(() => {
+    const acts = (data?.activity_overview ?? []) as any[];
+    const valid = acts.filter(a => Number(a.hours ?? a.hours_share_pct ?? 0) > 0);
+
+    if (valid.length === 0) {
+      return { activitiesCount: 0, topSharePct: 0, topName: '', hhi: 0, codingPct: 0 };
+    }
+
+    // Prefer hours if present, else fall back to hours_share_pct
+    const totalHours = valid.reduce((s, a) => s + Number(a.hours ?? 0), 0);
+    const shares = (totalHours > 0)
+      ? valid.map(a => Number(a.hours ?? 0) / totalHours)
+      : valid.map(a => Number(a.hours_share_pct ?? 0) / 100);
+
+    const hhiRaw = shares.reduce((s, x) => s + x * x, 0);
+    const topShare = Math.max(...shares);
+    const topIdx = shares.indexOf(topShare);
+    const topName = topIdx >= 0 ? String(valid[topIdx].activity || 'Top') : '';
+
+    // Coding share (if present)
+    const codingRow = acts.find(a => String(a.activity || '').toLowerCase() === 'coding');
+    let codingPct = 0;
+    if (codingRow) {
+      if (totalHours > 0 && (codingRow.hours ?? null) !== null) {
+        codingPct = (Number(codingRow.hours) / totalHours) * 100;
+      } else if ((codingRow.hours_share_pct ?? null) !== null) {
+        codingPct = Number(codingRow.hours_share_pct);
+      }
+    }
+
+    return {
+      activitiesCount: valid.length,
+      topSharePct: Math.round(topShare * 1000) / 10, // one decimal
+      topName,
+      hhi: Math.round(hhiRaw * 100) / 100,           // two decimals
+      codingPct: Math.round(codingPct * 10) / 10,
+    };
+  }, [data?.activity_overview]);
+
   return (
     <Box p={2}>
+      <CircularMenu/>
       <Typography variant="h5" sx={{ mb: 2 }}>Insight</Typography>
       {/* Controls */}
       <Card variant="outlined" sx={{ mb: 2 }}>
@@ -452,30 +605,120 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
           <Grid container spacing={2} sx={{ mb: 2 }}>
             <Grid item xs={12} sm={6} md={3}>
               <Card variant="outlined"><CardContent>
-                <Typography variant="body2" color="text.secondary">Total Hours</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary">Total Hours</Typography>
+                  <MuiTooltip title="Sum of all hours logged in the selected period (billable + non-billable).">
+                    <InfoOutlinedIcon fontSize="small" sx={{ opacity: 0.8 }} />
+                  </MuiTooltip>
+                </Box>
                 <Typography variant="h5">{totals?.hours?.toFixed(2)}</Typography>
                 <Chip size="small" sx={{ mt: 1 }} label={`Avg/day ${totals?.avg_hours_per_day ?? 0}`} />
               </CardContent></Card>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <Card variant="outlined"><CardContent>
-                <Typography variant="body2" color="text.secondary">Billable Hours</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary">Billable Hours</Typography>
+                  <MuiTooltip title="Sum of hours marked billable. Utilization = Billable Hours / Total Hours × 100.">
+                    <InfoOutlinedIcon fontSize="small" sx={{ opacity: 0.8 }} />
+                  </MuiTooltip>
+                </Box>
                 <Typography variant="h5">{totals?.billable_hours?.toFixed(2)}</Typography>
                 <Chip size="small" sx={{ mt: 1 }} color="primary" label={`Utilization ${totals?.utilization_pct ?? 0}%`} />
               </CardContent></Card>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <Card variant="outlined"><CardContent>
-                <Typography variant="body2" color="text.secondary">Billing</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary">Billing</Typography>
+                  <MuiTooltip title="Total billed amount (sum of 'Total Billing') in the period. Rate = Billing / Billable Hours.">
+                    <InfoOutlinedIcon fontSize="small" sx={{ opacity: 0.8 }} />
+                  </MuiTooltip>
+                </Box>
                 <Typography variant="h5">{(totals?.billing ?? 0).toLocaleString()}</Typography>
                 <Chip size="small" sx={{ mt: 1 }} color="success" label={`Rate ${totals?.realized_rate_per_hour ?? 0}/h`} />
               </CardContent></Card>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <Card variant="outlined"><CardContent>
-                <Typography variant="body2" color="text.secondary">Costing</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary">Costing</Typography>
+                  <MuiTooltip title="Total internal cost for the period (sum of 'Total Costing'). Margin = Billing − Costing.">
+                    <InfoOutlinedIcon fontSize="small" sx={{ opacity: 0.8 }} />
+                  </MuiTooltip>
+                </Box>
                 <Typography variant="h5">{(totals?.costing ?? 0).toLocaleString()}</Typography>
                 <Chip size="small" sx={{ mt: 1 }} color="warning" label={`Margin ${(totals?.margin ?? 0).toLocaleString()}`} />
+              </CardContent></Card>
+            </Grid>
+
+            {/* New KPI Cards */}
+            <Grid item xs={12} sm={6} md={3}>
+              <Card variant="outlined"><CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary">Timesheet Discipline</Typography>
+                  <MuiTooltip title="Weighted completeness of task metadata: 70% size + 30% link. 'Size %' = share of tasks with size > 0; 'Link %' = share with a reference link.">
+                    <InfoOutlinedIcon fontSize="small" sx={{ opacity: 0.8 }} />
+                  </MuiTooltip>
+                </Box>
+                <Typography variant="h5">{kpiDiscipline.completePct}%</Typography>
+                <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  <Chip size="small" color="primary" label={`Link ${kpiDiscipline.linkPct}%`} />
+                  <Chip size="small" color="success" label={`Size ${kpiDiscipline.sizePct}%`} />
+                </Box>
+              </CardContent></Card>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <Card variant="outlined"><CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary">Hrs vs Size Fit</Typography>
+                  <MuiTooltip title="Share of tasks where actual hours fall within the expected band for their size. Labels: within/below/above/N/A using the size→hours ranges defined in this page.">
+                    <InfoOutlinedIcon fontSize="small" sx={{ opacity: 0.8 }} />
+                  </MuiTooltip>
+                </Box>
+                <Typography variant="h5">Within {kpiFit.withinPct}%</Typography>
+                <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  <Chip size="small" color="warning" label={`Below ${kpiFit.belowPct}%`} />
+                  <Chip size="small" color="error" label={`Above ${kpiFit.abovePct}%`} />
+                  <Chip size="small" label={`N/A ${kpiFit.naPct}%`} />
+                </Box>
+              </CardContent></Card>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <Card variant="outlined"><CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary">Task Throughput</Typography>
+                  <MuiTooltip title="Number of tasks in the period. Avg h/task = total hours ÷ tasks. Avg size is computed over tasks with size > 0.">
+                    <InfoOutlinedIcon fontSize="small" sx={{ opacity: 0.8 }} />
+                  </MuiTooltip>
+                </Box>
+                <Typography variant="h5">{kpiThroughput.total} tasks</Typography>
+                <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  <Chip size="small" color="primary" label={`Avg ${kpiThroughput.avgHours} h/task`} />
+                  <Chip size="small" color="success" label={`Avg size ${kpiThroughput.avgSize}`} />
+                </Box>
+              </CardContent></Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card variant="outlined"><CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary">Activity Mix Quality</Typography>
+                  <MuiTooltip title="Distribution of effort across activities. Coding % = share of hours on 'Coding'. HHI = ∑(share²) across activities; higher = more concentrated, lower = more balanced. 'Top' shows the largest activity share.">
+                    <InfoOutlinedIcon fontSize="small" sx={{ opacity: 0.8 }} />
+                  </MuiTooltip>
+                </Box>
+                <Typography variant="h5">
+                  {kpiActivityMix.codingPct > 0 ? `Coding ${kpiActivityMix.codingPct}%` : `Top ${kpiActivityMix.topName || ''} ${kpiActivityMix.topSharePct}%`}
+                </Typography>
+                <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {kpiActivityMix.topName ? (
+                    <Chip size="small" label={`Top ${kpiActivityMix.topName} ${kpiActivityMix.topSharePct}%`} />
+                  ) : null}
+                  <Chip size="small" color="primary" label={`HHI ${kpiActivityMix.hhi}`} />
+                  <Chip size="small" label={`${kpiActivityMix.activitiesCount} activities`} />
+                </Box>
               </CardContent></Card>
             </Grid>
           </Grid>
@@ -611,6 +854,18 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
                       <MenuItem value={8}>8</MenuItem>
                     </Select>
                   </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6} md={2}>
+                  <Box sx={{ display: 'flex', justifyContent: { xs: 'stretch', md: 'flex-end' } }}>
+                    <Button
+                      onClick={downloadTasksCsv}
+                      variant="outlined"
+                      fullWidth={true}
+                      disabled={!filteredSortedTasks || filteredSortedTasks.length === 0}
+                    >
+                      Export CSV
+                    </Button>
+                  </Box>
                 </Grid>
               </Grid>
             </Box>
