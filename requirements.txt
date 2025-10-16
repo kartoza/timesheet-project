@@ -2,7 +2,7 @@ asgiref==3.8.1
 certifi==2024.7.4
 charset-normalizer==2.0.12
 coverage==6.3.2
-Django==5.1.10
+Django>=5.1.13
 django-filter==21.1
 djangorestframework==3.15.2
 factory-boy==3.2.1
