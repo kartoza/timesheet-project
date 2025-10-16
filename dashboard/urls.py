@@ -9,13 +9,11 @@ from dashboard.api_views import (
 )
 from dashboard.views import (
     DashboardView, SpaceView,
-    SummaryView, PublicSummaryView, PlannerView, PublicTimelineView
+    SummaryView, PublicSummaryView, PlannerView, PublicTimelineView, EmployeeInsight
 )
 from dashboard.api.employee_summary import EmployeeSummary
 from django.conf import settings
 from django.conf.urls.static import static
-
-from views import EmployeeInsight
 
 urlpatterns = [
     path('', DashboardView.as_view(), name='dashboard'),
