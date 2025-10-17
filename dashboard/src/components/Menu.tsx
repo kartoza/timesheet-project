@@ -54,7 +54,7 @@ export const CircularMenu = (props) => {
                                 onClick={() => window.location.href = '/employee-insight/'}
                                 tooltipPlacement={TooltipPlacement.Left}>
                     <InsightsIcon />
-                </CircleMenuItem> : null }
+                </CircleMenuItem> : '' }
             </CircleMenu> : '' }
         </div>
     );
