@@ -73,7 +73,6 @@ def _extract_link_and_clean_text(text: str):
     s = text
     link = None
 
-    # Find a markdown link with possible nested [..] in the title using a small state machine
     i = s.find('[')
     while i != -1:
         depth = 0
@@ -87,28 +86,46 @@ def _extract_link_and_clean_text(text: str):
                 if depth == 0:
                     break
             j += 1
-        # We have a matching closing ']' at j, and expect '(' next
         if depth == 0 and j < len(s) - 1 and s[j + 1] == '(':
-            # Find the closing ')'
             k = j + 2
             while k < len(s) and s[k] != ')':
                 k += 1
-            # Extract URL (strip whitespace/newlines that may linger)
             url = s[j + 2:k] if k <= len(s) else s[j + 2:]
             url = re.sub(r"\s+", "", url)
             if not link:
                 link = url
-            # Replace the full [title](url) with just the title content (preserving any inner brackets)
             title_text = s[i + 1:j]
             s = s[:i] + title_text + s[k + 1:]
             break
         i = s.find('[', i + 1)
 
-    # Collapse any remaining simple markdown links to just titles
     s = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r"\1", s)
-    # Normalize whitespace
     s = ' '.join(s.split())
     return s, link
+
+def replace_newlines_inside_brackets(s: str) -> str:
+    out = []
+    sq_depth = par_depth = 0
+
+    for ch in s:
+        if ch == '[':
+            sq_depth += 1
+            out.append(ch)
+        elif ch == ']':
+            sq_depth = max(0, sq_depth - 1)
+            out.append(ch)
+        elif ch == '(':
+            par_depth += 1
+            out.append(ch)
+        elif ch == ')':
+            par_depth = max(0, par_depth - 1)
+            out.append(ch)
+        elif ch == '\n' and (sq_depth > 0 or par_depth > 0):
+            out.append(' ')
+        else:
+            out.append(ch)
+
+    return ''.join(out)
 
 def _parse_description_items(desc_raw: str):
     """Parse a raw Description field into a list of items with text and normalized size.
@@ -116,24 +133,18 @@ def _parse_description_items(desc_raw: str):
     Returns list of dicts: {"text": str, "size": int, "link": Optional[str]} (no hours yet).
     """
     s = _collapse_hard_wraps(desc_raw or '')
-    # Split bullets anywhere (not just before sizes). We only split on '*' or '•' to avoid breaking hyphenated text.
+    s = replace_newlines_inside_brackets(s)
     s = re.sub(r'(?<!^)\s*[\*\u2022]\s+(?=\S)', '\n', s)
-    # Drop bullets at the start of any resulting line (again only '*' or '•').
     s = re.sub(r'^\s*[\*\u2022]\s*', '', s, flags=re.M)
     lines = [ln.strip() for ln in s.split('\n') if ln.strip()]
     if not lines:
         return []
     items = []
     buf = ''
-    size_line_re = re.compile(r"^\s*\[\s*([0-9]+(?:[.,][0-9]+)?)\s*\]")
     for ln in lines:
-        if size_line_re.match(ln):
-            if buf:
-                items.append(buf.strip())
-            buf = ln
-        else:
-            # Continuation of previous item (e.g., long title, trailing note)
-            buf = (buf + ' ' + ln).strip() if buf else ln
+        if buf:
+            items.append(buf.strip())
+        buf = ln
     if buf:
         items.append(buf.strip())
 
@@ -144,10 +155,10 @@ def _parse_description_items(desc_raw: str):
             size = _normalize_size(m.group(1))
             rest = m.group(2)
         else:
-            size = 0  # no explicit size provided
+            size = 0
             rest = raw_item
         clean_text, link = _extract_link_and_clean_text(rest)
-        if clean_text:  # guard against empty after cleanup
+        if clean_text:
             result.append({"text": clean_text, "size": size, "link": link})
     return result
 
