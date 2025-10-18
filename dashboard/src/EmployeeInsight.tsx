@@ -10,9 +10,12 @@ import EmployeeSummaryDashboard from "./components/EmployeeInsight";
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
+const userId = (document.querySelector('meta[name="user-id"]') as any).content
 root.render(
   <Provider store={store}>
-    <EmployeeSummaryDashboard defaultFrom="2025-10-01" defaultTo="2025-10-10" />
+    {
+      userId ? <EmployeeSummaryDashboard userId={userId}/> : <EmployeeSummaryDashboard />
+    }
   </Provider>
 );
 

@@ -85,7 +85,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
  *  - defaultFrom / defaultTo (YYYY-MM-DD): optional initial range
  */
 export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultTo }: { userId?: string; defaultFrom?: string; defaultTo?: string; }) {
-  const [uid, setUid] = useState<string>(userId || '');
+  const [uid, setUid] = useState<string>('');
   const [from, setFrom] = useState<Date | null>(defaultFrom ? new Date(defaultFrom) : null);
   const [to, setTo] = useState<Date | null>(defaultTo ? new Date(defaultTo) : null);
 
@@ -120,6 +120,13 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
       setTo(today);
     } else if (preset === 'this_year') {
       setFrom(new Date(today.getFullYear(), 0, 1));
+      setTo(today);
+    } else if (preset === 'this_week') {
+      const _today = new Date();
+      const day = _today.getDay();
+      const diff = _today.getDate() - day + (day === 0 ? -6 : 1);
+      const monday = new Date(_today.setDate(diff));
+      setFrom(monday);
       setTo(today);
     }
   };
@@ -158,7 +165,19 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
   };
 
   useEffect(() => {
-    if (userId && !uid) setUid(userId);
+    applyPreset('this_week');
+  }, []);
+
+  useEffect(() => {
+    if (uid && userId) {
+      load();
+    }
+  }, [uid])
+
+  useEffect(() => {
+    if (userId && !uid) {
+      setUid(userId);
+    }
   }, [userId]);
 
   const chartData = useMemo(() => {
@@ -519,10 +538,10 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
       <Card variant="outlined" sx={{ mb: 2 }}>
         <CardContent>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={3}>
+            { !userId && <Grid item xs={12} sm={3}>
               <UserAutocomplete onUserSelected={(selectedUser) => selectedUser && setUid(selectedUser.id)} />
-            </Grid>
-            <Grid item xs={12} sm={1}>
+            </Grid> }
+            <Grid item xs={12} sm={userId ? 2 : 1}>
               <FormControl fullWidth>
                 <InputLabel id="preset-label">Date Range</InputLabel>
                 <Select
@@ -531,6 +550,7 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
                   value={rangePreset}
                   onChange={(e) => applyPreset(e.target.value as string)}
                 >
+                  <MenuItem value="this_week">This Week</MenuItem>
                   <MenuItem value="this_month">This Month</MenuItem>
                   <MenuItem value="last_7">Last 7 days</MenuItem>
                   <MenuItem value="last_30">Last 30 days</MenuItem>
@@ -540,7 +560,7 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} sm={userId ? 4 : 3}>
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <DatePicker
                   label="From"
@@ -554,7 +574,7 @@ export default function EmployeeSummaryDashboard({ userId, defaultFrom, defaultT
                 />
               </LocalizationProvider>
             </Grid>
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} sm={userId ? 4 : 3}>
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <DatePicker
                   label="To"
