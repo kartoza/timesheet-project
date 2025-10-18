@@ -4,12 +4,12 @@
     {% load render_bundle from webpack_loader %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="user-id" content="{% if user_id %}{{ user_id|escapejs }}{% else %}{% endif %}">
     <title>Insight</title>
     <link rel="icon" href="/static/default-favicon.ico">
 
     <script>
         const csrfToken = "{{ csrf_token }}";
-        window.selectedProjectId = "{{ selectedProjectId }}";
         window.summaryName = "{{ summaryName }}";
         window.isStaff = {% if user.is_staff %}true{% else %}false{% endif %};
         window.isLoggedIn = {% if user.is_authenticated %}true{% else %}false{% endif %};

@@ -1,5 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import Http404
+from django.http import Http404, HttpResponseRedirect
 from django.views.generic import TemplateView
 
 from schedule.models import PublicTimeline
@@ -38,8 +38,34 @@ class SummaryView(LoginRequiredMixin, TemplateView):
 
 class EmployeeInsight(UserPassesTestMixin, TemplateView):
 
+    def handle_no_permission(self):
+        user_id = self.kwargs.get('user_id', None)
+        if (
+            not self.request.user.is_superuser and
+            not self.request.user.is_staff and self.request.user.is_authenticated
+        ):
+            if not user_id:
+                return HttpResponseRedirect(
+                    f'/employee-insight/{self.request.user.id}/'
+                )
+        return super(EmployeeInsight, self).handle_no_permission()
+
     def test_func(self):
-        return self.request.user.is_superuser or self.request.user.is_staff
+        return (
+            self.request.user.is_superuser or
+            self.request.user.is_staff or
+            (
+                self.request.user.is_authenticated and
+                self.kwargs.get('user_id', None) == self.request.user.id
+            )
+        )
+
+    def get_context_data(self, **kwargs):
+        ctx = super(
+            EmployeeInsight, self
+        ).get_context_data(**kwargs)
+        ctx['user_id'] = self.kwargs.get('user_id', None)
+        return ctx
 
     template_name = 'employee_insight.html'
 

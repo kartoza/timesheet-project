@@ -223,7 +223,11 @@ def parse_and_allocate_descriptions(desc_raw: str, total_hours: float):
 class EmployeeSummary(UserPassesTestMixin, APIView):
 
     def test_func(self):
-        return self.request.user.is_superuser or self.request.user.is_staff
+        return (
+                self.request.user.is_superuser or
+                self.request.user.is_staff or
+                self.request.user.id == self.kwargs.get('user_id')
+        )
 
     def get(self, request, user_id):
         profile = get_object_or_404(Profile, user_id=user_id)

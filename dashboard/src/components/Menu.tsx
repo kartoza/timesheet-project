@@ -50,11 +50,11 @@ export const CircularMenu = (props) => {
                                 tooltipPlacement={TooltipPlacement.Left}>
                     <ShowChartIcon />
                 </CircleMenuItem>
-              { IS_STAFF ? <CircleMenuItem tooltip="Insight"
+                <CircleMenuItem tooltip="Insight"
                                 onClick={() => window.location.href = '/employee-insight/'}
                                 tooltipPlacement={TooltipPlacement.Left}>
                     <InsightsIcon />
-                </CircleMenuItem> : '' }
+                </CircleMenuItem>
             </CircleMenu> : '' }
         </div>
     );
