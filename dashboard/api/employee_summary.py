@@ -31,8 +31,10 @@ def _normalize_size(raw):
         return 1
     if v <= 2:
         return 2
-    if v <= 5:
+    if v < 5:
         return 3
+    if v < 8:
+        return 5
     if v <= 8:
         return 5
     return 8
@@ -127,39 +129,67 @@ def replace_newlines_inside_brackets(s: str) -> str:
 
     return ''.join(out)
 
+def _is_markdown_link_only(s: str) -> bool:
+    if not s:
+        return False
+    return bool(re.fullmatch(r"\s*\[[^\]]+\]\(\s*[^)]+\s*\)\s*", s))
+
 def _parse_description_items(desc_raw: str):
     """Parse a raw Description field into a list of items with text and normalized size.
-    Handles multiple lines, size brackets, broken markdown links across lines, and decimals with comma.
-    Returns list of dicts: {"text": str, "size": int, "link": Optional[str]} (no hours yet).
     """
     s = _collapse_hard_wraps(desc_raw or '')
     s = replace_newlines_inside_brackets(s)
+
+    # Turn inline bullets into separate lines, strip leading bullets (handles leading spaces)
     s = re.sub(r'(?<!^)\s*[\*\u2022]\s+(?=\S)', '\n', s)
     s = re.sub(r'^\s*[\*\u2022]\s*', '', s, flags=re.M)
+
     lines = [ln.strip() for ln in s.split('\n') if ln.strip()]
     if not lines:
         return []
-    items = []
-    buf = ''
-    for ln in lines:
-        if buf:
-            items.append(buf.strip())
-        buf = ln
-    if buf:
-        items.append(buf.strip())
+
+    items_raw = lines[:]
 
     result = []
-    for raw_item in items:
+    last_idx = None  # index of the last real item in result
+
+    for raw_item in items_raw:
+        # Optional leading size bucket like [3] / [1.5] (comma or dot decimals)
         m = re.match(r"^\s*\[\s*([0-9]+(?:[.,][0-9]+)?)\s*\]\s*(.*)$", raw_item)
         if m:
             size = _normalize_size(m.group(1))
-            rest = m.group(2)
+            rest = m.group(2).strip()
         else:
             size = 0
             rest = raw_item
+
+        # Case A: remainder is ONLY a markdown link like [Title](url)
+        if _is_markdown_link_only(rest):
+            title_text, url = _extract_link_and_clean_text(rest)  # title + url
+            if size > 0:
+                # Size + link-only => this is a proper single item
+                result.append({"text": title_text or "", "size": size, "link": url})
+                last_idx = len(result) - 1
+            else:
+                # Pure link-only (no size): attach to previous item if possible
+                if last_idx is not None and url and not result[last_idx].get('link'):
+                    result[last_idx]['link'] = re.sub(r"\s+", "", url)
+            continue
+
+        # Case B: normal line (may include inline link(s))
         clean_text, link = _extract_link_and_clean_text(rest)
+        if not clean_text and not link:
+            # Nothing meaningful here
+            continue
+
         if clean_text:
             result.append({"text": clean_text, "size": size, "link": link})
+            last_idx = len(result) - 1
+        else:
+            # No visible text but we have a link (rare here) → attach to previous
+            if last_idx is not None and link and not result[last_idx].get('link'):
+                result[last_idx]['link'] = link
+
     return result
 
 def _allocate_hours_to_items(items, total_hours: float):
