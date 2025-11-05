@@ -1,9 +1,11 @@
 import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit';
-import { timesheetApi } from '../services/api'
+import { timesheetApi } from '../services/api';
+import standupReducer from '../store/standupSlice';
 
 export const store = configureStore({
     reducer: {
-        [timesheetApi.reducerPath]: timesheetApi.reducer
+        [timesheetApi.reducerPath]: timesheetApi.reducer,
+        standup: standupReducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware().concat(timesheetApi.middleware)
