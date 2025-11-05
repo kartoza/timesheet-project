@@ -8,7 +8,7 @@ import '../styles/Standup';
 import { Box } from "@mui/system";
 import moment from "moment";
 import { EmojiPeopleIcon, ContentCopyIcon } from "../loadable/Icon";
-import { updateStandupText, closeStandup, initializeStandup, setStandupText } from "../store/standupSlice";
+import { updateStandupText, openStandup, closeStandup, initializeStandup, writeStandupText } from "../store/standupSlice";
 
 
 interface StandupProp {
@@ -19,7 +19,7 @@ interface StandupProp {
 export default function Standup(props: StandupProp) {
 
     const dispatch = useDispatch<AppDispatch>();
-    const { open, standupText, todayStandup, yesterdayStandup } = useSelector((state: RootState) => state.standup);
+    const { open, standupText, todayStandup, yesterdayStandup, isDrafted } = useSelector((state: RootState) => state.standup);
     const textAreaRef = useRef(null);
 
 
@@ -44,6 +44,11 @@ export default function Standup(props: StandupProp) {
     }
 
     const updateStandupTextData = () => {
+        if (isDrafted) {
+            dispatch(openStandup())
+            return;
+        }
+
         dispatch(updateStandupText(
             `${yesterdayStandup}` +
             `${todayStandup}` + 
@@ -95,9 +100,9 @@ export default function Standup(props: StandupProp) {
                     value={standupText}
                     onChange={(value: string) => {
                         if (value === '<p><br></p>') {
-                            dispatch(setStandupText(''))
+                            dispatch(writeStandupText(''))
                         } else {
-                            dispatch(setStandupText(value))
+                            dispatch(writeStandupText(value))
                         }
                     }}
                     style={{minHeight: '150px'}}

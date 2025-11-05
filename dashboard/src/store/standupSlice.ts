@@ -12,13 +12,15 @@ export interface StandupState {
     standupText: string;
     todayStandup: string;
     yesterdayStandup: string;
+    isDrafted?: boolean;
 }
 
 const initialState: StandupState = {
     open: false,
     standupText: '',
     todayStandup: TODAY_LABEL,
-    yesterdayStandup: `<p>${YESTERDAY_LABEL} (${moment().subtract(1, 'days').format('YYYY-MM-DD')})</p><br/>`
+    yesterdayStandup: `<p>${YESTERDAY_LABEL} (${moment().subtract(1, 'days').format('YYYY-MM-DD')})</p><br/>`,
+    isDrafted: false
 };
 
 
@@ -28,6 +30,9 @@ export const standupSlice = createSlice({
     reducers: {
         updateStandupText: (state, action: PayloadAction<string>) => {
             state.standupText = action.payload;
+            state.open = true;
+        },
+        openStandup: (state) => {
             state.open = true;
         },
         closeStandup: (state) => {
@@ -86,12 +91,13 @@ export const standupSlice = createSlice({
                 state.yesterdayStandup = `<p>${YESTERDAY_LABEL} (${moment().subtract(1, 'days').format('YYYY-MM-DD')})</p><br/>`
             }
         },
-        setStandupText: (state, action: PayloadAction<string>) => {
+        writeStandupText: (state, action: PayloadAction<string>) => {
             state.standupText = action.payload;
+            state.isDrafted = true;
         }
     },
 });
 
-export const { updateStandupText, closeStandup, initializeStandup, setStandupText } = standupSlice.actions;
+export const { updateStandupText, openStandup, closeStandup, initializeStandup, writeStandupText } = standupSlice.actions;
 
 export default standupSlice.reducer;
