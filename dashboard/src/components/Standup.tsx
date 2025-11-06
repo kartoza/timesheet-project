@@ -1,86 +1,31 @@
 import { Grid, Modal, Typography } from "@mui/material";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../app/store";
 import TReactQuill from "./ReactQuill";
 import TButton from "../loadable/Button";
 import '../styles/Standup';
 import { Box } from "@mui/system";
 import moment from "moment";
 import { EmojiPeopleIcon, ContentCopyIcon } from "../loadable/Icon";
+import { updateStandupText, openStandup, closeStandup, initializeStandup, writeStandupText } from "../store/standupSlice";
 
 
 interface StandupProp {
     data?: any
 }
 
-const YESTERDAY_LABEL = `<i><strong>⌛ Yesterday</strong></i>`;
-const TODAY_LABEL = `<p><i><strong>🗓️ Today</strong></i> (${moment().format('YYYY-MM-DD')})</p>`;
-
 
 export default function Standup(props: StandupProp) {
 
-    const [open, setOpen] = useState<boolean>(false)
-    const [standupText, setStandupText] = useState<string>('')
-    const [todayStandup, setTodayStandup] = useState<string>(TODAY_LABEL)
-    const [yesterdayStandup, setYesterdayStandup] = useState<string>(
-        `<p>${YESTERDAY_LABEL} (${moment().subtract(1, 'days').format('YYYY-MM-DD')})</p><br/>`
-    )
+    const dispatch = useDispatch<AppDispatch>();
+    const { open, standupText, todayStandup, yesterdayStandup, isDrafted } = useSelector((state: RootState) => state.standup);
     const textAreaRef = useRef(null);
 
 
     useEffect(() => {
         if (props.data) {
-            setYesterdayStandup(
-                `<p>${YESTERDAY_LABEL} (${moment().subtract(1, 'days').format('YYYY-MM-DD')})</p><br/>`
-            )
-            setTodayStandup(TODAY_LABEL + '<br/>')
-
-            const todayDate = moment().format('YYYY-MM-DD')
-            let yesterdayDate = moment().subtract(1, 'days').format('YYYY-MM-DD')
-            let today: any = {};
-            let yesterday: any = {};
-            const logs = props.data.logs;
-            if (Object.keys(logs).length > 0) {
-                if (logs[todayDate]) {
-                    for (const todayLog of logs[todayDate]) {
-                        if (today[todayLog.project_name]) {
-                            if (!today[todayLog.project_name].includes(todayLog.description)) {
-                                today[todayLog.project_name] += todayLog.description
-                            }
-                        } else {
-                            today[todayLog.project_name] = todayLog.description
-                        }
-                    }
-                }
-                for (const log of Object.keys(logs)) {
-                    if (Object.keys(yesterday).length === 0 && moment(todayDate, 'YYYY-MM-DD').isAfter(
-                        moment(log, 'YYYY-MM-DD'))) {
-                        yesterdayDate = log
-                        for (const yesterdayLog of logs[log]) {
-                            if (yesterday[yesterdayLog.project_name]) {
-                                if (!yesterday[yesterdayLog.project_name].includes(yesterdayLog.description)) {
-                                    yesterday[yesterdayLog.project_name] += yesterdayLog.description
-                                }
-                            } else {
-                                yesterday[yesterdayLog.project_name] = yesterdayLog.description
-                            }
-                        }
-                    }
-                }
-            }
-            if (Object.keys(today).length > 0) {
-                let todayString = '';
-                for (const item of Object.keys(today)) {
-                    todayString += `<strong>${item}</strong><br/>${today[item]}<br/>`
-                }
-                setTodayStandup(TODAY_LABEL + '<br/>' + todayString)
-            }
-            if (Object.keys(yesterday).length > 0) {
-                let yesterdayString = '';
-                for (const item of Object.keys(yesterday)) {
-                    yesterdayString += `<strong>${item}</strong><br/>${yesterday[item]}<br/>`
-                }
-                setYesterdayStandup(`<p>${YESTERDAY_LABEL} (${yesterdayDate})</p><br/>` + yesterdayString)
-            }
+            dispatch(initializeStandup(props.data))
         }
     }, [props.data])
 
@@ -98,22 +43,26 @@ export default function Standup(props: StandupProp) {
         ) 
     }
 
-    const updateStandupText = () => {
-        setStandupText(
+    const updateStandupTextData = () => {
+        if (isDrafted) {
+            dispatch(openStandup())
+            return;
+        }
+
+        dispatch(updateStandupText(
             `${yesterdayStandup}` +
             `${todayStandup}` + 
             '<strong>⚠️ Blocker</strong><br/> None'
-        )
-        setOpen(true)
+        ))
     }
 
     const handleModalClose = () => {
-        setOpen(false)
+        dispatch(closeStandup())
     }
 
     return <div className="Standup">
         <TButton 
-            onClick={() => updateStandupText()}
+            onClick={() => updateStandupTextData()}
             className="StandupButton"
             startIcon={<EmojiPeopleIcon/>} 
             variant="outlined" size="large" color='secondary'>
@@ -151,9 +100,9 @@ export default function Standup(props: StandupProp) {
                     value={standupText}
                     onChange={(value: string) => {
                         if (value === '<p><br></p>') {
-                            setStandupText('')
+                            dispatch(writeStandupText(''))
                         } else {
-                            setStandupText(value)
+                            dispatch(writeStandupText(value))
                         }
                     }}
                     style={{minHeight: '150px'}}
