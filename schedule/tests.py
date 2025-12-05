@@ -319,6 +319,27 @@ class TestCalculateRemainingTaskDays(ScheduleTestCase):
         self.assertEqual(schedule.first_day_number, 48)
         self.assertEqual(schedule.last_day_number, 46)
 
+    def test_add_note_only_schedule_without_project(self):
+        self.client.force_authenticate(user=self.user)
+        start_time = datetime(2023, 5, 1, tzinfo=utc)
+        end_time = datetime(2023, 5, 1, tzinfo=utc)
+
+        url = reverse('add-schedule')
+        data = {
+            'user_id': self.user.id,
+            'start_time': int(start_time.timestamp() * 1000),
+            'end_time': int(end_time.timestamp() * 1000),
+            'notes': 'Standalone note'
+        }
+        response = self.client.post(url, data)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        schedule = Schedule.objects.get(id=response.data['new']['id'])
+        self.assertIsNone(schedule.task)
+        self.assertIsNone(schedule.user_project)
+        self.assertEqual(schedule.user_id, self.user.id)
+        self.assertEqual(schedule.notes, 'Standalone note')
+
         data = {
             'task_id': self.task.id,
             'user_id': self.user_project.user_id,
@@ -506,3 +527,19 @@ class TestCalculateRemainingTaskDays(ScheduleTestCase):
         schedule2 = Schedule.objects.get(id=schedule2.id)
         self.assertEqual(schedule2.first_day_number, 48)
         self.assertEqual(schedule2.last_day_number, 43)
+
+    def test_delete_note_only_schedule(self):
+        self.client.force_authenticate(user=self.user)
+        delete_url = reverse('delete-schedule')
+        schedule = Schedule.objects.create(
+            user=self.user,
+            start_time=datetime(2023, 3, 1, tzinfo=utc),
+            end_time=datetime(2023, 3, 2, tzinfo=utc),
+            notes='Standalone note'
+        )
+        response = self.client.post(delete_url, {
+            'schedule_id': schedule.id
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(Schedule.objects.filter(id=schedule.id).exists())
+        self.assertEqual(response.data['updated'], [])

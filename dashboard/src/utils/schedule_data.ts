@@ -36,6 +36,28 @@ export function getDateString(timestamp: number, addDate = 0) {
   return `${dateTime.getUTCDate()}/${dateTime.getUTCMonth() + 1}/${dateTime.getUTCFullYear()}`
 }
 
+export function buildScheduleInfo(
+  projectName?: string,
+  taskLabel?: string,
+  user?: string,
+  notes?: string
+) {
+  const infoParts: string[] = []
+  if (projectName) {
+    infoParts.push(projectName)
+  }
+  if (taskLabel && taskLabel !== '-') {
+    infoParts.push(taskLabel)
+  }
+  if (user) {
+    infoParts.push(user)
+  }
+  if (infoParts.length === 0 && notes) {
+    infoParts.push(notes)
+  }
+  return infoParts.join(' : ')
+}
+
 export function deleteSchedule(scheduleId: string) {
   const formData = new FormData()
   formData.append('schedule_id', scheduleId)
@@ -65,7 +87,7 @@ export function deleteSchedule(scheduleId: string) {
             start: resetTimeInDate(item.start_time),
             end: resetTimeInDate(item.end_time, 1),
             title: _isPublicHoliday || isKartozaSpecial ? item.title : (isNoteOnly ? item.notes || 'Note' : item.task_name),
-            info: item.project_name + ' : ' + item.task_label + item.user,
+            info: buildScheduleInfo(item.project_name, item.task_label, item.user, item.notes),
             group: item.group,
             desc: item.title,
             first_day: item.first_day,
@@ -131,7 +153,7 @@ export function updateSchedule(scheduleId: number, startTime: number, endTime: n
             end: resetTimeInDate(result.end_time, 1),
             title: _isPublicHoliday || isKartozaSpecial ? result.title : (isNoteOnly ? result.notes || 'Note' : result.task_name),
             desc: result.title,
-            info: result.project_name + ' : ' + result.task_label + result.user,
+            info: buildScheduleInfo(result.project_name, result.task_label, result.user, result.notes),
             group: result.group,
             first_day: result.first_day,
             last_day: result.last_day,

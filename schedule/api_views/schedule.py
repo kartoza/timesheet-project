@@ -308,7 +308,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
         return ''
 
     def get_project_name(self, obj: Schedule):
-        return obj.user_project.project.name if obj.user_project else 'Kartoza'
+        return obj.user_project.project.name if obj.user_project else ''
 
     def get_project_id(self, obj: Schedule):
         return obj.user_project.project.id if obj.user_project else ''
@@ -488,6 +488,12 @@ class DeleteSchedule(APIView):
             id=schedule_id
         )
         task = schedule.task
+        if not task:
+            schedule.delete()
+            return Response({
+                'removed': True,
+                'updated': []
+            })
         last_task_update = _naive(task.last_update)
         start_time = _naive(schedule.start_time)
         end_time = _naive(schedule.end_time)
@@ -655,31 +661,31 @@ class AddSchedule(APIView):
         if not user_id:
             raise Http404()
 
+        user_project = None
+        if project_id:
+            user_project = UserProjectSlot.objects.filter(
+                user_id=user_id,
+                project_id=project_id
+            ).first()
+
         # For note-only entries (no task)
         if not task_id:
-            # Get the user project slot for the specified project
-            if project_id:
-                user_project = UserProjectSlot.objects.filter(
-                    user_id=user_id,
-                    project_id=project_id
-                ).first()
+            schedule_kwargs = {
+                'start_time': start_time,
+                'end_time': end_time,
+                'task': None,
+                'first_day_number': None,
+                'last_day_number': None,
+                'notes': notes,
+                'hours_per_day': hours_per_day
+            }
+
+            if user_project:
+                schedule_kwargs['user_project'] = user_project
             else:
-                # Fallback to first project if no project_id specified
-                user_project = UserProjectSlot.objects.filter(user_id=user_id).first()
+                schedule_kwargs['user_id'] = user_id
 
-            if not user_project:
-                raise Http404("User has no project slots")
-
-            schedule = Schedule.objects.create(
-                user_project=user_project,
-                start_time=start_time,
-                end_time=end_time,
-                task=None,
-                first_day_number=None,
-                last_day_number=None,
-                notes=notes,
-                hours_per_day=hours_per_day
-            )
+            schedule = Schedule.objects.create(**schedule_kwargs)
 
             return Response({
                 'new': ScheduleSerializer(schedule, many=False).data,

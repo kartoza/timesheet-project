@@ -8,7 +8,7 @@ import TButton from "../loadable/Button";
 import {GroupInterface} from "./TimelinePlanner";
 import {getColorFromTaskLabel} from "../utils/Theme";
 import TaskAutocomplete from "./TaskAutocomplete";
-import {resetTimeInDate} from "../utils/schedule_data";
+import {buildScheduleInfo, resetTimeInDate} from "../utils/schedule_data";
 
 
 const style = {
@@ -39,7 +39,8 @@ export interface ItemFormInterface {
   selectedTask?: ItemTaskInterface | null,
   notes?: string,
   hoursPerDay?: number,
-  isEditMode?: boolean
+  isEditMode?: boolean,
+  isUserRowNote?: boolean
 }
 
 export default function ItemForm(props: ItemFormInterface) {
@@ -67,7 +68,9 @@ export default function ItemForm(props: ItemFormInterface) {
     }
     if (props.selectedGroup) {
     }
-    if (props.selectedTask) {
+    if (props.isUserRowNote) {
+      setSelectedTask(null)
+    } else if (props.selectedTask) {
       setSelectedTask(props.selectedTask)
     } else {
       setSelectedTask(null)
@@ -142,10 +145,10 @@ export default function ItemForm(props: ItemFormInterface) {
             start: _startTime,
             end: _endTime,
             title: isNoteOnly ? item.notes || 'Note' : item.task_name,
-            info: item.project_name + ' : ' + item.task_label + item.user,
+            info: buildScheduleInfo(item.project_name, item.task_label, item.user, item.notes),
             first_day: item.first_day,
             last_day: item.last_day,
-            group: props.selectedGroup ? props.selectedGroup.id : null,
+            group: item.group ? item.group : (props.selectedGroup ? props.selectedGroup.id : null),
             bgColor: isNoteOnly ? '#9370DB' : getColorFromTaskLabel(selectedTask.label),
             task_id: item.task_id,
             task_label: item.task_label,
@@ -161,7 +164,7 @@ export default function ItemForm(props: ItemFormInterface) {
                 start: resetTimeInDate(item.start_time),
                 end: resetTimeInDate(item.end_time, 1),
                 title: item.task_name,
-                info: item.project_name + ' : ' + item.task_label + item.user,
+                info: buildScheduleInfo(item.project_name, item.task_label, item.user, item.notes),
                 group: item.group,
                 first_day: item.first_day,
                 last_day: item.last_day,
@@ -196,25 +199,27 @@ export default function ItemForm(props: ItemFormInterface) {
         <div>
            <LocalizationProvider dateAdapter={AdapterDateFns}>
              <Grid container spacing={2} style={{ marginTop: 10 }}>
-               <Grid item xs={12} className="time-picker">
-                 <TextField
-                   id="project-text-input"
-                   label="Project"
-                   disabled={isLoading}
-                   style={{ width: '100%' }}
-                   value={props.selectedGroup ? props.selectedGroup.rightTitle : ''}
-                   InputProps={{
-                     readOnly: true,
-                   }}
-                 />
-               </Grid>
-               <Grid item xs={12}>
-                 <TaskAutocomplete selectedProjectId={props.selectedGroup?.projectId}
-                                   selectedTask={selectedTask}
-                                   onTaskSelected={(task: ItemTaskInterface | null) => {
-                                     setSelectedTask(task)
-                                   }}/>
-               </Grid>
+               { !props.isUserRowNote ? <>
+                 <Grid item xs={12} className="time-picker">
+                   <TextField
+                     id="project-text-input"
+                     label="Project"
+                     disabled={isLoading}
+                     style={{ width: '100%' }}
+                     value={props.selectedGroup ? props.selectedGroup.rightTitle : ''}
+                     InputProps={{
+                       readOnly: true,
+                     }}
+                   />
+                 </Grid>
+                 <Grid item xs={12}>
+                   <TaskAutocomplete selectedProjectId={props.selectedGroup?.projectId}
+                                     selectedTask={selectedTask}
+                                     onTaskSelected={(task: ItemTaskInterface | null) => {
+                                       setSelectedTask(task)
+                                     }}/>
+                 </Grid>
+               </> : null }
                <Grid item xs={12} className="time-picker">
                  <DatePicker
                    value={startTime}

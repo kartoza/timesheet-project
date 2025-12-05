@@ -11,7 +11,8 @@ import {
   deleteSchedule,
   fetchSchedules,
   fetchSlottedProjects,
-  updateSchedule
+  updateSchedule,
+  buildScheduleInfo
 } from "../utils/schedule_data";
 import {getColorFromTaskLabel, getTaskColor} from "../utils/Theme";
 import '../styles/Planner.scss';
@@ -49,6 +50,8 @@ interface ItemInterface {
   start: number,
   end: number,
   group?: number,
+  originalGroup?: number,
+  originalId?: string,
   project_id?: string,
   title?: string,
   info?: string,
@@ -180,9 +183,31 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
   const [selectedTime, setSelectedTime] = useState<Date | null>(null)
   const [scheduleEndTime, setScheduleEndTime] = useState<Date | null>(null)
   const [selectedTask, setSelectedTask] = useState<ItemTaskInterface | null>(null)
+  const [isUserRowNote, setIsUserRowNote] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
   const [popoverText, setPopoverText] = useState<string>('')
+
+  const getBaseScheduleId = (item: ItemInterface | null | undefined) => {
+    if (!item) return null;
+    return item.originalId ? item.originalId : item.id;
+  }
+
+  const mergeUpdatedSchedules = (currentItems: ItemInterface[], updatedSchedules: any) => {
+    return currentItems.map((currentItem) => {
+      const baseId = getBaseScheduleId(currentItem);
+      const updated = baseId ? updatedSchedules[baseId] : null;
+      if (!updated) return currentItem;
+      const merged = Object.assign({}, currentItem, updated);
+      if (currentItem.originalId) {
+        merged.id = currentItem.id;
+        merged.group = currentItem.group;
+        merged.originalId = currentItem.originalId;
+        merged.originalGroup = currentItem.originalGroup;
+      }
+      return merged;
+    })
+  }
 
   const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>, text: string) => {
     let updatedText: any = text;
@@ -241,14 +266,15 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
               const group = item.group ? groups.find(
                   group => parseInt(group.id, 10) === item.group
               ) : null;
+              const baseId = item.id;
               return Object.assign({}, item, {
-                id: parseInt(item.id) * 1000,
+                id: `collapsed-${baseId}`,
+                originalId: baseId + '',
+                originalGroup: item.group,
                 color: '#FFF',
                 selectedBgColor: ItemSelectedColor,
                 canMove: false,
                 canResize: false,
-                task_id: item.task_id,
-                task_label: item.task_label,
                 group: group ? group.parent : 0,
                 title: group ? group.title : item.title
               })
@@ -397,6 +423,9 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
         // Check for public holiday first
         const _isPublicHoliday = schedule.task_name === 'Public holiday' ||
                                  (schedule.title && schedule.title.toLowerCase().includes('holiday'));
+        const _isLeave = (schedule.title && schedule.title.toLowerCase().includes('leave')) ||
+                         (schedule.task_name && schedule.task_name.toLowerCase().includes('leave')) ||
+                         (schedule.task_name && schedule.task_name.toLowerCase().includes('time in lieu'));
         const isKartozaProject = schedule.project_name && schedule.project_name.includes('Kartoza');
         const hasHtmlContent = (schedule.title && (schedule.title.includes('<div') || schedule.title.includes('<p>'))) ||
                                (schedule.notes && (schedule.notes.includes('<div') || schedule.notes.includes('<p>')));
@@ -418,19 +447,20 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
         endTime.setHours(0, 0, 0, 0);
 
         endTime.setDate(endTime.getDate() + 1)
+        const info = buildScheduleInfo(schedule.project_name, schedule.task_label, schedule.user, schedule.notes)
         return Object.assign({}, schedule, {
-          title: _isPublicHoliday || isKartozaSpecial ? schedule.title : (isNoteOnly ? schedule.notes || 'Note' : schedule.task_name),
-          info: schedule.project_name + ' : ' + schedule.task_label + schedule.user,
+          title: _isLeave ? schedule.task_name : (_isPublicHoliday || isKartozaSpecial ? schedule.title : (isNoteOnly ? schedule.notes || 'Note' : schedule.task_name)),
+          info: info,
           desc: schedule.title,
           start: startTime.getTime(),
           end: endTime.getTime(),
           color: '#FFF',
-          bgColor: _isPublicHoliday ? '#42BF8B' : (isKartozaSpecial ? '#626262' : (isNoteOnly ? '#9370DB' : getColorFromTaskLabel(schedule.task_label))),
+          bgColor: _isLeave ? '#5a5a5a' : (_isPublicHoliday ? '#42BF8B' : (isKartozaSpecial ? '#626262' : (isNoteOnly ? '#9370DB' : getColorFromTaskLabel(schedule.task_label)))),
           selectedBgColor: ItemSelectedColor,
-          canSelect: _canEdit || isNoteOnly,
+          canSelect: _isLeave ? false : (_canEdit || isNoteOnly),
           canChangeGroup: false,
-          canMove: _canEdit || isNoteOnly,
-          canResize: _canEdit || isNoteOnly,
+          canMove: _isLeave ? false : (_canEdit || isNoteOnly),
+          canResize: _isLeave ? false : (_canEdit || isNoteOnly),
           hoursPerDay: schedule.hours_per_day
         })
       }))
@@ -502,8 +532,11 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
         return item.task_label !== '-';
       }).map(item => {
           const group = item.group ? groups.filter(group => parseInt(group.id) === item.group)[0] : null;
+          const baseId = item.id;
           return Object.assign({}, item, {
-            id: parseInt(item.id) * 1000,
+            id: `collapsed-${baseId}`,
+            originalId: baseId + '',
+            originalGroup: item.group,
             color: '#FFF',
             selectedBgColor: ItemSelectedColor,
             canMove: false,
@@ -531,15 +564,24 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
   const deleteItem = useCallback((itemId: string) => {
     const item = items.find(item => item.id === itemId)
     if (item) {
+      const baseId = getBaseScheduleId(item);
       if (window.confirm('Are you sure you want to delete this record?')) {
         setLoading(true)
         deleteSchedule(
-          item.id
+          baseId as string
         ).then(result => {
           setLoading(false)
           if (result['removed']) {
             const updatedSchedules = result.updated
-            setItems(items.map(item => updatedSchedules[item.id] ? Object.assign({}, item, updatedSchedules[item.id]) : item).filter((currentItem) => currentItem.id !== itemId))
+            setItems(
+              mergeUpdatedSchedules(
+                items.filter((currentItem) => {
+                  const currentBaseId = getBaseScheduleId(currentItem);
+                  return currentItem.id !== itemId && currentBaseId !== baseId;
+                }),
+                updatedSchedules
+              )
+            )
           }
         })
       }
@@ -547,35 +589,44 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
   }, [items])
 
   const handleItemMove = (itemId, dragTime, newGroupOrder) => {
-    const group = renderedGroups[ newGroupOrder ];
-    setLoading(true)
-    if (group.root) {
+    const group = renderedGroups[newGroupOrder];
+    const item = items.find(item => item.id === itemId);
+    if (!item) {
       return false;
     }
-    const item = items.find(item => item.id === itemId)
-    if (item) {
-      updateSchedule(
-        itemId,
-        dragTime,
-        dragTime + (item.end - item.start),
-        item.notes || '',
-        item.task_id || null,
-        item.hoursPerDay || null
-      ).then((updatedSchedules: any) => {
-        setLoading(false)
-        if (updatedSchedules) {
-          setItems(items.map(item => updatedSchedules[item.id] ? Object.assign({}, item, updatedSchedules[item.id]) : item))
-        }
-      })
+    const isNoteOnly = !item.task_id || item.task_id === null || item.task_id === '';
+    const targetGroupId = group ? Number(group.id) : null;
+    const itemGroupId = item.originalGroup !== undefined && item.originalGroup !== null ? Number(item.originalGroup) :
+      (item.group !== undefined && item.group !== null ? Number(item.group) : null);
+    // Disallow moving non note-only items into root rows or into other groups
+    if ((group && group.root && !isNoteOnly) || (targetGroupId !== null && itemGroupId !== null && targetGroupId !== itemGroupId)) {
+      return false;
     }
+
+    setLoading(true);
+    const baseId = getBaseScheduleId(item);
+    updateSchedule(
+      baseId ? Number(baseId) : itemId,
+      dragTime,
+      dragTime + (item.end - item.start),
+      item.notes || '',
+      item.task_id || null,
+      item.hoursPerDay || null
+    ).then((updatedSchedules: any) => {
+      setLoading(false)
+      if (updatedSchedules) {
+        setItems(mergeUpdatedSchedules(items, updatedSchedules))
+      }
+    })
   };
 
   const handleItemResize = (itemId, time, edge) => {
     const item = items.find(item => item.id === itemId)
     setLoading(true)
     if (item) {
+      const baseId = getBaseScheduleId(item);
       updateSchedule(
-        itemId,
+        baseId ? Number(baseId) : itemId,
         edge === "left" ? time : item.start,
         edge === "left" ? item.end : time,
         item.notes || '',
@@ -584,7 +635,7 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
       ).then((updatedSchedules: any) => {
         setLoading(false)
         if (updatedSchedules) {
-          setItems(items.map(item => updatedSchedules[item.id] ? Object.assign({}, item, updatedSchedules[item.id]) : item))
+          setItems(mergeUpdatedSchedules(items, updatedSchedules))
         }
       })
     }
@@ -593,12 +644,15 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
   const handleCanvasClick = (groupId, time, event) => {
     if (!canEdit) return
     if (openForm) return
-    const group = groups.filter(group => group.id === groupId)[0]
-    if (!group.root) {
-      setSelectedTime(new Date(time))
-      setSelectedGroup(group)
-      setOpenForm(true)
-    }
+    const group = groups.find(group => group.id === groupId)
+    if (!group) return
+    setSelectedTime(new Date(time))
+    setScheduleEndTime(null)
+    setSelectedItem(null)
+    setSelectedTask(null)
+    setSelectedGroup(group)
+    setIsUserRowNote(!!group.root)
+    setOpenForm(true)
   }
 
   const isNotNullAndNumber = (item) => {
@@ -606,20 +660,18 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
   }
 
   const isPublicHoliday = (item: any) => {
-    if (item.title === 'Public holiday') return true;
-    // Check if it's a Kartoza special item with "Public holiday" in task_name or desc
-    if (item.task_name === 'Public holiday') return true;
-    if (item.desc && item.desc.toLowerCase().includes('holiday')) return true;
-    return false;
+    return item.task_name === 'Public holiday';
   }
 
   const isLeave = (item: any) => {
-    return item.title && item.title.includes('Leave')
+    const title = item.title ? item.title.toLowerCase() : '';
+    const taskName = item.task_name ? item.task_name.toLowerCase() : '';
+    return title.includes('leave') || taskName.includes('leave') || taskName.includes('time in lieu');
   }
 
   const isKartozaSpecialItem = (item: any) => {
-    // Check if project is Kartoza and notes/desc contains HTML elements (but not public holidays)
-    if (isPublicHoliday(item)) return false; // Public holidays take precedence
+    if (isPublicHoliday(item)) return false;
+    if (isLeave(item)) return false;
     const isKartozaProject = item.info && item.info.includes('Kartoza');
     const hasHtmlContent = (item.desc && (item.desc.includes('<div') || item.desc.includes('<p>'))) ||
                           (item.notes && (item.notes.includes('<div') || item.notes.includes('<p>')));
@@ -629,6 +681,38 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
 
   const itemRenderer = ({ item, timelineContext, itemContext, getItemProps, getResizeProps }) => {
     const { left: leftResizeProps, right: rightResizeProps } = getResizeProps();
+    const leaveItem = isLeave(item);
+    if (leaveItem) {
+      return (
+        <div
+          {...getItemProps({
+            style: {
+              backgroundColor: '#4a4a4a',
+              borderColor: itemContext.selected ? '#ecb754' : item.color,
+              borderStyle: "solid",
+              borderTopWidth: 1,
+              borderBottomWidth: 1,
+              borderRadius: 4,
+              borderLeftWidth: itemContext.selected ? 4 : 1,
+              borderRightWidth: itemContext.selected ? 4 : 1,
+              cursor: 'default'
+            }
+          })}
+        >
+          <div
+            style={{
+              height: '100%',
+              background: '#4a4a4a',
+              borderRadius: '4px',
+              color: '#fff'
+            }}>
+            <div className={'timeline-item'}>
+              <div className={'timeline-item-title'}>{item.task_name || itemContext.title}</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     const isKartozaSpecial = isKartozaSpecialItem(item);
     const isNoteOnly = !isKartozaSpecial && (!item.task_id || item.task_id === null || item.task_id === '');
@@ -678,7 +762,14 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
             // console.log("on item click", item);
           }
         })}
-        onMouseEnter={(e: any) => {isPublicHoliday(item) || isLeave(item) ? handlePopoverOpen(e, item.desc) : null}}
+        onMouseEnter={(e: any) => {
+          if (isPublicHoliday(item)) {
+            handlePopoverOpen(e, item.desc)
+          } else if (isLeave(item)) {
+            const leaveTitle = item.task_name;
+            handlePopoverOpen(e, leaveTitle)
+          }
+        }}
         onMouseLeave={(e: any) => {isPublicHoliday(item) || isLeave(item) ? handlePopoverClose() : null}}
       >
         {itemContext.useResizeHandle ? <div {...leftResizeProps} /> : null}
@@ -714,7 +805,8 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
           <div className={'edit-item'} onClick={(e) => {
             e.stopPropagation()
             e.preventDefault()
-            const group = groups.find(group => group.id === item.group)
+            const targetGroupId = item.originalGroup ? item.originalGroup : item.group;
+            const group = groups.find(group => group.id === targetGroupId)
             if (group) {
               setSelectedGroup(group)
             }
@@ -722,7 +814,10 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
               id: item.task_id,
               label: item.task_label
             }
-            setSelectedItem(item)
+            setIsUserRowNote(!!(group && group.root && (!item.project_id || item.project_id === '')))
+            setSelectedItem(Object.assign({}, item, {
+              group: targetGroupId
+            }))
             setSelectedTime(item.start)
             setSelectedTask(task)
             setScheduleEndTime(item.end)
@@ -771,16 +866,18 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
                 hoursPerDay={selectedItem?.hoursPerDay}
                 notes={selectedItem?.notes ? selectedItem.notes : ''}
                 isEditMode={selectedItem !== null}
+                isUserRowNote={isUserRowNote}
                 onUpdate={(startTime: Date, notes: string, selectedTask: ItemTaskInterface | null, duration: number, hoursPerDay: number) => {
                   if (selectedItem) {
                     setLoading(true)
                     const endTime = new Date(startTime.getTime())
                     const end = new Date(endTime.setDate(endTime.getDate() + duration));
+                    const baseId = getBaseScheduleId(selectedItem);
                     updateSchedule(
-                      parseInt(selectedItem.id), startTime.getTime(), end.getTime(), notes, selectedTask ? selectedTask.id : null, hoursPerDay).then((updatedSchedules: any) => {
+                      baseId ? Number(baseId) : parseInt(selectedItem.id), startTime.getTime(), end.getTime(), notes, selectedTask ? selectedTask.id : null, hoursPerDay).then((updatedSchedules: any) => {
                       setLoading(false)
                       if (updatedSchedules) {
-                        setItems(items.map(item => updatedSchedules[item.id] ? Object.assign({}, item, updatedSchedules[item.id]) : item))
+                        setItems(mergeUpdatedSchedules(items, updatedSchedules))
                       }
                     })
                   }
@@ -792,12 +889,13 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
                     setSelectedGroup(null)
                     setSelectedTask(null)
                     setScheduleEndTime(null)
+                    setIsUserRowNote(false)
                   }}
                 onAdd={(item: ItemInterface, updatedSchedules: any) => {
                   if (item) {
                     item.color = '#FFF'
                     item.selectedBgColor = '#CC6600'
-                    setItems(oldItems => [...oldItems.map(oldItem => updatedSchedules[oldItem.id] ? Object.assign({}, oldItem, updatedSchedules[oldItem.id]) : oldItem), item]);
+                    setItems(oldItems => mergeUpdatedSchedules([...oldItems, item], updatedSchedules))
                   }
                 }}
       />
