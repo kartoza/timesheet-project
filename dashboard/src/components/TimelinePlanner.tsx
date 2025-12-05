@@ -49,6 +49,7 @@ interface ItemInterface {
   start: number,
   end: number,
   group?: number,
+  project_id?: string,
   title?: string,
   info?: string,
   color?: string,
@@ -58,7 +59,8 @@ interface ItemInterface {
   task_label?: string,
   task_id?: string,
   notes?: string,
-  hoursPerDay?: number
+  hoursPerDay?: number,
+  desc?: string
 }
 
 export interface GroupInterface {
@@ -184,14 +186,11 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
 
   const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>, text: string) => {
     let updatedText: any = text;
-    if (text.includes('div')) {
+    if (text && (text.includes('<div') || text.includes('<p>') || text.includes('<'))) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(text, 'text/html');
-
-      const paragraphs = doc.querySelectorAll('p');
-      paragraphs.forEach(p => {
-          updatedText = p.textContent;
-      });
+      // Extract text content from body, which strips all HTML tags
+      updatedText = doc.body.textContent || text;
     }
     setPopoverText(updatedText)
     setAnchorEl(event.currentTarget);
@@ -230,9 +229,14 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
         .filter(group => openedGroups.includes(group.parent))
         .map(group => '' + group.id);
 
-      // Filter items by group and modify them as necessary
       const groupItems = items
-          .filter(item => item.group ? childrenGroups.includes('' + item.group) : false)
+          .filter(item => {
+            if (!item.group || !childrenGroups.includes('' + item.group)) return false;
+            if (item.task_label === '-') {
+              return !item.task_id || item.task_id === null || item.task_id === '';
+            }
+            return true;
+          })
           .map(item => {
               const group = item.group ? groups.find(
                   group => parseInt(group.id, 10) === item.group
@@ -251,10 +255,15 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
           });
       setItems((oldItems) => [...oldItems, ...groupItems])
     } else {
-      const groupItems = items.filter(
-          item => item.group ? openedGroups.includes(
-              item.group) && item.task_label !== '-' : false
-      ).map(item => item.id)
+      const groupItems = items.filter(item => {
+        if (!item.group || !openedGroups.includes(item.group)) return false;
+        if (item.task_label === '-') {
+          const hasHtmlContent = (item.desc && (item.desc.includes('<div') || item.desc.includes('<p>'))) ||
+                                (item.notes && (item.notes.includes('<div') || item.notes.includes('<p>')));
+          return !hasHtmlContent && (!item.task_id || item.task_id === null || item.task_id === '') && item.project_id !== "";
+        }
+        return true;
+      }).map(item => item.id)
       if (groupItems.length > 0) {
         setItems(items.filter(item => !groupItems.includes(item.id)))
       }
@@ -385,7 +394,15 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
     const fetchData = async () => {
       const schedules: any = await fetchSchedules();
       setItems(schedules.map(schedule => {
-        const _canEdit = canEdit && schedule.task_label !== '-';
+        // Check for public holiday first
+        const _isPublicHoliday = schedule.task_name === 'Public holiday' ||
+                                 (schedule.title && schedule.title.toLowerCase().includes('holiday'));
+        const isKartozaProject = schedule.project_name && schedule.project_name.includes('Kartoza');
+        const hasHtmlContent = (schedule.title && (schedule.title.includes('<div') || schedule.title.includes('<p>'))) ||
+                               (schedule.notes && (schedule.notes.includes('<div') || schedule.notes.includes('<p>')));
+        const isKartozaSpecial = !_isPublicHoliday && isKartozaProject && hasHtmlContent && schedule.task_label === '-';
+        const isNoteOnly = !_isPublicHoliday && !isKartozaSpecial && ((!schedule.task_id || false || schedule.task_id === '') || isKartozaProject);
+        const _canEdit = canEdit && schedule.task_label !== '-' && !isKartozaSpecial && !_isPublicHoliday;
         let startTimeStr = schedule.start_time.split('T')[0].split('-');
         let year = parseInt(startTimeStr[0], 10);
         let month = parseInt(startTimeStr[1], 10) - 1;
@@ -402,18 +419,18 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
 
         endTime.setDate(endTime.getDate() + 1)
         return Object.assign({}, schedule, {
-          title: schedule.task_name,
+          title: _isPublicHoliday || isKartozaSpecial ? schedule.title : (isNoteOnly ? schedule.notes || 'Note' : schedule.task_name),
           info: schedule.project_name + ' : ' + schedule.task_label + schedule.user,
           desc: schedule.title,
           start: startTime.getTime(),
           end: endTime.getTime(),
           color: '#FFF',
-          bgColor: getColorFromTaskLabel(schedule.task_label),
+          bgColor: _isPublicHoliday ? '#42BF8B' : (isKartozaSpecial ? '#626262' : (isNoteOnly ? '#9370DB' : getColorFromTaskLabel(schedule.task_label))),
           selectedBgColor: ItemSelectedColor,
-          canSelect: _canEdit,
+          canSelect: _canEdit || isNoteOnly,
           canChangeGroup: false,
-          canMove: _canEdit,
-          canResize: _canEdit,
+          canMove: _canEdit || isNoteOnly,
+          canResize: _canEdit || isNoteOnly,
           hoursPerDay: schedule.hours_per_day
         })
       }))
@@ -480,7 +497,10 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
     }
     if (openGroups[id]) {
       const childrenGroups = groups.filter(group => group.parent === id).map(group => '' + group.id)
-      const groupItems = items.filter(item => item.group ? childrenGroups.includes('' + item.group) : false).map(item => {
+      const groupItems = items.filter(item => {
+        if (!item.group || !childrenGroups.includes('' + item.group)) return false;
+        return item.task_label !== '-';
+      }).map(item => {
           const group = item.group ? groups.filter(group => parseInt(group.id) === item.group)[0] : null;
           return Object.assign({}, item, {
             id: parseInt(item.id) * 1000,
@@ -495,7 +515,9 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
       )
       setItems((oldItems) => [...oldItems, ...groupItems])
     } else {
-      const groupItems = items.filter(item => item.group ? item.group === id && item.task_label !== '-' : false).map(item => item.id)
+      const groupItems = items.filter(
+          item => item.group ? item.group === id && item.task_label !== '-' : false
+      ).map(item => item.id)
       if (groupItems.length > 0) {
         setItems(items.filter(item => !groupItems.includes(item.id)))
       }
@@ -532,7 +554,14 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
     }
     const item = items.find(item => item.id === itemId)
     if (item) {
-      updateSchedule(itemId, dragTime, dragTime + (item.end - item.start)).then((updatedSchedules: any) => {
+      updateSchedule(
+        itemId,
+        dragTime,
+        dragTime + (item.end - item.start),
+        item.notes || '',
+        item.task_id || null,
+        item.hoursPerDay || null
+      ).then((updatedSchedules: any) => {
         setLoading(false)
         if (updatedSchedules) {
           setItems(items.map(item => updatedSchedules[item.id] ? Object.assign({}, item, updatedSchedules[item.id]) : item))
@@ -545,7 +574,14 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
     const item = items.find(item => item.id === itemId)
     setLoading(true)
     if (item) {
-      updateSchedule(itemId, edge === "left" ? time : item.start, edge === "left" ? item.end : time).then((updatedSchedules: any) => {
+      updateSchedule(
+        itemId,
+        edge === "left" ? time : item.start,
+        edge === "left" ? item.end : time,
+        item.notes || '',
+        item.task_id || null,
+        item.hoursPerDay || null
+      ).then((updatedSchedules: any) => {
         setLoading(false)
         if (updatedSchedules) {
           setItems(items.map(item => updatedSchedules[item.id] ? Object.assign({}, item, updatedSchedules[item.id]) : item))
@@ -570,16 +606,32 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
   }
 
   const isPublicHoliday = (item: any) => {
-    return item.title === 'Public holiday'
+    if (item.title === 'Public holiday') return true;
+    // Check if it's a Kartoza special item with "Public holiday" in task_name or desc
+    if (item.task_name === 'Public holiday') return true;
+    if (item.desc && item.desc.toLowerCase().includes('holiday')) return true;
+    return false;
   }
 
   const isLeave = (item: any) => {
-    return item.title.includes('Leave')
+    return item.title && item.title.includes('Leave')
+  }
+
+  const isKartozaSpecialItem = (item: any) => {
+    // Check if project is Kartoza and notes/desc contains HTML elements (but not public holidays)
+    if (isPublicHoliday(item)) return false; // Public holidays take precedence
+    const isKartozaProject = item.info && item.info.includes('Kartoza');
+    const hasHtmlContent = (item.desc && (item.desc.includes('<div') || item.desc.includes('<p>'))) ||
+                          (item.notes && (item.notes.includes('<div') || item.notes.includes('<p>')));
+    const isSpecialLabel = item.task_label === '-';
+    return isKartozaProject && hasHtmlContent && isSpecialLabel;
   }
 
   const itemRenderer = ({ item, timelineContext, itemContext, getItemProps, getResizeProps }) => {
     const { left: leftResizeProps, right: rightResizeProps } = getResizeProps();
 
+    const isKartozaSpecial = isKartozaSpecialItem(item);
+    const isNoteOnly = !isKartozaSpecial && (!item.task_id || item.task_id === null || item.task_id === '');
     const backgroundColor = itemContext.selected ? (itemContext.dragging ? "red" : item.selectedBgColor) : item.bgColor;
     const taskTimeInfo = item.info.replace( /(^.*\(|\).*$)/g, '' )
     const usedHour = parseFloat(taskTimeInfo.split('/')[0])
@@ -608,7 +660,7 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
     }
     const firstColor = getTaskColor((totalDays - countdown[0]) / totalDays)
     const lastColor = getTaskColor((totalDays - countdown[countdown.length - 1]) / totalDays)
-    const background = item.task_label !== '-' ? `linear-gradient(90deg, ${firstColor} 0%, ${lastColor} 100%)` : (item.title === 'Public holiday' ? '#42BF8B' : '#626262');
+    const background = isPublicHoliday(item) ? '#42BF8B' : (isKartozaSpecial ? '#626262' : (isNoteOnly ? '#9370DB' : (item.task_label !== '-' ? `linear-gradient(90deg, ${firstColor} 0%, ${lastColor} 100%)` : '#626262')));
     return (
       <div
         {...getItemProps({
@@ -626,8 +678,8 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
             // console.log("on item click", item);
           }
         })}
-        onMouseEnter={(e: any) => {isPublicHoliday(itemContext) || isLeave(itemContext) ? handlePopoverOpen(e, item.desc) : null}}
-        onMouseLeave={(e: any) => {isPublicHoliday(itemContext) || isLeave(itemContext) ? handlePopoverClose() : null}}
+        onMouseEnter={(e: any) => {isPublicHoliday(item) || isLeave(item) ? handlePopoverOpen(e, item.desc) : null}}
+        onMouseLeave={(e: any) => {isPublicHoliday(item) || isLeave(item) ? handlePopoverClose() : null}}
       >
         {itemContext.useResizeHandle ? <div {...leftResizeProps} /> : null}
         <div
@@ -643,20 +695,22 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
           } : {}}
         >
           <div className={'timeline-item-title'}>{
-            isPublicHoliday(itemContext) ? <div dangerouslySetInnerHTML={{ __html: item.desc }}></div> : itemContext.title
+            isPublicHoliday(item) || isKartozaSpecial ? <div dangerouslySetInnerHTML={{ __html: item.desc }}></div> : itemContext.title
           }</div>
           <div className={'timeline-item-sub'}>
-            {isPublicHoliday(itemContext) ? '🏖️' :
+            {isPublicHoliday(item) ? '🏖️' :
+              isKartozaSpecial ? null :
+              isNoteOnly ? <div style={{ padding: '5px', fontSize: '0.8em' }}>{item.notes}</div> :
               countdown.map(day => <div className={'timeline-item-countdown'} style={countDownStyle}>
                 <div className={'timeline-item-sub-text'}>{!isNaN(day) ? day : ''}</div> </div>)
             }
           </div>
-          { canEdit && item.task_label !== '-' ? <div className={'remove-item'} onClick={(e) => {
+          { canEdit && !isKartozaSpecial && !isPublicHoliday(item) && (item.task_label !== '-' || isNoteOnly) ? <div className={'remove-item'} onClick={(e) => {
             e.stopPropagation()
             e.preventDefault()
             deleteItem(item.id)
           }}>✕</div> : null }
-          { canEdit && item.task_label !== '-' ?
+          { canEdit && !isKartozaSpecial && !isPublicHoliday(item) && (item.task_label !== '-' || isNoteOnly) ?
           <div className={'edit-item'} onClick={(e) => {
             e.stopPropagation()
             e.preventDefault()
@@ -664,7 +718,7 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
             if (group) {
               setSelectedGroup(group)
             }
-            const task: ItemTaskInterface = {
+            const task: ItemTaskInterface | null = isNoteOnly ? null : {
               id: item.task_id,
               label: item.task_label
             }
@@ -716,13 +770,14 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
                 endTime={scheduleEndTime}
                 hoursPerDay={selectedItem?.hoursPerDay}
                 notes={selectedItem?.notes ? selectedItem.notes : ''}
-                onUpdate={(startTime: Date, notes: string, selectedTask: ItemTaskInterface, duration: number, hoursPerDay: number) => {
+                isEditMode={selectedItem !== null}
+                onUpdate={(startTime: Date, notes: string, selectedTask: ItemTaskInterface | null, duration: number, hoursPerDay: number) => {
                   if (selectedItem) {
                     setLoading(true)
                     const endTime = new Date(startTime.getTime())
                     const end = new Date(endTime.setDate(endTime.getDate() + duration));
                     updateSchedule(
-                      parseInt(selectedItem.id), startTime.getTime(), end.getTime(), notes, selectedTask?.id, hoursPerDay).then((updatedSchedules: any) => {
+                      parseInt(selectedItem.id), startTime.getTime(), end.getTime(), notes, selectedTask ? selectedTask.id : null, hoursPerDay).then((updatedSchedules: any) => {
                       setLoading(false)
                       if (updatedSchedules) {
                         setItems(items.map(item => updatedSchedules[item.id] ? Object.assign({}, item, updatedSchedules[item.id]) : item))
