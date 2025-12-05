@@ -308,7 +308,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
         return ''
 
     def get_project_name(self, obj: Schedule):
-        return obj.user_project.project.name if obj.user_project else 'Kartoza'
+        return obj.user_project.project.name if obj.user_project else ''
 
     def get_project_id(self, obj: Schedule):
         return obj.user_project.project.id if obj.user_project else ''
@@ -488,6 +488,12 @@ class DeleteSchedule(APIView):
             id=schedule_id
         )
         task = schedule.task
+        if not task:
+            schedule.delete()
+            return Response({
+                'removed': True,
+                'updated': []
+            })
         last_task_update = _naive(task.last_update)
         start_time = _naive(schedule.start_time)
         end_time = _naive(schedule.end_time)
@@ -553,53 +559,76 @@ class UpdateSchedule(APIView):
         schedule = Schedule.objects.get(
             id=schedule_id
         )
-        task = schedule.task
-        last_task_update = _naive(task.last_update)
+        old_task = schedule.task
         pre_start_time = _naive(schedule.start_time)
         schedule.start_time = start_time
         schedule.end_time = end_time
         schedule.notes = notes
         if hours_per_day:
             schedule.hours_per_day = hours_per_day
+
+        # Handle task assignment/removal
         if task_id:
             schedule.task_id = task_id
+        else:
+            # If task_id is None/empty, remove the task (convert to note-only)
+            schedule.task = None
+            schedule.first_day_number = None
+            schedule.last_day_number = None
+
         schedule.save()
 
-        latest_schedule = Schedule.objects.filter(
-            task_id=schedule.task
-        ).order_by('-start_time').first()
+        # Only update task-related fields if task exists after update (not note-only)
+        if schedule.task:
+            last_task_update = _naive(schedule.task.last_update)
 
-        remaining_task_days = calculate_remaining_task_days(
-            schedule.task,
-            schedule.start_time,
-            schedule.end_time
-        )
+            latest_schedule = Schedule.objects.filter(
+                task_id=schedule.task_id
+            ).order_by('-start_time').first()
 
-        last_day_number = (
-                remaining_task_days - (end_time - start_time).days
-        )
-
-        schedule.first_day_number = remaining_task_days
-        schedule.last_day_number = last_day_number
-        schedule.save()
-
-        updated = update_subsequent_schedules(
-            start_time=start_time,
-            task_id=task.id,
-            last_day_number=last_day_number,
-            excluded_schedule=schedule
-        )
-
-        if start_time < last_task_update:
-            excluded_schedules = updated
-            excluded_schedules.append(schedule.id)
-            updated_previous = update_previous_schedules(
-                start_time,
-                task.id,
-                remaining_task_days,
-                excluded_schedules=excluded_schedules
+            remaining_task_days = calculate_remaining_task_days(
+                schedule.task,
+                schedule.start_time,
+                schedule.end_time
             )
-            updated += updated_previous
+
+            last_day_number = (
+                    remaining_task_days - (end_time - start_time).days
+            )
+
+            schedule.first_day_number = remaining_task_days
+            schedule.last_day_number = last_day_number
+            schedule.save()
+
+            updated = update_subsequent_schedules(
+                start_time=start_time,
+                task_id=schedule.task.id,
+                last_day_number=last_day_number,
+                excluded_schedule=schedule
+            )
+
+            if start_time < last_task_update:
+                excluded_schedules = updated
+                excluded_schedules.append(schedule.id)
+                updated_previous = update_previous_schedules(
+                    start_time,
+                    schedule.task.id,
+                    remaining_task_days,
+                    excluded_schedules=excluded_schedules
+                )
+                updated += updated_previous
+        else:
+            # For note-only entries, just return the updated schedule
+            updated = []
+
+            # If we removed a task, update subsequent schedules of the old task
+            if old_task:
+                updated = update_subsequent_schedules(
+                    start_time=start_time,
+                    task_id=old_task.id,
+                    last_day_number=0,
+                    excluded_schedule=schedule
+                )
 
         return Response(
             ScheduleSerializer(Schedule.objects.filter(
@@ -614,6 +643,7 @@ class AddSchedule(APIView):
     def post(self, request):
         task_id = request.data.get('task_id', None)
         user_id = request.data.get('user_id', None)
+        project_id = request.data.get('project_id', None)
         hours_per_day = request.data.get('hours_per_day', None)
         notes = request.data.get('notes', '')
         start_time = datetime.fromtimestamp(
@@ -627,8 +657,42 @@ class AddSchedule(APIView):
         start_time = _naive(start_time)
         end_time = _naive(end_time)
 
-        if not task_id or not user_id:
+        # User ID is required for all entries
+        if not user_id:
             raise Http404()
+
+        user_project = None
+        if project_id:
+            user_project = UserProjectSlot.objects.filter(
+                user_id=user_id,
+                project_id=project_id
+            ).first()
+
+        # For note-only entries (no task)
+        if not task_id:
+            schedule_kwargs = {
+                'start_time': start_time,
+                'end_time': end_time,
+                'task': None,
+                'first_day_number': None,
+                'last_day_number': None,
+                'notes': notes,
+                'hours_per_day': hours_per_day
+            }
+
+            if user_project:
+                schedule_kwargs['user_project'] = user_project
+            else:
+                schedule_kwargs['user_id'] = user_id
+
+            schedule = Schedule.objects.create(**schedule_kwargs)
+
+            return Response({
+                'new': ScheduleSerializer(schedule, many=False).data,
+                'updated': []
+            })
+
+        # For regular task entries
         task = Task.objects.get(id=task_id)
         user_project = UserProjectSlot.objects.get(
             user_id=user_id,

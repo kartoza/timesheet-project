@@ -8,7 +8,7 @@ import TButton from "../loadable/Button";
 import {GroupInterface} from "./TimelinePlanner";
 import {getColorFromTaskLabel} from "../utils/Theme";
 import TaskAutocomplete from "./TaskAutocomplete";
-import {resetTimeInDate} from "../utils/schedule_data";
+import {buildScheduleInfo, resetTimeInDate} from "../utils/schedule_data";
 
 
 const style = {
@@ -38,7 +38,9 @@ export interface ItemFormInterface {
   endTime?: Date | null,
   selectedTask?: ItemTaskInterface | null,
   notes?: string,
-  hoursPerDay?: number
+  hoursPerDay?: number,
+  isEditMode?: boolean,
+  isUserRowNote?: boolean
 }
 
 export default function ItemForm(props: ItemFormInterface) {
@@ -66,7 +68,9 @@ export default function ItemForm(props: ItemFormInterface) {
     }
     if (props.selectedGroup) {
     }
-    if (props.selectedTask) {
+    if (props.isUserRowNote) {
+      setSelectedTask(null)
+    } else if (props.selectedTask) {
       setSelectedTask(props.selectedTask)
     } else {
       setSelectedTask(null)
@@ -115,6 +119,9 @@ export default function ItemForm(props: ItemFormInterface) {
       if (props.selectedGroup.userId) {
         formData.append('user_id', props.selectedGroup.userId)
       }
+      if (props.selectedGroup.projectId) {
+        formData.append('project_id', props.selectedGroup.projectId)
+      }
     }
     await fetch(url, {
       credentials: 'include',
@@ -132,16 +139,17 @@ export default function ItemForm(props: ItemFormInterface) {
           let item = result['new'];
           let _startTime = resetTimeInDate(item.start_time)
           let _endTime = resetTimeInDate(item.end_time, 1)
+          const isNoteOnly = !selectedTask;
           const newSchedule = {
             id: item.id,
             start: _startTime,
             end: _endTime,
-            title: item.task_name,
-            info: item.project_name + ' : ' + item.task_label + item.user,
+            title: isNoteOnly ? item.notes || 'Note' : item.task_name,
+            info: buildScheduleInfo(item.project_name, item.task_label, item.user, item.notes),
             first_day: item.first_day,
             last_day: item.last_day,
-            group: props.selectedGroup ? props.selectedGroup.id : null,
-            bgColor: selectedTask ? getColorFromTaskLabel(selectedTask.label) : '#FFF',
+            group: item.group ? item.group : (props.selectedGroup ? props.selectedGroup.id : null),
+            bgColor: isNoteOnly ? '#9370DB' : getColorFromTaskLabel(selectedTask.label),
             task_id: item.task_id,
             task_label: item.task_label,
             notes: item.notes,
@@ -156,7 +164,7 @@ export default function ItemForm(props: ItemFormInterface) {
                 start: resetTimeInDate(item.start_time),
                 end: resetTimeInDate(item.end_time, 1),
                 title: item.task_name,
-                info: item.project_name + ' : ' + item.task_label + item.user,
+                info: buildScheduleInfo(item.project_name, item.task_label, item.user, item.notes),
                 group: item.group,
                 first_day: item.first_day,
                 last_day: item.last_day,
@@ -186,30 +194,32 @@ export default function ItemForm(props: ItemFormInterface) {
     >
       <Box sx={style}>
         <Typography id="modal-modal-title" variant="h6" component="h2">
-          { props.selectedTask ? 'Update data' : 'Add new data' }
+          { props.isEditMode ? 'Update data' : 'Add new data' }
         </Typography>
         <div>
            <LocalizationProvider dateAdapter={AdapterDateFns}>
              <Grid container spacing={2} style={{ marginTop: 10 }}>
-               <Grid item xs={12} className="time-picker">
-                 <TextField
-                   id="project-text-input"
-                   label="Project"
-                   disabled={isLoading}
-                   style={{ width: '100%' }}
-                   value={props.selectedGroup ? props.selectedGroup.rightTitle : ''}
-                   InputProps={{
-                     readOnly: true,
-                   }}
-                 />
-               </Grid>
-               <Grid item xs={12}>
-                 <TaskAutocomplete selectedProjectId={props.selectedGroup?.projectId}
-                                   selectedTask={selectedTask}
-                                   onTaskSelected={(task: ItemTaskInterface | null) => {
-                                     setSelectedTask(task)
-                                   }}/>
-               </Grid>
+               { !props.isUserRowNote ? <>
+                 <Grid item xs={12} className="time-picker">
+                   <TextField
+                     id="project-text-input"
+                     label="Project"
+                     disabled={isLoading}
+                     style={{ width: '100%' }}
+                     value={props.selectedGroup ? props.selectedGroup.rightTitle : ''}
+                     InputProps={{
+                       readOnly: true,
+                     }}
+                   />
+                 </Grid>
+                 <Grid item xs={12}>
+                   <TaskAutocomplete selectedProjectId={props.selectedGroup?.projectId}
+                                     selectedTask={selectedTask}
+                                     onTaskSelected={(task: ItemTaskInterface | null) => {
+                                       setSelectedTask(task)
+                                     }}/>
+                 </Grid>
+               </> : null }
                <Grid item xs={12} className="time-picker">
                  <DatePicker
                    value={startTime}
@@ -258,12 +268,11 @@ export default function ItemForm(props: ItemFormInterface) {
                  />
                </Grid>
                <Grid item xs={12}>
-                 { props.selectedTask ?
+                 { props.isEditMode ?
                    <TButton color="success" variant="contained" size="large" sx={{width: '100%', marginTop: -1}}
                         onClick={() => {
-                          setIsLoading(false)
+                          setIsLoading(true)
                           if (props.onUpdate) {
-                            handleClose()
                             props.onUpdate(
                                 startTime,
                                 notes,
@@ -271,14 +280,15 @@ export default function ItemForm(props: ItemFormInterface) {
                                 duration,
                                 halfDay ? 3.5 : 7
                             )
+                            handleClose()
                           }
                         }}
-                        disabled={isLoading || !selectedTask}
+                        disabled={isLoading || (!selectedTask && !notes.trim())}
                         disableElevation>{isLoading ?
                         <CircularProgress color="inherit" size={20}/> : "Update"}
                    </TButton> : <TButton color="success" variant="contained" size="large" sx={{width: '100%', marginTop: -1}}
                                          onClick={submitAdd}
-                                         disabled={isLoading || !selectedTask}
+                                         disabled={isLoading || (!selectedTask && !notes.trim())}
                                          disableElevation>{isLoading ?
                          <CircularProgress color="inherit" size={20}/> : "Add"}
                      </TButton> }
