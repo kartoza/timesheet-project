@@ -113,7 +113,7 @@ export const timesheetApi = createApi({
     updateTimesheet: build.mutation({
       query: (body) => ({
         url: `/api/timesheet/${body["id"]}/`,
-        method: "PATCH",
+        method: "PUT",
         headers: apiHeaders,
         body,
       }),

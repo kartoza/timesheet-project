@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import serializers
+from drf_spectacular.utils import extend_schema
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone as tzone
@@ -241,6 +242,7 @@ class UserSerializer(serializers.ModelSerializer):
         ]
 
 
+@extend_schema(exclude=True)
 class UserActivities(APIView):
 
     def get_users(self):
@@ -264,6 +266,7 @@ class UserActivities(APIView):
         return Response(cached_data)
 
 
+@extend_schema(exclude=True)
 class UserLeaderBoard(APIView):
     permission_classes = [IsAuthenticated]
     current_date = datetime.now()

@@ -7,6 +7,8 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 import re
 from decimal import Decimal, ROUND_DOWN, ROUND_HALF_UP
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
 from timesheet.models.profile import Profile
 from timesheet.models.task import Task
@@ -250,7 +252,12 @@ def parse_and_allocate_descriptions(desc_raw: str, total_hours: float):
     return _allocate_hours_to_items(_parse_description_items(desc_raw), float(total_hours or 0.0))
 
 
+@extend_schema(tags=['Dashboard'])
 class EmployeeSummary(UserPassesTestMixin, APIView):
+    """
+    API endpoint for retrieving employee summary data including hours worked,
+    billing information, and project breakdowns.
+    """
 
     def test_func(self):
         return (
@@ -259,6 +266,45 @@ class EmployeeSummary(UserPassesTestMixin, APIView):
                 self.request.user.id == self.kwargs.get('user_id')
         )
 
+    @extend_schema(
+        summary="Get employee summary",
+        description="Retrieves comprehensive summary data for an employee including hours worked, billing details, project breakdown, and activity overview. Supports date range filtering.",
+        parameters=[
+            OpenApiParameter(
+                name='user_id',
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.PATH,
+                description='ID of the user/employee'
+            ),
+            OpenApiParameter(
+                name='from',
+                type=OpenApiTypes.DATE,
+                location=OpenApiParameter.QUERY,
+                description='Start date for the summary period (YYYY-MM-DD or DD-MM-YYYY format)',
+                required=False
+            ),
+            OpenApiParameter(
+                name='to',
+                type=OpenApiTypes.DATE,
+                location=OpenApiParameter.QUERY,
+                description='End date for the summary period (YYYY-MM-DD or DD-MM-YYYY format)',
+                required=False
+            )
+        ],
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'employee_id': {'type': 'string'},
+                    'period': {'type': 'object'},
+                    'totals': {'type': 'object'},
+                    'breakdown': {'type': 'object'},
+                    'activity_overview': {'type': 'array'},
+                    'chart': {'type': 'object'}
+                }
+            }
+        }
+    )
     def get(self, request, user_id):
         profile = get_object_or_404(Profile, user_id=user_id)
         # Accept ?from=YYYY-MM-DD&to=YYYY-MM-DD (also supports DD-MM-YYYY). Defaults to month-to-date.

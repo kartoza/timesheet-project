@@ -339,7 +339,7 @@ function App() {
     }, [runningTimeLog])
 
     useEffect(() => {
-        fetch('/activity-list/').then(
+        fetch('/api/activity-list/').then(
             response => response.json()
         ).then(
             json => {
@@ -373,7 +373,7 @@ function App() {
         setProjectLoading(true)
         let isRunningProject = projects.length === 1 ? projects[0].running : false
         if (projectInput.length > 1 && !isRunningProject) {
-            fetch('/project-list/?q=' + projectInput).then(
+            fetch('/api/project-list/?q=' + projectInput).then(
                 response => response.json()
             ).then(
                 json => {
@@ -411,7 +411,7 @@ function App() {
 
     useEffect(() => {
         if (selectedProject) {
-            fetch('/task-list/' + selectedProject['id'] + '/').then(
+            fetch('/api/task-list/' + selectedProject['id'] + '/').then(
                 response => response.json()
             ).then(
                 json => {

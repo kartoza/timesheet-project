@@ -61,7 +61,7 @@ export default function TimelineProjectForm(props: TimelineProjectInterface) {
   useEffect(() => {
       setProjectLoading(true)
       if (projectInput.length > 1) {
-          let url = `/project-list/?q=${projectInput}`;
+          let url = `/api/project-list/?q=${projectInput}`;
           if (user) {
             url += `&user_id=${user.id}`;
           }

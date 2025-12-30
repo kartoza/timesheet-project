@@ -19,6 +19,7 @@ from timesheet.api_views.user import (
     UserActivities,
     UserLeaderBoard
 )
+from timesheet.api_views.auth import LoginAPIView, LogoutAPIView
 from timesheet.views import ManageView
 
 
@@ -29,10 +30,16 @@ router.register(r'timelog', TimesheetViewSet, basename='timelog_view')
 
 urlpatterns = [
     path('api/', include(router.urls)),
-    path('activity-list/',
+    path('api/login/',
+         LoginAPIView.as_view(),
+         name='api-login'),
+    path('api/logout/',
+         LogoutAPIView.as_view(),
+         name='api-logout'),
+    path('api/activity-list/',
          ActivityList.as_view(),
          name='activity-list'),
-    path('project-list/',
+    path('api/project-list/',
          ProjectAutocomplete.as_view(),
          name='project-list'),
     path('user-autocomplete/',
@@ -56,7 +63,7 @@ urlpatterns = [
     path('api/clear-submitted-timesheets/',
          ClearSubmittedTimesheetsAPIView.as_view(),
          name='clear-submitted-timesheets'),
-    path('task-list/<int:task_id>/',
+    path('api/task-list/<int:project_id>/',
          TaskAutocomplete.as_view(),
          name='task-list'),
     path('manage/',

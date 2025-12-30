@@ -8,6 +8,8 @@ from django.db.models.functions import Concat
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
+from drf_spectacular.types import OpenApiTypes
 
 from timesheet.models import Project
 from timesheet.serializers.timesheet import ProjectLinkSerializer
@@ -21,6 +23,7 @@ from schedule.models.user_project_slot import (
 from timesheet.models.project import ProjectLink
 
 
+@extend_schema(exclude=True)
 class PullProjects(APIView):
 
     def post(self, request, *args):
@@ -86,6 +89,60 @@ class UserAutocomplete(APIView):
         )
 
 
+@extend_schema(
+    tags=['Timesheet'],
+    summary="Autocomplete project search",
+    description="""
+Search for active projects with autocomplete functionality.
+
+**How to use:**
+1. Send a GET request with a search query parameter `q`
+2. The endpoint returns matching projects filtered by user access
+3. Minimum query length is 1 character
+
+**Example usage:**
+- `/api/project-list/?q=kart` - Search for projects containing "kart"
+
+**Filtering:**
+- By default, results are filtered to projects assigned to the authenticated user
+    """,
+    parameters=[
+        OpenApiParameter(
+            name='q',
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+            required=True,
+            description='Search query for project name (case-insensitive, partial match)',
+            examples=[
+                OpenApiExample('Simple search', value='kartoza'),
+                OpenApiExample('Partial match', value='web'),
+            ]
+        )
+    ],
+    responses={
+        200: {
+            'description': 'List of matching projects',
+            'content': {
+                'application/json': {
+                    'schema': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'id': {'type': 'integer', 'description': 'Project ID'},
+                                'label': {'type': 'string', 'description': 'Project name'}
+                            }
+                        }
+                    },
+                    'example': [
+                        {'id': 1, 'label': 'Kartoza Website'},
+                        {'id': 2, 'label': 'Kartoza Mobile App'}
+                    ]
+                }
+            }
+        }
+    }
+)
 class ProjectAutocomplete(APIView):
 
     queryset = Project.objects.filter(is_active=True)
