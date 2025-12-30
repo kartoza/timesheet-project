@@ -12,3 +12,7 @@ STATIC_ROOT = '/home/web/static'
 ALLOWED_HOSTS = ['timesheets.kartoza.com']
 
 STATICFILES_STORAGE = 'core.storage.BigBlindManifestStaticFilesStorage'
+
+SPECTACULAR_SETTINGS['SERVERS'] = [
+    {'url': 'https://timesheets.kartoza.com', 'description': 'Production server'},
+]

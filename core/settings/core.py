@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
 
     'rest_framework',
+    'rest_framework.authtoken',
     'rest_framework_gis',
     'drf_spectacular',
     'webpack_loader',
@@ -152,6 +153,10 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
@@ -163,11 +168,29 @@ SPECTACULAR_SETTINGS = {
     'COMPONENT_SPLIT_REQUEST': True,
     'SCHEMA_PATH_PREFIX': '/api/',
     'SERVERS': [
-        {'url': 'http://localhost:8080', 'description': 'Development server'},
+        {'url': 'https://timesheets.kartoza.com', 'description': 'Production server'},
     ],
     'PREPROCESSING_HOOKS': [
         'core.spectacular_hooks.filter_timesheet_endpoints',
     ],
+    'SWAGGER_UI_SETTINGS': {
+        'persistAuthorization': True,
+    },
+    'SECURITY': [
+        {
+            'tokenAuth': [],
+        }
+    ],
+    'APPEND_COMPONENTS': {
+        'securitySchemes': {
+            'tokenAuth': {
+                'type': 'apiKey',
+                'in': 'header',
+                'name': 'Authorization',
+                'description': 'Token-based authentication. Use format: "Token <your-token-here>"'
+            }
+        }
+    },
 }
 
 ERPNEXT_TOKEN = os.getenv('ERPNEXT_TOKEN', '')
