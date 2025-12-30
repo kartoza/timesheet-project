@@ -28,7 +28,7 @@ export default function TaskAutocomplete(props: TaskAutocompleteInterface) {
       return
     }
     if (props.selectedProjectId) {
-      fetch('/task-list/' + props.selectedProjectId + '/').then(response => response.json()).then(json => {
+      fetch('/api/task-list/' + props.selectedProjectId + '/').then(response => response.json()).then(json => {
         if (props.isRunningProject !== null && props.isRunningProject === false) {
           setSelectedTask(null)
         }

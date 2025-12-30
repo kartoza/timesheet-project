@@ -41,6 +41,7 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'rest_framework_gis',
+    'drf_spectacular',
     'webpack_loader',
 
     'allauth',
@@ -150,7 +151,23 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
-    ]
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Timesheet API',
+    'DESCRIPTION': 'API documentation for Timesheet Management System',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': '/api/',
+    'SERVERS': [
+        {'url': 'http://localhost:8080', 'description': 'Development server'},
+    ],
+    'PREPROCESSING_HOOKS': [
+        'core.spectacular_hooks.filter_timesheet_endpoints',
+    ],
 }
 
 ERPNEXT_TOKEN = os.getenv('ERPNEXT_TOKEN', '')

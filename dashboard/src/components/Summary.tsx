@@ -263,7 +263,7 @@ export default function Summary(props: any) {
     useEffect(() => {
         setProjectLoading(true)
         if (projectInput.length > 0) {
-            fetch('/project-list/?ignoreUser=True&q=' + projectInput).then(
+            fetch('/api/project-list/?ignoreUser=True&q=' + projectInput).then(
                 response => response.json()
             ).then(
                 json => {

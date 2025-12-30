@@ -23,3 +23,4 @@ djangorestframework-gis==1.0
 django-dbbackup==4.0.2
 
 beautifulsoup4==4.13.3
+drf-spectacular==0.27.2

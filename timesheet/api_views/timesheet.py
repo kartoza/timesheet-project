@@ -13,6 +13,8 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from preferences import preferences
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
+from drf_spectacular.types import OpenApiTypes
 
 from timesheet.models import Timelog, Task, Activity, Project
 from timesheet.serializers.timesheet import TimelogSerializer
@@ -35,20 +37,19 @@ def remove_empty_paragraphs(html):
 
 
 class UserSerializer(serializers.Serializer):
-    id = serializers.CharField(
-        max_length=100, required=False)
+    id = serializers.IntegerField(required=False)
 
 
 class TaskSerializer(serializers.Serializer):
-    id = serializers.CharField(max_length=100)
+    id = serializers.IntegerField()
 
 
 class ActivitySerializer(serializers.Serializer):
-    id = serializers.CharField(max_length=100)
+    id = serializers.IntegerField()
 
 
 class ProjectSerializer(serializers.Serializer):
-    id = serializers.CharField(max_length=100)
+    id = serializers.IntegerField()
 
 
 class TimesheetSerializer(serializers.ModelSerializer):
@@ -213,10 +214,122 @@ class TimesheetSerializer(serializers.ModelSerializer):
         return timesheet
 
 
+@extend_schema(tags=['Timesheet'])
 class TimesheetModelViewSet(LoginRequiredMixin, viewsets.ModelViewSet):
+    """
+    API endpoint for managing timesheets.
+
+    Provides CRUD operations for timesheet entries including creating,
+    updating, and deleting time logs.
+    """
     queryset = Timelog.objects.all()
     serializer_class = TimesheetSerializer
+    http_method_names = ['post', 'put', 'head', 'options']
 
+    @extend_schema(
+        summary="Create a new timesheet entry",
+        description="""
+Creates a new timesheet entry for tracking time spent on tasks and activities.
+
+**Important notes:**
+- `end_time` is **optional**. If not provided, the timesheet will be created as a running timer.
+- `user` field is optional and will default to the authenticated user if not provided.
+- All ID fields (task, project, activity) must be integers.
+
+**Running Timer:**
+When you create a timesheet without `end_time`, it starts a running timer that can be stopped later by updating the entry with an `end_time`.
+
+**Example - Create a completed timesheet:**
+```json
+{
+  "description": "Fixed login bug",
+  "start_time": "2025-12-30T14:00:00Z",
+  "end_time": "2025-12-30T16:30:00Z",
+  "task": {"id": 5},
+  "project": {"id": 10},
+  "activity": {"id": 1},
+  "timezone": "Africa/Johannesburg",
+  "parent": 0
+}
+```
+
+**Example - Start a running timer:**
+```json
+{
+  "description": "Working on new feature",
+  "start_time": "2025-12-30T16:00:00Z",
+  "task": {"id": 7},
+  "project": {"id": 10},
+  "activity": {"id": 2},
+  "timezone": "Africa/Johannesburg"
+}
+```
+        """,
+        request={
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'description': {
+                        'type': 'string',
+                        'description': 'Description of the work done (supports HTML)'
+                    },
+                    'start_time': {
+                        'type': 'string',
+                        'format': 'date-time',
+                        'description': 'Start time of the timesheet entry'
+                    },
+                    'end_time': {
+                        'type': 'string',
+                        'format': 'date-time',
+                        'description': 'End time of the timesheet entry. Optional - if not provided, creates a running timer.'
+                    },
+                    'task': {
+                        'type': 'object',
+                        'properties': {
+                            'id': {'type': 'integer', 'description': 'Task ID'}
+                        },
+                        'required': ['id']
+                    },
+                    'project': {
+                        'type': 'object',
+                        'properties': {
+                            'id': {'type': 'integer', 'description': 'Project ID'}
+                        },
+                        'required': ['id']
+                    },
+                    'activity': {
+                        'type': 'object',
+                        'properties': {
+                            'id': {'type': 'integer', 'description': 'Activity ID'}
+                        },
+                        'required': ['id']
+                    },
+                    'timezone': {
+                        'type': 'string',
+                        'description': 'Timezone for the timesheet entry',
+                        'example': 'Africa/Johannesburg'
+                    },
+                    'parent': {
+                        'type': 'integer',
+                        'description': 'Parent timesheet ID if this is a continuation',
+                        'default': 0
+                    }
+                },
+                'required': ['description', 'start_time', 'task', 'project', 'activity', 'timezone'],
+                'example': {
+                    'description': 'Fixed login bug and updated tests',
+                    'start_time': '2025-12-30T14:00:00Z',
+                    'end_time': '2025-12-30T16:30:00Z',
+                    'task': {'id': 5},
+                    'project': {'id': 10},
+                    'activity': {'id': 1},
+                    'timezone': 'Africa/Johannesburg',
+                    'parent': 0
+                }
+            }
+        },
+        responses={201: TimelogSerializer}
+    )
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -227,6 +340,11 @@ class TimesheetModelViewSet(LoginRequiredMixin, viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED,
             headers=headers)
 
+    @extend_schema(
+        summary="Update a timesheet entry",
+        description="Updates an existing timesheet entry with new information.",
+        responses={200: TimelogSerializer}
+    )
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
@@ -264,12 +382,18 @@ class TimesheetModelViewSet(LoginRequiredMixin, viewsets.ModelViewSet):
 MAX_TIMELOGS = 100
 
 
+@extend_schema(tags=['Timesheet'])
 class TimesheetViewSet(viewsets.ViewSet):
     """
     A ViewSet for listing time logs
     """
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="List time logs",
+        description="Retrieves a list of time logs for the authenticated user, limited to the most recent 100 entries.",
+        responses={200: TimelogSerializer(many=True)}
+    )
     def list(self, request):
         today = convert_time_to_user_timezone(
             timezone.now(), request.user.profile.timezone)
@@ -283,7 +407,22 @@ class TimesheetViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
 
+@extend_schema(tags=['Timesheet'])
 class TimeLogDeleteAPIView(APIView):
+    @extend_schema(
+        summary="Delete a time log",
+        description="Deletes a specific time log entry. If the log has children, they are reassigned to a new parent.",
+        request={
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'id': {'type': 'string', 'description': 'ID of the timelog to delete'}
+                },
+                'required': ['id']
+            }
+        },
+        responses={200: None}
+    )
     def post(self, request):
         timelog_id = request.data.get('id', '')
         timelog = Timelog.objects.get(
@@ -303,9 +442,39 @@ class TimeLogDeleteAPIView(APIView):
         return Response(status=200)
 
 
+@extend_schema(tags=['Timesheet'])
 class BreakTimesheet(APIView):
+    """
+    API endpoint for splitting a timesheet entry into multiple entries.
+    """
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Break timesheet into multiple entries",
+        description="Splits a single timesheet entry into multiple child entries based on bullet points in the description.",
+        parameters=[
+            OpenApiParameter(
+                name='timelog_id',
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.PATH,
+                description='ID of the timelog to split'
+            )
+        ],
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'detail': {'type': 'string', 'description': 'Success message'}
+                }
+            },
+            400: {
+                'type': 'object',
+                'properties': {
+                    'detail': {'type': 'string', 'description': 'Error message'}
+                }
+            }
+        }
+    )
     def post(self, request, timelog_id):
         user = request.user
         timelog = get_object_or_404(Timelog, pk=timelog_id, user=user)
@@ -324,7 +493,24 @@ class BreakTimesheet(APIView):
         )
 
 
+@extend_schema(tags=['Timesheet'])
 class SubmitTimeLogsAPIView(APIView):
+    """
+    API endpoint for submitting time logs to ERP system.
+    """
+    @extend_schema(
+        summary="Submit time logs to ERP",
+        description="Submits all unsubmitted time logs for the authenticated user to the ERP system.",
+        responses={
+            200: None,
+            403: {
+                'type': 'object',
+                'properties': {
+                    'error': {'type': 'string', 'description': 'Error message'}
+                }
+            }
+        }
+    )
     def post(self, request):
         unavailable_dates = preferences.TimesheetPreferences.unavailable_dates
 
@@ -344,7 +530,16 @@ class SubmitTimeLogsAPIView(APIView):
         return Response(status=200)
 
 
+@extend_schema(tags=['Timesheet'])
 class ClearSubmittedTimesheetsAPIView(APIView):
+    """
+    API endpoint for clearing submitted timesheets.
+    """
+    @extend_schema(
+        summary="Clear submitted timesheets",
+        description="Deletes all submitted timesheets for the authenticated user.",
+        responses={200: None}
+    )
     def post(self, request):
         queryset = Timelog.objects.filter(
             user=self.request.user,
