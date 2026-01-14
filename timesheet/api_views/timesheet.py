@@ -4,12 +4,12 @@ import pytz
 from bs4 import BeautifulSoup
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import serializers, viewsets, status
 from rest_framework.views import APIView
+from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from preferences import preferences
@@ -215,7 +215,7 @@ class TimesheetSerializer(serializers.ModelSerializer):
 
 
 @extend_schema(tags=['Timesheet'])
-class TimesheetModelViewSet(LoginRequiredMixin, viewsets.ModelViewSet):
+class TimesheetModelViewSet(viewsets.ModelViewSet):
     """
     API endpoint for managing timesheets.
 
@@ -224,6 +224,8 @@ class TimesheetModelViewSet(LoginRequiredMixin, viewsets.ModelViewSet):
     """
     queryset = Timelog.objects.all()
     serializer_class = TimesheetSerializer
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
     http_method_names = ['post', 'put', 'head', 'options']
 
     @extend_schema(
@@ -367,16 +369,6 @@ When you create a timesheet without `end_time`, it starts a running timer that c
             'request': self.request
         })
         return context
-
-    def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that
-        this view requires.
-        """
-        permission_classes = []
-        if self.action == 'create':
-            permission_classes = [IsAuthenticated]
-        return [permission() for permission in permission_classes]
 
 
 MAX_TIMELOGS = 100
