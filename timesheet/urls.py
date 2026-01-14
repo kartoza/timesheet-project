@@ -6,6 +6,7 @@ from timesheet.api_views.timesheet import (
     TimesheetModelViewSet,
     TimesheetViewSet,
     TimeLogDeleteAPIView,
+    TimeLogDeleteAllAPIView,
     SubmitTimeLogsAPIView,
     ClearSubmittedTimesheetsAPIView, BreakTimesheet
 )
@@ -54,6 +55,9 @@ urlpatterns = [
     path('api/delete-time-log/',
          TimeLogDeleteAPIView.as_view(),
          name='delete-time-log'),
+    path('api/delete-all-time-logs/',
+         TimeLogDeleteAllAPIView.as_view(),
+         name='delete-all-time-logs'),
     path('api/break-timesheet/<int:timelog_id>/',
          BreakTimesheet.as_view(),
          name='break-timesheet'),

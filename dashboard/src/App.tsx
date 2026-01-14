@@ -18,6 +18,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import {generateColor, getColorFromTaskLabel, getTaskColor, isColorLight, theme} from "./utils/Theme";
 import {
     TimeLog, useBreakTimesheetMutation, useDeleteTimeLogMutation,
+    useDeleteAllTimeLogsMutation,
     useGetTimeLogsQuery,
     useSubmitTimesheetMutation
 } from "./services/api";
@@ -223,6 +224,7 @@ function App() {
     const [compliment, setCompliment] = useState(randomCompliments[0])
     const [submitTimesheet, { isLoading: isUpdating, isSuccess, isError }] = useSubmitTimesheetMutation();
     const [deleteTimeLog, { isLoading: isDeleteLoading, isSuccess: isDeleteSuccess, isError: isDeleteError }] = useDeleteTimeLogMutation();
+    const [deleteAllTimeLogs] = useDeleteAllTimeLogsMutation();
     const [breakTimesheet, { isLoading, error }] = useBreakTimesheetMutation();
     const [timeLogChildList, setTimeLogChildList] = useState<any>([])
     const [isUnavailable, setIsUnavailable] = useState<boolean>(false);
@@ -562,6 +564,14 @@ function App() {
         }
     }
 
+    const onDeleteAllTimelogs = (timelogs: TimeLog[]) => {
+        if (window.confirm(`Are you sure you want to delete all ${timelogs.length} records?`)) {
+            const ids = timelogs.map(t => t.id)
+            deleteAllTimeLogs({ ids })
+            setTimeLogChildList([])
+        }
+    }
+
     deleteTimeLogSignal.value = (data: TimeLog, checkParent = true) => {
         onDeleteTimelog(data, checkParent);
     }
@@ -874,6 +884,7 @@ function App() {
                         onDeleteTimelog(timelog, false)
                     }
                 }}
+                onDeleteAll={onDeleteAllTimelogs}
                 onClose={() => setTimeLogChildList([])}/>
             <TimeLogs selectProject={selectProject} selectTask={selectTask}/>
             { isEmpty() ? <div><CircularProgress style={{ marginTop: '50px' }} /></div> : null }

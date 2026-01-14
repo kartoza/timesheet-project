@@ -435,6 +435,37 @@ class TimeLogDeleteAPIView(APIView):
 
 
 @extend_schema(tags=['Timesheet'])
+class TimeLogDeleteAllAPIView(APIView):
+    @extend_schema(
+        summary="Delete multiple time logs",
+        description="Deletes multiple time log entries by their IDs.",
+        request={
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'ids': {
+                        'type': 'array',
+                        'items': {'type': 'string'},
+                        'description': 'List of timelog IDs to delete'
+                    }
+                },
+                'required': ['ids']
+            }
+        },
+        responses={200: None}
+    )
+    def post(self, request):
+        timelog_ids = request.data.get('ids', [])
+        if not timelog_ids:
+            return Response(
+                {'error': 'No timelog IDs provided'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        Timelog.objects.filter(id__in=timelog_ids).delete()
+        return Response(status=200)
+
+
+@extend_schema(tags=['Timesheet'])
 class BreakTimesheet(APIView):
     """
     API endpoint for splitting a timesheet entry into multiple entries.

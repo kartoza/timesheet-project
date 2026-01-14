@@ -94,6 +94,15 @@ export const timesheetApi = createApi({
       }),
       invalidatesTags: ["TimeLog"],
     }),
+    deleteAllTimeLogs: build.mutation({
+      query: (body) => ({
+        url: "/api/delete-all-time-logs/",
+        method: "POST",
+        headers: apiHeaders,
+        body,
+      }),
+      invalidatesTags: ["TimeLog"],
+    }),
     submitTimesheet: build.mutation({
       query: () => ({
         url: "/api/submit-timesheet/",
@@ -150,6 +159,7 @@ export const {
   useUpdateTimesheetMutation,
   useGetTimeLogsQuery,
   useDeleteTimeLogMutation,
+  useDeleteAllTimeLogsMutation,
   useSubmitTimesheetMutation,
   useClearSubmittedTimesheetsMutation,
   useBreakTimesheetMutation,
