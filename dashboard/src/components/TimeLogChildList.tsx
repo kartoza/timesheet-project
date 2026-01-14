@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {List, ListItem, Modal, Typography} from "@mui/material";
+import {Button, List, ListItem, Modal, Typography} from "@mui/material";
 import {Box} from "@mui/system";
 import {TimeLog} from "../services/api";
 
@@ -40,6 +40,13 @@ function TimeLogChildList(props: any) {
         setOpen(false)
     }
 
+    const handleDeleteAll = () => {
+        if (props.onDeleteAll) {
+            props.onDeleteAll(props.timeLogChildren)
+            setOpen(false)
+        }
+    }
+
     return (
         <Modal
             open={open}
@@ -60,6 +67,17 @@ function TimeLogChildList(props: any) {
                         )) : null
                     }
                 </List>
+                {!props.editMode && props.timeLogChildren && props.timeLogChildren.length > 0 && (
+                    <Button
+                        variant="contained"
+                        color="error"
+                        fullWidth
+                        onClick={handleDeleteAll}
+                        sx={{ mt: 2 }}
+                    >
+                        Delete All
+                    </Button>
+                )}
             </Box>
         </Modal>
     )
