@@ -89,7 +89,7 @@ const confettiStyle: CSSProperties = {
 }
 
 const TimeLogs = (props: any) => {
-    const { resumeTimeLog, deleteTimeLog } = props;
+    const { resumeTimeLog, deleteTimeLog, timerRunning } = props;
 
     const { data: timesheetData, isLoading, isSuccess } = useGetTimeLogsQuery()
     let totalDraftHours = 0
@@ -140,7 +140,7 @@ const TimeLogs = (props: any) => {
                     paddingLeft: 5,
                     paddingRight: 5 }}>
                     <Suspense>
-                        <ScheduleInfo scheduleClicked={scheduleClick}/>
+                        <ScheduleInfo scheduleClicked={scheduleClick} timerRunning={timerRunning}/>
                     </Suspense>
                 </Grid>
                 <Grid item xs={12} md={2}></Grid>
@@ -886,7 +886,7 @@ function App() {
                 }}
                 onDeleteAll={onDeleteAllTimelogs}
                 onClose={() => setTimeLogChildList([])}/>
-            <TimeLogs selectProject={selectProject} selectTask={selectTask}/>
+            <TimeLogs selectProject={selectProject} selectTask={selectTask} timerRunning={timerStarted}/>
             { isEmpty() ? <div><CircularProgress style={{ marginTop: '50px' }} /></div> : null }
             { timesheetData && Object.keys(timesheetData.logs).length > 0 ?
             <Grid container>
