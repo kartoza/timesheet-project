@@ -26,6 +26,7 @@ export interface TimeLog {
   deleteTimeLog: any;
   running: boolean;
   submitted: boolean;
+  is_paused: boolean;
   activity_id: string;
   edit_button_clicked?: any;
   copy_button_clicked?: any;
@@ -42,6 +43,7 @@ type TimeLogResponse = TimeLog[];
 type TimeLogResult = {
   logs: TimeLog[] | [];
   running: TimeLog | null;
+  paused: TimeLog | null;
 };
 
 const baseQueryWithInterceptor = async (
@@ -65,13 +67,20 @@ export const timesheetApi = createApi({
       transformResponse: (response: TimeLogResponse) => {
         let timeLogs: TimeLogResult = {
           running: null,
+          paused: null,
           logs: [],
         };
         let groupByDate: any = {};
+        let mostRecentPaused: TimeLog | null = null;
         for (let data of response) {
           if (data.running) {
             timeLogs.running = data;
             continue;
+          }
+          if (data.is_paused) {
+            if (!mostRecentPaused || data.from_time > mostRecentPaused.from_time) {
+              mostRecentPaused = data;
+            }
           }
           let dateString = data.from_time.split(" ")[0];
           if (groupByDate.hasOwnProperty(dateString)) {
@@ -80,6 +89,7 @@ export const timesheetApi = createApi({
             groupByDate[dateString] = [data];
           }
         }
+        timeLogs.paused = mostRecentPaused;
         timeLogs.logs = groupByDate;
         return timeLogs;
       },
@@ -151,6 +161,18 @@ export const timesheetApi = createApi({
       }),
       invalidatesTags: ["TimeLog"],
     }),
+    pauseTimesheet: build.mutation({
+      query: (body) => ({
+        url: "/api/pause-timesheet/",
+        method: "POST",
+        headers: apiHeaders,
+        body,
+      }),
+      invalidatesTags: ["TimeLog"],
+      transformResponse(response: TimeLog) {
+        return response;
+      },
+    }),
   }),
 });
 
@@ -163,4 +185,5 @@ export const {
   useSubmitTimesheetMutation,
   useClearSubmittedTimesheetsMutation,
   useBreakTimesheetMutation,
+  usePauseTimesheetMutation,
 } = timesheetApi;

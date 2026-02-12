@@ -213,9 +213,11 @@ function App() {
     const [loading, setLoading] = useState(false)
     const [quote, setQuote] = useState<any>({})
     const [runningTimeLog, setRunningTimeLog] = useState<TimeLog | null>(null)
+    const [pausedTimeLog, setPausedTimeLog] = useState<TimeLog | null>(null)
     const [editingTimeLog, setEditingTimeLog] = useState<TimeLog | null>(null)
+    const [initialAccumulatedTimeMs, setInitialAccumulatedTimeMs] = useState<number>(0)
     const [editMode, setEditMode] = useState<boolean>(true)
-    const [timerStarted, setTimerStarted] = useState(false);
+    const [isTimerRunning, setIsTimerRunning] = useState(false);
     const [parent, setParent] = useState("")
     const refAnimationInstance = useRef(null);
     const [fadeProp, setFadeProp] = useState({
@@ -230,7 +232,7 @@ function App() {
     const [isUnavailable, setIsUnavailable] = useState<boolean>(false);
     const [projectLinkList, setProjectLinkList] = useState<any>([])
 
-    const [startTimer, setStartTimer] = useState(false);
+    const [pendingTimerStart, setPendingTimerStart] = useState(false);
 
     const timeCardRef = useRef(null);
 
@@ -273,7 +275,57 @@ function App() {
             }])
 
             setRunningTimeLog(timesheetData.running)
-            setTimerStarted(true)
+            setIsTimerRunning(true)
+
+            if (timesheetData.running.parent && timesheetData.logs) {
+                for (const dateKey in timesheetData.logs) {
+                    // @ts-ignore
+                    const logsForDate: TimeLog[] = timesheetData.logs[dateKey];
+                    const parentLog = logsForDate?.find((log: TimeLog) => log.id === timesheetData.running?.parent);
+                    if (parentLog && parentLog.all_hours) {
+                        // Convert hours to milliseconds
+                        const parentHoursMs = parseFloat(parentLog.all_hours) * 3600 * 1000;
+                        setInitialAccumulatedTimeMs(parentHoursMs);
+                        break;
+                    }
+                }
+            }
+        }
+        if (timesheetData && timesheetData.paused && !timesheetData.running) {
+            const pausedData = timesheetData.paused;
+            setPausedTimeLog(pausedData);
+
+            // Populate form fields with paused timelog data
+            setDescription(pausedData.description || '');
+            if (pausedData.activity_id) {
+                setSelectedActivity({
+                    id: pausedData.activity_id,
+                    label: pausedData.activity_type
+                });
+            }
+            if (pausedData.project_name && pausedData.project_name !== 'Kartoza') {
+                setProjects([{
+                    id: pausedData.project_id,
+                    label: pausedData.project_name,
+                    running: true
+                }]);
+                setSelectedProject({
+                    id: pausedData.project_id,
+                    label: pausedData.project_name,
+                    running: true
+                });
+            }
+            if (pausedData.task_id) {
+                setTasks([{
+                    id: pausedData.task_id,
+                    label: pausedData.task_name,
+                    running: true,
+                }]);
+                setSelectedTask({
+                    id: pausedData.task_id,
+                    label: pausedData.task_name
+                });
+            }
         }
     }, [isSuccessFetching])
 
@@ -297,25 +349,25 @@ function App() {
         })
         if (checkParent && data.parent) {
             setParent(data.parent)
-            setStartTimer(true)
+            setPendingTimerStart(true)
         }
         if (forceTimer) {
-            setStartTimer(true)
+            setPendingTimerStart(true)
         }
         // @ts-ignore
         timeCardRef.current?.updateHours(data);
     }
 
     useEffect(() => {
-        if (startTimer && !timerStarted) {
+        if (pendingTimerStart && !isTimerRunning) {
             setTimeout(() => {
                 window.scrollTo(0, 0);
                 // @ts-ignore
                 timeCardRef.current?.startButtonClicked(true);
-                setStartTimer(false);
-            }, 200)
+                setPendingTimerStart(false);
+            }, 500)
         }
-    }, [startTimer, timerStarted]);
+    }, [pendingTimerStart, isTimerRunning]);
 
     useEffect(() => {
         if (isDeleteLoading) {
@@ -450,6 +502,7 @@ function App() {
         setEditingTimeLog(null)
         setEditMode(false)
         setRunningTimeLog(null)
+        setPausedTimeLog(null)
     }
     const makeShot = useCallback((particleRatio, opts) => {
         // @ts-ignore
@@ -523,7 +576,7 @@ function App() {
     }
 
     editTimeLogSignal.value = (timeLog: TimeLog) => {
-        if (!timerStarted) {
+        if (!isTimerRunning) {
             setEditMode(true)
             if (timeLog.total_children === 0) {
                 setEditingTimeLog(timeLog);
@@ -536,7 +589,7 @@ function App() {
     }
 
     cloneTimeLogSignal.value = (data: TimeLog) => {
-        if (timerStarted) {
+        if (isTimerRunning) {
             alert('Please stop the running timer first.');
             return;
         }
@@ -577,7 +630,7 @@ function App() {
     }
 
     breakTimeLogSignal.value = async (data: TimeLog) => {
-        if (timerStarted) {
+        if (isTimerRunning) {
             alert('Please stop the running timer first.');
             return;
         }
@@ -592,23 +645,38 @@ function App() {
     }
 
     resumeTimeLogSignal.value = (data: TimeLog) => {
-        if (timerStarted) {
+        if (isTimerRunning) {
             alert('Please stop the running timer first.');
             return;
         }
+        setPausedTimeLog(null)
         if (editingTimeLog) {
             setEditingTimeLog(null);
             setEditMode(false)
         }
         const newData = { ...data, parent: data.submitted ? '' : data.id };
+
+        // Calculate accumulated time from all_hours if same day and not submitted
+        const today = new Date().toISOString().split('T')[0];
+        const timelogDate = data.from_time ? data.from_time.split(' ')[0] : '';
+
+        if (!data.submitted && timelogDate === today && data.all_hours) {
+            // Convert hours to milliseconds
+            const accumulatedMs = parseFloat(data.all_hours) * 3600 * 1000;
+            setInitialAccumulatedTimeMs(accumulatedMs);
+        } else {
+            setInitialAccumulatedTimeMs(0);
+        }
+
         updateSelectedTimeLog(newData, true, true);
     }
 
-    const toggleTimer = (timerStartedValue: boolean) => {
-        if (!timerStartedValue) {
+    const toggleTimer = (running: boolean) => {
+        if (!running) {
             setParent('')
+            setInitialAccumulatedTimeMs(0)
         }
-        setTimerStarted(timerStartedValue);
+        setIsTimerRunning(running);
     }
 
     const selectProject = (project) => {
@@ -855,6 +923,7 @@ function App() {
                                     <TimeCard
                                         ref={timeCardRef}
                                         runningTimeLog={runningTimeLog}
+                                        pausedTimeLog={pausedTimeLog}
                                         editingTimeLog={editingTimeLog}
                                         task={selectedTask}
                                         project={selectedProject}
@@ -863,7 +932,8 @@ function App() {
                                         parent={parent}
                                         toggleTimer={toggleTimer}
                                         isUnavailable={isUnavailable}
-                                        clearAllFields={clearAllFields}/>
+                                        clearAllFields={clearAllFields}
+                                        initialAccumulatedTimeMs={initialAccumulatedTimeMs}/>
                                 </Suspense>
                             </Box>
                         </Grid>
@@ -886,7 +956,7 @@ function App() {
                 }}
                 onDeleteAll={onDeleteAllTimelogs}
                 onClose={() => setTimeLogChildList([])}/>
-            <TimeLogs selectProject={selectProject} selectTask={selectTask} timerRunning={timerStarted}/>
+            <TimeLogs selectProject={selectProject} selectTask={selectTask} timerRunning={isTimerRunning}/>
             { isEmpty() ? <div><CircularProgress style={{ marginTop: '50px' }} /></div> : null }
             { timesheetData && Object.keys(timesheetData.logs).length > 0 ?
             <Grid container>

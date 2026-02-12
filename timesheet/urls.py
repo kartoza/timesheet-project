@@ -8,7 +8,9 @@ from timesheet.api_views.timesheet import (
     TimeLogDeleteAPIView,
     TimeLogDeleteAllAPIView,
     SubmitTimeLogsAPIView,
-    ClearSubmittedTimesheetsAPIView, BreakTimesheet
+    ClearSubmittedTimesheetsAPIView,
+    BreakTimesheet,
+    PauseTimesheetAPIView
 )
 from timesheet.api_views.activity_list import ActivityList
 from timesheet.api_views.project import (
@@ -67,6 +69,9 @@ urlpatterns = [
     path('api/clear-submitted-timesheets/',
          ClearSubmittedTimesheetsAPIView.as_view(),
          name='clear-submitted-timesheets'),
+    path('api/pause-timesheet/',
+         PauseTimesheetAPIView.as_view(),
+         name='pause-timesheet'),
     path('api/task-list/<int:project_id>/',
          TaskAutocomplete.as_view(),
          name='task-list'),
