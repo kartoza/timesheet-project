@@ -110,28 +110,22 @@ class TimelogSerializer(serializers.ModelSerializer):
         return obj.activity.id if obj.activity else ''
 
     def get_all_from_time(self, obj: Timelog):
-        children = obj.children.all().order_by('start_time')
-        last_child_start_time = (
-            children.first().start_time if children.exists() else None
-        )
-        if last_child_start_time and last_child_start_time < obj.start_time:
-            return last_child_start_time.strftime('%Y-%m-%d %H:%M:%S')
-        elif obj.start_time:
-            return obj.start_time.strftime('%Y-%m-%d %H:%M:%S')
-        else:
-            return ''
+        earliest = obj.start_time
+        for desc in obj.get_all_descendants():
+            if desc.start_time and (earliest is None or desc.start_time < earliest):
+                earliest = desc.start_time
+        if earliest:
+            return earliest.strftime('%Y-%m-%d %H:%M:%S')
+        return ''
 
     def get_all_to_time(self, obj: Timelog):
-        children = obj.children.all().order_by('-end_time')
-        last_child_end_time = (
-            children.first().end_time if children.exists() else None
-        )
-        if last_child_end_time and last_child_end_time > obj.end_time:
-            return last_child_end_time.strftime('%Y-%m-%d %H:%M:%S')
-        elif obj.end_time:
-            return obj.end_time.strftime('%Y-%m-%d %H:%M:%S')
-        else:
-            return ''
+        latest = obj.end_time
+        for desc in obj.get_all_descendants():
+            if desc.end_time and (latest is None or desc.end_time > latest):
+                latest = desc.end_time
+        if latest:
+            return latest.strftime('%Y-%m-%d %H:%M:%S')
+        return ''
 
     def get_from_time(self, obj: Timelog):
         start_time = obj.start_time
@@ -145,29 +139,31 @@ class TimelogSerializer(serializers.ModelSerializer):
             return ''
 
     def get_total_children(self, obj: Timelog):
-        return obj.children.filter(end_time__isnull=False).count()
+        return len([
+            d for d in obj.get_all_descendants()
+            if d.end_time is not None
+        ])
 
     def get_all_hours(self, obj: Timelog):
         total_hours = 0.0
         total_seconds = 0
 
-        # Calculate parent hours
         if obj.end_time and obj.start_time:
             total_seconds = (obj.end_time - obj.start_time).total_seconds()
-            total_hours += round(
-                (obj.end_time - obj.start_time).total_seconds() / 3600, 2)
+            total_hours += total_seconds / 3600
 
-        # Calculate children hours
-        for child in obj.children.filter(end_time__isnull=False):
-            if child.end_time and child.start_time:
-                total_hours += round(
-                    (child.end_time - child.start_time).total_seconds() / 3600, 2)
+        for desc in obj.get_all_descendants():
+            if desc.end_time and desc.start_time:
+                desc_seconds = (desc.end_time - desc.start_time).total_seconds()
+                desc_hours = desc_seconds / 3600
+                if desc_seconds > 0 and desc_hours < 0.01:
+                    desc_hours = 0.01
+                total_hours += desc_hours
 
-        hours = round(total_hours, 2)
-        if total_seconds > 0 and hours == 0:
-            hours = 0.01
+        if total_seconds > 0 and total_hours == 0:
+            return 0.01
 
-        return hours
+        return total_hours
 
     def get_hours(self, obj):
         if not obj.end_time:
@@ -205,6 +201,7 @@ class TimelogSerializer(serializers.ModelSerializer):
             'employee_name',
             'running',
             'submitted',
+            'is_paused',
             'project_active',
             'timezone',
             'parent',

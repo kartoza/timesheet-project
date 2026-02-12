@@ -6,16 +6,20 @@ import { LocalizationProvider, DatePicker, TimePicker } from "@mui/x-date-picker
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
 import moment from "moment";
-import React, { useCallback, useEffect, useState, forwardRef, useImperativeHandle } from "react";
+import React, { useCallback, useEffect, useState, forwardRef, useImperativeHandle, useRef } from "react";
 import {
     useAddTimesheetMutation,
     useUpdateTimesheetMutation,
-    useClearSubmittedTimesheetsMutation, TimeLog
+    useClearSubmittedTimesheetsMutation,
+    usePauseTimesheetMutation,
+    TimeLog
 } from "../services/api";
 import { addHours, formatTime } from "../utils/time";
 import TButton from "../loadable/Button";
 import { ListIcon, PlayCircleIcon, ClearAllIcon } from "../loadable/Icon";
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
+import PauseCircleIcon from '@mui/icons-material/PauseCircle';
+import StopCircleIcon from "@mui/icons-material/StopCircle";
 import RunningTime from "./RunningTime";
 
 
@@ -23,6 +27,7 @@ import RunningTime from "./RunningTime";
 interface TimeCardProps {
     updateTimeLog?: any | null,
     runningTimeLog?: any | null,
+    pausedTimeLog?: any | null,
     editingTimeLog?: any | null,
     toggleTimer?: any,
     task?: any | null,
@@ -31,14 +36,14 @@ interface TimeCardProps {
     description?: String | '',
     parent?: string
     clearAllFields?: any,
-    isUnavailable?: boolean
+    isUnavailable?: boolean,
+    initialAccumulatedTimeMs?: number
 }
 
 
-let interval: any = null;
-
 export const TimeCard = forwardRef(({
     runningTimeLog,
+    pausedTimeLog: pausedTimeLogProp,
     editingTimeLog,
     toggleTimer,
     task,
@@ -47,7 +52,8 @@ export const TimeCard = forwardRef(({
     description,
     parent,
     isUnavailable,
-    clearAllFields }: TimeCardProps, ref) => {
+    clearAllFields,
+    initialAccumulatedTimeMs = 0 }: TimeCardProps, ref) => {
     const [startTime, setStartTime] = React.useState<any | null>(new Date());
     const [endTime, setEndTime] = React.useState<any | null>(null);
     const [hours, setHours] = React.useState<Number | null>(null);
@@ -68,6 +74,11 @@ export const TimeCard = forwardRef(({
     const [clearTimesheets, {
         isLoading: isClearLoading,
         isSuccess: isClearSuccess, isError: isClearError }] = useClearSubmittedTimesheetsMutation();
+    const [pauseTimesheet, { isLoading: isPauseLoading }] = usePauseTimesheetMutation();
+    const [pausedTimeLog, setPausedTimeLog] = useState<any | null>(null);
+    const [accumulatedTimeMs, setAccumulatedTimeMs] = useState<number>(0); // Time from parent (paused) timelog in milliseconds
+    const runningTimeRef = useRef<string>('00:00:00'); // Ref to track current running time for pause
+    const intervalRef = useRef<any>(null);
 
     useEffect(() => {
         setUpdatedTimesheet(updatedData)
@@ -91,7 +102,6 @@ export const TimeCard = forwardRef(({
         }
     }, [isEndTime]);
 
-
     const clearData = useCallback((clearActivity = true) => {
         setHours(null);
         setHourString('')
@@ -105,6 +115,7 @@ export const TimeCard = forwardRef(({
             if (newTimesheet.running) {
                 toggleTimer(true)
                 setLocalRunningTimeLog(newTimesheet);
+                setPausedTimeLog(null);
             } else {
                 setLocalRunningTimeLog(null)
                 if (endTime) {
@@ -113,15 +124,17 @@ export const TimeCard = forwardRef(({
                 clearData(false);
             }
         }
-    }, [isAddSuccess, newTimesheet, clearData])
+    }, [isAddSuccess, newTimesheet])
 
     useEffect(() => {
         if (localRunningTimeLog || editingTimeLog) {
             if (updatedTimesheet && !updatedTimesheet.running) {
                 toggleTimer(false);
-                clearInterval(interval);
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
                 setStartButtonDisabled(true);
                 setRunningTime('00:00:00');
+                setAccumulatedTimeMs(0);
                 setLocalRunningTimeLog(null);
                 clearData();
             }
@@ -129,8 +142,7 @@ export const TimeCard = forwardRef(({
     }, [localRunningTimeLog,
         editingTimeLog,
         isUpdateSuccess,
-        updatedTimesheet,
-        clearData])
+        updatedTimesheet])
 
     useEffect(() => {
         if (editingTimeLog) {
@@ -151,65 +163,158 @@ export const TimeCard = forwardRef(({
         }
     }, [runningTimeLog])
 
+    useEffect(() => {
+        if (initialAccumulatedTimeMs > 0) {
+            setAccumulatedTimeMs(initialAccumulatedTimeMs);
+        }
+    }, [initialAccumulatedTimeMs])
+
+    useEffect(() => {
+        if (pausedTimeLogProp && !pausedTimeLog && !localRunningTimeLog) {
+            setPausedTimeLog(pausedTimeLogProp);
+            // Use all_hours (total accumulated time across all sessions) for display
+            if (pausedTimeLogProp.all_hours) {
+                const totalMs = parseFloat(pausedTimeLogProp.all_hours) * 3600 * 1000;
+                setAccumulatedTimeMs(totalMs);
+                setRunningTime(moment.utc(totalMs).format("HH:mm:ss"));
+            } else if (pausedTimeLogProp.from_time && pausedTimeLogProp.to_time) {
+                const fromTime = moment(pausedTimeLogProp.from_time, 'YYYY-MM-DD HH:mm:ss');
+                const toTime = moment(pausedTimeLogProp.to_time, 'YYYY-MM-DD HH:mm:ss');
+                const diff = toTime.diff(fromTime);
+                setRunningTime(moment.utc(diff).format("HH:mm:ss"));
+            }
+        }
+    }, [pausedTimeLogProp])
+
     const updateTime = useCallback(() => {
+        if (!localRunningTimeLog) return;
         let fromTimeObj = moment(
           localRunningTimeLog.from_time,
           'YYYY-MM-DD hh:mm:ss');
         let diff = moment().diff(fromTimeObj);
-        let d = moment.duration(diff);
-        setRunningTime(moment.utc(diff).format("HH:mm:ss"))
-    }, [localRunningTimeLog])
-
-    const updateTimeRecursively = useCallback(() => {
-        updateTime();
-        interval = setInterval(updateTime, 1000);
-    }, [updateTime])
+        const totalDiff = diff + accumulatedTimeMs;
+        const timeString = moment.utc(totalDiff).format("HH:mm:ss");
+        setRunningTime(timeString);
+        runningTimeRef.current = timeString;
+    }, [localRunningTimeLog, accumulatedTimeMs])
 
     useEffect(() => {
         if (localRunningTimeLog) {
             setStartButtonDisabled(false)
-            updateTimeRecursively();
+            updateTime();
+            intervalRef.current = setInterval(updateTime, 1000);
 
             const link = document.querySelector("link[rel~='icon']") as HTMLAnchorElement | null;
             if (link) {
                 link.href = '/static/running-favicon.ico';
             }
-        } else {
-            if (interval)
-                clearInterval(interval);
         }
-    }, [localRunningTimeLog, updateTimeRecursively])
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+        };
+    }, [localRunningTimeLog, updateTime])
 
     const stopButtonClicked = async () => {
         if (!localRunningTimeLog) return;
-        clearInterval(interval);
-        setStartButtonDisabled(true);
-
-        const link = document.querySelector("link[rel~='icon']") as HTMLAnchorElement | null;
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+        const link = (
+          document.querySelector("link[rel~='icon']") as HTMLAnchorElement | null
+        );
         if (link) {
             link.href = '/static/timesheet-logo.png';
         }
-
         const runningTimeClone = Object.assign({}, localRunningTimeLog);
-        let task_id = ''
-        if (task) {
-            task_id = task.id
-        }
-        if (!task_id) {
-            task_id = '-'
-        }
+        let task_id = task ? task.id : '-';
         runningTimeClone['task'] = {
             'id': task_id
         }
         runningTimeClone['activity'] = {
-            'id': activity.id
+            'id': activity ? activity.id : localRunningTimeLog.activity_id
         }
         runningTimeClone['project'] = {
-            'id': project ? project.id : ''
+            'id': project ? project.id : (localRunningTimeLog.project_id || '')
         }
-        runningTimeClone['description'] = description;
+        runningTimeClone['description'] = description || localRunningTimeLog.description;
         runningTimeClone['end_time'] = formatTime(new Date());
         updateTimesheet(runningTimeClone);
+    }
+
+    const pauseButtonClicked = async () => {
+        if (!localRunningTimeLog) return;
+        const capturedTime = runningTimeRef.current;
+        try {
+            const result = await pauseTimesheet({ id: localRunningTimeLog.id }).unwrap();
+            setPausedTimeLog(result);
+            setLocalRunningTimeLog(null);
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+            const [hrs, mins, secs] = capturedTime.split(':').map(Number);
+            const totalMs = ((hrs * 60 * 60) + (mins * 60) + secs) * 1000;
+            setAccumulatedTimeMs(totalMs);
+            const link = document.querySelector(
+              "link[rel~='icon']"
+            ) as HTMLAnchorElement | null;
+            if (link) {
+                link.href = '/static/timesheet-logo.png';
+            }
+        } catch (e) {
+            console.error('Failed to pause timesheet:', e);
+        }
+    }
+
+    const resumeFromPause = () => {
+        if (!pausedTimeLog) return;
+        if (pausedTimeLog.from_time && pausedTimeLog.to_time) {
+            const fromTime = moment(pausedTimeLog.from_time, 'YYYY-MM-DD HH:mm:ss');
+            const toTime = moment(pausedTimeLog.to_time, 'YYYY-MM-DD HH:mm:ss');
+            const pausedDuration = toTime.diff(fromTime);
+            const existingHoursMs = pausedTimeLog.all_hours ? (parseFloat(pausedTimeLog.all_hours) * 3600 * 1000) : pausedDuration;
+            setAccumulatedTimeMs(existingHoursMs);
+        }
+
+        const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const _startTime = formatTime(new Date());
+        addTimesheet({
+            start_time: _startTime,
+            task: { id: pausedTimeLog.task_id || '-' },
+            activity: { id: pausedTimeLog.activity_id },
+            project: { id: pausedTimeLog.project_id || '' },
+            description: pausedTimeLog.description,
+            timezone: currentTimeZone,
+            parent: pausedTimeLog.id,
+        });
+
+        setPausedTimeLog(null);
+    }
+
+    const clearPausedState = async () => {
+        if (pausedTimeLog) {
+            const pausedClone: any = {
+                id: pausedTimeLog.id,
+                task: { 'id': pausedTimeLog.task_id || '-' },
+                activity: { 'id': pausedTimeLog.activity_id },
+                project: { 'id': pausedTimeLog.project_id || '' },
+                description: pausedTimeLog.description || '',
+                start_time: pausedTimeLog.from_time,
+                end_time: pausedTimeLog.to_time,
+                is_paused: false,
+                editing: true, // Allow update even though end_time exists
+            };
+            try {
+                await updateTimesheet(pausedClone).unwrap();
+            } catch (e) {
+                console.error('Failed to clear paused state:', e);
+            }
+        }
+        setPausedTimeLog(null);
+        setRunningTime('00:00:00');
+        setAccumulatedTimeMs(0);
+        clearData();
+        toggleTimer(false);
     }
 
     const resetStartTime = () => {
@@ -245,7 +350,6 @@ export const TimeCard = forwardRef(({
         const startTimeStr = formatTime(_startTime);
         const endTimeStr = formatTime(endTime);
         const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
         addTimesheet({
             start_time: startTimeStr,
             end_time: endTimeStr,
@@ -261,8 +365,8 @@ export const TimeCard = forwardRef(({
         (startFromZero = false) => {
             setIsLogging(false);
             setStartButtonDisabled(true);
-            clearInterval(interval);
-
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
             if (!startTime || !activity) {
                 return;
             }
@@ -289,7 +393,7 @@ export const TimeCard = forwardRef(({
                 parent: parent,
             });
         },
-        [addTimesheet, startTime, activity, task, runningTime, project, description, parent, interval]
+        [addTimesheet, startTime, activity, task, runningTime, project, description, parent]
     );
 
   const addButtonClicked = () => {
@@ -324,7 +428,7 @@ export const TimeCard = forwardRef(({
         alert("Failed to add timesheet, please try again later.");
       }
     }
-  }, [isAddError, retryCount, actionType, submitTimesheet, startTimesheet, addError]);
+  }, [isAddError, retryCount, actionType, addError]);
 
 
     const submitEditedTimeLog = () => {
@@ -540,23 +644,55 @@ export const TimeCard = forwardRef(({
                 </CardActions>
             </div> :
             <div style={{marginTop: '8px',  marginBottom: '0.5em'}}>
-                <RunningTime disabled={localRunningTimeLog} runningTime={runningTime} onChange={(newRunningTime) => setRunningTime(newRunningTime)}/>
+                <RunningTime disabled={localRunningTimeLog || pausedTimeLog} runningTime={runningTime} onChange={(newRunningTime) => setRunningTime(newRunningTime)}/>
                 {/*<Typography style={{ color:'#1d575c'}} variant={'h3'}>{runningTime}</Typography>*/}
                 <CardContent sx={{ paddingLeft: 0, paddingRight: 0 }}>
-                        {localRunningTimeLog ?
-                          <TButton color="info" variant="contained" size="small"
-                                  sx={{width: '100%', height: '58px', marginTop: -1}}
-                                  onClick={stopButtonClicked}
-                                  disabled={startButtonDisabled}
-                                  disableElevation>{isUpdateLoading ?
-                            <CircularProgress color="inherit" size={20}/> : "STOP"}</TButton> :
+                        {localRunningTimeLog ? (
+                          <Grid container spacing={1}>
+                            <Grid size={6}>
+                              <TButton color="warning" variant="contained" size="small"
+                                      sx={{width: '100%', height: '58px', marginTop: -1}}
+                                      onClick={pauseButtonClicked}
+                                      disabled={isPauseLoading}
+                                      disableElevation>{isPauseLoading ?
+                                <CircularProgress color="inherit" size={20}/> : <><PauseCircleIcon sx={{mr: 0.5}}/> PAUSE</>}</TButton>
+                            </Grid>
+                            <Grid size={6}>
+                              <TButton color="info" variant="contained" size="small"
+                                      sx={{width: '100%', height: '58px', marginTop: -1}}
+                                      onClick={stopButtonClicked}
+                                      disabled={isUpdateLoading}
+                                      disableElevation>{isUpdateLoading ?
+                                <CircularProgress color="inherit" size={20}/> : <><StopCircleIcon sx={{mr: 0.5}}/> STOP</>}</TButton>
+                            </Grid>
+                          </Grid>
+                        ) : pausedTimeLog ? (
+                          <Grid container spacing={1}>
+                            <Grid size={6}>
+                              <TButton color="success" variant="contained" size="small"
+                                      sx={{width: '100%', height: '58px', marginTop: -1}}
+                                      onClick={resumeFromPause}
+                                      disabled={isUpdating || isUnavailable}
+                                      disableElevation>{isUpdating ?
+                                <CircularProgress color="inherit" size={20}/> : <><PlayCircleIcon sx={{mr: 0.5}}/> RESUME</>}</TButton>
+                            </Grid>
+                            <Grid size={6}>
+                              <TButton color="info" variant="contained" size="small"
+                                      sx={{width: '100%', height: '58px', marginTop: -1}}
+                                      onClick={clearPausedState}
+                                      disabled={isUpdateLoading}
+                                      disableElevation>{isUpdateLoading ?
+                                <CircularProgress color="inherit" size={20}/> : <><StopCircleIcon sx={{mr: 0.5}}/> STOP</>}</TButton>
+                            </Grid>
+                          </Grid>
+                        ) : (
                           <TButton color="success" variant="contained" size="small"
                                   sx={{width: '100%', height: '58px', marginTop: -1}}
                                   onClick={() => startButtonClicked(false)}
                                   disabled={startButtonDisabled || isUnavailable}
                                   disableElevation>{isUpdating ?
                             <CircularProgress color="inherit" size={20}/> : "START"}</TButton>
-                        }
+                        )}
                 </CardContent>
             </div> }
             <div style={{ marginTop: '3px' }}>

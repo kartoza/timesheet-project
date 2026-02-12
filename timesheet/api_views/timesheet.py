@@ -74,7 +74,8 @@ class TimesheetSerializer(serializers.ModelSerializer):
             'activity',
             'timezone',
             'parent',
-            'editing'
+            'editing',
+            'is_paused'
         ]
 
     def update(self, instance: Timelog, validated_data):
@@ -101,6 +102,9 @@ class TimesheetSerializer(serializers.ModelSerializer):
             instance.task = None
         instance.activity = Activity.objects.get(id=activity.get('id'))
         instance.end_time = end_time
+        is_paused = self.context['request'].data.get('is_paused', None)
+        if is_paused is not None:
+            instance.is_paused = is_paused
         instance.save()
 
         date_changed = False
@@ -128,15 +132,13 @@ class TimesheetSerializer(serializers.ModelSerializer):
 
         related = []
         if parent:
-            related.append(parent.id)
-            related += list(
-                parent.children.all().exclude(
-                    id=instance.id).values_list('id', flat=True)
-            )
+            root = parent.get_root_ancestor()
+            related.append(root.id)
+            related += [d.id for d in root.get_all_descendants()]
         if instance.children.count() > 0:
-            related += list(
-                instance.children.all().values_list('id', flat=True)
-            )
+            related += [d.id for d in instance.get_all_descendants()]
+        # Exclude self from the update set
+        related = [rid for rid in related if rid != instance.id]
         if len(related) > 0:
             Timelog.objects.filter(
                 id__in=related
@@ -192,12 +194,16 @@ class TimesheetSerializer(serializers.ModelSerializer):
             if start_time.date() != parent_start_time.date():
                 parent = None
 
-        if parent and isinstance(parent, Timelog):
-            parent_timelog = Timelog.objects.get(
-                id=parent.id
-            )
-            parent_timelog.description = description
-            parent_timelog.save()
+        if parent:
+            root = parent.get_root_ancestor()
+            root.description = description
+            root.save()
+            parent = root
+
+        Timelog.objects.filter(
+            user=user,
+            is_paused=True
+        ).update(is_paused=False)
 
         # Create a new timesheet
         timesheet = Timelog.objects.create(
@@ -570,3 +576,87 @@ class ClearSubmittedTimesheetsAPIView(APIView):
         )
         queryset.delete()
         return Response(status=200)
+
+
+@extend_schema(tags=['Timesheet'])
+class PauseTimesheetAPIView(APIView):
+    """
+    API endpoint for pausing a running timesheet.
+    Pausing stops the current timer and marks it as paused.
+    Resuming from pause creates a new timelog as a child of the paused one.
+    """
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        summary="Pause a running timesheet",
+        description="""
+            Pauses the currently running timesheet for the authenticated user.
+            
+            When paused:
+            - The running timesheet's end_time is set to the current time
+            - The timesheet is marked as is_paused=True
+            
+            **Request body:**
+            ```json
+            {
+              "id": 123
+            }
+            ```
+        """,
+        request={
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'id': {
+                        'type': 'integer',
+                        'description': 'ID of the running timelog to pause'}
+                },
+                'required': ['id']
+            }
+        },
+        responses={200: TimelogSerializer}
+    )
+    def post(self, request):
+        timelog_id = request.data.get('id')
+        if not timelog_id:
+            return Response(
+                {'error': 'Timelog ID is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            timelog = Timelog.objects.get(
+                id=timelog_id,
+                user=request.user,
+                end_time__isnull=True
+            )
+        except Timelog.DoesNotExist:
+            return Response(
+                {'error': 'Running timelog not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        now = timezone.now()
+        timelog.end_time = now
+        timelog.save()
+
+        Timelog.objects.filter(
+            user=request.user,
+            end_time__isnull=True
+        ).update(end_time=now)
+
+        Timelog.objects.filter(
+            user=request.user,
+            is_paused=True
+        ).update(is_paused=False)
+
+        root = timelog.get_root_ancestor()
+        root.is_paused = True
+        root.save()
+
+        return Response(
+            TimelogSerializer(
+                instance=root, many=False
+            ).data,
+            status=status.HTTP_200_OK
+        )

@@ -14,6 +14,7 @@ import {
     MoreVertIcon,
     TaskAltIcon
 } from "../loadable/Icon";
+import PauseCircleIcon from '@mui/icons-material/PauseCircle';
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import Chip from "@mui/material/Chip";
@@ -32,6 +33,17 @@ export function TimeLogItem(prop : TimeLog)    {
 
     const getTime = ( date : string ) => {
         return moment(date, 'YYYY-MM-DD hh:mm').format('HH:mm')
+    }
+
+    const roundHours = (hours: number) => {
+        // Source - https://stackoverflow.com/a/11832950
+        // Posted by Brian Ustas, modified by community. See post 'Timeline' for change history
+        // Retrieved 2026-02-11, License - CC BY-SA 4.0
+        let roundedHours = Math.round(hours * 100) / 100
+        if (roundedHours == 0) {
+            roundedHours = 0.01
+        }
+        return roundedHours
     }
 
     const calculateHours = (fromTime: string) => {
@@ -73,7 +85,7 @@ export function TimeLogItem(prop : TimeLog)    {
     }
 
     return (
-        <Grid container spacing={1} className={"time-log-row" + (prop.submitted ? " timelog-submitted": "")}>
+        <Grid container spacing={1} className={"time-log-row" + (prop.submitted ? " timelog-submitted": "") + (prop.is_paused ? " timelog-paused": "")}>
             <Grid className="time-log-item left-item" item xs={12} md={8}>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                     <Paper className="time-log-project" sx={{
@@ -115,7 +127,8 @@ export function TimeLogItem(prop : TimeLog)    {
             <Divider orientation="vertical" variant="middle" flexItem />
             <Grid className="time-log-item center-item"  item xs={2.8} sx={{ fontSize: "0.85em", letterSpacing: 0.8 }}>
                 <Typography sx={{ fontSize: "2em", fontWeight: "bolder" }} color="text.primary">
-                    { !prop.running ? prop.all_hours : calculateHours(prop.from_time) }
+                    { !prop.running ? roundHours(parseFloat(prop.all_hours)) : calculateHours(prop.from_time) }
+                    { prop.is_paused ? <PauseCircleIcon color={'warning'} style={{marginLeft: '0.2em'}} titleAccess="Paused"/> : null }
                     { prop.submitted ? <TaskAltIcon color={'success'} style={{marginLeft: '0.2em'}}/> : null }
                 </Typography>
                 <div>
@@ -125,6 +138,8 @@ export function TimeLogItem(prop : TimeLog)    {
             </Grid>
             <Divider orientation="vertical" variant="middle" flexItem />
             <Grid className="time-log-item center-item" item xs={0.6}>
+                { !prop.is_paused ? (
+                <>
                 <TButton
                     style={{ marginLeft: '8px' }}
                     aria-controls={open ? 'basic-menu' : undefined}
@@ -153,6 +168,8 @@ export function TimeLogItem(prop : TimeLog)    {
                     <MenuItem onClick={copyTimeLogClicked}><ContentCopyIcon/>Copy</MenuItem>
                     <MenuItem onClick={deleteTimeLogClicked}><DeleteSweepIcon/>Delete</MenuItem>
                 </Menu>
+                </>
+                ) : null }
             </Grid>
         </Grid>
     )

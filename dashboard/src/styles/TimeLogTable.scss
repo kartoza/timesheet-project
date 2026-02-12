@@ -2,6 +2,11 @@
   background-color: rgba(51, 153, 66, 0.25);
 }
 
+.timelog-paused {
+  background-color: rgba(255, 167, 38, 0.25);
+  border-left: 3px solid #ffa726;
+}
+
 .time-log-row {
   text-align: left;
   min-height: 3em;

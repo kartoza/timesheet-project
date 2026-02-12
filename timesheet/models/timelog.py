@@ -61,6 +61,11 @@ class Timelog(models.Model):
         default=False
     )
 
+    is_paused = models.BooleanField(
+        help_text='Timesheet is paused',
+        default=False
+    )
+
     parent = models.ForeignKey(
         'self',
         null=True,
@@ -68,6 +73,31 @@ class Timelog(models.Model):
         on_delete=models.CASCADE,
         related_name='children'
     )
+
+    def get_root_ancestor(self):
+        """Walk up the parent chain to find the root (parentless) timelog."""
+        current = self
+        seen = {self.pk}
+        while current.parent is not None:
+            if current.parent.pk in seen:
+                break
+            seen.add(current.parent.pk)
+            current = current.parent
+        return current
+
+    def get_all_descendants(self):
+        """Return a flat list of all descendant timelogs (recursive)."""
+        descendants = []
+        queue = list(self.children.all())
+        seen = {self.pk}
+        while queue:
+            child = queue.pop(0)
+            if child.pk in seen:
+                continue
+            seen.add(child.pk)
+            descendants.append(child)
+            queue.extend(list(child.children.all()))
+        return descendants
 
     def __str__(self):
         return f'{self.user} - {self.task}'
