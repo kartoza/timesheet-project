@@ -148,7 +148,7 @@ export const TimeCard = forwardRef(({
         if (editingTimeLog) {
             setHours(editingTimeLog.hours);
             setHourString(editingTimeLog.hours);
-            const _startTime = moment(editingTimeLog.from_time, 'YYYY-MM-DD hh:mm:ss').toDate()
+            const _startTime = moment(editingTimeLog.from_time, 'YYYY-MM-DD HH:mm:ss').toDate()
             setStartTime(_startTime)
 
             let newDate = new Date(_startTime.getTime());
@@ -190,7 +190,7 @@ export const TimeCard = forwardRef(({
         if (!localRunningTimeLog) return;
         let fromTimeObj = moment(
           localRunningTimeLog.from_time,
-          'YYYY-MM-DD hh:mm:ss');
+          'YYYY-MM-DD HH:mm:ss');
         let diff = moment().diff(fromTimeObj);
         const totalDiff = diff + accumulatedTimeMs;
         const timeString = moment.utc(totalDiff).format("HH:mm:ss");
@@ -325,7 +325,7 @@ export const TimeCard = forwardRef(({
         // @ts-ignore
         setHours(data.hours);
         setHourString(data.hours);
-        const _startTime = moment(data.from_time, 'YYYY-MM-DD hh:mm:ss').toDate();
+        const _startTime = moment(data.from_time, 'YYYY-MM-DD HH:mm:ss').toDate();
         setStartTime(_startTime);
     }
 
