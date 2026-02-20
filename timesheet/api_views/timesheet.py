@@ -179,11 +179,14 @@ class TimesheetSerializer(serializers.ModelSerializer):
         activity = Activity.objects.get(id=activity.get('id'))
 
         # Set existing timesheet end_time to now
+        now = convert_time_to_user_timezone(
+            timezone.now(), _timezone
+        ) if _timezone else timezone.now()
         Timelog.objects.filter(
             user=user,
             end_time__isnull=True
         ).update(
-            end_time=timezone.now()
+            end_time=now
         )
 
         # Check if a parent Timelog exists
@@ -636,7 +639,9 @@ class PauseTimesheetAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        now = timezone.now()
+        now = convert_time_to_user_timezone(
+            timezone.now(), timelog.timezone
+        ) if timelog.timezone else timezone.now()
         timelog.end_time = now
         timelog.save()
 
