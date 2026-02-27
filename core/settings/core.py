@@ -197,6 +197,11 @@ ERPNEXT_TOKEN = os.getenv('ERPNEXT_TOKEN', '')
 ERPNEXT_SITE_LOCATION = os.getenv('ERPNEXT_SITE_LOCATION',
                                   'https://kartoza.com')
 
+ERPNEXT_OAUTH_CLIENT_ID = os.getenv('ERPNEXT_OAUTH_CLIENT_ID', '')
+ERPNEXT_OAUTH_CLIENT_SECRET = os.getenv('ERPNEXT_OAUTH_CLIENT_SECRET', '')
+ERPNEXT_OAUTH_REDIRECT_URI = os.getenv('ERPNEXT_OAUTH_REDIRECT_URI', 'http://localhost:8080/api/erpnext-oauth/callback/')
+ERPNEXT_OAUTH_LOGIN_REDIRECT_URI = os.getenv('ERPNEXT_OAUTH_LOGIN_REDIRECT_URI', 'http://localhost:8080/api/erpnext-oauth/login/callback/')
+
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (

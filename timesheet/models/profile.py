@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 import pytz
 
@@ -73,11 +74,35 @@ class Profile(models.Model):
         blank=True
     )
 
+    erpnext_oauth_access_token = models.TextField(
+        null=True,
+        blank=True
+    )
+
+    erpnext_oauth_refresh_token = models.TextField(
+        null=True,
+        blank=True
+    )
+
+    erpnext_oauth_token_expires_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
     @property
     def token(self):
         if self.api_key and self.api_secret:
             return f'{self.api_key}:{self.api_secret}'
         return ''
+
+    @property
+    def erpnext_oauth_token(self):
+        if not self.erpnext_oauth_access_token:
+            return None
+        if (self.erpnext_oauth_token_expires_at and
+                self.erpnext_oauth_token_expires_at <= timezone.now()):
+            return None
+        return self.erpnext_oauth_access_token
 
 
 @receiver(post_save, sender=get_user_model())

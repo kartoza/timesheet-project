@@ -23,6 +23,14 @@ from timesheet.api_views.user import (
     UserLeaderBoard
 )
 from timesheet.api_views.auth import LoginAPIView, LogoutAPIView
+from timesheet.api_views.erpnext_oauth import (
+    ERPNextOAuthInitiateView,
+    ERPNextOAuthCallbackView,
+    ERPNextOAuthStatusView,
+    ERPNextOAuthDisconnectView,
+    ERPNextOAuthLoginInitiateView,
+    ERPNextOAuthLoginCallbackView,
+)
 from timesheet.views import ManageView
 
 
@@ -90,4 +98,22 @@ urlpatterns = [
     path('api/quotes/',
          RandomQuotes.as_view(),
          name='random-quotes'),
+    path('api/erpnext-oauth/initiate/',
+         ERPNextOAuthInitiateView.as_view(),
+         name='erpnext-oauth-initiate'),
+    path('api/erpnext-oauth/callback/',
+         ERPNextOAuthCallbackView.as_view(),
+         name='erpnext-oauth-callback'),
+    path('api/erpnext-oauth/status/',
+         ERPNextOAuthStatusView.as_view(),
+         name='erpnext-oauth-status'),
+    path('api/erpnext-oauth/disconnect/',
+         ERPNextOAuthDisconnectView.as_view(),
+         name='erpnext-oauth-disconnect'),
+    path('api/erpnext-oauth/login/',
+         ERPNextOAuthLoginInitiateView.as_view(),
+         name='erpnext-oauth-login'),
+    path('api/erpnext-oauth/login/callback/',
+         ERPNextOAuthLoginCallbackView.as_view(),
+         name='erpnext-oauth-login-callback'),
 ]

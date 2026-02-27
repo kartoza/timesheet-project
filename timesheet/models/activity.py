@@ -10,6 +10,10 @@ class Activity(models.Model):
         null=False
     )
 
+    is_billable = models.BooleanField(
+        default=False
+    )
+
     def __str__(self):
         return self.name
 

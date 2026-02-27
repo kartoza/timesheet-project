@@ -24,8 +24,24 @@ from timesheet.models import Timelog, Project, Task, Activity
 from timesheet.models.profile import get_country_code_from_timezone
 from timesheet.models.user_project import UserProject
 from timesheet.serializers.timesheet import TimelogSerializerERP
+from timesheet.utils.erpnext_oauth import get_valid_oauth_token
 
 logger = logging.getLogger(__name__)
+
+
+def get_auth_headers(user=None, erpnext_token=None):
+    """Return auth headers for ERPNext API calls.
+
+    Prefers OAuth Bearer token if available, falls back to API key token.
+    """
+    if user:
+        oauth_token = get_valid_oauth_token(user)
+        if oauth_token:
+            return {'Authorization': f'Bearer {oauth_token}'}
+
+    if not erpnext_token:
+        erpnext_token = settings.ERPNEXT_TOKEN
+    return {'Authorization': f'token {erpnext_token}'}
 
 
 def retry_operation(func):
@@ -48,18 +64,14 @@ class ProjectsNotFound(Exception):
     pass
 
 
-def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '', doctype_value: str = '') -> list:
+def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '', doctype_value: str = '', user=None) -> list:
     url = (
         f'{settings.ERPNEXT_SITE_LOCATION}/api/'
         f'resource/{doctype.value}/{doctype_value}?limit_page_length=None&fields=["*"]'
     )
     if filters:
         url += '&filters=' + filters
-    if not erpnext_token:
-        erpnext_token = settings.ERPNEXT_TOKEN
-    headers = {
-        'Authorization': 'token {}'.format(erpnext_token)
-    }
+    headers = get_auth_headers(user=user, erpnext_token=erpnext_token)
     response = requests.request(
         'GET',
         url,
@@ -111,13 +123,15 @@ def pull_holiday_list(user):
         employee_docs = get_erp_data(
             DocType.EMPLOYEE,
             preferences.TimesheetPreferences.admin_token,
-            f'[["name", "=", "{employee_id}"]]'
+            f'[["name", "=", "{employee_id}"]]',
+            user=user
         )
         if not employee_docs:
             employee_docs = get_erp_data(
                 DocType.EMPLOYEE,
                 preferences.TimesheetPreferences.admin_token,
-                f'[["employee", "=", "{employee_id}"]]'
+                f'[["employee", "=", "{employee_id}"]]',
+                user=user
             )
 
         holiday_list_name = None
@@ -132,13 +146,15 @@ def pull_holiday_list(user):
             holiday_list = get_erp_data(
                 DocType.HOLIDAY_LIST,
                 preferences.TimesheetPreferences.admin_token,
-                f'[["country", "=", "{country_code}"]]'
+                f'[["country", "=", "{country_code}"]]',
+                user=user
             )
             if len(holiday_list) == 0:
                 holiday_list = get_erp_data(
                     DocType.HOLIDAY_LIST,
                     preferences.TimesheetPreferences.admin_token,
-                    f'[["custom_country_code", "=", "{country_code}"]]'
+                    f'[["custom_country_code", "=", "{country_code}"]]',
+                    user=user
                 )
             if len(holiday_list) > 0:
                 if len(holiday_list) > 1:
@@ -163,7 +179,8 @@ def pull_holiday_list(user):
             holidays_doc = get_erp_data(
                 DocType.HOLIDAY_LIST,
                 preferences.TimesheetPreferences.admin_token,
-                doctype_value=holiday_list_name
+                doctype_value=holiday_list_name,
+                user=user
             )
 
         if isinstance(holidays_doc, dict) and 'holidays' in holidays_doc:
@@ -236,12 +253,13 @@ def generate_api_key(user: get_user_model()):
 
 def pull_user_data_from_erp(user: get_user_model()):
 
-    if not user.profile.token:
-        generate_api_key(user)
+    # if not user.profile.token:
+    #     generate_api_key(user)
 
     employee = get_erp_data(
         DocType.EMPLOYEE, user.profile.token,
-        f'[["company_email", "=", "{user.email}"]]'
+        f'[["company_email", "=", "{user.email}"]]',
+        user=user
     )
     if len(employee) > 0:
         employee_data = employee[0]
@@ -258,7 +276,7 @@ def pull_user_data_from_erp(user: get_user_model()):
 def pull_projects_from_erp(user: get_user_model()):
     with transaction.atomic():
         projects = get_erp_data(
-            DocType.PROJECT, user.profile.token)
+            DocType.PROJECT, user=user)
 
         if len(projects) == 0:
             raise ProjectsNotFound
@@ -332,7 +350,7 @@ def pull_projects_from_erp(user: get_user_model()):
         print('inactive_tasks : {}'.format(inactive_tasks.count()))
 
         activities = get_erp_data(
-            DocType.ACTIVITY, user.profile.token)
+            DocType.ACTIVITY, user=user)
 
         for activity in activities:
             if 'name' not in activity:
@@ -384,9 +402,7 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
             )
 
     url = f'{settings.ERPNEXT_SITE_LOCATION}/api/resource/Timesheet'
-    headers = {
-        'Authorization': 'token {}'.format(user.profile.token)
-    }
+    headers = get_auth_headers(user=user)
     logger.error(headers)
 
     submitted_timelogs = []
@@ -428,18 +444,14 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
             logger.error(response.text)
 
 
-def get_report_data(report_name: str, erpnext_token: str = None, filters: str = '') -> list:
+def get_report_data(report_name: str, erpnext_token: str = None, filters: str = '', user=None) -> list:
     url = (
         f'{settings.ERPNEXT_SITE_LOCATION}/api/'
         f'method/frappe.desk.query_report.run?report_name={report_name}'
     )
     if filters:
         url += '&filters=' + filters
-    if not erpnext_token:
-        erpnext_token = settings.ERPNEXT_TOKEN
-    headers = {
-        'Authorization': 'token {}'.format(erpnext_token)
-    }
+    headers = get_auth_headers(user=user, erpnext_token=erpnext_token)
     response = requests.request(
         'GET',
         url,
@@ -460,13 +472,14 @@ def get_report_data(report_name: str, erpnext_token: str = None, filters: str = 
     return message['result']
 
 
-def get_detailed_report_data(project_name: str, filters: str = ''):
+def get_detailed_report_data(project_name: str, filters: str = '', user = None):
     if not filters:
         filters = f'{{"Project":"{project_name}"}}'
     timesheet_detail = get_report_data(
         'Timesheet%20Detailed%20Report',
         preferences.TimesheetPreferences.admin_token,
-        filters)
+        filters,
+        user)
     return timesheet_detail
 
 def get_detailed_report_data_by_employee(employee_id: str, start_date: str, end_date: str):
@@ -547,7 +560,8 @@ def pull_leave_data_from_erp(user):
         filters.append(["status", "=", "Approved"])
         leave_data = get_erp_data(
             DocType.LEAVE, preferences.TimesheetPreferences.admin_token,
-            str(filters).replace('\'', '"')
+            str(filters).replace('\'', '"'),
+            user=user
         )
         from django.db.models import Q
 

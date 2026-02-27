@@ -106,3 +106,50 @@ body {
 .login-form .action button:nth-child(2):hover {
     background: #3c4d6d;
 }
+.login-form .oauth-divider {
+    text-align: center;
+    padding: 20px 35px 0;
+    position: relative;
+}
+.login-form .oauth-divider span {
+    background: #fff;
+    padding: 0 12px;
+    color: #747474;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.2px;
+    position: relative;
+    z-index: 1;
+}
+.login-form .oauth-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 35px;
+    right: 35px;
+    height: 1px;
+    background: #d8d8d8;
+}
+.login-form .oauth-login {
+    padding: 20px 35px 30px;
+}
+.login-form .erpnext-login-btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    text-align: center;
+    background: #0089ff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Rubik', sans-serif;
+    font-size: 14px;
+    text-transform: uppercase;
+    text-decoration: none;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    transition: all .3s;
+}
+.login-form .erpnext-login-btn:hover {
+    background: #0070d6;
+}

@@ -281,7 +281,7 @@ class UserLeaderBoard(APIView):
         end_date = str(end_date).split(' ')[0]
 
         filters = f'{{"start_date":"{start_date}", "end_date": "{end_date}"}}'
-        detailed_report = get_detailed_report_data('', filters)[:-1]
+        detailed_report = get_detailed_report_data('', filters, self.request.user)[:-1]
         for report in detailed_report[:-1]:
             employee = report['Employee Name']
             if employee not in active_employee_names:
