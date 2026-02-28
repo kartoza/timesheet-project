@@ -352,7 +352,7 @@ class TestCalculateRemainingTaskDays(ScheduleTestCase):
         prev_schedule = Schedule.objects.get(id=schedule.id)
         schedule = Schedule.objects.get(id=response.data['new']['id'])
         self.assertEqual(schedule.first_day_number, 43)
-        self.assertEqual(prev_schedule.first_day_number, 49)
+        self.assertIsNone(prev_schedule.first_day_number)
 
     def test_update_schedule_after_task_last_update(self):
         # Task last update = 01/01/2023

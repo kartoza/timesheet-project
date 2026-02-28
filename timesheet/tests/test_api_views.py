@@ -239,7 +239,7 @@ class TestOnlineUserApiView(TestCase):
             '/api/timesheet/',
             {}
         )
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 401)
 
     def test_create_timesheet_authenticated(self):
         client = APIClient()

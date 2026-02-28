@@ -16,9 +16,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         ctx = super(DashboardView, self).get_context_data(**kwargs)
 
         ctx['has_keys'] = (
-                self.request.user.profile.api_key is not None and
-                self.request.user.profile.api_secret is not None
-        )
+            self.request.user.profile.api_key is not None and
+            self.request.user.profile.api_secret is not None
+        ) or self.request.user.profile.erpnext_oauth_token is not None
         return ctx
 
 

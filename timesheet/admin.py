@@ -43,7 +43,7 @@ def push_to_erp(modeladmin, request, queryset: Timelog.objects):
 @admin.action(description='Pull projects')
 def pull_projects(modeladmin, request, queryset: get_user_model()):
     for user in queryset:
-        if not user.profile.token:
+        if not user.profile.token and not user.profile.erpnext_oauth_token:
             continue
         pull_projects_from_erp(user)
 
@@ -63,7 +63,7 @@ def generate_api_key(modeladmin, request, queryset: get_user_model()):
 @admin.action(description='Pull leave data')
 def pull_leave_data(modeladmin, request, queryset: get_user_model()):
     for user in queryset:
-        if not user.profile.token:
+        if not user.profile.token and not user.profile.erpnext_oauth_token:
             continue
         pull_leave_data_from_erp(user)
         pull_holiday_list(user)

@@ -568,13 +568,15 @@ class UpdateSchedule(APIView):
             schedule.hours_per_day = hours_per_day
 
         # Handle task assignment/removal
-        if task_id:
-            schedule.task_id = task_id
-        else:
-            # If task_id is None/empty, remove the task (convert to note-only)
-            schedule.task = None
-            schedule.first_day_number = None
-            schedule.last_day_number = None
+        if 'taskId' in request.data:
+            if task_id:
+                schedule.task_id = task_id
+            else:
+                # Explicitly removing the task (convert to note-only)
+                schedule.task = None
+                schedule.first_day_number = None
+                schedule.last_day_number = None
+        # else: taskId not provided, keep existing task
 
         schedule.save()
 

@@ -198,7 +198,7 @@ class ReportData(UserPassesTestMixin, APIView):
             Project,
             id=request.GET.get('id', None)
         )
-        detailed_report = get_detailed_report_data(project.name)
+        detailed_report = get_detailed_report_data(project.name, user=self.request.user)
         if len(detailed_report) == 0:
             raise Http404()
         detailed_report = detailed_report[:-1]

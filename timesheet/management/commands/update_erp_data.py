@@ -19,7 +19,7 @@ class Command(BaseCommand):
         users = get_user_model().objects.all()
         print(f'Total user : {users.count()}')
         for user in users:
-            if user.profile.api_secret:
+            if user.profile.api_secret or user.profile.erpnext_oauth_token:
                 print(f'Updating {user}')
                 pull_projects_from_erp(user)
                 pull_leave_data_from_erp(user)

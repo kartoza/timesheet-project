@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.http import Http404
 from rest_framework.permissions import IsAdminUser
 from rest_framework.views import APIView
@@ -49,7 +50,8 @@ class UserProjectList(APIView):
             ).distinct()
         else:
             users = get_user_model().objects.filter(
-                profile__api_key__isnull=False,
+                Q(profile__api_key__isnull=False) |
+                Q(profile__erpnext_oauth_access_token__isnull=False),
                 is_active=True
             )
         users_data = []

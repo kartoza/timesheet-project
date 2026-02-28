@@ -1,0 +1,58 @@
+{% extends "account/base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{% trans "Change Email" %}{% endblock %}
+
+{% block content %}
+    <div class="login-form">
+        <form method="POST" action="{% url 'account_email' %}">
+            {% csrf_token %}
+
+            <h1>{% trans "Change Email" %}</h1>
+
+            {% if form.errors %}
+                <div class="errorlist" style="padding-left: 35px">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="content">
+                {% if current_emailaddress %}
+                    <div class="input-field">
+                        <label for="current_email">{% trans "Current Email" %}</label>
+                        <input type="email" id="current_email" value="{{ current_emailaddress.email }}" disabled>
+                    </div>
+                {% endif %}
+                {% if new_emailaddress %}
+                    <div class="input-field">
+                        <label for="new_email">{% trans "Pending Verification" %}</label>
+                        <input type="email" id="new_email" value="{{ new_emailaddress.email }}" disabled>
+                    </div>
+                {% endif %}
+                <div class="input-field">
+                    <input type="email" name="email" placeholder="New Email Address" required id="id_email" value="{{ form.email.value|default:'' }}">
+                </div>
+            </div>
+
+            <div class="action">
+                <button type="button" onclick="window.location.href = '/'">{% trans "Cancel" %}</button>
+                <button type="submit" name="action_add">{% trans "Change Email" %}</button>
+            </div>
+        </form>
+
+        {% if new_emailaddress %}
+            <form style="display: none" id="pending-email" method="POST" action="{% url 'account_email' %}">
+                {% csrf_token %}
+                <input type="hidden" name="email" value="{{ new_emailaddress.email }}">
+            </form>
+        {% endif %}
+    </div>
+{% endblock %}
