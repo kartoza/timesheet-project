@@ -16,7 +16,7 @@ class Command(BaseCommand):
     help = 'Harvest data from erp'
 
     def handle(self, *args, **options):
-        users = get_user_model().objects.all()
+        users = get_user_model().objects.filter(is_active=True)
         print(f'Total user : {users.count()}')
         for user in users:
             if user.profile.api_secret or user.profile.erpnext_oauth_token:

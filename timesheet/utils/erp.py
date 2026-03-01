@@ -38,6 +38,10 @@ def get_auth_headers(user=None, erpnext_token=None):
         oauth_token = get_valid_oauth_token(user)
         if oauth_token:
             return {'Authorization': f'Bearer {oauth_token}'}
+        else:
+            user_token = user.profile.erpnext_token
+            if user_token:
+                return {'Authorization': f'Bearer {user_token}'}
 
     if not erpnext_token:
         erpnext_token = settings.ERPNEXT_TOKEN
@@ -308,7 +312,8 @@ def pull_projects_from_erp(user: get_user_model()):
         #     inactive_projects.update(is_active=False)
 
         tasks = get_erp_data(
-            DocType.TASK, preferences.TimesheetPreferences.admin_token
+            DocType.TASK, preferences.TimesheetPreferences.admin_token,
+            user=user
         )
         updated_tasks = []
         for task in tasks:
