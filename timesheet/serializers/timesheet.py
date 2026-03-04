@@ -63,8 +63,11 @@ class TimelogSerializer(serializers.ModelSerializer):
             return obj.task.id
         return ''
 
-    def get_is_billable(self, obj):
-        return 0
+    def get_is_billable(self, obj: Timelog):
+        if obj.task and obj.task.project and obj.task.project.project_type:
+            if obj.task.project.project_type.lower() == 'internal':
+                return False
+        return True
 
     def get_doctype(self, obj):
         return 'Timelog Detail'

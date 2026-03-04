@@ -288,11 +288,13 @@ def pull_projects_from_erp(user: get_user_model()):
         updated = timezone.now()
         updated_projects = []
         for project in projects:
+            project_type = project.get('project_type')
             _project, _ = Project.objects.update_or_create(
                 name=project['name'],
                 defaults={
                     'is_active': project.get('status', '') == 'Open',
-                    'updated': updated
+                    'updated': updated,
+                    'project_type': project_type.upper() if project_type else '',
                 }
             )
             UserProject.objects.get_or_create(
@@ -412,9 +414,6 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
 
     submitted_timelogs = []
     for key, value in timelogs.items():
-        for log in value["data"]:
-            log["is_billable"] = True
-
         erp_timesheet_data = {
             'employee_name': value['employee_name'],
             'employee': value['employee'],
