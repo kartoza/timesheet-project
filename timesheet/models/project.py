@@ -26,6 +26,17 @@ class Project(models.Model):
         default=False
     )
 
+    project_type = models.CharField(
+        max_length=100,
+        default='',
+        blank=True,
+        choices=(
+            ('INTERNAL', 'Internal'),
+            ('EXTERNAL', 'External'),
+            ('INVESTMENT', 'Investment'),
+        )
+    )
+
     def __str__(self):
         return self.name
 
