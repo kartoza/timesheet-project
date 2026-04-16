@@ -1,0 +1,722 @@
+.microblog-feed {
+  display: flex;
+  justify-content: flex-start;
+  padding: 24px 0;
+  min-height: 100vh;
+}
+
+.microblog-feed-compact {
+  min-height: auto;
+  align-items: flex-start;
+  padding: 0;
+}
+
+.microblog-feed-compact.sidebar-card {
+  padding: 0 !important;
+  width: 15.5% !important;
+}
+
+.microblog-feed-compact .microblog-shell {
+  width: 92%;
+  border-radius: 4px;
+}
+
+.microblog-feed-compact .microblog-header {
+  padding: 10px 10px 8px;
+}
+
+.microblog-feed-compact .microblog-post {
+  padding: 10px 12px;
+  gap: 10px;
+}
+
+.microblog-feed-compact .microblog-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.microblog-feed-compact .microblog-subtitle {
+  font-size: 0.68rem;
+}
+
+.microblog-feed-compact .microblog-avatar .MuiAvatar-root {
+  width: 30px;
+  height: 30px;
+  font-size: 0.7rem;
+}
+
+.microblog-feed-compact .author-name {
+  font-size: 0.75rem;
+}
+
+.microblog-feed-compact .author-handle,
+.microblog-feed-compact .post-time {
+  font-size: 0.68rem;
+}
+
+.microblog-feed-compact .post-content {
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.microblog-feed-compact .post-actions {
+  margin-top: 6px;
+}
+
+.microblog-feed-compact .post-action .MuiSvgIcon-root,
+.microblog-feed-compact .post-action span {
+  font-size: 0.68rem;
+}
+
+.microblog-feed-compact .tag-chip.MuiChip-root {
+  height: 18px;
+  font-size: 0.62rem;
+}
+
+.microblog-feed-compact .tag-list {
+  margin-top: 8px;
+}
+
+.microblog-feed-compact .microblog-meta {
+  margin-bottom: 6px;
+}
+
+.microblog-theme-light {
+  --microblog-shell-bg: rgba(255, 255, 255, 0.92);
+  --microblog-shell-border: rgba(15, 20, 25, 0.08);
+  --microblog-header-bg: linear-gradient(180deg, rgba(29, 155, 240, 0.08), rgba(255, 255, 255, 0));
+  --microblog-text-primary: #0f1419;
+  --microblog-text-secondary: #536471;
+  --microblog-hover-bg: rgba(29, 155, 240, 0.04);
+  --microblog-tag-bg: rgba(29, 155, 240, 0.1);
+  --microblog-tag-text: #145ea8;
+  --microblog-pin: #1d9bf0;
+}
+
+.microblog-theme-dark {
+  --microblog-shell-bg: rgba(21, 32, 43, 0.96);
+  --microblog-shell-border: rgba(255, 255, 255, 0.1);
+  --microblog-header-bg: linear-gradient(180deg, rgba(29, 155, 240, 0.18), rgba(21, 32, 43, 0));
+  --microblog-text-primary: #f5f8fa;
+  --microblog-text-secondary: #8b98a5;
+  --microblog-hover-bg: rgba(29, 155, 240, 0.08);
+  --microblog-tag-bg: rgba(29, 155, 240, 0.2);
+  --microblog-tag-text: #8ecdf8;
+  --microblog-pin: #8ecdf8;
+}
+
+.microblog-shell {
+  width: min(720px, 100%);
+  overflow: hidden;
+  border-radius: 4px;
+  border: 1px solid var(--microblog-shell-border);
+  background: var(--microblog-shell-bg);
+}
+
+.microblog-header {
+  border-bottom: 1px solid var(--microblog-shell-border);
+}
+
+.microblog-title {
+  font-weight: 800;
+  color: var(--microblog-text-primary);
+}
+
+.microblog-subtitle {
+  color: var(--microblog-text-secondary);
+}
+
+.microblog-empty {
+  padding: 64px 24px;
+  text-align: center;
+  color: var(--microblog-text-secondary);
+}
+
+.microblog-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.microblog-post {
+  display: flex;
+  gap: 16px;
+  padding: 20px 24px;
+  margin-left: -1px;
+  margin-right: -1px;
+  border: 1px solid var(--microblog-shell-border);
+  background: var(--microblog-shell-bg);
+  z-index: 9999;
+  transition: background-color 0.2s ease;
+}
+
+.microblog-post:hover {
+  background: var(--microblog-hover-bg);
+}
+
+.microblog-post-announcement {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255, 248, 220, 0.98), rgba(255, 252, 241, 0.95));
+}
+
+.microblog-theme-dark.microblog-post-announcement {
+  background:
+    linear-gradient(180deg, rgba(46, 34, 12, 0.96), rgba(27, 20, 8, 0.98));
+}
+
+.microblog-post-question {
+  position: relative;
+  overflow: hidden;
+  border: 0;
+  --question-border-angle: 0turn;
+  background: var(--microblog-shell-bg);
+}
+
+.microblog-post-question::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 3px;
+  background: conic-gradient(
+    from var(--question-border-angle),
+    transparent 16%,
+    rgba(99, 102, 241, 0.9),
+    rgba(129, 140, 248, 0.95),
+    rgba(67, 56, 202, 0.92) 88%,
+    transparent
+  );
+  animation: questionBorderSpin 1.8s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.microblog-post-question .microblog-body,
+.microblog-post-question .microblog-avatar {
+  position: relative;
+  z-index: 1;
+}
+
+.microblog-post-warning {
+  position: relative;
+  overflow: hidden;
+  border: 0;
+  --warning-border-angle: 0turn;
+  background: var(--microblog-shell-bg);
+}
+
+.microblog-post-warning::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 3px;
+  background: conic-gradient(
+    from var(--warning-border-angle),
+    transparent 16%,
+    rgba(249, 115, 22, 0.92),
+    rgba(251, 146, 60, 0.96),
+    rgba(220, 38, 38, 0.92) 88%,
+    transparent
+  );
+  animation: warningBorderSpin 1.8s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.microblog-post-warning .microblog-body,
+.microblog-post-warning .microblog-avatar {
+  position: relative;
+  z-index: 1;
+}
+
+.microblog-post-celebration {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top right, rgba(255, 188, 64, 0.18), transparent 28%),
+    linear-gradient(180deg, rgba(255, 244, 250, 0.98), rgba(255, 251, 247, 0.95));
+}
+
+.microblog-theme-dark.microblog-post-celebration {
+  background:
+    radial-gradient(circle at top right, rgba(255, 188, 64, 0.18), transparent 28%),
+    linear-gradient(180deg, rgba(56, 20, 48, 0.96), rgba(29, 11, 23, 0.98));
+}
+
+.microblog-post-celebration .microblog-body,
+.microblog-post-celebration .microblog-avatar {
+  position: relative;
+  z-index: 1;
+}
+
+.microblog-post-celebration::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 16% 22%, rgba(255, 90, 150, 0.16), transparent 10%),
+    radial-gradient(circle at 82% 18%, rgba(255, 188, 64, 0.14), transparent 11%),
+    radial-gradient(circle at 68% 76%, rgba(125, 92, 255, 0.14), transparent 11%);
+  pointer-events: none;
+  animation: celebrationGlowPulse 4.2s ease-in-out infinite;
+}
+
+.microblog-post-celebration::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      110deg,
+      rgba(255, 255, 255, 0) 24%,
+      rgba(255, 214, 236, 0.55) 42%,
+      rgba(255, 255, 255, 0) 58%
+    );
+  transform: translateX(-120%);
+  pointer-events: none;
+  animation: celebrationSweep 3.4s ease-in-out infinite;
+}
+
+.microblog-post-celebration .microblog-avatar .MuiAvatar-root {
+  background: linear-gradient(135deg, #ff5a96, #ff9f43);
+}
+
+.microblog-post-celebration .author-name,
+.microblog-post-celebration .post-content {
+  color: #9b2557;
+}
+
+.microblog-post-celebration .author-handle,
+.microblog-post-celebration .post-time,
+.microblog-post-celebration .post-action,
+.microblog-post-celebration .post-action.MuiButtonBase-root,
+.microblog-post-celebration .post-action .MuiSvgIcon-root,
+.microblog-post-celebration .post-action span,
+.microblog-post-celebration .microblog-link {
+  color: #d55286;
+}
+
+.microblog-theme-dark.microblog-post-celebration .author-name,
+.microblog-theme-dark.microblog-post-celebration .post-content {
+  color: #ffd2e4;
+}
+
+.microblog-theme-dark.microblog-post-celebration .author-handle,
+.microblog-theme-dark.microblog-post-celebration .post-time,
+.microblog-theme-dark.microblog-post-celebration .post-action,
+.microblog-theme-dark.microblog-post-celebration .post-action.MuiButtonBase-root,
+.microblog-theme-dark.microblog-post-celebration .post-action .MuiSvgIcon-root,
+.microblog-theme-dark.microblog-post-celebration .post-action span,
+.microblog-theme-dark.microblog-post-celebration .microblog-link {
+  color: #ff9fc4;
+}
+
+.microblog-post-celebration .tag-chip.MuiChip-root {
+  background: rgba(255, 90, 150, 0.12);
+  border: 1px solid rgba(255, 90, 150, 0.16);
+}
+
+.microblog-post-celebration .tag-chip .MuiChip-label {
+  color: #d55286;
+}
+
+.microblog-theme-dark.microblog-post-celebration .tag-chip.MuiChip-root {
+  background: rgba(255, 90, 150, 0.16);
+  border-color: rgba(255, 159, 196, 0.18);
+}
+
+.microblog-theme-dark.microblog-post-celebration .tag-chip .MuiChip-label {
+  color: #ffc0db;
+}
+
+.microblog-post-announcement::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 210, 92, 0.2) 0%,
+    rgba(255, 243, 177, 0.4) 20%,
+    rgba(214, 155, 33, 0.24) 45%,
+    rgba(255, 232, 143, 0.38) 65%,
+    rgba(173, 109, 0, 0.2) 100%
+  );
+  background-size: 220% 220%;
+  animation: announcementGoldShift 8s linear infinite;
+  pointer-events: none;
+}
+
+.microblog-post-announcement::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      110deg,
+      rgba(255, 255, 255, 0) 25%,
+      rgba(255, 249, 204, 0.45) 42%,
+      rgba(255, 255, 255, 0) 58%
+    );
+  transform: translateX(-120%);
+  animation: announcementSweep 3.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.microblog-post-announcement .microblog-body,
+.microblog-post-announcement .microblog-avatar {
+  position: relative;
+  z-index: 1;
+}
+
+.microblog-post-announcement .microblog-avatar .MuiAvatar-root {
+  background: linear-gradient(135deg, #f7d266, #c88910);
+  color: #4a3000;
+}
+
+.microblog-post-announcement .author-name,
+.microblog-post-announcement .post-content {
+  color: #5f3b00;
+}
+
+.microblog-post-announcement .microblog-link {
+  color: #a56600;
+}
+
+.microblog-post-announcement .author-handle,
+.microblog-post-announcement .post-time,
+.microblog-post-announcement .post-action,
+.microblog-post-announcement .post-action.MuiButtonBase-root,
+.microblog-post-announcement .post-action .MuiSvgIcon-root,
+.microblog-post-announcement .post-action span {
+  color: #8a5600;
+}
+
+.microblog-theme-dark.microblog-post-announcement .author-name,
+.microblog-theme-dark.microblog-post-announcement .post-content {
+  color: #ffe7a1;
+}
+
+.microblog-theme-dark.microblog-post-announcement .microblog-link {
+  color: #ffd666;
+}
+
+.microblog-theme-dark.microblog-post-announcement .author-handle,
+.microblog-theme-dark.microblog-post-announcement .post-time,
+.microblog-theme-dark.microblog-post-announcement .post-action,
+.microblog-theme-dark.microblog-post-announcement .post-action.MuiButtonBase-root,
+.microblog-theme-dark.microblog-post-announcement .post-action .MuiSvgIcon-root,
+.microblog-theme-dark.microblog-post-announcement .post-action span {
+  color: #ffd666;
+}
+
+.microblog-post-announcement .tag-chip.MuiChip-root {
+  background: rgba(201, 142, 14, 0.14);
+  border: 1px solid rgba(201, 142, 14, 0.2);
+}
+
+.microblog-post-announcement .tag-chip .MuiChip-label {
+  color: #8a5600;
+}
+
+.microblog-theme-dark.microblog-post-announcement .tag-chip.MuiChip-root {
+  background: rgba(255, 214, 102, 0.12);
+  border-color: rgba(255, 214, 102, 0.18);
+}
+
+.microblog-theme-dark.microblog-post-announcement .tag-chip .MuiChip-label {
+  color: #ffd666;
+}
+
+.microblog-post-tips {
+  position: relative;
+  overflow: hidden;
+  border: 0;
+  --tips-border-angle: 0turn;
+  background: var(--microblog-shell-bg);
+}
+
+.microblog-post-tips::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 3px;
+  background: conic-gradient(
+    from var(--tips-border-angle),
+    transparent 16%,
+    rgba(16, 185, 129, 0.9),
+    rgba(52, 211, 153, 0.95),
+    rgba(5, 150, 105, 0.92) 88%,
+    transparent
+  );
+  animation: tipsBorderSpin 1.6s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.microblog-theme-dark.microblog-post-tips::before {
+  background: conic-gradient(
+    from var(--tips-border-angle),
+    transparent 16%,
+    rgba(52, 211, 153, 0.9),
+    rgba(16, 185, 129, 0.96),
+    rgba(110, 231, 183, 0.92) 88%,
+    transparent
+  );
+}
+
+.microblog-post-tips .microblog-body,
+.microblog-post-tips .microblog-avatar {
+  position: relative;
+  z-index: 1;
+}
+
+.microblog-avatar .MuiAvatar-root {
+  width: 48px;
+  height: 48px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #1d9bf0, #145ea8);
+}
+
+.microblog-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.microblog-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.author-name {
+  font-weight: 700;
+  color: var(--microblog-text-primary);
+}
+
+.author-handle,
+.post-time {
+  color: var(--microblog-text-secondary);
+}
+
+.pin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--microblog-pin);
+  flex-shrink: 0;
+}
+
+.post-content {
+  color: var(--microblog-text-primary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.tag-list {
+  margin-top: 14px;
+}
+
+.tag-chip {
+  margin-bottom: 8px;
+}
+
+.tag-chip.MuiChip-root {
+  border-radius: 999px;
+  background: var(--microblog-tag-bg);
+}
+
+.tag-chip .MuiChip-label {
+  color: var(--microblog-tag-text);
+}
+
+.post-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  max-width: 420px;
+}
+
+.post-action {
+  display: inline-flex;
+  gap: 8px;
+  color: var(--microblog-text-secondary);
+}
+
+.post-action.MuiButtonBase-root {
+  color: var(--microblog-text-secondary);
+}
+
+.post-action .MuiSvgIcon-root,
+.post-action span {
+  color: var(--microblog-text-secondary);
+  font-size: 0.875rem;
+}
+
+.like-action {
+  position: relative;
+}
+
+.like-action .like-icon-filled {
+  display: none;
+  color: #f91880;
+}
+
+.like-action.is-liked,
+.like-action.is-liked span,
+.like-action.is-liked .MuiSvgIcon-root {
+  color: #f91880;
+}
+
+.like-action.is-liked .like-icon-outline {
+  display: none;
+}
+
+.like-action.is-liked .like-icon-filled {
+  display: inline-flex;
+}
+
+.like-action.is-default:hover,
+.like-action.is-default:hover span,
+.like-action.is-default:hover .MuiSvgIcon-root {
+  color: #f91880;
+}
+
+.like-action.is-default:hover .like-icon-outline {
+  display: none;
+}
+
+.like-action.is-default:hover .like-icon-filled {
+  display: inline-flex;
+}
+
+@keyframes announcementGoldShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+@property --tips-border-angle {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0turn;
+}
+
+@property --question-border-angle {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0turn;
+}
+
+@property --warning-border-angle {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0turn;
+}
+
+@keyframes tipsBorderSpin {
+  to {
+    --tips-border-angle: 1turn;
+  }
+}
+
+@keyframes questionBorderSpin {
+  to {
+    --question-border-angle: 1turn;
+  }
+}
+
+@keyframes warningBorderSpin {
+  to {
+    --warning-border-angle: 1turn;
+  }
+}
+
+@keyframes celebrationGlowPulse {
+  0%,
+  100% {
+    transform: scale(0.98);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 0.8;
+  }
+}
+
+@keyframes celebrationSweep {
+  0% {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(140%);
+    opacity: 0;
+  }
+}
+
+@keyframes announcementSweep {
+  0% {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(140%);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .microblog-feed {
+    padding: 0;
+    min-height: auto;
+  }
+
+  .microblog-shell {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+
+  .microblog-header,
+  .microblog-post {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .microblog-meta {
+    flex-direction: column;
+  }
+}

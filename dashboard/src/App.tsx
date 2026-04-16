@@ -35,6 +35,7 @@ import {
 } from './loadable/Icon';
 import Loader from './loadable/Loader';
 import TimeLogChildList from "./components/TimeLogChildList";
+import type { MicroblogPost } from './components/MicroblogFeed';
 import {
     breakTimeLogSignal,
     cloneTimeLogSignal,
@@ -53,7 +54,7 @@ const TimeLogTable = React.lazy(() => import("./components/TimeLogTable"));
 const ScheduleInfo = React.lazy(() => import("./components/ScheduleInfo"));
 const ReactCanvasConfetti = React.lazy(() => import('react-canvas-confetti'));
 const UserActivities = React.lazy(() => import('./components/UserActivities'));
-const LeaderBoard = React.lazy(() => import('./components/LeaderBoard'));
+const MicroblogFeed = React.lazy(() => import('./components/MicroblogFeed'));
 const ProjectLinks = React.lazy(() => import('./components/ProjectLink'));
 const unavailableDates = (window as any).unavailableDates;
 const randomCompliments = [
@@ -87,6 +88,43 @@ const confettiStyle: CSSProperties = {
     left: 0,
     zIndex: 999
 }
+
+const timesheetMicroblogPosts: MicroblogPost[] = [
+    {
+        id: 1,
+        authorName: 'Timesheet Desk',
+        authorHandle: 'timesheet',
+        content: 'Keep updates short and clear. A good log is easier to review later.',
+        createdAt: '2h',
+        type: 'tips',
+        tags: [{ name: 'workflow' }],
+        likesCount: 12,
+        liked: false,
+    },
+    {
+        id: 2,
+        authorName: 'Operations',
+        authorHandle: 'ops',
+        content: 'Submit before the end of day if you want fewer manual follow-ups.',
+        createdAt: '4h',
+        type: 'announcement',
+        isPinned: true,
+        tags: [{ name: 'reminder' }],
+        likesCount: 24,
+        liked: true,
+    },
+    {
+        id: 3,
+        authorName: 'Team Lead',
+        authorHandle: 'lead',
+        content: 'If a task shifts scope, split the time log instead of rewriting the old entry.',
+        createdAt: '6h',
+        type: 'question',
+        tags: [{ name: 'quality' }],
+        likesCount: 7,
+        liked: false,
+    },
+];
 
 const TimeLogs = (props: any) => {
     const { resumeTimeLog, deleteTimeLog, timerRunning } = props;
@@ -199,8 +237,9 @@ const TimeLogs = (props: any) => {
     )
 }
 
-function App() {
+function AppContent() {
     const { data: timesheetData, isLoading: isFetchingTimelogs, isSuccess: isSuccessFetching } = useGetTimeLogsQuery()
+    const { mode } = useColorScheme();
     const [activities, setActivities] = useState<any>([])
     const [selectedActivity, setSelectedActivity] = useState<any>(null)
     const [projectInput, setProjectInput] = useState('')
@@ -690,8 +729,6 @@ function App() {
     }
 
     return (
-        <ThemeProvider theme={theme}>
-         <CssBaseline />
         <div className="App">
             <CircularMenu/>
             <ReportButton/>
@@ -744,7 +781,12 @@ function App() {
                 </Grid>
                 <Grid container style={{ marginTop: "50px" }}>
                     <Grid item md={2} xs={12} sx={{ display: { xs: 'none', md: 'block' } }} >
-                        <LeaderBoard/>
+                        <MicroblogFeed
+                            posts={timesheetMicroblogPosts}
+                            title="Updates"
+                            themeMode={mode === 'dark' ? 'dark' : 'light'}
+                            compact
+                        />
                     </Grid>
                     <Grid item md={8} xs={12}>
                         <Grid container spacing={1} className="timesheet-container">
@@ -978,6 +1020,14 @@ function App() {
                 }
             </div> : ''}
         </div>
+    );
+}
+
+function App() {
+    return (
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <AppContent />
         </ThemeProvider>
     );
 }
