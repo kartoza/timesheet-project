@@ -103,7 +103,7 @@ export default function UserActivities(props: any) {
     }
 
     return (
-        <Paper className={'leaderboard-container'}>
+        <Paper className={'sidebar-card'}>
             <Typography fontSize={15}>Today's</Typography>
             <List>
                 { activities ? activities.map(

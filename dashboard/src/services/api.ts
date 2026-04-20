@@ -1,5 +1,12 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import Cookies from "js-cookie";
+import type { MicroblogPost } from "../components/MicroblogFeed";
+
+export type PaginatedMicroblogResponse = {
+  results: MicroblogPost[];
+  count: number;
+  next: boolean;
+};
 
 const baseQuery = fetchBaseQuery({
   baseUrl: "/",
@@ -58,9 +65,21 @@ const baseQueryWithInterceptor = async (
   return results;
 };
 
+type LikeResponse = { liked: boolean; likesCount: number };
+
+export type CreateMicroblogPostPayload = {
+  content: string;
+  type: string;
+  tags: string[];
+  is_pinned: boolean;
+  pin_valid_until: string | null;
+  period_start: string | null;
+  period_end: string | null;
+};
+
 export const timesheetApi = createApi({
   baseQuery: baseQueryWithInterceptor,
-  tagTypes: ["TimeLog"],
+  tagTypes: ["TimeLog", "MicroblogPost"],
   endpoints: (build) => ({
     getTimeLogs: build.query<TimeLogResult, void>({
       query: () => "api/timelog/",
@@ -173,6 +192,44 @@ export const timesheetApi = createApi({
         return response;
       },
     }),
+    getMicroblogPosts: build.query<PaginatedMicroblogResponse, number>({
+      query: (page = 1) => `api/microblog/posts/?page=${page}`,
+      providesTags: ["MicroblogPost"],
+    }),
+    updateMicroblogPost: build.mutation<MicroblogPost, { id: number } & Partial<CreateMicroblogPostPayload>>({
+      query: ({ id, ...body }) => ({
+        url: `api/microblog/posts/${id}/update/`,
+        method: "PATCH",
+        headers: { ...apiHeaders, "Content-Type": "application/json" },
+        body,
+      }),
+      invalidatesTags: ["MicroblogPost"],
+    }),
+    deleteMicroblogPost: build.mutation<void, number>({
+      query: (id) => ({
+        url: `api/microblog/posts/${id}/delete/`,
+        method: "DELETE",
+        headers: apiHeaders,
+      }),
+      invalidatesTags: ["MicroblogPost"],
+    }),
+    createMicroblogPost: build.mutation<MicroblogPost, CreateMicroblogPostPayload>({
+      query: (body) => ({
+        url: "api/microblog/posts/create/",
+        method: "POST",
+        headers: { ...apiHeaders, "Content-Type": "application/json" },
+        body,
+      }),
+      invalidatesTags: ["MicroblogPost"],
+    }),
+    likeMicroblogPost: build.mutation<LikeResponse, number>({
+      query: (postId) => ({
+        url: `/api/microblog/posts/${postId}/like/`,
+        method: "POST",
+        headers: apiHeaders,
+      }),
+      invalidatesTags: ["MicroblogPost"],
+    }),
   }),
 });
 
@@ -186,4 +243,9 @@ export const {
   useClearSubmittedTimesheetsMutation,
   useBreakTimesheetMutation,
   usePauseTimesheetMutation,
+  useGetMicroblogPostsQuery,
+  useCreateMicroblogPostMutation,
+  useUpdateMicroblogPostMutation,
+  useDeleteMicroblogPostMutation,
+  useLikeMicroblogPostMutation,
 } = timesheetApi;

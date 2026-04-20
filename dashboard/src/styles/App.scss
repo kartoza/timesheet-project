@@ -29,6 +29,24 @@
   .modal {
     color: white;
   }
+  .microblog-title,
+  .microblog-post .post-content,
+  .microblog-post .author-name {
+    color: #f5f8fa;
+  }
+  .microblog-subtitle,
+  .microblog-post .author-handle,
+  .microblog-post .post-time,
+  .microblog-post .post-action,
+  .microblog-post .post-action span {
+    color: #8b98a5;
+  }
+  .microblog-post {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  .microblog-post:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
 }
 
 .App-logo {
@@ -104,17 +122,12 @@
     display: flex;
   }
 
-  .leaderboard-container {
+  .sidebar-card {
     position: absolute;
     text-align: left;
-    //font-family: 'Handjet', cursive;
     width: 14.5%;
     margin-left: 10px;
     padding: 10px;
-
-    //p {
-    //  font-family: 'Press Start 2P', cursive;
-    //}
   }
 
 }

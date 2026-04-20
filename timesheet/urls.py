@@ -32,6 +32,13 @@ from timesheet.api_views.erpnext_oauth import (
     ERPNextOAuthLoginCallbackView,
 )
 from timesheet.views import ManageView
+from microblog.api_views import (
+    MicroblogPostListView,
+    MicroblogPostCreateView,
+    MicroblogPostUpdateView,
+    MicroblogPostDeleteView,
+    MicroblogPostLikeView,
+)
 
 
 router = routers.DefaultRouter()
@@ -116,4 +123,19 @@ urlpatterns = [
     path('api/erpnext-oauth/login/callback/',
          ERPNextOAuthLoginCallbackView.as_view(),
          name='erpnext-oauth-login-callback'),
+    path('api/microblog/posts/',
+         MicroblogPostListView.as_view(),
+         name='microblog-posts'),
+    path('api/microblog/posts/create/',
+         MicroblogPostCreateView.as_view(),
+         name='microblog-post-create'),
+    path('api/microblog/posts/<int:post_id>/update/',
+         MicroblogPostUpdateView.as_view(),
+         name='microblog-post-update'),
+    path('api/microblog/posts/<int:post_id>/delete/',
+         MicroblogPostDeleteView.as_view(),
+         name='microblog-post-delete'),
+    path('api/microblog/posts/<int:post_id>/like/',
+         MicroblogPostLikeView.as_view(),
+         name='microblog-post-like'),
 ]

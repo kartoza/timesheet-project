@@ -20,7 +20,8 @@ import {
     TimeLog, useBreakTimesheetMutation, useDeleteTimeLogMutation,
     useDeleteAllTimeLogsMutation,
     useGetTimeLogsQuery,
-    useSubmitTimesheetMutation
+    useSubmitTimesheetMutation,
+    useGetMicroblogPostsQuery,
 } from "./services/api";
 import {
     ThemeProvider,
@@ -53,7 +54,7 @@ const TimeLogTable = React.lazy(() => import("./components/TimeLogTable"));
 const ScheduleInfo = React.lazy(() => import("./components/ScheduleInfo"));
 const ReactCanvasConfetti = React.lazy(() => import('react-canvas-confetti'));
 const UserActivities = React.lazy(() => import('./components/UserActivities'));
-const LeaderBoard = React.lazy(() => import('./components/LeaderBoard'));
+const MicroblogFeed = React.lazy(() => import('./components/MicroblogFeed'));
 const ProjectLinks = React.lazy(() => import('./components/ProjectLink'));
 const unavailableDates = (window as any).unavailableDates;
 const randomCompliments = [
@@ -87,6 +88,7 @@ const confettiStyle: CSSProperties = {
     left: 0,
     zIndex: 999
 }
+
 
 const TimeLogs = (props: any) => {
     const { resumeTimeLog, deleteTimeLog, timerRunning } = props;
@@ -199,8 +201,26 @@ const TimeLogs = (props: any) => {
     )
 }
 
-function App() {
+function AppContent() {
     const { data: timesheetData, isLoading: isFetchingTimelogs, isSuccess: isSuccessFetching } = useGetTimeLogsQuery()
+    const [microblogPage, setMicroblogPage] = useState(1);
+    const [allMicroblogPosts, setAllMicroblogPosts] = useState<import('./services/api').PaginatedMicroblogResponse['results']>([]);
+    const { currentData: microblogPageData } = useGetMicroblogPostsQuery(microblogPage, { pollingInterval: microblogPage === 1 ? 30000 : 0 });
+    const microblogHasMore = microblogPageData?.next ?? false;
+
+    useEffect(() => {
+        if (!microblogPageData) return;
+        if (microblogPage === 1) {
+            setAllMicroblogPosts(microblogPageData.results);
+        } else {
+            setAllMicroblogPosts(prev => [...prev, ...microblogPageData.results]);
+        }
+    }, [microblogPageData, microblogPage]);
+
+    const handleMicroblogLoadMore = useCallback(() => {
+        setMicroblogPage(prev => prev + 1);
+    }, []);
+    const { mode } = useColorScheme();
     const [activities, setActivities] = useState<any>([])
     const [selectedActivity, setSelectedActivity] = useState<any>(null)
     const [projectInput, setProjectInput] = useState('')
@@ -690,8 +710,6 @@ function App() {
     }
 
     return (
-        <ThemeProvider theme={theme}>
-         <CssBaseline />
         <div className="App">
             <CircularMenu/>
             <ReportButton/>
@@ -744,7 +762,14 @@ function App() {
                 </Grid>
                 <Grid container style={{ marginTop: "50px" }}>
                     <Grid item md={2} xs={12} sx={{ display: { xs: 'none', md: 'block' } }} >
-                        <LeaderBoard/>
+                        <MicroblogFeed
+                            posts={allMicroblogPosts}
+                            title="Updates"
+                            themeMode={mode === 'dark' ? 'dark' : mode === 'light' ? 'light' : 'auto'}
+                            compact
+                            hasMore={microblogHasMore}
+                            onLoadMore={handleMicroblogLoadMore}
+                        />
                     </Grid>
                     <Grid item md={8} xs={12}>
                         <Grid container spacing={1} className="timesheet-container">
@@ -978,6 +1003,14 @@ function App() {
                 }
             </div> : ''}
         </div>
+    );
+}
+
+function App() {
+    return (
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <AppContent />
         </ThemeProvider>
     );
 }
