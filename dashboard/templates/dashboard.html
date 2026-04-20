@@ -10,6 +10,25 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <script>
+        (function() {
+            try {
+                var mode = localStorage.getItem('mui-mode') || 'system';
+                var dark = localStorage.getItem('mui-color-scheme-dark') || 'dark';
+                var light = localStorage.getItem('mui-color-scheme-light') || 'light';
+                var colorScheme;
+                if (mode === 'system') {
+                    colorScheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? dark : light;
+                } else if (mode === 'dark') {
+                    colorScheme = dark;
+                } else {
+                    colorScheme = light;
+                }
+                document.documentElement.classList.remove('dark', 'light');
+                document.documentElement.classList.add(colorScheme);
+            } catch(e) {}
+        })();
+    </script>
+    <script>
         const csrfToken = "{{ csrf_token }}";
         window.hasKeys = {% if has_keys %}true{% else %}false{% endif %};
         window.isLoggedIn = {% if user.is_authenticated %}true{% else %}false{% endif %};

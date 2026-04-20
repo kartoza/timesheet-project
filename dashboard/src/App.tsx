@@ -20,7 +20,8 @@ import {
     TimeLog, useBreakTimesheetMutation, useDeleteTimeLogMutation,
     useDeleteAllTimeLogsMutation,
     useGetTimeLogsQuery,
-    useSubmitTimesheetMutation
+    useSubmitTimesheetMutation,
+    useGetMicroblogPostsQuery,
 } from "./services/api";
 import {
     ThemeProvider,
@@ -35,7 +36,6 @@ import {
 } from './loadable/Icon';
 import Loader from './loadable/Loader';
 import TimeLogChildList from "./components/TimeLogChildList";
-import type { MicroblogPost } from './components/MicroblogFeed';
 import {
     breakTimeLogSignal,
     cloneTimeLogSignal,
@@ -89,42 +89,6 @@ const confettiStyle: CSSProperties = {
     zIndex: 999
 }
 
-const timesheetMicroblogPosts: MicroblogPost[] = [
-    {
-        id: 1,
-        authorName: 'Timesheet Desk',
-        authorHandle: 'timesheet',
-        content: 'Keep updates short and clear. A good log is easier to review later.',
-        createdAt: '2h',
-        type: 'tips',
-        tags: [{ name: 'workflow' }],
-        likesCount: 12,
-        liked: false,
-    },
-    {
-        id: 2,
-        authorName: 'Operations',
-        authorHandle: 'ops',
-        content: 'Submit before the end of day if you want fewer manual follow-ups.',
-        createdAt: '4h',
-        type: 'announcement',
-        isPinned: true,
-        tags: [{ name: 'reminder' }],
-        likesCount: 24,
-        liked: true,
-    },
-    {
-        id: 3,
-        authorName: 'Team Lead',
-        authorHandle: 'lead',
-        content: 'If a task shifts scope, split the time log instead of rewriting the old entry.',
-        createdAt: '6h',
-        type: 'question',
-        tags: [{ name: 'quality' }],
-        likesCount: 7,
-        liked: false,
-    },
-];
 
 const TimeLogs = (props: any) => {
     const { resumeTimeLog, deleteTimeLog, timerRunning } = props;
@@ -239,6 +203,23 @@ const TimeLogs = (props: any) => {
 
 function AppContent() {
     const { data: timesheetData, isLoading: isFetchingTimelogs, isSuccess: isSuccessFetching } = useGetTimeLogsQuery()
+    const [microblogPage, setMicroblogPage] = useState(1);
+    const [allMicroblogPosts, setAllMicroblogPosts] = useState<import('./services/api').PaginatedMicroblogResponse['results']>([]);
+    const { currentData: microblogPageData } = useGetMicroblogPostsQuery(microblogPage, { pollingInterval: microblogPage === 1 ? 30000 : 0 });
+    const microblogHasMore = microblogPageData?.next ?? false;
+
+    useEffect(() => {
+        if (!microblogPageData) return;
+        if (microblogPage === 1) {
+            setAllMicroblogPosts(microblogPageData.results);
+        } else {
+            setAllMicroblogPosts(prev => [...prev, ...microblogPageData.results]);
+        }
+    }, [microblogPageData, microblogPage]);
+
+    const handleMicroblogLoadMore = useCallback(() => {
+        setMicroblogPage(prev => prev + 1);
+    }, []);
     const { mode } = useColorScheme();
     const [activities, setActivities] = useState<any>([])
     const [selectedActivity, setSelectedActivity] = useState<any>(null)
@@ -782,10 +763,12 @@ function AppContent() {
                 <Grid container style={{ marginTop: "50px" }}>
                     <Grid item md={2} xs={12} sx={{ display: { xs: 'none', md: 'block' } }} >
                         <MicroblogFeed
-                            posts={timesheetMicroblogPosts}
+                            posts={allMicroblogPosts}
                             title="Updates"
-                            themeMode={mode === 'dark' ? 'dark' : 'light'}
+                            themeMode={mode === 'dark' ? 'dark' : mode === 'light' ? 'light' : 'auto'}
                             compact
+                            hasMore={microblogHasMore}
+                            onLoadMore={handleMicroblogLoadMore}
                         />
                     </Grid>
                     <Grid item md={8} xs={12}>

@@ -17,6 +17,18 @@ function getSurfaceMode(): 'light' | 'dark' {
     return 'light';
   }
 
+  // MUI persists the mode in localStorage — read it synchronously so the correct
+  // theme is applied on the very first render without a flash.
+  try {
+    const mode = localStorage.getItem('mui-mode') || 'system';
+    if (mode === 'dark') return 'dark';
+    if (mode === 'light') return 'light';
+    // 'system' — fall through to matchMedia below
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  } catch {
+    // localStorage may be unavailable (e.g. private browsing restrictions)
+  }
+
   const background =
     window.getComputedStyle(document.body).backgroundColor ||
     window.getComputedStyle(document.documentElement).backgroundColor;

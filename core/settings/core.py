@@ -143,6 +143,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 INSTALLED_APPS += [
     'dbbackup',
     'dashboard',
+    'microblog',
     'timesheet',
     'schedule'
 ]
@@ -195,7 +196,7 @@ SPECTACULAR_SETTINGS = {
 
 ERPNEXT_TOKEN = os.getenv('ERPNEXT_TOKEN', '')
 ERPNEXT_SITE_LOCATION = os.getenv('ERPNEXT_SITE_LOCATION',
-                                  'https://kartoza.com')
+                                  'https://erp.kartoza.com')
 
 ERPNEXT_OAUTH_CLIENT_ID = os.getenv('ERPNEXT_OAUTH_CLIENT_ID', '')
 ERPNEXT_OAUTH_CLIENT_SECRET = os.getenv('ERPNEXT_OAUTH_CLIENT_SECRET', '')

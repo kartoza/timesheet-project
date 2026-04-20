@@ -1,5 +1,19 @@
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
+from django.utils import timezone
+
+
+class PostQuerySet(models.QuerySet):
+    def visible(self):
+        now = timezone.now()
+        return self.filter(
+            is_published=True
+        ).filter(
+            Q(period_start__isnull=True) | Q(period_start__lte=now)
+        ).filter(
+            Q(period_end__isnull=True) | Q(period_end__gte=now)
+        )
 
 
 class Post(models.Model):
@@ -35,6 +49,14 @@ class Post(models.Model):
         blank=True,
         related_name='posts'
     )
+    period_start = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+    period_end = models.DateTimeField(
+        null=True,
+        blank=True
+    )
     is_published = models.BooleanField(
         default=True
     )
@@ -52,11 +74,22 @@ class Post(models.Model):
         auto_now=True
     )
 
+    objects = PostQuerySet.as_manager()
+
     class Meta:
         ordering = ['-created_at']
 
     def __str__(self):
         return self.content[:50]
+
+    @property
+    def is_visible(self):
+        now = timezone.now()
+        return (
+            self.is_published
+            and (self.period_start is None or self.period_start <= now)
+            and (self.period_end is None or self.period_end >= now)
+        )
 
 
 class Tag(models.Model):
