@@ -4,7 +4,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import serializers
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse, inline_serializer
+from drf_spectacular.types import OpenApiTypes
 
 from microblog.models import Post, Tag, Like
 
@@ -84,7 +85,21 @@ class PostSerializer(serializers.ModelSerializer):
 PAGE_SIZE = 10
 
 
-@extend_schema(exclude=True)
+@extend_schema(
+    tags=['Updates'],
+    summary='List posts',
+    description='Returns a paginated list of visible posts, with pinned posts sorted to the top.',
+    parameters=[
+        OpenApiParameter('page', OpenApiTypes.INT, OpenApiParameter.QUERY, description='Page number (default: 1)'),
+    ],
+    responses={
+        200: inline_serializer('PostListResponse', fields={
+            'results': PostSerializer(many=True),
+            'count': serializers.IntegerField(),
+            'next': serializers.BooleanField(),
+        }),
+    },
+)
 class MicroblogPostListView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -155,7 +170,13 @@ class PostCreateSerializer(serializers.Serializer):
         return attrs
 
 
-@extend_schema(exclude=True)
+@extend_schema(
+    tags=['Updates'],
+    summary='Create a post',
+    description='Creates a new post. Pinning requires staff permissions.',
+    request=PostCreateSerializer,
+    responses={201: PostSerializer},
+)
 class MicroblogPostCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -183,7 +204,13 @@ class MicroblogPostCreateView(APIView):
         return Response(PostSerializer(post, context={'request': request}).data, status=201)
 
 
-@extend_schema(exclude=True)
+@extend_schema(
+    tags=['Updates'],
+    summary='Update a post',
+    description='Partially updates a post. Only the post author can update it.',
+    request=PostCreateSerializer,
+    responses={200: PostSerializer, 404: OpenApiResponse(description='Post not found.')},
+)
 class MicroblogPostUpdateView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -222,7 +249,12 @@ class MicroblogPostUpdateView(APIView):
         return Response(PostSerializer(post, context={'request': request}).data)
 
 
-@extend_schema(exclude=True)
+@extend_schema(
+    tags=['Updates'],
+    summary='Delete a post',
+    description='Deletes a post. Only the post author can delete it.',
+    responses={204: OpenApiResponse(description='Deleted.'), 404: OpenApiResponse(description='Post not found.')},
+)
 class MicroblogPostDeleteView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -235,7 +267,18 @@ class MicroblogPostDeleteView(APIView):
         return Response(status=204)
 
 
-@extend_schema(exclude=True)
+@extend_schema(
+    tags=['Updates'],
+    summary='Like or unlike a post',
+    description='Toggles the like state for the authenticated user on the given post.',
+    responses={
+        200: inline_serializer('LikeResponse', fields={
+            'liked': serializers.BooleanField(),
+            'likesCount': serializers.IntegerField(),
+        }),
+        404: OpenApiResponse(description='Post not found.'),
+    },
+)
 class MicroblogPostLikeView(APIView):
     permission_classes = [IsAuthenticated]
 
