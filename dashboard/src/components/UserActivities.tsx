@@ -55,6 +55,15 @@ export default function UserActivities(props: any) {
         return () => clearInterval(intervalId);
     }, []);
 
+    function formatLastActive(iso: string | null): string {
+        if (!iso) return '';
+        const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+        if (diff < 60) return 'just now';
+        if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+        return `${Math.floor(diff / 86400)}d ago`;
+    }
+
     function convertToDateTime(timeStr: string) {
         const currentDate = new Date();
         const [time, period] = timeStr.split(' ');
@@ -127,6 +136,12 @@ export default function UserActivities(props: any) {
                             </Typography>
                             <Typography fontSize={12} style={{marginLeft: 'auto'}}>
                                 {data['task']} - (<span>{data['duration'].toFixed(2)}</span>)
+                            </Typography>
+                        </ListItem> : null }
+                        { !data['is_active'] && data['last_active'] ?
+                        <ListItem disablePadding>
+                            <Typography fontSize={10} color="text.secondary" style={{ marginLeft: 'auto' }}>
+                                last active {formatLastActive(data['last_active'])}
                             </Typography>
                         </ListItem> : null }
                     </ListItem>

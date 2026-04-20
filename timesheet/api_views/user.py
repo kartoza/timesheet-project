@@ -70,6 +70,7 @@ class UserSerializer(serializers.ModelSerializer):
     duration = serializers.SerializerMethodField()
     total = serializers.SerializerMethodField()
     clock = serializers.SerializerMethodField()
+    last_active = serializers.SerializerMethodField()
 
     def get_cached_data(self, cache_key, serializer_data):
         cached_data = cache.get(cache_key)
@@ -227,6 +228,17 @@ class UserSerializer(serializers.ModelSerializer):
     def get_total(self, obj):
         return self.context.get('total_duration_today', 0)
 
+    def get_last_active(self, obj):
+        last_timelog = (
+            Timelog.objects.filter(user=obj, end_time__isnull=False)
+            .order_by('-end_time')
+            .first()
+        )
+        if not last_timelog:
+            return None
+        end_time = convert_time_to_user_timezone(last_timelog.end_time, obj.profile.timezone)
+        return end_time.isoformat()
+
     class Meta:
         model = get_user_model()
         fields = [
@@ -238,7 +250,8 @@ class UserSerializer(serializers.ModelSerializer):
             'task',
             'duration',
             'total',
-            'clock'
+            'clock',
+            'last_active',
         ]
 
 
