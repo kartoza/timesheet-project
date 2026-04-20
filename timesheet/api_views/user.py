@@ -236,8 +236,7 @@ class UserSerializer(serializers.ModelSerializer):
         )
         if not last_timelog:
             return None
-        end_time = convert_time_to_user_timezone(last_timelog.end_time, obj.profile.timezone)
-        return end_time.isoformat()
+        return last_timelog.end_time.isoformat()
 
     class Meta:
         model = get_user_model()
