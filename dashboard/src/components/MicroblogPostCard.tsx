@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
@@ -82,8 +82,21 @@ export default function MicroblogPostCard(props: MicroblogPostCardProps) {
   const [editOpen, setEditOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const contentRef = useRef<HTMLParagraphElement>(null);
 
   const MAX_LINES = 4;
+
+  useEffect(() => {
+    if (expanded) return;
+    const el = contentRef.current;
+    if (!el) return;
+    const check = () => setIsOverflowing(el.scrollHeight > el.clientHeight);
+    check();
+    const observer = new ResizeObserver(check);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [post.content, expanded]);
 
   const handleLike = async () => {
     const optimisticLiked = !liked;
@@ -141,6 +154,7 @@ export default function MicroblogPostCard(props: MicroblogPostCardProps) {
           </Box>
 
           <Typography
+            ref={contentRef}
             variant="body1"
             className="post-content"
             sx={!expanded ? {
@@ -152,7 +166,7 @@ export default function MicroblogPostCard(props: MicroblogPostCardProps) {
           >
             {renderContentWithLinks(post.content)}
           </Typography>
-          {post.content.split('\n').length > MAX_LINES || post.content.length > 300 ? (
+          {isOverflowing || expanded ? (
             <Typography
               variant="body2"
               onClick={() => setExpanded((v) => !v)}

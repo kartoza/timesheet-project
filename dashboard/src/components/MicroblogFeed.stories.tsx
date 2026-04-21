@@ -81,7 +81,7 @@ export const Default: Story = {
         authorName: 'Ops Monitor',
         authorHandle: 'ops',
         content:
-          'Warning: the staging cache is serving stale data after the latest deploy. Avoid validating API changes there until the cache reset finishes.',
+          'Warning: the staging cache is serving stale data after the latest deploy. \n\n\n Avoid validating API changes there until the cache reset finishes.',
         createdAt: '2026-04-16T15:45:00Z',
         tags: [{ name: 'warning' }, { name: 'staging' }],
         likesCount: 21,
