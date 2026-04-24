@@ -38,6 +38,10 @@ from microblog.api_views import (
     MicroblogPostUpdateView,
     MicroblogPostDeleteView,
     MicroblogPostLikeView,
+    ScheduledPostConfigListView,
+    ScheduledPostConfigCreateView,
+    ScheduledPostConfigUpdateView,
+    ScheduledPostConfigDeleteView,
 )
 
 
@@ -138,4 +142,16 @@ urlpatterns = [
     path('api/microblog/posts/<int:post_id>/like/',
          MicroblogPostLikeView.as_view(),
          name='microblog-post-like'),
+    path('api/microblog/scheduled-configs/',
+         ScheduledPostConfigListView.as_view(),
+         name='microblog-scheduled-config-list'),
+    path('api/microblog/scheduled-configs/create/',
+         ScheduledPostConfigCreateView.as_view(),
+         name='microblog-scheduled-config-create'),
+    path('api/microblog/scheduled-configs/<int:config_id>/update/',
+         ScheduledPostConfigUpdateView.as_view(),
+         name='microblog-scheduled-config-update'),
+    path('api/microblog/scheduled-configs/<int:config_id>/delete/',
+         ScheduledPostConfigDeleteView.as_view(),
+         name='microblog-scheduled-config-delete'),
 ]

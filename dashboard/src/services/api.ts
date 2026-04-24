@@ -67,6 +67,33 @@ const baseQueryWithInterceptor = async (
 
 type LikeResponse = { liked: boolean; likesCount: number };
 
+export type ScheduledPostConfig = {
+  id: number;
+  name: string;
+  rss_url: string;
+  post_type: string;
+  posts_per_day: number;
+  display_duration_hours: number;
+  is_active: boolean;
+  author: number;
+  authorName: string;
+  tags: { id?: number; name: string }[];
+  last_fetched_at: string | null;
+  last_item_guid: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ScheduledPostConfigPayload = {
+  name: string;
+  rss_url: string;
+  post_type: string;
+  posts_per_day: number;
+  display_duration_hours: number;
+  is_active: boolean;
+  tags: string[];
+};
+
 export type CreateMicroblogPostPayload = {
   content: string;
   type: string;
@@ -79,7 +106,7 @@ export type CreateMicroblogPostPayload = {
 
 export const timesheetApi = createApi({
   baseQuery: baseQueryWithInterceptor,
-  tagTypes: ["TimeLog", "MicroblogPost"],
+  tagTypes: ["TimeLog", "MicroblogPost", "ScheduledPostConfig"],
   endpoints: (build) => ({
     getTimeLogs: build.query<TimeLogResult, void>({
       query: () => "api/timelog/",
@@ -230,6 +257,36 @@ export const timesheetApi = createApi({
       }),
       invalidatesTags: ["MicroblogPost"],
     }),
+    getScheduledPostConfigs: build.query<ScheduledPostConfig[], void>({
+      query: () => "api/microblog/scheduled-configs/",
+      providesTags: ["ScheduledPostConfig"],
+    }),
+    createScheduledPostConfig: build.mutation<ScheduledPostConfig, ScheduledPostConfigPayload>({
+      query: (body) => ({
+        url: "api/microblog/scheduled-configs/create/",
+        method: "POST",
+        headers: { ...apiHeaders, "Content-Type": "application/json" },
+        body,
+      }),
+      invalidatesTags: ["ScheduledPostConfig"],
+    }),
+    updateScheduledPostConfig: build.mutation<ScheduledPostConfig, { id: number } & Partial<ScheduledPostConfigPayload>>({
+      query: ({ id, ...body }) => ({
+        url: `api/microblog/scheduled-configs/${id}/update/`,
+        method: "PATCH",
+        headers: { ...apiHeaders, "Content-Type": "application/json" },
+        body,
+      }),
+      invalidatesTags: ["ScheduledPostConfig"],
+    }),
+    deleteScheduledPostConfig: build.mutation<void, number>({
+      query: (id) => ({
+        url: `api/microblog/scheduled-configs/${id}/delete/`,
+        method: "DELETE",
+        headers: apiHeaders,
+      }),
+      invalidatesTags: ["ScheduledPostConfig"],
+    }),
   }),
 });
 
@@ -248,4 +305,8 @@ export const {
   useUpdateMicroblogPostMutation,
   useDeleteMicroblogPostMutation,
   useLikeMicroblogPostMutation,
+  useGetScheduledPostConfigsQuery,
+  useCreateScheduledPostConfigMutation,
+  useUpdateScheduledPostConfigMutation,
+  useDeleteScheduledPostConfigMutation,
 } = timesheetApi;

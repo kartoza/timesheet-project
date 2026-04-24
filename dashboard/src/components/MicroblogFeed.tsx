@@ -5,11 +5,15 @@ import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 import '../styles/Microblog.scss';
 import MicroblogPostCard from './MicroblogPostCard';
 import MicroblogPostForm from './MicroblogPostForm';
+import ScheduledPostConfigDialog from './ScheduledPostConfigDialog';
 import useResolvedThemeMode from './useResolvedThemeMode';
+
+const isStaff = (window as any).isStaff;
 
 export type MicroblogTag = {
   id?: number;
@@ -53,17 +57,26 @@ export default function MicroblogFeed(props: MicroblogFeedProps) {
   const { posts, title = 'Feeds', themeMode = 'light', compact = false, hasMore = false, onLoadMore } = props;
   const resolvedThemeMode = useResolvedThemeMode(themeMode);
   const [formOpen, setFormOpen] = useState(false);
+  const [configOpen, setConfigOpen] = useState(false);
 
   return (
     <Paper className={`microblog-theme-${resolvedThemeMode} microblog-feed-compact sidebar-card`}>
       <Box className="microblog-header" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Typography fontSize={15}>{title}</Typography>
-        <IconButton size="small" onClick={() => setFormOpen(true)} title="New post">
-          <AddCircleOutlineIcon fontSize="small" />
-        </IconButton>
+        <Box>
+          {isStaff && (
+            <IconButton size="small" onClick={() => setConfigOpen(true)} title="Scheduled post configs">
+              <SettingsIcon fontSize="small" />
+            </IconButton>
+          )}
+          <IconButton size="small" onClick={() => setFormOpen(true)} title="New post">
+            <AddCircleOutlineIcon fontSize="small" />
+          </IconButton>
+        </Box>
       </Box>
 
       <MicroblogPostForm open={formOpen} onClose={() => setFormOpen(false)} />
+      {isStaff && <ScheduledPostConfigDialog open={configOpen} onClose={() => setConfigOpen(false)} />}
 
       {posts.length === 0 ? (
         <Box className="microblog-empty">

@@ -1,6 +1,6 @@
 from django.db.models import BooleanField, Case, Value, When
 from django.utils import timezone
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import serializers
@@ -8,6 +8,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiRespon
 from drf_spectacular.types import OpenApiTypes
 
 from microblog.models import Post, Tag, Like
+from microblog.models.scheduled_post_config import ScheduledPostConfig
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -300,3 +301,147 @@ class MicroblogPostLikeView(APIView):
             'liked': liked,
             'likesCount': post.likes.count(),
         })
+
+
+# ---------------------------------------------------------------------------
+# Scheduled Post Config
+# ---------------------------------------------------------------------------
+
+class ScheduledPostConfigSerializer(serializers.ModelSerializer):
+    tags = TagSerializer(many=True, read_only=True)
+    authorName = serializers.SerializerMethodField()
+
+    def get_authorName(self, obj):
+        full_name = obj.author.get_full_name()
+        return full_name if full_name else obj.author.username
+
+    class Meta:
+        model = ScheduledPostConfig
+        fields = [
+            'id',
+            'name',
+            'rss_url',
+            'post_type',
+            'posts_per_day',
+            'display_duration_hours',
+            'is_active',
+            'author',
+            'authorName',
+            'tags',
+            'last_fetched_at',
+            'last_item_guid',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['last_fetched_at', 'last_item_guid', 'created_at', 'updated_at']
+
+
+class ScheduledPostConfigWriteSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=200)
+    rss_url = serializers.URLField()
+    post_type = serializers.ChoiceField(choices=[c[0] for c in Post.TYPE_CHOICES], default='default')
+    posts_per_day = serializers.IntegerField(min_value=1, max_value=100, default=1)
+    display_duration_hours = serializers.IntegerField(min_value=1, default=24)
+    is_active = serializers.BooleanField(default=True)
+    tags = serializers.ListField(child=serializers.CharField(), required=False, default=list)
+
+
+@extend_schema(
+    tags=['Updates'],
+    summary='List scheduled post configs',
+    description='Returns all RSS-based scheduled post configs. Staff only.',
+    responses={200: ScheduledPostConfigSerializer(many=True)},
+)
+class ScheduledPostConfigListView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        configs = ScheduledPostConfig.objects.prefetch_related('tags').all()
+        return Response(ScheduledPostConfigSerializer(configs, many=True).data)
+
+
+@extend_schema(
+    tags=['Updates'],
+    summary='Create scheduled post config',
+    description='Creates a new RSS-based scheduled post config. Staff only.',
+    request=ScheduledPostConfigWriteSerializer,
+    responses={201: ScheduledPostConfigSerializer},
+)
+class ScheduledPostConfigCreateView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        serializer = ScheduledPostConfigWriteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        config = ScheduledPostConfig.objects.create(
+            name=data['name'],
+            rss_url=data['rss_url'],
+            post_type=data['post_type'],
+            posts_per_day=data['posts_per_day'],
+            display_duration_hours=data['display_duration_hours'],
+            is_active=data['is_active'],
+            author=request.user,
+        )
+        for tag_name in data.get('tags', []):
+            tag_name = tag_name.strip().lstrip('#')
+            if tag_name:
+                tag, _ = Tag.objects.get_or_create(name=tag_name)
+                config.tags.add(tag)
+
+        return Response(ScheduledPostConfigSerializer(config).data, status=201)
+
+
+@extend_schema(
+    tags=['Updates'],
+    summary='Update scheduled post config',
+    description='Partially updates a scheduled post config. Staff only.',
+    request=ScheduledPostConfigWriteSerializer,
+    responses={200: ScheduledPostConfigSerializer, 404: OpenApiResponse(description='Not found.')},
+)
+class ScheduledPostConfigUpdateView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def patch(self, request, config_id):
+        try:
+            config = ScheduledPostConfig.objects.get(pk=config_id)
+        except ScheduledPostConfig.DoesNotExist:
+            return Response({'detail': 'Not found.'}, status=404)
+
+        serializer = ScheduledPostConfigWriteSerializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        for field in ('name', 'rss_url', 'post_type', 'posts_per_day', 'display_duration_hours', 'is_active'):
+            if field in data:
+                setattr(config, field, data[field])
+        config.save()
+
+        if 'tags' in data:
+            config.tags.clear()
+            for tag_name in data['tags']:
+                tag_name = tag_name.strip().lstrip('#')
+                if tag_name:
+                    tag, _ = Tag.objects.get_or_create(name=tag_name)
+                    config.tags.add(tag)
+
+        return Response(ScheduledPostConfigSerializer(config).data)
+
+
+@extend_schema(
+    tags=['Updates'],
+    summary='Delete scheduled post config',
+    description='Deletes a scheduled post config. Staff only.',
+    responses={204: OpenApiResponse(description='Deleted.'), 404: OpenApiResponse(description='Not found.')},
+)
+class ScheduledPostConfigDeleteView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def delete(self, request, config_id):
+        try:
+            config = ScheduledPostConfig.objects.get(pk=config_id)
+        except ScheduledPostConfig.DoesNotExist:
+            return Response({'detail': 'Not found.'}, status=404)
+        config.delete()
+        return Response(status=204)
