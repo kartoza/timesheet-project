@@ -494,6 +494,27 @@
   min-width: 0;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .microblog-post-question::before,
+  .microblog-post-warning::before,
+  .microblog-post-tips::before {
+    animation: none;
+    background: none;
+  }
+
+  .microblog-post-question {
+    border: 2px solid rgba(99, 102, 241, 0.7);
+  }
+
+  .microblog-post-warning {
+    border: 2px solid rgba(249, 115, 22, 0.7);
+  }
+
+  .microblog-post-tips {
+    border: 2px solid rgba(16, 185, 129, 0.7);
+  }
+}
+
 .microblog-meta {
   display: flex;
   justify-content: space-between;

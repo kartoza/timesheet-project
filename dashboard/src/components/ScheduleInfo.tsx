@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
-import {Tooltip} from '@mui/material';
+import {Tooltip, useColorScheme} from '@mui/material';
 import NotesIcon from '@mui/icons-material/Notes';
+import TimelapseIcon from '@mui/icons-material/Timelapse';
 import '../styles/Schedule.scss';
 import {generateColor} from "../utils/Theme";
 
@@ -16,7 +17,24 @@ export default function ScheduleInfo(props: ScheduleInfoProps) {
     const [rawDates, setRawDates] = useState<string[]>([])
     const [scheduleData, setScheduleData] = useState<any>(null)
 
-    const todayFormatted = new Date().toLocaleString('default', { day: 'numeric', month: 'short' });
+    const { mode, systemMode } = useColorScheme();
+    const isDark = mode === 'dark' || (mode === 'system' && systemMode === 'dark');
+
+    const getFormattedToday = () => new Date().toLocaleString('default', { day: 'numeric', month: 'short' });
+    const [todayFormatted, setTodayFormatted] = useState(getFormattedToday);
+
+    useEffect(() => {
+        const scheduleNextTick = () => {
+            const now = new Date();
+            const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime();
+            return setTimeout(() => {
+                setTodayFormatted(getFormattedToday());
+                timeoutRef.current = scheduleNextTick();
+            }, msUntilMidnight);
+        };
+        const timeoutRef = { current: scheduleNextTick() };
+        return () => clearTimeout(timeoutRef.current);
+    }, []);
 
     function getDayIndex(startTime: string, rawDatesArray: string[]): number {
         const startDate = new Date(startTime);
@@ -57,6 +75,27 @@ export default function ScheduleInfo(props: ScheduleInfoProps) {
     }, [])
 
     return (<div className={'schedule-container'}>
+        <div className="running-track-wrapper">
+            <div className="running-track-labels">
+                {[1,2,3,4,5].map(n => {
+                    const isToday = scheduleDate ? scheduleDate[n - 1] === todayFormatted : false;
+                    return (
+                        <div key={n} className="running-track-labels__item">
+                            <img
+                                src={`/static/run-${n}.png`}
+                                alt={`Run ${n}`}
+                                className="running-track-labels__icon"
+                                style={{
+                                    opacity: isToday ? 1 : 0.25,
+                                    filter: isDark ? 'invert(1)' : undefined,
+                                }}
+                            />
+                        </div>
+                    );
+                })}
+            </div>
+            <div className="running-track" />
+        </div>
         <div style={{ display: 'flex', width: '100%' }}>
             {scheduleDate ? scheduleDate.map((dateString: string, index: number) => (
                 <div
@@ -104,7 +143,7 @@ export default function ScheduleInfo(props: ScheduleInfoProps) {
                     });
 
                     return rows.map((row, rowIndex) => (
-                        <div key={rowIndex} style={{ display: 'flex', width: '100%', position: 'relative', height: '70px' }}>
+                        <div key={rowIndex} style={{ display: 'flex', width: '100%', position: 'relative', height: '36px' }}>
                             {row.map((schedule: any, index: number) => {
                                 const leftPercent = (schedule.dayIndex / 5) * 100;
                                 const widthPercent = (schedule.duration / 5) * 100;
@@ -122,49 +161,41 @@ export default function ScheduleInfo(props: ScheduleInfoProps) {
                                     );
                                 };
 
+                                const color = generateColor(schedule.schedule.project_name);
+                                const displayColor = isDark ? `color-mix(in srgb, ${color} 70%, white)` : color;
+                                const textColor = isDark ? undefined : 'rgba(0,0,0,0.8)';
                                 return (
-                                    <Tooltip
+                                    <div
                                         key={index}
-                                        title={schedule.schedule.notes || ''}
-                                        arrow
-                                        placement="top"
-                                        enterDelay={500}
+                                        style={{
+                                            position: 'absolute',
+                                            left: `${leftPercent}%`,
+                                            width: `${widthPercent}%`,
+                                            cursor: props.timerRunning ? 'not-allowed' : 'pointer',
+                                            borderLeft: `3px solid ${displayColor}`,
+                                            background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+                                            boxSizing: 'border-box',
+                                            height: '36px'
+                                        }}
+                                        className="hover-animation schedule-item"
+                                        onClick={handleClick}
                                     >
-                                        <div
-                                            style={{
-                                                position: 'absolute',
-                                                left: `${leftPercent}%`,
-                                                width: `${widthPercent}%`,
-                                                cursor: props.timerRunning ? 'not-allowed' : 'pointer',
-                                                backgroundColor: generateColor(schedule.schedule.project_name),
-                                                padding: '8px',
-                                                boxSizing: 'border-box',
-                                                height: '70px'
-                                            }}
-                                            className="hover-animation schedule-item"
-                                            onClick={handleClick}
-                                        >
-                                            <div className={'schedule-project-name'}>{schedule.schedule.project_name}</div>
-                                            <div style={{
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap'
-                                            }}>{schedule.schedule.task_label}</div>
-                                            {schedule.schedule.notes ?
-                                                <div style={{
-                                                    marginTop: 2,
-                                                    alignItems: 'center',
-                                                }}>
-                                                    <span style={{
-                                                        overflow: 'hidden',
-                                                        textOverflow: 'ellipsis',
-                                                        whiteSpace: 'nowrap'
-                                                    }}>
-                                                        📝 {schedule.schedule.notes.split('\n')[0]}
-                                                    </span>
-                                                </div> : null}
+                                        <div className="schedule-item__row">
+                                            <span className="schedule-project-name" style={{ color: displayColor }}>{schedule.schedule.project_name}</span>
+                                            <span className="schedule-item__separator">·</span>
+                                            <span className="schedule-item__task" style={{ color: textColor }}>{schedule.schedule.task_label}</span>
+                                            {schedule.schedule.hours_per_day === 3.5 &&
+                                                <Tooltip title="Half day (3.5h)" arrow placement="top" enterDelay={200}>
+                                                    <TimelapseIcon className="schedule-item__note-icon" sx={{ fontSize: 12, color: isDark ? undefined : 'rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()} />
+                                                </Tooltip>
+                                            }
+                                            {schedule.schedule.notes &&
+                                                <Tooltip title={schedule.schedule.notes} arrow placement="top" enterDelay={200}>
+                                                    <NotesIcon className="schedule-item__note-icon" sx={{ fontSize: 12, color: isDark ? undefined : 'rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()} />
+                                                </Tooltip>
+                                            }
                                         </div>
-                                    </Tooltip>
+                                    </div>
                                 );
                             })}
                         </div>

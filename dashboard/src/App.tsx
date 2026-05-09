@@ -12,6 +12,7 @@ import Backdrop from '@mui/material/Backdrop';
 import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
 import { CssBaseline } from '@mui/material';
+import Tooltip from '@mui/material/Tooltip';
 
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
@@ -33,6 +34,7 @@ import {
     SendIcon,
     LightModeIcon,
     DarkModeIcon,
+    AnimationIcon,
 } from './loadable/Icon';
 import Loader from './loadable/Loader';
 import TimeLogChildList from "./components/TimeLogChildList";
@@ -63,6 +65,12 @@ const randomCompliments = [
     'Timesheet superstar!',
     'Like clockwork!',
 ]
+export const ANIMATIONS_STORAGE_KEY = 'timesheet-animations-enabled';
+
+type HeaderTogglesProps = {
+    animationsEnabled: boolean;
+    onToggleAnimations: () => void;
+}
 
 export function ModeToggle() {
     const { mode, setMode } = useColorScheme();
@@ -76,6 +84,24 @@ export function ModeToggle() {
                 <DarkModeIcon/>
             </ToggleButton>
         </ToggleButtonGroup>
+    );
+}
+
+export function HeaderToggles({ animationsEnabled, onToggleAnimations }: HeaderTogglesProps) {
+    return (
+        <div className="header-toggles">
+            <Tooltip title={animationsEnabled ? 'Disable animations' : 'Enable animations'}>
+                <ToggleButton
+                    value="animations"
+                    selected={animationsEnabled}
+                    onChange={onToggleAnimations}
+                    style={{ height: 40 }}
+                >
+                    <AnimationIcon />
+                </ToggleButton>
+            </Tooltip>
+            <ModeToggle />
+        </div>
     );
 }
 
@@ -95,6 +121,8 @@ const TimeLogs = (props: any) => {
 
     const { data: timesheetData, isLoading, isSuccess } = useGetTimeLogsQuery()
     let totalDraftHours = 0
+    let totalBillableHours = 0
+    let totalUnbillableHours = 0
     const totalPerProject: any = {}
 
     if (isLoading) {
@@ -110,6 +138,11 @@ const TimeLogs = (props: any) => {
             // @ts-ignore
             for (let timeLogData of timesheetData.logs[key]) {
                 totalDraftHours += timeLogData['hours']
+                if (timeLogData['is_billable']) {
+                    totalBillableHours += timeLogData['hours']
+                } else {
+                    totalUnbillableHours += timeLogData['hours']
+                }
                 let projectName = timeLogData['project_name']
                 if (!totalPerProject.hasOwnProperty(projectName)) {
                     totalPerProject[projectName] = timeLogData['hours']
@@ -121,6 +154,8 @@ const TimeLogs = (props: any) => {
         if (totalDraftHours) {
             totalDraftHours = parseFloat(totalDraftHours.toFixed(2));
         }
+        totalBillableHours = parseFloat(totalBillableHours.toFixed(2));
+        totalUnbillableHours = parseFloat(totalUnbillableHours.toFixed(2));
     }
 
     const scheduleClick = (project_id, project_name, task_id, task_name) => {
@@ -171,29 +206,46 @@ const TimeLogs = (props: any) => {
             <Grid container>
                 <Grid item xs={12} md={2}></Grid>
                 <Grid item xs={12} md={8}>
-                <div className={'timelogs-info'}>
-                    <Grid container>
-                        <Grid item xs={10} style={{ textAlign: "left"}}>
-                        {
-                            Object.keys(totalPerProject).map((key: any) =>
-                                <Chip
-                                    key={key}
-                                    label={`${key} : ${totalPerProject[key].toFixed(2)}`}
-                                    style={{ backgroundColor: generateColor(key), color: '#ffffff' }} />
-                            )
-                        }
-                        </Grid>
-                        <Grid item xs={2} style={{ textAlign: 'right' }}>
-                        { totalDraftHours > 0 ?
-                        <Chip label={`Total : ${totalDraftHours}`}
+                <div className='timelogs-info'>
+                    <div className='timelogs-info__projects'>
+                        {Object.keys(totalPerProject).map((key: any) =>
+                            <Chip
+                                key={key}
+                                variant="outlined"
+                                size="small"
+                                label={`${key} · ${totalPerProject[key].toFixed(2)}h`}
+                                style={{ borderColor: generateColor(key), borderRadius: 4, borderWidth: 2 }} />
+                        )}
+                    </div>
+                    {totalDraftHours > 0 &&
+                        <Chip
+                            variant="outlined"
+                            label={`Total · ${totalDraftHours}h`}
                             style={{
-                                color: 'white',
-                                backgroundColor: getTaskColor(totalDraftHours < 40 ? 1 - ((totalDraftHours % 40) / 40) : 0),
-                                fontSize: '11pt', fontWeight: 'bold'}}
-                        ></Chip> : null }
-                        </Grid>
-                    </Grid>
+                                borderColor: getTaskColor(totalDraftHours < 40 ? 1 - ((totalDraftHours % 40) / 40) : 0),
+                                borderRadius: 4,
+                                borderWidth: 2,
+                                fontSize: '10pt',
+                                fontWeight: 'bold'
+                            }} />
+                    }
                 </div>
+                {totalDraftHours > 0 &&
+                    <div className='timelogs-info'>
+                        <div className='timelogs-info__projects'>
+                            <Chip
+                                variant="outlined"
+                                size="small"
+                                label={`Billable · ${totalBillableHours}h`}
+                                style={{ borderColor: '#6a9e6d', borderRadius: 4, borderWidth: 2 }} />
+                            <Chip
+                                variant="outlined"
+                                size="small"
+                                label={`Unbillable · ${totalUnbillableHours}h`}
+                                style={{ borderColor: '#a85c5c', borderRadius: 4, borderWidth: 2 }} />
+                        </div>
+                    </div>
+                }
                 </Grid>
                 <Grid item xs={12} md={2}></Grid>
             </Grid>
@@ -251,6 +303,10 @@ function AppContent() {
     const [timeLogChildList, setTimeLogChildList] = useState<any>([])
     const [isUnavailable, setIsUnavailable] = useState<boolean>(false);
     const [projectLinkList, setProjectLinkList] = useState<any>([])
+    const [animationsEnabled, setAnimationsEnabled] = useState<boolean>(() => {
+        const storedValue = window.localStorage.getItem(ANIMATIONS_STORAGE_KEY);
+        return storedValue === null ? true : storedValue === 'true';
+    });
 
     const [pendingTimerStart, setPendingTimerStart] = useState(false);
 
@@ -274,6 +330,10 @@ function AppContent() {
     useEffect(() => {
         refreshAtMidnight();
     }, []);
+
+    useEffect(() => {
+        window.localStorage.setItem(ANIMATIONS_STORAGE_KEY, String(animationsEnabled));
+    }, [animationsEnabled]);
 
      const getInstance = useCallback((instance) => {
         refAnimationInstance.current = instance;
@@ -464,7 +524,7 @@ function AppContent() {
 
     useEffect(() => {
         const celebrate = async () => {
-            if (isSuccess) {
+            if (isSuccess && animationsEnabled) {
                 setCompliment(
                     randomCompliments[Math.floor(Math.random() * randomCompliments.length)]
                 )
@@ -481,7 +541,7 @@ function AppContent() {
             }
         }
         celebrate();
-    }, [isSuccess])
+    }, [animationsEnabled, isSuccess])
 
     useEffect(() => {
         if (selectedProject) {
@@ -710,20 +770,24 @@ function AppContent() {
     }
 
     return (
-        <div className="App">
+        <div className={`App ${animationsEnabled ? '' : 'animations-disabled'}`.trim()}>
             <CircularMenu/>
             <ReportButton/>
-            <Suspense>
-                <ReactCanvasConfetti
-                    style={confettiStyle}
-                    refConfetti={getInstance}
-                />
-            </Suspense>
-            <div className={"big-text"}>
-                <h3 className={"animate-character " + fadeProp.fade}>
-                    {compliment}
-                </h3>
-            </div>
+            {animationsEnabled ? (
+                <>
+                    <Suspense>
+                        <ReactCanvasConfetti
+                            style={confettiStyle}
+                            refConfetti={getInstance}
+                        />
+                    </Suspense>
+                    <div className={"big-text"}>
+                        <h3 className={"animate-character " + fadeProp.fade}>
+                            {compliment}
+                        </h3>
+                    </div>
+                </>
+            ) : null}
             <Backdrop
                 sx={{ color: '#fff', zIndex: 9999, display: 'flex', flexDirection: 'column' }}
                 open={loading}
@@ -756,7 +820,10 @@ function AppContent() {
                         <Suspense fallback={<div></div>}>
                             <Standup  data={timesheetData}/>
                         </Suspense>
-                        <ModeToggle />
+                        <HeaderToggles
+                            animationsEnabled={animationsEnabled}
+                            onToggleAnimations={() => setAnimationsEnabled((current) => !current)}
+                        />
                     </Grid>
                     <Grid item xs={12} md={1}></Grid>
                 </Grid>
@@ -987,8 +1054,8 @@ function AppContent() {
             <Grid container>
                 <Grid item xs={12} md={4}></Grid>
                 <Grid item xs={12} md={4}>
-                <TButton variant="contained" disabled={isUnavailable} endIcon={<SendIcon />} className="send-erpnext-btn" onClick={submitTimesheetClicked} style={{ marginBottom: 50 }}>
-                    Send To Erpnext
+                <TButton variant="outlined" disabled={isUnavailable} endIcon={<SendIcon fontSize="small" />} className="send-erpnext-btn" onClick={submitTimesheetClicked}>
+                    Send to ERPNext
                 </TButton>
                 </Grid>
                 <Grid item xs={12} md={4}></Grid>

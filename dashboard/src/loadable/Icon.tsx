@@ -4,6 +4,7 @@ const MuiSettingsIcon = React.lazy(() => import('@mui/icons-material/Settings'))
 const MuiSendIcon = React.lazy(() => import('@mui/icons-material/Send'))
 const MuiLightModeIcon = React.lazy(() => import('@mui/icons-material/LightMode'))
 const MuiDarkModeIcon = React.lazy(() => import('@mui/icons-material/DarkMode'))
+const MuiAnimationIcon = React.lazy(() => import('@mui/icons-material/AutoAwesome'))
 const MuiEmojiPeopleIcon = React.lazy(() => import('@mui/icons-material/EmojiPeople'))
 const MuiContentCopyIcon = React.lazy(() => import('@mui/icons-material/ContentCopy'))
 const MuiListIcon = React.lazy(() => import('@mui/icons-material/List'))
@@ -53,6 +54,14 @@ export function DarkModeIcon(props: any) {
     return (
         <Suspense fallback={<IconLoader {...props}/>}>
             <MuiDarkModeIcon {...props} />
+        </Suspense>
+    )
+}
+
+export function AnimationIcon(props: any) {
+    return (
+        <Suspense fallback={<IconLoader {...props}/>}>
+            <MuiAnimationIcon {...props} />
         </Suspense>
     )
 }
@@ -169,5 +178,4 @@ export function DownloadIcon(props: any) {
         </Suspense>
     )
 }
-
 

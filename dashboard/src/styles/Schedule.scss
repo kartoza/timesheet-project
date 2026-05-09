@@ -4,6 +4,37 @@
   margin-bottom: 10px;
 }
 
+.running-track-wrapper {
+  width: 100%;
+  margin-top: -18px;
+}
+
+.running-track-labels {
+  display: flex;
+  width: 100%;
+  margin-bottom: 4px;
+
+  &__item {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  &__icon {
+    height: 30px;
+    width: auto;
+    object-fit: contain;
+  }
+}
+
+.running-track {
+  width: 100%;
+  height: 20px;
+  margin-bottom: -17px;
+  background: #e87722;
+  border-radius: 14px;
+}
+
 .schedule-date-today {
   background-color: var(--mui-palette-main-main) !important;
   color: #fff !important;
@@ -25,22 +56,64 @@
 }
 
 .schedule-item {
-  padding: 5px;
-  border: 1px solid rgba(124, 119, 119, 0.52);
-  color: #f6f6f6;
+  padding: 0 8px;
+  border-top: 1px solid rgba(124, 119, 119, 0.15);
+  border-right: 1px solid rgba(124, 119, 119, 0.15);
+  border-bottom: 1px solid rgba(124, 119, 119, 0.15);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  height: 36px;
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  &__separator {
+    opacity: 0.35;
+    flex-shrink: 0;
+  }
+
+  &__task {
+    font-size: 11px;
+    opacity: 0.7;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+  }
+
+  &__note-icon {
+    flex-shrink: 0;
+    opacity: 1;
+    cursor: default;
+
+    &:hover {
+      opacity: 0.9;
+    }
+  }
 }
 
 .schedule-project-name {
-  font-weight: bold;
+  font-weight: 600;
+  font-size: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 [data-mui-color-scheme="dark"] {
   .schedule-date {
     background-color: #1D575C;
-    color: white;
+    color: blue;
     border: 1px solid rgba(124, 119, 119, 0.52);
   }
+
 }
+
 
 .hover-animation {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
