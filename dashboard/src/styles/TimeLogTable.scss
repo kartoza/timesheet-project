@@ -1,5 +1,19 @@
 .timelog-submitted {
-  background-color: rgba(51, 153, 66, 0.25);
+  background-color: rgba(51, 153, 66, 0.1);
+  border-left: 3px solid rgba(51, 153, 66, 0.5);
+  position: relative;
+
+  .submitted-badge {
+    position: absolute;
+    top: 4px;
+    right: 12px;
+    font-size: 0.55rem;
+    font-weight: 600;
+    color: #2e7d32;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
 }
 
 .timelog-paused {
@@ -70,6 +84,18 @@
     padding-left: 1em;
     background-color: #EA836D;
     color: white;
+  }
+}
+
+[data-mui-color-scheme="dark"] {
+  .time-log-row {
+    .time-log-meta {
+      color: #bdbdbd;
+    }
+
+    .time-log-separator {
+      color: #ffffff;
+    }
   }
 }
 

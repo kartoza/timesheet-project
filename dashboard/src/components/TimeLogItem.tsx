@@ -3,16 +3,13 @@ import React, {useState} from "react";
 import moment from "moment/moment";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
-import Paper from "@mui/material/Paper";
-import {generateColor, getColorFromTaskLabel} from "../utils/Theme";
+import {useColorScheme} from "@mui/material/styles";
 import {
-    AssignmentIcon, BreakIcon,
+    BreakIcon,
     ContentCopyIcon,
     DeleteSweepIcon,
     EditIcon,
-    EngineeringIcon,
     MoreVertIcon,
-    TaskAltIcon
 } from "../loadable/Icon";
 import PauseCircleIcon from '@mui/icons-material/PauseCircle';
 import Typography from "@mui/material/Typography";
@@ -28,6 +25,8 @@ import {cloneTimeLogSignal, deleteTimeLogSignal, editTimeLogSignal, resumeTimeLo
 export function TimeLogItem(prop : TimeLog)    {
     const [loading, setLoading] = useState(false);
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const { mode } = useColorScheme();
+    const metaColor = mode === 'dark' ? '#bdbdbd' : '#424242';
     // @ts-ignore
     const open = Boolean(anchorEl);
 
@@ -86,29 +85,21 @@ export function TimeLogItem(prop : TimeLog)    {
 
     return (
         <Grid container spacing={1} className={"time-log-row" + (prop.submitted ? " timelog-submitted": "") + (prop.is_paused ? " timelog-paused": "")}>
+            {prop.submitted && <span className="submitted-badge">Submitted</span>}
             <Grid className="time-log-item left-item" item xs={12} md={8}>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-                    <Paper className="time-log-project" sx={{
-                        bgcolor: 'neutral.main',
-                        padding: prop.project_name ? '3px 10px' : '0',
-                    }}>
-                        <Typography color={'neutral.contrastText'} fontSize={'9pt'}>
-                            { prop.activity_type }
-                        </Typography>
-                    </Paper>
-                    <Paper className="time-log-project" style={{
-                        padding: prop.project_name ? '3px 10px' : '0',
-                        backgroundColor: generateColor(prop.project_name) }}>
-                        <EngineeringIcon style={{ marginRight: 5 }}/>
-                        { prop.project_name }
-                    </Paper>
-                    <Paper className='time-log-task' sx={{
-                        backgroundColor: getColorFromTaskLabel(prop.task_name),
-                        padding: prop.task_name ? '3px 10px' : '0'}}>
-                        { prop.task_name }
-                    </Paper>
+                    <Typography className="time-log-meta" component="div" sx={{ color: metaColor }}>
+                        {[prop.activity_type, prop.project_name, prop.task_name]
+                            .filter(Boolean)
+                            .map((item, index) => (
+                                <React.Fragment key={`${item}-${index}`}>
+                                    {index > 0 ? <span className="time-log-separator" style={{ color: metaColor }}> / </span> : null}
+                                    <span>{item}</span>
+                                </React.Fragment>
+                            ))}
+                    </Typography>
                     { !prop.project_active ? (
-                        <Paper sx={{
+                        <div style={{
                             alignItems: 'center',
                             display: 'flex',
                             textAlign: 'center',
@@ -116,7 +107,7 @@ export function TimeLogItem(prop : TimeLog)    {
                             color: 'white',
                             padding: prop.task_name ? '3px 10px' : '0'}}>
                             Project Inactive
-                        </Paper> ) : null }
+                        </div> ) : null }
                 </Stack>
                 <div style={{display: "flex"}}>
                     <Typography sx={{ display: "inline-block", fontWeight: "bold", whiteSpace: "pre-line"}}>
@@ -129,7 +120,6 @@ export function TimeLogItem(prop : TimeLog)    {
                 <Typography sx={{ fontSize: "2em", fontWeight: "bolder" }} color="text.primary">
                     { !prop.running ? roundHours(parseFloat(prop.all_hours)) : calculateHours(prop.from_time) }
                     { prop.is_paused ? <PauseCircleIcon color={'warning'} style={{marginLeft: '0.2em'}} titleAccess="Paused"/> : null }
-                    { prop.submitted ? <TaskAltIcon color={'success'} style={{marginLeft: '0.2em'}}/> : null }
                 </Typography>
                 <div>
                     { prop.total_children > 0 ? <Chip size={'small'} label={prop.total_children + 1} style={{ marginRight: 5 }}/> : ''}
