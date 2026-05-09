@@ -14,6 +14,7 @@ Suggested cron (once per day, adjust to taste):
     0 8 * * * /path/to/venv/bin/python /path/to/manage.py fetch_rss_posts
 """
 
+import re
 import feedparser
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -98,32 +99,19 @@ class Command(BaseCommand):
             summary = getattr(entry, 'summary', '') or getattr(entry, 'description', '')
             link = getattr(entry, 'link', '')
 
-            # Build post content: title + summary excerpt + link
+            # Build post content: title + link
+            # Extract article URL from summary if present (e.g. HN feeds)
+            article_url = link
+            if summary:
+                match = re.search(r'Article URL:\s*(https?://\S+)', summary)
+                if match:
+                    article_url = match.group(1).rstrip('&nbsp;').strip()
+
             parts = []
             if title:
                 parts.append(title)
-            if summary:
-                # Strip HTML tags
-                from html.parser import HTMLParser
-
-                class _Strip(HTMLParser):
-                    def __init__(self):
-                        super().__init__()
-                        self._chunks = []
-
-                    def handle_data(self, data):
-                        self._chunks.append(data)
-
-                    def get_text(self):
-                        return ' '.join(self._chunks).strip()
-
-                stripper = _Strip()
-                stripper.feed(summary)
-                plain = stripper.get_text()
-                if plain:
-                    parts.append(plain[:300])
-            if link:
-                parts.append(link)
+            if article_url:
+                parts.append(article_url)
 
             content = '\n'.join(parts)[:666]
 

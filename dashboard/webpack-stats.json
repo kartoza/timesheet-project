@@ -1,21 +1,21 @@
 {
   "status": "done",
   "assets": {
-    "App.ae4b81b5592a38290326.js": {
-      "name": "App.ae4b81b5592a38290326.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.ae4b81b5592a38290326.js"
+    "App.08ed627a34b7bfc257f5.js": {
+      "name": "App.08ed627a34b7bfc257f5.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.08ed627a34b7bfc257f5.js"
     },
     "Space.d8df234037c69238e821.js": {
       "name": "Space.d8df234037c69238e821.js",
       "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.d8df234037c69238e821.js"
     },
-    "Summary.a4573d41377bf1946eb1.js": {
-      "name": "Summary.a4573d41377bf1946eb1.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.a4573d41377bf1946eb1.js"
+    "Summary.1501c206986569d945b2.js": {
+      "name": "Summary.1501c206986569d945b2.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.1501c206986569d945b2.js"
     },
-    "PublicSummary.fd1cd8be78a22fb1e7e1.js": {
-      "name": "PublicSummary.fd1cd8be78a22fb1e7e1.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.fd1cd8be78a22fb1e7e1.js"
+    "PublicSummary.be44161f599dc8d75c9b.js": {
+      "name": "PublicSummary.be44161f599dc8d75c9b.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.be44161f599dc8d75c9b.js"
     },
     "EmployeeInsight.5d5f4bc9bcf43fe0b95c.js": {
       "name": "EmployeeInsight.5d5f4bc9bcf43fe0b95c.js",
@@ -189,9 +189,9 @@
       "name": "412.08496ccacd1f8a231421.js.LICENSE.txt",
       "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/412.08496ccacd1f8a231421.js.LICENSE.txt"
     },
-    "App.ae4b81b5592a38290326.js.LICENSE.txt": {
-      "name": "App.ae4b81b5592a38290326.js.LICENSE.txt",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.ae4b81b5592a38290326.js.LICENSE.txt"
+    "App.08ed627a34b7bfc257f5.js.LICENSE.txt": {
+      "name": "App.08ed627a34b7bfc257f5.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.08ed627a34b7bfc257f5.js.LICENSE.txt"
     },
     "EmployeeInsight.5d5f4bc9bcf43fe0b95c.js.LICENSE.txt": {
       "name": "EmployeeInsight.5d5f4bc9bcf43fe0b95c.js.LICENSE.txt",
@@ -201,31 +201,31 @@
       "name": "Planner.1fdf50c0c59787895f3c.js.LICENSE.txt",
       "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.1fdf50c0c59787895f3c.js.LICENSE.txt"
     },
-    "PublicSummary.fd1cd8be78a22fb1e7e1.js.LICENSE.txt": {
-      "name": "PublicSummary.fd1cd8be78a22fb1e7e1.js.LICENSE.txt",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.fd1cd8be78a22fb1e7e1.js.LICENSE.txt"
+    "PublicSummary.be44161f599dc8d75c9b.js.LICENSE.txt": {
+      "name": "PublicSummary.be44161f599dc8d75c9b.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.be44161f599dc8d75c9b.js.LICENSE.txt"
     },
     "Space.d8df234037c69238e821.js.LICENSE.txt": {
       "name": "Space.d8df234037c69238e821.js.LICENSE.txt",
       "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.d8df234037c69238e821.js.LICENSE.txt"
     },
-    "Summary.a4573d41377bf1946eb1.js.LICENSE.txt": {
-      "name": "Summary.a4573d41377bf1946eb1.js.LICENSE.txt",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.a4573d41377bf1946eb1.js.LICENSE.txt"
+    "Summary.1501c206986569d945b2.js.LICENSE.txt": {
+      "name": "Summary.1501c206986569d945b2.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.1501c206986569d945b2.js.LICENSE.txt"
     }
   },
   "chunks": {
     "App": [
-      "App.ae4b81b5592a38290326.js"
+      "App.08ed627a34b7bfc257f5.js"
     ],
     "Space": [
       "Space.d8df234037c69238e821.js"
     ],
     "Summary": [
-      "Summary.a4573d41377bf1946eb1.js"
+      "Summary.1501c206986569d945b2.js"
     ],
     "PublicSummary": [
-      "PublicSummary.fd1cd8be78a22fb1e7e1.js"
+      "PublicSummary.be44161f599dc8d75c9b.js"
     ],
     "EmployeeInsight": [
       "EmployeeInsight.5d5f4bc9bcf43fe0b95c.js"

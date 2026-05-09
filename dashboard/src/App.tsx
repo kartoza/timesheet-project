@@ -305,7 +305,7 @@ function AppContent() {
     const [projectLinkList, setProjectLinkList] = useState<any>([])
     const [animationsEnabled, setAnimationsEnabled] = useState<boolean>(() => {
         const storedValue = window.localStorage.getItem(ANIMATIONS_STORAGE_KEY);
-        return storedValue === null ? true : storedValue === 'true';
+        return storedValue === null ? false : storedValue === 'true';
     });
 
     const [pendingTimerStart, setPendingTimerStart] = useState(false);
