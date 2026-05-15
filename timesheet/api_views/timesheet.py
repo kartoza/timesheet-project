@@ -89,8 +89,9 @@ class TimesheetSerializer(serializers.ModelSerializer):
         end_time = validated_data.get('end_time', None)
         task = validated_data.pop('task')
         activity = validated_data.pop('activity')
-        raw_description = validated_data.pop('description', '')
-        instance.description = remove_empty_paragraphs(raw_description)
+        raw_description = validated_data.pop('description', None)
+        if raw_description is not None:
+            instance.description = remove_empty_paragraphs(raw_description)
         project_data = validated_data.pop('project')
         task_id = task.get('id')
         instance.project = Project.objects.get(
@@ -639,10 +640,17 @@ class PauseTimesheetAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
+        raw_description = request.data.get('description', None)
+        description = None
+        if raw_description is not None:
+            description = remove_empty_paragraphs(raw_description)
+
         now = convert_time_to_user_timezone(
             timezone.now(), timelog.timezone
         ) if timelog.timezone else timezone.now()
         timelog.end_time = now
+        if description is not None:
+            timelog.description = description
         timelog.save()
 
         Timelog.objects.filter(
@@ -656,6 +664,14 @@ class PauseTimesheetAPIView(APIView):
         ).update(is_paused=False)
 
         root = timelog.get_root_ancestor()
+        if description is not None:
+            related_ids = [root.id] + [
+                descendant.id for descendant in root.get_all_descendants()
+            ]
+            Timelog.objects.filter(id__in=related_ids).update(
+                description=description
+            )
+            root.refresh_from_db()
         root.is_paused = True
         root.save()
 

@@ -198,10 +198,7 @@ const ProjectLinks = (props: any) => {
                   alignItems: "center",
                   justifyContent: "center",
                   position: "relative",
-                  animation: `${fadeIn} 0.1s ease-out`,
-                  animationDelay: `${index * 0.1}s`,
-                  animationFillMode: "forwards",
-                  opacity: 0,
+                  opacity: 1,
                   transition: "transform 0.3s ease, box-shadow 0.3s ease",
                   "&:hover": {
                     transform: "scale(1.05)",
@@ -267,10 +264,7 @@ const ProjectLinks = (props: any) => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                animation: `${fadeIn} 0.1s ease-out`,
-                animationDelay: `${projectLinkList.slice(0, 5).length * 0.1}s`,
-                animationFillMode: "forwards",
-                opacity: 0,
+                opacity: 1,
                 transition: "transform 0.3s ease, box-shadow 0.3s ease",
                 "&:hover": {
                   transform: "scale(1.05)",

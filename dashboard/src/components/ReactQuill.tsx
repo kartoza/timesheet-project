@@ -54,6 +54,7 @@ const KEY_WORD = '['
 
 
 export default function TReactQuill(props: any) {
+    const { onChange: propsOnChange, value: propsValue } = props
     const [open, setOpen] = useState<boolean>(false)
     const [anchorPosition, setAnchorPosition] = useState<any>({
         top: 0,
@@ -113,13 +114,13 @@ export default function TReactQuill(props: any) {
         }
         if (open) {
             if (value.match(/<br>/g)) {
-                if (!props.value.match(/<br>/g) || value.match(/<br>/g).length > props.value.match(/<br>/g).length) {
+                if (!propsValue.match(/<br>/g) || value.match(/<br>/g).length > propsValue.match(/<br>/g).length) {
                     return
                 }
             }
         }
-        props.onChange(value)
-    }, [quill, quillContainer, open])
+        propsOnChange(value)
+    }, [quill, quillContainer, open, propsOnChange, propsValue])
 
     const addSize = (index = null) => {
         try {
@@ -215,6 +216,7 @@ export default function TReactQuill(props: any) {
                     onChange={onChange}
                     style={props.style}
                     onKeyDown={handleKeyDown}
+                    onBlur={props.onBlur}
                 />
             </div>
         </Suspense>
