@@ -66,6 +66,7 @@ const randomCompliments = [
     'Like clockwork!',
 ]
 export const ANIMATIONS_STORAGE_KEY = 'timesheet-animations-enabled';
+const TIMELOG_SYNC_INTERVAL_MS = 5000;
 
 type HeaderTogglesProps = {
     animationsEnabled: boolean;
@@ -119,7 +120,11 @@ const confettiStyle: CSSProperties = {
 const TimeLogs = (props: any) => {
     const { resumeTimeLog, deleteTimeLog, timerRunning } = props;
 
-    const { data: timesheetData, isLoading, isSuccess } = useGetTimeLogsQuery()
+    const { data: timesheetData, isLoading, isSuccess } = useGetTimeLogsQuery(undefined, {
+        pollingInterval: TIMELOG_SYNC_INTERVAL_MS,
+        refetchOnFocus: true,
+        refetchOnReconnect: true,
+    })
     let totalDraftHours = 0
     let totalBillableHours = 0
     let totalUnbillableHours = 0
@@ -254,7 +259,11 @@ const TimeLogs = (props: any) => {
 }
 
 function AppContent() {
-    const { data: timesheetData, isLoading: isFetchingTimelogs, isSuccess: isSuccessFetching } = useGetTimeLogsQuery()
+    const { data: timesheetData, isLoading: isFetchingTimelogs, isSuccess: isSuccessFetching } = useGetTimeLogsQuery(undefined, {
+        pollingInterval: TIMELOG_SYNC_INTERVAL_MS,
+        refetchOnFocus: true,
+        refetchOnReconnect: true,
+    })
     const [microblogPage, setMicroblogPage] = useState(1);
     const [allMicroblogPosts, setAllMicroblogPosts] = useState<import('./services/api').PaginatedMicroblogResponse['results']>([]);
     const { currentData: microblogPageData } = useGetMicroblogPostsQuery(microblogPage, { pollingInterval: microblogPage === 1 ? 30000 : 0 });
@@ -340,39 +349,50 @@ function AppContent() {
       }, []);
 
     useEffect(() => {
-        if (timesheetData && timesheetData.running) {
-            if (timesheetData.running.project_name !== 'Kartoza') {
+        if (!isSuccessFetching || !timesheetData) {
+            return;
+        }
+
+        const runningData = timesheetData.running;
+        const pausedData = timesheetData.paused;
+
+        if (runningData) {
+            if (runningData.project_name !== 'Kartoza') {
                 setProjects([{
-                    id: timesheetData.running.project_id,
-                    label: timesheetData.running.project_name,
+                    id: runningData.project_id,
+                    label: runningData.project_name,
                     running: true
                 }])
             }
             setTasks([{
-                id: timesheetData.running.task_id,
-                label: timesheetData.running.task_name,
+                id: runningData.task_id,
+                label: runningData.task_name,
                 running: true,
             }])
 
-            setRunningTimeLog(timesheetData.running)
+            setRunningTimeLog(runningData)
+            setPausedTimeLog(null)
             setIsTimerRunning(true)
 
-            if (timesheetData.running.parent && timesheetData.logs) {
-                for (const dateKey in timesheetData.logs) {
-                    // @ts-ignore
-                    const logsForDate: TimeLog[] = timesheetData.logs[dateKey];
-                    const parentLog = logsForDate?.find((log: TimeLog) => log.id === timesheetData.running?.parent);
-                    if (parentLog && parentLog.all_hours) {
-                        // Convert hours to milliseconds
-                        const parentHoursMs = parseFloat(parentLog.all_hours) * 3600 * 1000;
-                        setInitialAccumulatedTimeMs(parentHoursMs);
-                        break;
-                    }
-                }
+            let accumulatedHours = runningData.all_hours ? parseFloat(runningData.all_hours) : 0;
+            if (!accumulatedHours && runningData.parent && timesheetData.logs) {
+                const allLogs = Object.values(timesheetData.logs).flat() as TimeLog[];
+                const parentLog = allLogs.find((log: TimeLog) => (
+                    String(log.id) === String(runningData.parent)
+                ));
+                accumulatedHours = parentLog?.all_hours ? parseFloat(parentLog.all_hours) : 0;
             }
+            setInitialAccumulatedTimeMs(accumulatedHours * 3600 * 1000);
+            return;
         }
-        if (timesheetData && timesheetData.paused && !timesheetData.running) {
-            const pausedData = timesheetData.paused;
+
+        setRunningTimeLog(null);
+        setIsTimerRunning(false);
+        setInitialAccumulatedTimeMs(0);
+        setParent('');
+        setPendingTimerStart(false);
+
+        if (pausedData) {
             setPausedTimeLog(pausedData);
 
             // Populate form fields with paused timelog data
@@ -406,8 +426,11 @@ function AppContent() {
                     label: pausedData.task_name
                 });
             }
+            return;
         }
-    }, [isSuccessFetching])
+
+        setPausedTimeLog(null);
+    }, [timesheetData, isSuccessFetching])
 
     const updateSelectedTimeLog = (data: TimeLog, checkParent = true, forceTimer = false) => {
         setDescription(data.description)
@@ -468,7 +491,7 @@ function AppContent() {
 
     useEffect(() => {
         if (runningTimeLog) {
-            updateSelectedTimeLog(runningTimeLog);
+            updateSelectedTimeLog(runningTimeLog, false);
         }
     }, [runningTimeLog])
 
@@ -755,6 +778,8 @@ function AppContent() {
         if (!running) {
             setParent('')
             setInitialAccumulatedTimeMs(0)
+            setPendingTimerStart(false)
+            setRunningTimeLog(null)
         }
         setIsTimerRunning(running);
     }

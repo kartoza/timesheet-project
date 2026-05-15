@@ -159,18 +159,38 @@ export const TimeCard = forwardRef(({
 
     useEffect(() => {
         if (runningTimeLog) {
+            const syncedAccumulatedTimeMs = runningTimeLog.all_hours
+                ? parseFloat(runningTimeLog.all_hours) * 3600 * 1000
+                : initialAccumulatedTimeMs;
+            const fromTime = moment(runningTimeLog.from_time, 'YYYY-MM-DD HH:mm:ss');
+            const elapsedMs = Math.max(moment().diff(fromTime), 0);
+            const totalMs = elapsedMs + syncedAccumulatedTimeMs;
+
+            setAccumulatedTimeMs(syncedAccumulatedTimeMs);
+            setRunningTime(moment.utc(totalMs).format("HH:mm:ss"));
+            runningTimeRef.current = moment.utc(totalMs).format("HH:mm:ss");
             setLocalRunningTimeLog(runningTimeLog);
+            return;
         }
-    }, [runningTimeLog])
+        if (localRunningTimeLog) {
+            setLocalRunningTimeLog(null);
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+            setRunningTime('00:00:00');
+            runningTimeRef.current = '00:00:00';
+            const link = document.querySelector("link[rel~='icon']") as HTMLAnchorElement | null;
+            if (link) {
+                link.href = '/static/timesheet-logo.png';
+            }
+        }
+    }, [runningTimeLog, localRunningTimeLog, initialAccumulatedTimeMs])
 
     useEffect(() => {
-        if (initialAccumulatedTimeMs > 0) {
-            setAccumulatedTimeMs(initialAccumulatedTimeMs);
-        }
+        setAccumulatedTimeMs(initialAccumulatedTimeMs);
     }, [initialAccumulatedTimeMs])
 
     useEffect(() => {
-        if (pausedTimeLogProp && !pausedTimeLog && !localRunningTimeLog) {
+        if (pausedTimeLogProp && !localRunningTimeLog) {
             setPausedTimeLog(pausedTimeLogProp);
             // Use all_hours (total accumulated time across all sessions) for display
             if (pausedTimeLogProp.all_hours) {
@@ -183,8 +203,14 @@ export const TimeCard = forwardRef(({
                 const diff = toTime.diff(fromTime);
                 setRunningTime(moment.utc(diff).format("HH:mm:ss"));
             }
+            return;
         }
-    }, [pausedTimeLogProp])
+        if (!pausedTimeLogProp && pausedTimeLog && !localRunningTimeLog) {
+            setPausedTimeLog(null);
+            setRunningTime('00:00:00');
+            setAccumulatedTimeMs(0);
+        }
+    }, [pausedTimeLogProp, pausedTimeLog, localRunningTimeLog])
 
     const updateTime = useCallback(() => {
         if (!localRunningTimeLog) return;
@@ -250,6 +276,7 @@ export const TimeCard = forwardRef(({
             const result = await pauseTimesheet({ id: localRunningTimeLog.id }).unwrap();
             setPausedTimeLog(result);
             setLocalRunningTimeLog(null);
+            toggleTimer(false);
             clearInterval(intervalRef.current);
             intervalRef.current = null;
             const [hrs, mins, secs] = capturedTime.split(':').map(Number);

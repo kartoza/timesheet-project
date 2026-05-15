@@ -121,7 +121,6 @@ export const timesheetApi = createApi({
         for (let data of response) {
           if (data.running) {
             timeLogs.running = data;
-            continue;
           }
           if (data.is_paused) {
             if (!mostRecentPaused || data.from_time > mostRecentPaused.from_time) {

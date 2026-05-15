@@ -148,6 +148,11 @@ class TimelogSerializer(serializers.ModelSerializer):
         ])
 
     def get_all_hours(self, obj: Timelog):
+        if not obj.end_time and obj.parent_id:
+            root = obj.get_root_ancestor()
+            if root.pk != obj.pk:
+                return self.get_all_hours(root)
+
         total_hours = 0.0
         total_seconds = 0
 
