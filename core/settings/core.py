@@ -145,7 +145,8 @@ INSTALLED_APPS += [
     'dashboard',
     'microblog',
     'timesheet',
-    'schedule'
+    'schedule',
+    'pmo_dashboard'
 ]
 
 REST_FRAMEWORK = {

@@ -1,5 +1,7 @@
 from django.db import models
 
+from pmo_dashboard.models import BusinessUnit
+
 
 class Project(models.Model):
 
@@ -35,6 +37,13 @@ class Project(models.Model):
             ('EXTERNAL', 'External'),
             ('INVESTMENT', 'Investment'),
         )
+    )
+
+    business_unit = models.ForeignKey(
+        BusinessUnit,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
 
     def __str__(self):
