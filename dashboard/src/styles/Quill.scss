@@ -11,9 +11,30 @@
     font-size: 20px;
 }
 
+.description-editor-wrapper {
+    position: relative;
+}
+
+.description-save-status {
+    position: absolute;
+    left: 5px;
+    bottom: 5px;
+    z-index: 3;
+    color: #167a3b;
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1;
+    pointer-events: none;
+}
+
 [data-mui-color-scheme="dark"] {
     .ql-editor a {
         color: white !important;
         background-color: unset !important;
     } 
+
+    .description-save-status {
+        color: #78e08f;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+    }
 }

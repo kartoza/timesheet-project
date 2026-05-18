@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.test import TestCase, Client
+from django.utils import timezone
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
@@ -291,3 +292,67 @@ class TestOnlineUserApiView(TestCase):
         self.assertIsNotNone(
             timesheet.end_time
         )
+
+    def test_pause_timesheet_updates_description(self):
+        self.client.login(
+            username=self.user.username, password='password')
+        timesheet = TimelogFactory.create(
+            user=self.user,
+            task=self.task,
+            project=self.task.project,
+            activity=self.activity,
+            description='<p>Old description</p>',
+            end_time=None
+        )
+
+        response = self.client.post(
+            '/api/pause-timesheet/',
+            data=json.dumps({
+                'id': timesheet.id,
+                'description': '<p>Updated description</p>',
+            }),
+            content_type='application/json'
+        )
+
+        self.assertEqual(response.status_code, int(HTTPStatus.OK))
+        timesheet.refresh_from_db()
+        self.assertEqual(timesheet.description, '<p>Updated description</p>')
+        self.assertTrue(timesheet.is_paused)
+        self.assertIsNotNone(timesheet.end_time)
+
+    def test_pause_child_timesheet_updates_root_description(self):
+        self.client.login(
+            username=self.user.username, password='password')
+        root = TimelogFactory.create(
+            user=self.user,
+            task=self.task,
+            project=self.task.project,
+            activity=self.activity,
+            description='<p>Root description</p>',
+            end_time=timezone.now()
+        )
+        child = TimelogFactory.create(
+            user=self.user,
+            task=self.task,
+            project=self.task.project,
+            activity=self.activity,
+            parent=root,
+            description='<p>Child description</p>',
+            end_time=None
+        )
+
+        response = self.client.post(
+            '/api/pause-timesheet/',
+            data=json.dumps({
+                'id': child.id,
+                'description': '<p>Latest description</p>',
+            }),
+            content_type='application/json'
+        )
+
+        self.assertEqual(response.status_code, int(HTTPStatus.OK))
+        root.refresh_from_db()
+        child.refresh_from_db()
+        self.assertEqual(root.description, '<p>Latest description</p>')
+        self.assertEqual(child.description, '<p>Latest description</p>')
+        self.assertTrue(root.is_paused)
