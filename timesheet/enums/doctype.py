@@ -12,4 +12,5 @@ class DocType(Enum):
     HOLIDAY_LIST = 'Holiday List'
     HOLIDAY = 'Holiday'
     ROLE = 'Role'
+    BUSINESS_UNIT = 'Business Unit'
 

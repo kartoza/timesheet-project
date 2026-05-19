@@ -145,7 +145,8 @@ INSTALLED_APPS += [
     'dashboard',
     'microblog',
     'timesheet',
-    'schedule'
+    'schedule',
+    'pmo_dashboard'
 ]
 
 REST_FRAMEWORK = {
@@ -168,9 +169,6 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
     'COMPONENT_SPLIT_REQUEST': True,
     'SCHEMA_PATH_PREFIX': '/api/',
-    'SERVERS': [
-        {'url': 'https://timesheets.kartoza.com', 'description': 'Production server'},
-    ],
     'PREPROCESSING_HOOKS': [
         'core.spectacular_hooks.filter_timesheet_endpoints',
     ],
@@ -182,6 +180,9 @@ SPECTACULAR_SETTINGS = {
             'tokenAuth': [],
         }
     ],
+    'ENUM_NAME_OVERRIDES': {
+        'PostTypeEnum': 'microblog.models.post.Post.TYPE_CHOICES',
+    },
     'APPEND_COMPONENTS': {
         'securitySchemes': {
             'tokenAuth': {
