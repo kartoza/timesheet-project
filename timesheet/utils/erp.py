@@ -23,6 +23,7 @@ from schedule.api_views.schedule import (
 from schedule.models import Schedule
 from timesheet.enums.doctype import DocType
 from timesheet.models import Timelog, Project, Task, Activity
+from pmo_dashboard.models import BusinessUnit
 from timesheet.models.project_member import ProjectMember
 from timesheet.models.profile import get_country_code_from_timezone
 from timesheet.models.user_project import UserProject
@@ -370,12 +371,18 @@ def pull_projects_from_erp(user: get_user_model()):
         updated_projects = []
         for project in projects:
             project_type = project.get('project_type')
+            business_unit_name = project.get('custom_business_unit', '')
+            business_unit = None
+            if business_unit_name:
+                business_unit, _ = BusinessUnit.objects.get_or_create(name=business_unit_name)
+            
             _project, _ = Project.objects.update_or_create(
                 name=project['name'],
                 defaults={
                     'is_active': project.get('status', '') == 'Open',
                     'updated': updated,
                     'project_type': project_type.upper() if project_type else '',
+                    'business_unit': business_unit,
                 }
             )
             UserProject.objects.get_or_create(
