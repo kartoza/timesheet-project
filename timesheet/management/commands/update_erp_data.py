@@ -22,6 +22,6 @@ class Command(BaseCommand):
             if user.profile.api_secret or user.profile.erpnext_oauth_token:
                 print(f'Updating {user}')
                 pull_projects_from_erp(user)
-                pull_leave_data_from_erp(user)
-                pull_holiday_list(user)
-                update_schedule_countdown(user)
+                # pull_leave_data_from_erp(user)
+                # pull_holiday_list(user)
+                # update_schedule_countdown(user)

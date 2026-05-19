@@ -1,3 +1,9 @@
 from django.contrib import admin
 
-# Register your models here.
+from pmo_dashboard.models import BusinessUnit
+
+
+@admin.register(BusinessUnit)
+class BusinessUnitAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)

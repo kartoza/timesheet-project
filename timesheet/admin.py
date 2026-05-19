@@ -11,6 +11,7 @@ from timesheet.models import (
     Timelog, Task, Project, Activity, TimesheetPreferences,
     SavedSummary, ProjectLink
 )
+from timesheet.models.project_member import ProjectMember
 from timesheet.models.clock import Clock
 from timesheet.utils.erp import (
     push_timesheet_to_erp, pull_projects_from_erp, pull_user_data_from_erp,
@@ -125,6 +126,12 @@ class ProjectLinkInline(admin.StackedInline):
     ordering = ('display_order',)
 
 
+class ProjectMemberInline(admin.TabularInline):
+    model = ProjectMember
+    extra = 1
+    fields = ('employee', 'role')
+
+
 class ProjectAdmin(admin.ModelAdmin):
     list_display = (
         'name',
@@ -138,6 +145,7 @@ class ProjectAdmin(admin.ModelAdmin):
     )
     inlines = (
         ProjectLinkInline,
+        ProjectMemberInline,
     )
 
 

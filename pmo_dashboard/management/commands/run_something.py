@@ -17,4 +17,4 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         
         user = User.objects.first()
-        get_erp_data(DocType.PROJECT, user=user)
+        # get_erp_data(DocType.PROJECT, user=user)

@@ -1,7 +1,9 @@
 import json
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from collections import OrderedDict
+from urllib.parse import quote
 import requests
 from django.utils.dateparse import parse_date
 from preferences import preferences
@@ -21,6 +23,7 @@ from schedule.api_views.schedule import (
 from schedule.models import Schedule
 from timesheet.enums.doctype import DocType
 from timesheet.models import Timelog, Project, Task, Activity
+from timesheet.models.project_member import ProjectMember
 from timesheet.models.profile import get_country_code_from_timezone
 from timesheet.models.user_project import UserProject
 from timesheet.serializers.timesheet import TimelogSerializerERP
@@ -69,14 +72,11 @@ class ProjectsNotFound(Exception):
 
 
 def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '', doctype_value: str = '', user=None) -> list:
-    url = (
-        f'{settings.ERPNEXT_SITE_LOCATION}/api/'
-        f'resource/{doctype.value}/{doctype_value}?limit_page_length=None&fields=["*"]'
-    )
+    path = f'resource/{doctype.value}/{doctype_value}'.rstrip('/')
+    url = f'{settings.ERPNEXT_SITE_LOCATION}/api/{path}?limit_page_length=None&fields=["*"]'
     if filters:
         url += '&filters=' + filters
     headers = get_auth_headers(user=user, erpnext_token=erpnext_token)
-    print(headers)
     response = requests.request(
         'GET',
         url,
@@ -91,6 +91,16 @@ def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '',
         logger.error('Data not found')
         return []
     return response_data['data']
+
+
+def get_erp_project_detail(project_name: str, user=None) -> dict:
+    url = f'{settings.ERPNEXT_SITE_LOCATION}/api/resource/Project/{quote(project_name)}?fields=["*"]'
+    headers = get_auth_headers(user=user)
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        logger.error(f'Failed to fetch project detail for {project_name}: {response.content}')
+        return {}
+    return response.json().get('data', {})
 
 
 def generate_api_secret(user: get_user_model()):
@@ -279,13 +289,25 @@ def pull_user_data_from_erp(user: get_user_model()):
 
 @retry_operation
 def pull_projects_from_erp(user: get_user_model()):
+    projects = get_erp_data(DocType.PROJECT, user=user)
+
+    if len(projects) == 0:
+        raise ProjectsNotFound
+
+    # Fetch each project individually in parallel to get project_team_members
+    project_members_map = {}
+
+    def fetch_members(name):
+        detail = get_erp_project_detail(name, user=user)
+        return name, detail.get('project_team_members', [])
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(fetch_members, p['name']): p['name'] for p in projects}
+        for future in as_completed(futures):
+            name, members = future.result()
+            project_members_map[name] = members
+
     with transaction.atomic():
-        projects = get_erp_data(
-            DocType.PROJECT, user=user)
-
-        if len(projects) == 0:
-            raise ProjectsNotFound
-
         updated = timezone.now()
         updated_projects = []
         for project in projects:
@@ -303,6 +325,24 @@ def pull_projects_from_erp(user: get_user_model()):
                 project=_project
             )
             updated_projects.append(_project.id)
+
+            members = project_members_map.get(project['name'], [])
+            ProjectMember.objects.filter(project=_project).delete()
+            seen = set()
+            unique_members = []
+            for m in members:
+                employee = m.get('employee', '')
+                if employee and employee not in seen:
+                    seen.add(employee)
+                    unique_members.append(m)
+            ProjectMember.objects.bulk_create([
+                ProjectMember(
+                    project=_project,
+                    employee=m['employee'],
+                    role=m.get('role', '')
+                )
+                for m in unique_members
+            ])
 
         # Check inactive projects
         inactive = UserProject.objects.exclude(
