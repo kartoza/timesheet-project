@@ -24,13 +24,13 @@ class Command(BaseCommand):
             if user.profile.api_secret or user.profile.erpnext_oauth_token:
                 print(f'Updating {user}')
                 pull_projects_from_erp(user)
-                # pull_leave_data_from_erp(user)
-                # pull_holiday_list(user)
-                # update_schedule_countdown(user)
+                pull_leave_data_from_erp(user)
+                pull_holiday_list(user)
+                update_schedule_countdown(user)
                 if credentialed_user is None:
                     credentialed_user = user
 
-        # if credentialed_user:
-        #     print('Updating project members')
-        #     pull_project_members_from_erp(credentialed_user)
+        if credentialed_user:
+            print('Updating project members')
+            pull_project_members_from_erp(credentialed_user)
 
