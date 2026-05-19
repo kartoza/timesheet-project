@@ -1,3 +1,5 @@
-from django.shortcuts import render
+from django.views.generic import TemplateView
 
-# Create your views here.
+
+class PMODashboardView(TemplateView):
+    template_name = 'pmo_dashboard/dashboard.html'
