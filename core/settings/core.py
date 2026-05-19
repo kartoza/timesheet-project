@@ -180,6 +180,9 @@ SPECTACULAR_SETTINGS = {
             'tokenAuth': [],
         }
     ],
+    'ENUM_NAME_OVERRIDES': {
+        'PostTypeEnum': 'microblog.models.post.Post.TYPE_CHOICES',
+    },
     'APPEND_COMPONENTS': {
         'securitySchemes': {
             'tokenAuth': {
