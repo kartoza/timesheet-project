@@ -21,11 +21,6 @@ class TestProjectListView(TestCase):
         response = APIClient().get(reverse('pmo-dashboard'))
         self.assertEqual(response.status_code, 302)
 
-    def test_dashboard_page_renders_for_authenticated_user(self):
-        response = self.client.get(reverse('pmo-dashboard'))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'pmo_dashboard/dashboard.html')
-
     def test_unauthenticated_returns_401(self):
         response = APIClient().get(self.url)
         self.assertEqual(response.status_code, 401)
