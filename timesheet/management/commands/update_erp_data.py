@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand
 
 from timesheet.utils.erp import (
     pull_projects_from_erp,
+    pull_project_members_from_erp,
     pull_leave_data_from_erp,
     pull_holiday_list,
     update_schedule_countdown
@@ -18,10 +19,19 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         users = get_user_model().objects.filter(is_active=True)
         print(f'Total user : {users.count()}')
+        credentialed_user = None
         for user in users:
             if user.profile.api_secret or user.profile.erpnext_oauth_token:
-                print(f'Updating {user}')
-                pull_projects_from_erp(user)
+                # print(f'Updating {user}')
+                # pull_projects_from_erp(user)
+                # pull_projects_from_erp(user)
                 # pull_leave_data_from_erp(user)
                 # pull_holiday_list(user)
                 # update_schedule_countdown(user)
+                if credentialed_user is None:
+                    credentialed_user = user
+
+        if credentialed_user:
+            print('Updating project members')
+            pull_project_members_from_erp(credentialed_user)
+

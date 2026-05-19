@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.db import models
 
 from timesheet.models.project import Project
@@ -9,11 +10,17 @@ class ProjectMember(models.Model):
         on_delete=models.CASCADE,
         related_name='members'
     )
-    employee = models.CharField(max_length=256)
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
     role = models.CharField(max_length=100, blank=True, default='')
+    project_lead = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.project.name} — {self.employee}'
+        return f'{self.project.name} — {self.user}'
 
     class Meta:
-        unique_together = ('project', 'employee')
+        unique_together = ('project', 'user')

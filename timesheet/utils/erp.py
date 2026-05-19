@@ -288,24 +288,82 @@ def pull_user_data_from_erp(user: get_user_model()):
 
 
 @retry_operation
+def pull_project_members_from_erp(user: get_user_model()):
+    projects = list(Project.objects.all())
+    if not projects:
+        return
+
+    project_members_map = {}
+
+    # Unfortunately, we cannot fetch all project members at once.
+    # Fetch each project individually in parallel to get project_team_members
+    def fetch_members(project_name):
+        detail = get_erp_project_detail(project_name, user=user)
+        return (
+            project_name,
+            detail.get('project_team_members', []),
+            detail.get('project_lead', '')
+        )
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(fetch_members, p.name): p.name for p in projects}
+        for future in as_completed(futures):
+            name, members, project_lead_email = future.result()
+            project_members_map[name] = {'members': members, 'project_lead': project_lead_email.lower()}
+
+    User = get_user_model()
+    with transaction.atomic():
+        for project in projects:
+            data = project_members_map.get(project.name, {})
+            members = data.get('members', [])
+            project_lead_email = data.get('project_lead', '')
+            ProjectMember.objects.filter(project=project).delete()
+
+            lead_in_team = any(m.get('employee', '').lower() == project_lead_email for m in members)
+            if project_lead_email and not lead_in_team:
+                members = members + [{'employee': project_lead_email, 'role': '', 'project_lead_entry': True}]
+
+            emails = {
+                m.get('employee', '').lower()
+                for m in members
+                if m.get('employee')
+            }
+            user_map = {
+                u.email.lower(): u
+                for u in User.objects.filter(email__in=emails)
+            }
+            for email in emails:
+                if email not in user_map:
+                    u, _ = User.objects.get_or_create(
+                        email=email,
+                        defaults={'username': email}
+                    )
+                    user_map[email] = u
+
+            seen = set()
+            unique_members = []
+            for m in members:
+                email = m.get('employee', '').lower()
+                if email and email not in seen:
+                    seen.add(email)
+                    unique_members.append(m)
+
+            ProjectMember.objects.bulk_create([
+                ProjectMember(
+                    project=project,
+                    user=user_map.get(m.get('employee', '').lower()),
+                    role=m.get('role', ''),
+                    project_lead=m.get('employee', '').lower() == project_lead_email,
+                )
+                for m in unique_members
+            ])
+
+
 def pull_projects_from_erp(user: get_user_model()):
     projects = get_erp_data(DocType.PROJECT, user=user)
 
     if len(projects) == 0:
         raise ProjectsNotFound
-
-    # Fetch each project individually in parallel to get project_team_members
-    project_members_map = {}
-
-    def fetch_members(name):
-        detail = get_erp_project_detail(name, user=user)
-        return name, detail.get('project_team_members', [])
-
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = {executor.submit(fetch_members, p['name']): p['name'] for p in projects}
-        for future in as_completed(futures):
-            name, members = future.result()
-            project_members_map[name] = members
 
     with transaction.atomic():
         updated = timezone.now()
@@ -325,24 +383,6 @@ def pull_projects_from_erp(user: get_user_model()):
                 project=_project
             )
             updated_projects.append(_project.id)
-
-            members = project_members_map.get(project['name'], [])
-            ProjectMember.objects.filter(project=_project).delete()
-            seen = set()
-            unique_members = []
-            for m in members:
-                employee = m.get('employee', '')
-                if employee and employee not in seen:
-                    seen.add(employee)
-                    unique_members.append(m)
-            ProjectMember.objects.bulk_create([
-                ProjectMember(
-                    project=_project,
-                    employee=m['employee'],
-                    role=m.get('role', '')
-                )
-                for m in unique_members
-            ])
 
         # Check inactive projects
         inactive = UserProject.objects.exclude(

@@ -129,7 +129,7 @@ class ProjectLinkInline(admin.StackedInline):
 class ProjectMemberInline(admin.TabularInline):
     model = ProjectMember
     extra = 1
-    fields = ('employee', 'role')
+    fields = ('user', 'role', 'project_lead')
 
 
 class ProjectAdmin(admin.ModelAdmin):

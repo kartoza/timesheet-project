@@ -272,7 +272,16 @@ class ERPNextOAuthLoginCallbackView(APIView):
 
         # Find or create Django user
         try:
+            # User can already be created because:
+            # - User has logged in previously
+            # - User object has been created without 
+            #   first name and last name when pulling 
+            #   project members
             user = User.objects.get(email=email)
+            user.username = email
+            user.first_name = profile_data.get('given_name', '')
+            user.last_name = profile_data.get('family_name', '')
+            user.save()
         except User.DoesNotExist:
             user = User.objects.create_user(
                 username=email,
