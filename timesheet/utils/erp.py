@@ -288,6 +288,17 @@ def pull_user_data_from_erp(user: get_user_model()):
         user.save()
 
 
+def _user_by_email(email: str):
+    if not email:
+        return None
+    email = email.lower()
+    user, _ = get_user_model().objects.get_or_create(
+        email=email,
+        defaults={'username': email}
+    )
+    return user
+
+
 @retry_operation
 def pull_project_members_from_erp(user: get_user_model()):
     projects = list(Project.objects.all())
@@ -383,6 +394,23 @@ def pull_projects_from_erp(user: get_user_model()):
                     'updated': updated,
                     'project_type': project_type.upper() if project_type else '',
                     'business_unit': business_unit,
+                    'expected_start_date': project.get('expected_start_date') or None,
+                    'expected_end_date': project.get('expected_end_date') or None,
+                    'project_lead': _user_by_email(project.get('project_lead', '')),
+                    'relations_manager': _user_by_email(project.get('custom_project_relations_manager', '')),
+                    'customer': project.get('customer') or '',
+                    'rag': project.get('rag') or '',
+                    'expected_time': project.get('expected_time'),
+                    'actual_time': project.get('actual_time'),
+                    'progress_in_hours': project.get('progress_in_hours'),
+                    'percent_complete': project.get('percent_complete'),
+                    'estimated_costing': project.get('estimated_costing'),
+                    'total_sales_amount': project.get('total_sales_amount'),
+                    'total_costing_amount': project.get('total_costing_amount'),
+                    'total_billable_amount': project.get('total_billable_amount'),
+                    'total_billed_amount': project.get('total_billed_amount'),
+                    'gross_margin': project.get('gross_margin'),
+                    'per_gross_margin': project.get('per_gross_margin'),
                 }
             )
             UserProject.objects.get_or_create(

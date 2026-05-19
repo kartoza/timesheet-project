@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 from pmo_dashboard.models import BusinessUnit
@@ -45,6 +46,40 @@ class Project(models.Model):
         null=True,
         blank=True,
     )
+
+    expected_start_date = models.DateField(null=True, blank=True)
+    expected_end_date = models.DateField(null=True, blank=True)
+
+    project_lead = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='led_projects',
+    )
+    relations_manager = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='managed_projects',
+    )
+    customer = models.CharField(max_length=256, blank=True, default='')
+
+    rag = models.CharField(max_length=20, blank=True, default='')
+
+    expected_time = models.FloatField(null=True, blank=True)
+    actual_time = models.FloatField(null=True, blank=True)
+    progress_in_hours = models.FloatField(null=True, blank=True)
+    percent_complete = models.FloatField(null=True, blank=True)
+
+    estimated_costing = models.FloatField(null=True, blank=True)
+    total_sales_amount = models.FloatField(null=True, blank=True)
+    total_costing_amount = models.FloatField(null=True, blank=True)
+    total_billable_amount = models.FloatField(null=True, blank=True)
+    total_billed_amount = models.FloatField(null=True, blank=True)
+    gross_margin = models.FloatField(null=True, blank=True)
+    per_gross_margin = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return self.name
