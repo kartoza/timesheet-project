@@ -23,6 +23,7 @@ urlpatterns = [
     path('', include('dashboard.urls')),
     path('', include('timesheet.urls')),
     path('', include('schedule.urls')),
+    path('', include('pmo_dashboard.urls')),
     path('api-auth/', include('rest_framework.urls')),
     # API Documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
