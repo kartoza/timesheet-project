@@ -19,6 +19,7 @@ let conf = {
       PublicSummary: ['./src/PublicSummary.tsx'],
       EmployeeInsight: ['./src/EmployeeInsight.tsx'],
       Planner: ['./src/Planner.tsx'],
+      PMODashboard: ['./src/PMODashboard.tsx'],
   },
   output: {
     path: path.resolve('./assets/webpack_bundles/'),
@@ -44,7 +45,7 @@ let conf = {
       },
       {
         test: /\.css$/i,
-        use: ["style-loader", "css-loader"],
+        use: ["style-loader", "css-loader", "postcss-loader"],
       },
       {
         test: /\.(png|jp(e*)g|svg|gif)$/,

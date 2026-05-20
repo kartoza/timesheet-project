@@ -17,6 +17,10 @@ class TestProjectListView(TestCase):
         self.client.login(username='pmo_user', password='pass')
         self.url = reverse('pmo-project-list')
 
+    def test_dashboard_page_requires_authentication(self):
+        response = APIClient().get(reverse('pmo-dashboard'))
+        self.assertEqual(response.status_code, 302)
+
     def test_unauthenticated_returns_401(self):
         response = APIClient().get(self.url)
         self.assertEqual(response.status_code, 401)
