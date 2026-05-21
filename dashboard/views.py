@@ -19,6 +19,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             self.request.user.profile.api_key is not None and
             self.request.user.profile.api_secret is not None
         ) or self.request.user.profile.erpnext_oauth_token is not None
+        ctx['can_access_pmo'] = self.request.user.is_authenticated
         return ctx
 
 
@@ -28,12 +29,18 @@ class SpaceView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super(SpaceView, self).get_context_data(**kwargs)
         ctx['clocks'] = [{'flag': c.flag, 'timezone': c.timezone} for c in Clock.objects.all().order_by('order')]
+        ctx['can_access_pmo'] = self.request.user.is_authenticated
 
         return ctx
 
 
 class SummaryView(LoginRequiredMixin, TemplateView):
     template_name = 'summary.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super(SummaryView, self).get_context_data(**kwargs)
+        ctx['can_access_pmo'] = self.request.user.is_authenticated
+        return ctx
 
 
 class EmployeeInsight(UserPassesTestMixin, TemplateView):
@@ -65,6 +72,7 @@ class EmployeeInsight(UserPassesTestMixin, TemplateView):
             EmployeeInsight, self
         ).get_context_data(**kwargs)
         ctx['user_id'] = self.kwargs.get('user_id', None)
+        ctx['can_access_pmo'] = self.request.user.is_authenticated
         return ctx
 
     template_name = 'employee_insight.html'
@@ -97,11 +105,17 @@ class PublicSummaryView(TemplateView):
         )
         ctx['selectedProjectId'] = summary.project.id
         ctx['summaryName'] = summary.name
+        ctx['can_access_pmo'] = self.request.user.is_authenticated
         return ctx
 
 
 class PlannerView(LoginRequiredMixin, TemplateView):
     template_name = 'planner.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super(PlannerView, self).get_context_data(**kwargs)
+        ctx['can_access_pmo'] = self.request.user.is_authenticated
+        return ctx
 
 
 class PublicTimelineView(TemplateView):
@@ -130,4 +144,5 @@ class PublicTimelineView(TemplateView):
             slug_name=slug_name
         )
         ctx['public_timeline'] = timeline
+        ctx['can_access_pmo'] = self.request.user.is_authenticated
         return ctx

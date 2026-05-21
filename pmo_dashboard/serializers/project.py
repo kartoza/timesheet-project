@@ -1,15 +1,14 @@
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
+from django.utils import timezone
 
 from timesheet.models.project import Project
 from timesheet.models.task import Task
 
-RAG_STATUS_MAP = {
-    'GREEN': 'on_track',
-    'AMBER': 'delayed',
-    'RED': 'at_risk',
-}
+WARNING_HOURS_THRESHOLD = 0.9
+WARNING_COST_THRESHOLD = 0.7
+AT_RISK_COST_THRESHOLD = 0.9
 
 
 def _user_display(user):
@@ -17,6 +16,90 @@ def _user_display(user):
         return None
     full_name = user.get_full_name()
     return full_name if full_name.strip() else user.email
+
+
+def _is_on_hold(obj):
+    rag = (obj.rag or '').strip().upper().replace(' ', '_')
+    return rag in {'ON_HOLD', 'HOLD'}
+
+
+def _is_ratio_greater_than(value, total, threshold):
+    if value is None or total is None or total <= 0:
+        return False
+    return value > (total * threshold)
+
+
+def _is_ratio_greater_or_equal(value, total, threshold):
+    if value is None or total is None or total <= 0:
+        return False
+    return value >= (total * threshold)
+
+
+def _is_over_budget(consumed_time, budget_hours):
+    if consumed_time is None or budget_hours is None or budget_hours <= 0:
+        return False
+    return consumed_time > budget_hours
+
+
+def _is_budget_warning(consumed_time, budget_hours):
+    return _is_ratio_greater_or_equal(consumed_time, budget_hours, WARNING_HOURS_THRESHOLD)
+
+
+def _calculate_status(obj):
+    if not obj.is_active:
+        return 'completed'
+
+    if _is_on_hold(obj):
+        return 'on_hold'
+
+    today = timezone.localdate()
+    due_date = obj.expected_end_date
+    behind_schedule = due_date is not None and due_date < today
+    due_in_future = due_date is not None and due_date > today
+
+    over_budget = _is_over_budget(obj.actual_time, obj.expected_time)
+    budget_warning = _is_budget_warning(obj.actual_time, obj.expected_time)
+    cost_warning = _is_ratio_greater_or_equal(
+        obj.total_costing_amount,
+        obj.total_sales_amount,
+        WARNING_COST_THRESHOLD,
+    )
+    cost_at_risk = _is_ratio_greater_than(
+        obj.total_costing_amount,
+        obj.total_sales_amount,
+        AT_RISK_COST_THRESHOLD,
+    )
+    cost_under_overdue_limit = (
+        obj.total_costing_amount is not None
+        and obj.total_sales_amount is not None
+        and obj.total_sales_amount > 0
+        and obj.total_costing_amount < (obj.total_sales_amount * WARNING_COST_THRESHOLD)
+    )
+
+    if behind_schedule and over_budget and cost_under_overdue_limit:
+        return 'overdue'
+
+    if behind_schedule or over_budget or cost_at_risk:
+        return 'at_risk'
+
+    if budget_warning or cost_warning:
+        return 'warning'
+
+    on_track = (
+        due_in_future
+        and obj.actual_time is not None
+        and obj.expected_time is not None
+        and obj.expected_time > 0
+        and obj.actual_time < obj.expected_time
+        and obj.total_costing_amount is not None
+        and obj.total_sales_amount is not None
+        and obj.total_sales_amount > 0
+        and obj.total_costing_amount < obj.total_sales_amount
+    )
+    if on_track:
+        return 'on_track'
+
+    return 'on_track'
 
 
 class TeamMemberSerializer(serializers.Serializer):
@@ -77,11 +160,9 @@ class ProjectSerializer(serializers.ModelSerializer):
     def get_customer(self, obj):
         return obj.customer or None
 
-    @extend_schema_field({'type': 'string', 'enum': ['on_track', 'delayed', 'at_risk', 'completed']})
+    @extend_schema_field({'type': 'string', 'enum': ['on_track', 'warning', 'at_risk', 'overdue', 'on_hold', 'completed']})
     def get_status(self, obj):
-        if not obj.is_active:
-            return 'completed'
-        return RAG_STATUS_MAP.get((obj.rag or '').upper(), 'on_track')
+        return _calculate_status(obj)
 
     @extend_schema_field(OpenApiTypes.STR)
     def get_rag(self, obj):

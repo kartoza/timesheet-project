@@ -7,9 +7,10 @@ import MenuBookIcon from '@mui/icons-material/MenuBook';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import InsightsIcon from '@mui/icons-material/Insights';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 
 const IS_AUTHENTICATED = (window as any).isLoggedIn;
-const IS_STAFF = (window as any).isStaff;
+const CAN_ACCESS_PMO = (window as any).canAccessPMO;
 
 export const CircularMenu = (props) => {
     return (
@@ -55,6 +56,13 @@ export const CircularMenu = (props) => {
                                 tooltipPlacement={TooltipPlacement.Left}>
                     <InsightsIcon />
                 </CircleMenuItem>
+                {CAN_ACCESS_PMO ? (
+                    <CircleMenuItem tooltip="PMO Dashboard"
+                                    onClick={() => window.location.href = '/pmo-dashboard/'}
+                                    tooltipPlacement={TooltipPlacement.Left}>
+                        <DashboardIcon />
+                    </CircleMenuItem>
+                ) : null}
             </CircleMenu> : '' }
         </div>
     );

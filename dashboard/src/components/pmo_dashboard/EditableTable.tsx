@@ -49,7 +49,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
           <thead className='sticky top-0 z-20 shadow-sm'>
             <tr className='bg-slate-100/90 dark:bg-slate-800/90 backdrop-blur-sm text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-bold'>
               <th className='px-4 py-3 w-[18%]'>Project</th>
-              <th className='px-4 py-3 w-[10%]'>Relationship Manager</th>
+              <th className='px-4 py-3 w-[10%]'>Project Manager</th>
               <th className='px-4 py-3 w-[9%]'>Due Date</th>
               <th className='px-4 py-3 w-[10%]'>Status</th>
               <th className='px-4 py-3 w-[9%]'>Budget (Hrs)</th>
@@ -72,13 +72,10 @@ const EditableTable: React.FC<EditableTableProps> = ({
                     {row.Project}
                   </button>
                 </td>
-                <td className='px-4 py-3 align-top bg-white/50 dark:bg-slate-800/50 group-hover:bg-transparent'>
-                  <textarea
-                    value={row[UI_PROJECT_KEYS.RELATIONSHIP_MANAGER] || ''}
-                    onChange={(e) => handleChange(row._id, UI_PROJECT_KEYS.RELATIONSHIP_MANAGER, e.target.value)}
-                    rows={2}
-                    className='w-full bg-transparent border border-transparent focus:border-indigo-400 focus:bg-white dark:focus:bg-slate-700 rounded-md px-2 py-1 outline-none text-sm text-slate-600 dark:text-slate-300 transition-all resize-none'
-                  />
+                <td className='px-4 py-3 align-top'>
+                  <div className='text-sm text-slate-600 dark:text-slate-300 px-2 py-1'>
+                    {row[UI_PROJECT_KEYS.PROJECT_MANAGER] || '—'}
+                  </div>
                 </td>
                 <td className='px-4 py-3 align-top bg-white/50 dark:bg-slate-800/50 group-hover:bg-transparent'>
                   <input
@@ -97,9 +94,11 @@ const EditableTable: React.FC<EditableTableProps> = ({
                     <option value='' hidden>Select Status...</option>
                     <option value='🟢 On track'>🟢 On track</option>
                     <option value='🟡 Warning'>🟡 Warning</option>
-                    <option value='🔴 At Risk'>🔴 At Risk</option>
+                    <option value='🟡 Delayed'>🟡 Delayed</option>
+                    <option value='🔴 At risk'>🔴 At risk</option>
                     <option value='🔵 Overdue'>🔵 Overdue</option>
                     <option value='⚪ On Hold'>⚪ On Hold</option>
+                    <option value='🟣 Completed'>🟣 Completed</option>
                   </select>
                 </td>
                 <td className='px-4 py-3 align-top bg-white/50 dark:bg-slate-800/50 group-hover:bg-transparent'>

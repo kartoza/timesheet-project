@@ -18,8 +18,11 @@ export const UI_PROJECT_KEYS = {
 
 export const API_STATUS_TO_UI_STATUS: Record<string, string> = {
   on_track: '🟢 On track',
+  warning: '🟡 Warning',
   delayed: '🟡 Delayed',
   at_risk: '🔴 At risk',
+  overdue: '🔵 Overdue',
+  on_hold: '⚪ On Hold',
   completed: '🟣 Completed',
 };
 
