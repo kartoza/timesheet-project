@@ -14,9 +14,17 @@ import {
   UI_TO_BACKEND_FIELD_MAP,
 } from '../../constants/pmo_dashboard';
 
+function normalizeProjectType(projectType: string | null | undefined): string {
+  if (!projectType) return 'Unknown';
+  const normalized = projectType.trim().toLowerCase();
+  if (!normalized) return 'Unknown';
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
 const UI_PROJECT_MAPPERS: Record<keyof UIProjectRow, (project: ApiProject) => UIProjectRow[keyof UIProjectRow]> = {
   _id: (project) => String(project.id),
   [UI_PROJECT_KEYS.PROJECT]: (project) => project.name,
+  [UI_PROJECT_KEYS.PROJECT_TYPE]: (project) => normalizeProjectType(project.project_type),
   [UI_PROJECT_KEYS.RELATIONSHIP_MANAGER]: (project) => project.relations_manager || '',
   [UI_PROJECT_KEYS.PROJECT_MANAGER]: (project) => project.project_manager || '',
   [UI_PROJECT_KEYS.TEAM_MEMBERS]: (project) => (project.team_members || []).map((member) => member.name),

@@ -20,6 +20,7 @@ export type Subtask = {
 export type ApiProject = {
   id: number;
   name: string;
+  project_type?: string | null;
   status: string;
   rag: string | null;
   business_unit: string | null;
@@ -53,6 +54,7 @@ export type RiskReason = {
 export type UIProjectRow = {
   _id: string;
   [UI_PROJECT_KEYS.PROJECT]: string;
+  [UI_PROJECT_KEYS.PROJECT_TYPE]: string;
   [UI_PROJECT_KEYS.RELATIONSHIP_MANAGER]: string;
   [UI_PROJECT_KEYS.PROJECT_MANAGER]: string;
   [UI_PROJECT_KEYS.TEAM_MEMBERS]: string[];

@@ -1,5 +1,6 @@
 export const UI_PROJECT_KEYS = {
   PROJECT: 'Project',
+  PROJECT_TYPE: 'Project Type',
   RELATIONSHIP_MANAGER: 'Relationship Manager',
   PROJECT_MANAGER: 'Project Manager',
   TEAM_MEMBERS: 'Team Members',

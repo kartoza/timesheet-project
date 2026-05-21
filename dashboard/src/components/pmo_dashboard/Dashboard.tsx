@@ -14,7 +14,7 @@ import { CreateProjectPayload, UIProjectRow } from '../../types/pmo_dashboard';
 import AddProjectModal from './AddProjectModal';
 import AtRiskPanel from './AtRiskPanel';
 import BillableHoursChart from './BillableHoursChart';
-import DashboardFilters from './DashboardFilters';
+import DashboardFilters, { FilterFieldConfig, FilterFieldKey } from './DashboardFilters';
 import EditableTable from './EditableTable';
 import GanttView from './GanttView';
 import HoursConsumptionChart from './HoursConsumptionChart';
@@ -38,8 +38,11 @@ const Dashboard: React.FC<DashboardProps> = ({
   onAddManualProject,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [managerFilter, setManagerFilter] = useState('');
+  const [selectedFilters, setSelectedFilters] = useState<Record<FilterFieldKey, string[]>>({
+    projectType: [],
+    status: [],
+    manager: [],
+  });
   const [activeView, setActiveView] = useState<'table' | 'gantt'>('table');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProjectForDetails, setSelectedProjectForDetails] = useState<UIProjectRow | null>(null);
@@ -49,30 +52,83 @@ const Dashboard: React.FC<DashboardProps> = ({
     return Array.from(statuses).sort();
   }, [data]);
 
+  const availableProjectTypes = useMemo(() => {
+    const projectTypes = new Set(data.map((d) => d[UI_PROJECT_KEYS.PROJECT_TYPE]).filter(Boolean));
+    return Array.from(projectTypes).sort();
+  }, [data]);
+
   const availableManagers = useMemo(() => {
     const managers = new Set(data.map((d) => d[UI_PROJECT_KEYS.RELATIONSHIP_MANAGER]).filter(Boolean));
     return Array.from(managers).sort();
   }, [data]);
 
+  const fieldAccessors: Record<FilterFieldKey, (row: UIProjectRow) => string> = {
+    projectType: (row) => String(row[UI_PROJECT_KEYS.PROJECT_TYPE] || ''),
+    status: (row) => String(row[UI_PROJECT_KEYS.STATUS] || ''),
+    manager: (row) => String(row[UI_PROJECT_KEYS.RELATIONSHIP_MANAGER] || ''),
+  };
+
+  const getOptionCounts = (key: FilterFieldKey): Record<string, number> => {
+    const counts: Record<string, number> = {};
+    data.forEach((row) => {
+      const value = fieldAccessors[key](row);
+      if (!value) return;
+      counts[value] = (counts[value] || 0) + 1;
+    });
+    return counts;
+  };
+
+  const filterFields: FilterFieldConfig[] = useMemo(
+    () => [
+      {
+        key: 'projectType',
+        label: 'Project Type',
+        options: availableProjectTypes,
+        optionCounts: getOptionCounts('projectType'),
+      },
+      {
+        key: 'status',
+        label: 'Status',
+        options: availableStatuses,
+        optionCounts: getOptionCounts('status'),
+      },
+      {
+        key: 'manager',
+        label: 'Manager',
+        options: availableManagers,
+        optionCounts: getOptionCounts('manager'),
+      },
+    ],
+    [availableProjectTypes, availableStatuses, availableManagers, data]
+  );
+
   const filteredData = useMemo(() => {
     return data.filter((d) => {
       let matchesSearch = true;
-      let matchesStatus = true;
-      let matchesManager = true;
+      let matchesFilters = true;
 
       if (searchTerm) {
         const projName = String(d.Project || '').toLowerCase();
         matchesSearch = projName.includes(searchTerm.toLowerCase());
       }
-      if (statusFilter) {
-        matchesStatus = d.Status === statusFilter;
+
+      const activeFilterKeys = Object.keys(selectedFilters) as FilterFieldKey[];
+      for (const key of activeFilterKeys) {
+        const selectedValues = selectedFilters[key];
+        if (selectedValues.length === 0) {
+          continue;
+        }
+
+        const fieldValue = fieldAccessors[key](d);
+        if (!selectedValues.includes(fieldValue)) {
+          matchesFilters = false;
+          break;
+        }
       }
-      if (managerFilter) {
-        matchesManager = d[UI_PROJECT_KEYS.RELATIONSHIP_MANAGER] === managerFilter;
-      }
-      return matchesSearch && matchesStatus && matchesManager;
+
+      return matchesSearch && matchesFilters;
     });
-  }, [data, searchTerm, statusFilter, managerFilter]);
+  }, [data, searchTerm, selectedFilters]);
 
   const totalSales = filteredData.reduce((sum, row) => sum + (row[UI_PROJECT_KEYS.TOTAL_SALES_AMOUNT] || 0), 0);
   const totalCost = filteredData.reduce((sum, row) => sum + (row[UI_PROJECT_KEYS.TOTAL_COSTING] || 0), 0);
@@ -91,8 +147,11 @@ const Dashboard: React.FC<DashboardProps> = ({
   const handleModalSave = (projectData: CreateProjectPayload) => {
     onAddManualProject(projectData);
     setSearchTerm('');
-    setStatusFilter('');
-    setManagerFilter('');
+    setSelectedFilters({
+      projectType: [],
+      status: [],
+      manager: [],
+    });
   };
 
   return (
@@ -110,12 +169,9 @@ const Dashboard: React.FC<DashboardProps> = ({
         <DashboardFilters
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-          managerFilter={managerFilter}
-          setManagerFilter={setManagerFilter}
-          availableStatuses={availableStatuses}
-          availableManagers={availableManagers}
+          selectedFilters={selectedFilters}
+          setSelectedFilters={setSelectedFilters}
+          filterFields={filterFields}
         />
       </div>
 
@@ -235,7 +291,15 @@ const Dashboard: React.FC<DashboardProps> = ({
             >
               <StatusChart
                 data={data}
-                onStatusClick={(status) => setStatusFilter(status === statusFilter ? '' : status)}
+                onStatusClick={(status) => {
+                  setSelectedFilters((prev) => {
+                    const hasStatus = prev.status.includes(status);
+                    return {
+                      ...prev,
+                      status: hasStatus ? prev.status.filter((value) => value !== status) : [...prev.status, status],
+                    };
+                  });
+                }}
               />
             </ChartCard>
 
