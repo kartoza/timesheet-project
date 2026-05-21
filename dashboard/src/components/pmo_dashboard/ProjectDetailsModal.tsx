@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, Calendar, ListChecks, User, Users, X } from 'lucide-react';
+import { Building2, Calendar, Clock, ListChecks, User, Users, X } from 'lucide-react';
 import { UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { UIProjectRow } from '../../types/pmo_dashboard';
 
@@ -16,6 +16,31 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onCl
     currency: 'ZAR',
     maximumFractionDigits: 0,
   }).format(val || 0);
+
+  const startDate = project[UI_PROJECT_KEYS.START_DATE];
+  const dueDate = project[UI_PROJECT_KEYS.DUE_DATE];
+
+  const toUtcStartOfDay = (value: string | Date): number => {
+    const date = new Date(value);
+    return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+  };
+
+  const getSchedulePercent = (): number | null => {
+    if (!startDate || !dueDate) return null;
+
+    const start = toUtcStartOfDay(startDate);
+    const end = toUtcStartOfDay(dueDate);
+
+    if (Number.isNaN(start) || Number.isNaN(end) || end <= start) return null;
+
+    const now = toUtcStartOfDay(new Date());
+    const total = end - start;
+    const elapsed = now - start;
+
+    return Math.min(100, Math.max(0, (elapsed / total) * 100));
+  };
+
+  const schedulePercent = getSchedulePercent();
 
   return (
     <div onClick={onClose} className='fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200'>
@@ -90,6 +115,32 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onCl
               </div>
             </div>
           </div>
+
+          {schedulePercent !== null && (
+            <div className='p-5 bg-indigo-50/30 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800/30 rounded-2xl shadow-sm'>
+              <div className='flex justify-between items-center mb-3'>
+                <h3 className='text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2'>
+                  <Clock size={16} className='text-indigo-600 dark:text-indigo-400' /> Schedule Progress
+                </h3>
+                <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${schedulePercent > 90 ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400' : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400'}`}>
+                  {schedulePercent.toFixed(0)}% Elapsed
+                </span>
+              </div>
+
+              <div className='relative h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden'>
+                <div
+                  className={`absolute top-0 left-0 h-full transition-all duration-1000 ease-out rounded-full ${schedulePercent > 90 ? 'bg-rose-500' : 'bg-indigo-600 dark:bg-indigo-500'}`}
+                  style={{ width: `${schedulePercent}%` }}
+                />
+              </div>
+
+              <div className='flex justify-between mt-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tighter'>
+                <span>Kickoff</span>
+                <span>Current Milestone</span>
+                <span>Deadline</span>
+              </div>
+            </div>
+          )}
 
           <div>
             <h3 className='text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2'>
