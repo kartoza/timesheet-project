@@ -1,13 +1,16 @@
 from datetime import timedelta
+from copy import deepcopy
 
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils import timezone
+from preferences import preferences
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from pmo_dashboard.models import BusinessUnit
+from timesheet.models.preferences import get_default_pmo_status_config
 from timesheet.models import Project, Task
 from timesheet.models.project_member import ProjectMember
 
@@ -22,6 +25,14 @@ class TestProjectListView(TestCase):
         self.user.groups.add(pmo_group)
         self.client.login(username='pmo_user', password='pass')
         self.url = reverse('pmo-project-list')
+        self.default_status_config = deepcopy(get_default_pmo_status_config())
+        self.prefs = preferences.TimesheetPreferences
+        self.prefs.pmo_status_config = deepcopy(self.default_status_config)
+        self.prefs.save()
+
+    def tearDown(self):
+        self.prefs.pmo_status_config = deepcopy(self.default_status_config)
+        self.prefs.save()
 
     def test_dashboard_page_requires_authentication(self):
         response = APIClient().get(reverse('pmo-dashboard'))
@@ -127,6 +138,7 @@ class TestProjectListView(TestCase):
         self.assertEqual(p['project_type'], 'EXTERNAL')
         self.assertEqual(p['customer'], 'ACME')
         self.assertEqual(p['status'], 'on_track')
+        self.assertEqual(p['status_label'], 'On track')
         self.assertEqual(p['rag'], 'GREEN')
         self.assertEqual(p['project_manager'], 'Alice Smith')
         self.assertEqual(p['relations_manager'], 'Bob Jones')
@@ -292,3 +304,78 @@ class TestProjectListView(TestCase):
         Project.objects.create(name='Alpha')
         names = [p['name'] for p in self.client.get(self.url).json()]
         self.assertEqual(names, sorted(names))
+
+    def test_custom_status_label_from_preferences(self):
+        custom_config = deepcopy(self.default_status_config)
+        for status in custom_config['statuses']:
+            if status['key'] == 'warning':
+                status['label'] = 'Needs Attention'
+        self.prefs.pmo_status_config = custom_config
+        self.prefs.save()
+
+        project = Project.objects.create(
+            name='Warning Label',
+            is_active=True,
+            expected_end_date=timezone.localdate() + timedelta(days=10),
+            expected_time=100.0,
+            actual_time=90.0,
+            total_sales_amount=1000.0,
+            total_costing_amount=600.0,
+        )
+
+        data = {d['id']: d for d in self.client.get(self.url).json()}
+        self.assertEqual(data[project.id]['status'], 'warning')
+        self.assertEqual(data[project.id]['status_label'], 'Needs Attention')
+
+    def test_custom_rule_changes_formula(self):
+        custom_config = deepcopy(self.default_status_config)
+        custom_config['rules'] = [
+            {
+                'status': 'completed',
+                'when': {
+                    'all': [
+                        {'field': 'is_active', 'op': 'eq', 'value': False},
+                    ],
+                },
+            },
+            {
+                'status': 'warning',
+                'when': {
+                    'all': [
+                        {'field': 'hours_ratio', 'op': 'gte', 'value': 0.8},
+                    ],
+                },
+            },
+        ]
+        self.prefs.pmo_status_config = custom_config
+        self.prefs.save()
+
+        project = Project.objects.create(
+            name='Custom Formula',
+            is_active=True,
+            expected_end_date=timezone.localdate() + timedelta(days=10),
+            expected_time=100.0,
+            actual_time=80.0,
+            total_sales_amount=1000.0,
+            total_costing_amount=100.0,
+        )
+
+        data = {d['id']: d for d in self.client.get(self.url).json()}
+        self.assertEqual(data[project.id]['status'], 'warning')
+
+    def test_invalid_config_falls_back_to_default(self):
+        self.prefs.pmo_status_config = {'broken': True}
+        self.prefs.save()
+        project = Project.objects.create(
+            name='Fallback Formula',
+            is_active=True,
+            expected_end_date=timezone.localdate() + timedelta(days=10),
+            expected_time=100.0,
+            actual_time=90.0,
+            total_sales_amount=1000.0,
+            total_costing_amount=600.0,
+        )
+
+        data = {d['id']: d for d in self.client.get(self.url).json()}
+        self.assertEqual(data[project.id]['status'], 'warning')
+        self.assertEqual(data[project.id]['status_label'], 'Warning')

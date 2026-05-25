@@ -22,6 +22,7 @@ export type ApiProject = {
   name: string;
   project_type?: string | null;
   status: string;
+  status_label?: string | null;
   rag: string | null;
   business_unit: string | null;
   due_date: string | null;

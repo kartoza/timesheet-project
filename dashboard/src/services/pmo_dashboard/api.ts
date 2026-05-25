@@ -30,7 +30,7 @@ const UI_PROJECT_MAPPERS: Record<keyof UIProjectRow, (project: ApiProject) => UI
   [UI_PROJECT_KEYS.TEAM_MEMBERS]: (project) => (project.team_members || []).map((member) => member.name),
   [UI_PROJECT_KEYS.DUE_DATE]: (project) => project.due_date || '',
   [UI_PROJECT_KEYS.START_DATE]: (project) => project.start_date || '',
-  [UI_PROJECT_KEYS.STATUS]: (project) => API_STATUS_TO_UI_STATUS[project.status] || project.status,
+  [UI_PROJECT_KEYS.STATUS]: (project) => project.status_label || API_STATUS_TO_UI_STATUS[project.status] || project.status,
   [UI_PROJECT_KEYS.BUDGET_HOURS]: (project) => project.budget_hours || 0,
   [UI_PROJECT_KEYS.CONSUMED_TIME]: (project) => project.consumed_time || 0,
   [UI_PROJECT_KEYS.TOTAL_COSTING]: (project) => project.total_costing || 0,
