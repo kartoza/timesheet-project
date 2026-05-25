@@ -25,9 +25,9 @@
       "name": "Planner.ea0e0f6fef5e26284ace.js",
       "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.ea0e0f6fef5e26284ace.js"
     },
-    "PMODashboard.8db3675524e0959e62da.js": {
-      "name": "PMODashboard.8db3675524e0959e62da.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.8db3675524e0959e62da.js"
+    "PMODashboard.4b496d1a2abda3221315.js": {
+      "name": "PMODashboard.4b496d1a2abda3221315.js",
+      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.4b496d1a2abda3221315.js"
     },
     "998.7bac1c1a05c8cf744b49.js": {
       "name": "998.7bac1c1a05c8cf744b49.js",
@@ -201,9 +201,9 @@
       "name": "EmployeeInsight.ea75d30df6717c998d50.js.LICENSE.txt",
       "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.ea75d30df6717c998d50.js.LICENSE.txt"
     },
-    "PMODashboard.8db3675524e0959e62da.js.LICENSE.txt": {
-      "name": "PMODashboard.8db3675524e0959e62da.js.LICENSE.txt",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.8db3675524e0959e62da.js.LICENSE.txt"
+    "PMODashboard.4b496d1a2abda3221315.js.LICENSE.txt": {
+      "name": "PMODashboard.4b496d1a2abda3221315.js.LICENSE.txt",
+      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.4b496d1a2abda3221315.js.LICENSE.txt"
     },
     "Planner.ea0e0f6fef5e26284ace.js.LICENSE.txt": {
       "name": "Planner.ea0e0f6fef5e26284ace.js.LICENSE.txt",
@@ -242,7 +242,7 @@
       "Planner.ea0e0f6fef5e26284ace.js"
     ],
     "PMODashboard": [
-      "PMODashboard.8db3675524e0959e62da.js"
+      "PMODashboard.4b496d1a2abda3221315.js"
     ]
   }
 }

@@ -112,7 +112,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
                 <td className='px-4 py-3 align-top bg-white/50 dark:bg-slate-800/50 group-hover:bg-transparent'>
                   <input
                     type='number'
-                    value={row[UI_PROJECT_KEYS.CONSUMED_TIME] || 0}
+                    value={row[UI_PROJECT_KEYS.CONSUMED_TIME].toFixed(2) || 0}
                     onChange={(e) => handleChange(row._id, UI_PROJECT_KEYS.CONSUMED_TIME, e.target.value, 'number')}
                     className='w-full bg-transparent border-b border-transparent focus:border-indigo-400 focus:bg-white dark:focus:bg-slate-700 px-2 py-1 outline-none text-sm text-slate-600 dark:text-slate-300 transition-all cursor-text'
                   />

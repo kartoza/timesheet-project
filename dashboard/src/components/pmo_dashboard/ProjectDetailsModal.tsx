@@ -169,11 +169,11 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onCl
                       return (
                         <tr key={task.id} className='hover:bg-indigo-50/50 dark:hover:bg-slate-800/50 transition-colors'>
                           <td className='px-4 py-3 font-semibold text-slate-700 dark:text-slate-200 text-sm'>{task.name}</td>
-                          <td className='px-4 py-3 text-right font-medium text-slate-600 dark:text-slate-400 text-sm'>{task.budgetTime}h</td>
-                          <td className='px-4 py-3 text-right font-medium text-slate-600 dark:text-slate-400 text-sm'>{task.consumedTime}h</td>
-                          <td className='px-4 py-3 text-right font-bold text-slate-700 dark:text-slate-200 text-sm'>{task.billableHours || 0}h</td>
+                          <td className='px-4 py-3 text-right font-medium text-slate-600 dark:text-slate-400 text-sm'>{task.budgetTime.toFixed(2)}h</td>
+                          <td className='px-4 py-3 text-right font-medium text-slate-600 dark:text-slate-400 text-sm'>{task.consumedTime.toFixed(2)}h</td>
+                          <td className='px-4 py-3 text-right font-bold text-slate-700 dark:text-slate-200 text-sm'>{task.billableHours.toFixed(2) || 0}h</td>
                           <td className='px-4 py-3 text-right font-bold text-slate-700 dark:text-slate-200 text-sm'>
-                            {task.budgetTime - task.billableHours || 0}h
+                            {(task.budgetTime - task.billableHours).toFixed(2) || 0}h
                           </td>
                           <td className='px-4 py-3 text-right'>
                             <span className={`inline-block px-2 py-1 rounded-md text-[10px] font-bold ${burn > 100 ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400' : burn > 85 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'}`}>
