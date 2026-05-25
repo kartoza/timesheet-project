@@ -1,4 +1,4 @@
-ALLOWED_PMO_GROUPS = {'pmo', 'management'}
+ALLOWED_PMO_GROUPS = {'pmo', 'administrators'}
 
 
 def can_access_pmo(user) -> bool:

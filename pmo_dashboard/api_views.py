@@ -1,10 +1,16 @@
 from drf_spectacular.utils import extend_schema
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from timesheet.models.project import Project
+from pmo_dashboard.access import can_access_pmo
 from pmo_dashboard.serializers.project import ProjectSerializer
+from timesheet.models.project import Project
+
+
+class IsPMOMemberOrSuperuser(BasePermission):
+    def has_permission(self, request, view):
+        return can_access_pmo(request.user)
 
 
 @extend_schema(
@@ -14,7 +20,7 @@ from pmo_dashboard.serializers.project import ProjectSerializer
     responses={200: ProjectSerializer(many=True)},
 )
 class ProjectListView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsPMOMemberOrSuperuser]
 
     def get(self, request):
         projects = (
