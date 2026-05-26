@@ -1,3 +1,4 @@
+from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.db import models
 from preferences.models import Preferences
@@ -218,6 +219,13 @@ class TimesheetPreferences(Preferences):
             'Enter the dates when timesheet submission is not available, separated by commas. '
             'E.g., "2023-12-24,2023-12-25". On these dates, users will not be able to submit timesheet.'
         )
+    )
+
+    pmo_allowed_groups = models.ManyToManyField(
+        Group,
+        blank=True,
+        related_name='pmo_allowed_preferences',
+        help_text='Groups allowed to access the PMO Dashboard.',
     )
 
     pmo_status_config = models.JSONField(
