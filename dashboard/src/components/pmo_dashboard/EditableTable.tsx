@@ -2,6 +2,7 @@ import React from 'react';
 import { PencilLine, Trash2 } from 'lucide-react';
 import { UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { UIProjectRow } from '../../types/pmo_dashboard';
+import { formatManagerName } from '../../utils/pmo_dashboard';
 
 type EditableTableProps = {
   data: UIProjectRow[];
@@ -74,7 +75,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
                 </td>
                 <td className='px-4 py-3 align-top'>
                   <div className='text-sm text-slate-600 dark:text-slate-300 px-2 py-1'>
-                    {row[UI_PROJECT_KEYS.PROJECT_MANAGER] || '—'}
+                    {formatManagerName(row[UI_PROJECT_KEYS.PROJECT_MANAGER]) || '—'}
                   </div>
                 </td>
                 <td className='px-4 py-3 align-top bg-white/50 dark:bg-slate-800/50 group-hover:bg-transparent'>

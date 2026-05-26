@@ -1,23 +1,61 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { UIProjectRow } from '../../types/pmo_dashboard';
+
+type SortKey = 'name' | 'Sales' | 'Cost' | 'ratio';
 
 type SalesCostChartProps = {
   data: UIProjectRow[];
 };
 
+const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+  { key: 'name', label: 'Name' },
+  { key: 'Sales', label: 'Sales' },
+  { key: 'Cost', label: 'Cost' },
+  { key: 'ratio', label: 'Sales/Cost' },
+];
+
 const SalesCostChart: React.FC<SalesCostChartProps> = ({ data }) => {
-  const chartData = data.map((d) => ({
-    name: d.Project || 'Unknown Project',
-    Sales: d[UI_PROJECT_KEYS.TOTAL_SALES_AMOUNT] || 0,
-    Cost: d[UI_PROJECT_KEYS.TOTAL_COSTING] || 0,
-  }));
+  const [sortBy, setSortBy] = useState<SortKey>('Sales');
+
+  const chartData = data
+    .map((d) => {
+      const sales = d[UI_PROJECT_KEYS.TOTAL_SALES_AMOUNT] || 0;
+      const cost = d[UI_PROJECT_KEYS.TOTAL_COSTING] || 0;
+      return {
+        name: d.Project || 'Unknown Project',
+        Sales: sales,
+        Cost: cost,
+        ratio: cost > 0 ? sales / cost : 0,
+      };
+    })
+    .sort((a, b) => {
+      if (sortBy === 'name') return a.name.localeCompare(b.name);
+      return b[sortBy] - a[sortBy];
+    });
 
   const minWidth = Math.max(200, chartData.length * 150);
 
   return (
-    <div className='w-full h-full min-h-[400px] overflow-x-auto overflow-y-hidden pb-4 custom-scrollbar'>
+    <div className='w-full h-full min-h-[400px] flex flex-col'>
+      <div className='flex items-center gap-2 mb-2 flex-wrap'>
+        <span className='text-xs text-slate-400 font-medium'>Sort by:</span>
+        {SORT_OPTIONS.map((opt) => (
+          <button
+            key={opt.key}
+            onClick={() => setSortBy(opt.key)}
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+              sortBy === opt.key
+                ? 'bg-indigo-600 text-white'
+                : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+      <div className='flex-1 overflow-x-auto overflow-y-hidden pb-4 custom-scrollbar'>
       <div style={{ minWidth: `${minWidth}px`, height: '100%' }}>
         <ResponsiveContainer width='100%' height='100%'>
           <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
@@ -30,6 +68,7 @@ const SalesCostChart: React.FC<SalesCostChartProps> = ({ data }) => {
             <Bar dataKey='Cost' fill='#FB7185' maxBarSize={48} barSize={32} radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
+      </div>
       </div>
     </div>
   );

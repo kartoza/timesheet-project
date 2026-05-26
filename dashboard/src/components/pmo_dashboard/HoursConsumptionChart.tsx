@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Bar,
   CartesianGrid,
@@ -13,27 +13,67 @@ import {
 import { UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { UIProjectRow } from '../../types/pmo_dashboard';
 
+type SortKey = 'name' | 'budget' | 'consumed' | 'progress' | 'burnRate';
+
 type HoursConsumptionChartProps = {
   data: UIProjectRow[];
 };
 
-const HoursConsumptionChart: React.FC<HoursConsumptionChartProps> = ({ data }) => {
-  const chartData = data.map((d) => {
-    const rawProgress = d[UI_PROJECT_KEYS.ACTUAL_PROGRESS] || 0;
-    const progressPercent = Number(rawProgress) * 100;
+const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+  { key: 'name', label: 'Name' },
+  { key: 'budget', label: 'Budget' },
+  { key: 'consumed', label: 'Consumed' },
+  { key: 'progress', label: 'Progress' },
+  { key: 'burnRate', label: 'Burn Rate' },
+];
 
-    return {
-      name: d.Project || 'Unknown Project',
-      'Budget (hrs)': d[UI_PROJECT_KEYS.BUDGET_HOURS] || 0,
-      'Consumed (hrs)': d[UI_PROJECT_KEYS.CONSUMED_TIME] || 0,
-      'Progress (%)': progressPercent,
-    };
-  });
+const HoursConsumptionChart: React.FC<HoursConsumptionChartProps> = ({ data }) => {
+  const [sortBy, setSortBy] = useState<SortKey>('burnRate');
+
+  const chartData = data
+    .map((d) => {
+      const budget = d[UI_PROJECT_KEYS.BUDGET_HOURS] || 0;
+      const consumed = d[UI_PROJECT_KEYS.CONSUMED_TIME] || 0;
+      const progressPercent = Number(d[UI_PROJECT_KEYS.ACTUAL_PROGRESS] || 0) * 100;
+      const burnRate = budget > 0 ? consumed / budget : 0;
+
+      return {
+        name: d.Project || 'Unknown Project',
+        'Budget (hrs)': budget,
+        'Consumed (hrs)': consumed,
+        'Progress (%)': progressPercent,
+        burnRate,
+      };
+    })
+    .sort((a, b) => {
+      if (sortBy === 'name') return a.name.localeCompare(b.name);
+      if (sortBy === 'budget') return b['Budget (hrs)'] - a['Budget (hrs)'];
+      if (sortBy === 'consumed') return b['Consumed (hrs)'] - a['Consumed (hrs)'];
+      if (sortBy === 'progress') return b['Progress (%)'] - a['Progress (%)'];
+      return b.burnRate - a.burnRate;
+    });
 
   const minWidth = Math.max(200, chartData.length * 150);
 
   return (
-    <div className='w-full h-full min-h-[400px] overflow-x-auto overflow-y-hidden pb-4 custom-scrollbar'>
+    <div className='w-full h-full min-h-[400px] flex flex-col'>
+      <div className='flex items-center gap-2 mb-2 flex-wrap'>
+        <span className='text-xs text-slate-400 font-medium'>Sort by:</span>
+        {SORT_OPTIONS.map((opt) => (
+          <button
+            key={opt.key}
+            onClick={() => setSortBy(opt.key)}
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+              sortBy === opt.key
+                ? 'bg-indigo-600 text-white'
+                : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+      <div className='flex-1 overflow-x-auto overflow-y-hidden pb-4 custom-scrollbar'>
       <div style={{ minWidth: `${minWidth}px`, height: '100%' }}>
         <ResponsiveContainer width='100%' height='100%'>
           <ComposedChart data={chartData} margin={{ top: 20, right: 20, left: 20, bottom: 40 }}>
@@ -51,6 +91,7 @@ const HoursConsumptionChart: React.FC<HoursConsumptionChartProps> = ({ data }) =
             <Line yAxisId='right' type='monotone' dataKey='Progress (%)' stroke='#14B8A6' strokeWidth={4} dot={{ r: 5, fill: '#fff', strokeWidth: 3 }} activeDot={{ r: 8 }} />
           </ComposedChart>
         </ResponsiveContainer>
+      </div>
       </div>
     </div>
   );

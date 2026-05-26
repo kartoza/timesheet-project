@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { UIProjectRow } from '../../types/pmo_dashboard';
+import { formatManagerName } from '../../utils/pmo_dashboard';
 
 type ManagerWorkloadChartProps = {
   data: UIProjectRow[];
@@ -26,7 +27,7 @@ const ManagerWorkloadChart: React.FC<ManagerWorkloadChartProps> = ({ data }) => 
       const isActive = status !== '🟣 Completed' && status !== '⚫ Cancelled';
       if (!isActive) return;
 
-      const pm = proj[UI_PROJECT_KEYS.PROJECT_MANAGER] || 'Unassigned';
+      const pm = formatManagerName(proj[UI_PROJECT_KEYS.PROJECT_MANAGER]) || 'Unassigned';
 
       if (!managerStats[pm]) {
         managerStats[pm] = { name: pm, projectsCount: 0, totalHours: 0 };
