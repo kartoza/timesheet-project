@@ -15,3 +15,8 @@ class PMODashboardView(LoginRequiredMixin, TemplateView):
         if not can_access_pmo(request.user):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['can_access_pmo'] = can_access_pmo(self.request.user)
+        return ctx
