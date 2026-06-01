@@ -27,8 +27,12 @@ def filter_timesheet_endpoints(endpoints, **kwargs):
         else:
             module = callback.__module__ if hasattr(callback, '__module__') else ''
 
-        # Include only timesheet and microblog app endpoints
-        if module.startswith('timesheet.') or module.startswith('microblog.'):
+        # Include only timesheet, microblog, and pmo_dashboard app endpoints
+        if (
+            module.startswith('timesheet.')
+            or module.startswith('microblog.')
+            or module.startswith('pmo_dashboard.')
+        ):
             filtered.append((path, path_regex, method, callback))
 
     return filtered

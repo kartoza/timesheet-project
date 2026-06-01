@@ -11,6 +11,7 @@ from timesheet.models import (
     Timelog, Task, Project, Activity, TimesheetPreferences,
     SavedSummary, ProjectLink
 )
+from timesheet.models.project_member import ProjectMember
 from timesheet.models.clock import Clock
 from timesheet.utils.erp import (
     push_timesheet_to_erp, pull_projects_from_erp, pull_user_data_from_erp,
@@ -125,6 +126,12 @@ class ProjectLinkInline(admin.StackedInline):
     ordering = ('display_order',)
 
 
+class ProjectMemberInline(admin.TabularInline):
+    model = ProjectMember
+    extra = 1
+    fields = ('user', 'role', 'project_lead')
+
+
 class ProjectAdmin(admin.ModelAdmin):
     list_display = (
         'name',
@@ -136,8 +143,34 @@ class ProjectAdmin(admin.ModelAdmin):
     list_filter = (
         'is_active',
     )
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'erp_id', 'is_active', 'project_type', 'business_unit', 'customer'),
+        }),
+        ('Team', {
+            'fields': ('project_lead', 'relations_manager'),
+        }),
+        ('Timeline', {
+            'fields': ('expected_start_date', 'expected_end_date', 'updated'),
+        }),
+        ('Progress', {
+            'fields': ('expected_time', 'actual_time', 'progress_in_hours', 'percent_complete', 'rag'),
+        }),
+        ('Financials', {
+            'fields': (
+                'estimated_costing',
+                'total_sales_amount',
+                'total_costing_amount',
+                'total_billable_amount',
+                'total_billed_amount',
+                'gross_margin',
+                'per_gross_margin',
+            ),
+        }),
+    )
     inlines = (
         ProjectLinkInline,
+        ProjectMemberInline,
     )
 
 

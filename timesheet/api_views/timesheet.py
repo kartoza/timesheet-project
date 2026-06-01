@@ -13,7 +13,7 @@ from rest_framework.authentication import TokenAuthentication, SessionAuthentica
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from preferences import preferences
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
+from drf_spectacular.utils import extend_schema, extend_schema_field, OpenApiParameter, OpenApiExample, OpenApiResponse
 from drf_spectacular.types import OpenApiTypes
 
 from timesheet.models import Timelog, Task, Activity, Project
@@ -59,6 +59,7 @@ class TimesheetSerializer(serializers.ModelSerializer):
     activity = ActivitySerializer(required=False)
     editing = serializers.SerializerMethodField()
 
+    @extend_schema_field(OpenApiTypes.BOOL)
     def get_editing(self, obj):
         return self.context['request'].data.get('editing', False)
 
@@ -526,22 +527,20 @@ class BreakTimesheet(APIView):
         )
 
 
-@extend_schema(tags=['Timesheet'])
 class SubmitTimeLogsAPIView(APIView):
     """
     API endpoint for submitting time logs to ERP system.
     """
     @extend_schema(
+        tags=['Timesheet'],
         summary="Submit time logs to ERP",
         description="Submits all unsubmitted time logs for the authenticated user to the ERP system.",
         responses={
-            200: None,
-            403: {
-                'type': 'object',
-                'properties': {
-                    'error': {'type': 'string', 'description': 'Error message'}
-                }
-            }
+            200: OpenApiResponse(description='Submitted successfully'),
+            403: OpenApiResponse(
+                description='Submission unavailable',
+                response={'type': 'object', 'properties': {'error': {'type': 'string'}}},
+            ),
         }
     )
     def post(self, request):

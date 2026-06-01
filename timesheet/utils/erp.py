@@ -1,7 +1,9 @@
 import json
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from collections import OrderedDict
+from urllib.parse import quote
 import requests
 from django.utils.dateparse import parse_date
 from preferences import preferences
@@ -21,6 +23,8 @@ from schedule.api_views.schedule import (
 from schedule.models import Schedule
 from timesheet.enums.doctype import DocType
 from timesheet.models import Timelog, Project, Task, Activity
+from pmo_dashboard.models import BusinessUnit
+from timesheet.models.project_member import ProjectMember
 from timesheet.models.profile import get_country_code_from_timezone
 from timesheet.models.user_project import UserProject
 from timesheet.serializers.timesheet import TimelogSerializerERP
@@ -69,10 +73,8 @@ class ProjectsNotFound(Exception):
 
 
 def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '', doctype_value: str = '', user=None) -> list:
-    url = (
-        f'{settings.ERPNEXT_SITE_LOCATION}/api/'
-        f'resource/{doctype.value}/{doctype_value}?limit_page_length=None&fields=["*"]'
-    )
+    path = f'resource/{doctype.value}/{doctype_value}'.rstrip('/')
+    url = f'{settings.ERPNEXT_SITE_LOCATION}/api/{path}?limit_page_length=None&fields=["*"]'
     if filters:
         url += '&filters=' + filters
     headers = get_auth_headers(user=user, erpnext_token=erpnext_token)
@@ -90,6 +92,16 @@ def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '',
         logger.error('Data not found')
         return []
     return response_data['data']
+
+
+def get_erp_project_detail(project_name: str, user=None) -> dict:
+    url = f'{settings.ERPNEXT_SITE_LOCATION}/api/resource/Project/{quote(project_name)}?fields=["*"]'
+    headers = get_auth_headers(user=user)
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        logger.error(f'Failed to fetch project detail for {project_name}: {response.content}')
+        return {}
+    return response.json().get('data', {})
 
 
 def generate_api_secret(user: get_user_model()):
@@ -276,25 +288,129 @@ def pull_user_data_from_erp(user: get_user_model()):
         user.save()
 
 
+def _user_by_email(email: str):
+    if not email:
+        return None
+    email = email.lower()
+    user, _ = get_user_model().objects.get_or_create(
+        email=email,
+        defaults={'username': email}
+    )
+    return user
+
+
 @retry_operation
-def pull_projects_from_erp(user: get_user_model()):
+def pull_project_members_from_erp(user: get_user_model()):
+    projects = list(Project.objects.all())
+    if not projects:
+        return
+
+    project_members_map = {}
+
+    # Unfortunately, we cannot fetch all project members at once.
+    # Fetch each project individually in parallel to get project_team_members
+    def fetch_members(project_name):
+        detail = get_erp_project_detail(project_name, user=user)
+        return (
+            project_name,
+            detail.get('project_team_members', []),
+            detail.get('project_lead', '')
+        )
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(fetch_members, p.name): p.name for p in projects}
+        for future in as_completed(futures):
+            name, members, project_lead_email = future.result()
+            project_members_map[name] = {'members': members, 'project_lead': project_lead_email.lower()}
+
+    User = get_user_model()
     with transaction.atomic():
-        projects = get_erp_data(
-            DocType.PROJECT, user=user)
+        for project in projects:
+            data = project_members_map.get(project.name, {})
+            members = data.get('members', [])
+            project_lead_email = data.get('project_lead', '')
+            ProjectMember.objects.filter(project=project).delete()
 
-        if len(projects) == 0:
-            raise ProjectsNotFound
+            lead_in_team = any(m.get('employee', '').lower() == project_lead_email for m in members)
+            if project_lead_email and not lead_in_team:
+                members = members + [{'employee': project_lead_email, 'role': '', 'project_lead_entry': True}]
 
+            emails = {
+                m.get('employee', '').lower()
+                for m in members
+                if m.get('employee')
+            }
+            user_map = {
+                u.email.lower(): u
+                for u in User.objects.filter(email__in=emails)
+            }
+            for email in emails:
+                if email not in user_map:
+                    u, _ = User.objects.get_or_create(
+                        email=email,
+                        defaults={'username': email}
+                    )
+                    user_map[email] = u
+
+            seen = set()
+            unique_members = []
+            for m in members:
+                email = m.get('employee', '').lower()
+                if email and email not in seen:
+                    seen.add(email)
+                    unique_members.append(m)
+
+            ProjectMember.objects.bulk_create([
+                ProjectMember(
+                    project=project,
+                    user=user_map.get(m.get('employee', '').lower()),
+                    role=m.get('role', ''),
+                    project_lead=m.get('employee', '').lower() == project_lead_email,
+                )
+                for m in unique_members
+            ])
+
+
+def pull_projects_from_erp(user: get_user_model()):
+    projects = get_erp_data(DocType.PROJECT, user=user)
+
+    if len(projects) == 0:
+        raise ProjectsNotFound
+
+    with transaction.atomic():
         updated = timezone.now()
         updated_projects = []
         for project in projects:
             project_type = project.get('project_type')
+            business_unit_name = project.get('custom_business_unit', '')
+            business_unit = None
+            if business_unit_name:
+                business_unit, _ = BusinessUnit.objects.get_or_create(name=business_unit_name)
+            
             _project, _ = Project.objects.update_or_create(
                 name=project['name'],
                 defaults={
                     'is_active': project.get('status', '') == 'Open',
                     'updated': updated,
                     'project_type': project_type.upper() if project_type else '',
+                    'business_unit': business_unit,
+                    'expected_start_date': project.get('expected_start_date') or None,
+                    'expected_end_date': project.get('expected_end_date') or None,
+                    'project_lead': _user_by_email(project.get('project_lead', '')),
+                    'relations_manager': _user_by_email(project.get('custom_project_relations_manager', '')),
+                    'customer': project.get('customer') or '',
+                    'rag': project.get('rag') or '',
+                    'expected_time': project.get('expected_time'),
+                    'actual_time': project.get('actual_time'),
+                    'progress_in_hours': project.get('progress_in_hours'),
+                    'percent_complete': project.get('percent_complete'),
+                    'estimated_costing': project.get('estimated_costing'),
+                    'total_sales_amount': project.get('total_sales_amount'),
+                    'total_costing_amount': project.get('total_costing_amount'),
+                    'total_billable_amount': project.get('total_billable_amount'),
+                    'total_billed_amount': project.get('total_billed_amount'),
+                    'gross_margin': project.get('gross_margin'),
+                    'per_gross_margin': project.get('per_gross_margin'),
                 }
             )
             UserProject.objects.get_or_create(
