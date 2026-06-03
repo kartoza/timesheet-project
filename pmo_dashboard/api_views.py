@@ -24,7 +24,7 @@ class ProjectListView(APIView):
 
     def get(self, request):
         projects = (
-            Project.objects
+            Project.objects.filter(is_active=True)
             .select_related('business_unit', 'project_lead', 'relations_manager')
             .prefetch_related('members__user', 'task_set')
             .order_by('name')
