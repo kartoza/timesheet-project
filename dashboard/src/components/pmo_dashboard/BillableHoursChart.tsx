@@ -85,12 +85,12 @@ const BillableHoursChart: React.FC<BillableHoursChartProps> = ({ data }) => {
     <div className='w-full h-full min-h-[350px] overflow-x-auto overflow-y-hidden pb-4 custom-scrollbar text-xs'>
       <div style={{ minWidth: Math.max(300, chartData.length * 80), height: '100%' }}>
         <ResponsiveContainer width='100%' height='100%'>
-          <BarChart data={chartData} margin={{ top: 20, right: 20, left: 0, bottom: 40 }}>
+          <BarChart data={chartData} margin={{ top: 20, right: 20, left: 0, bottom: 90 }}>
             <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='#e2e8f0' className='dark:opacity-20' />
             <XAxis dataKey='name' axisLine={false} tickLine={false} tick={<CustomXAxisTick />} interval={0} />
             <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
-            <Legend wrapperStyle={{ paddingTop: '20px' }} />
+            <Legend verticalAlign='top' wrapperStyle={{ paddingBottom: '10px' }} />
 
             <Bar dataKey='billable' name='Billable Hours' stackId='a' fill='#10b981' barSize={32} />
             <Bar dataKey='nonBillable' name='Non-Billable Hours' stackId='a' fill='#f43f5e' radius={[4, 4, 0, 0]} barSize={32} />
@@ -107,9 +107,19 @@ function truncate(str: string, n: number) {
 
 const CustomXAxisTick = ({ x, y, payload }: any) => (
   <g transform={`translate(${x},${y})`}>
-    <text x={0} y={0} dy={16} textAnchor='middle' fill='#64748B' fontSize={11} fontWeight={600}>
+    <text
+      x={0}
+      y={0}
+      dy={4}
+      dx={-4}
+      textAnchor='end'
+      fill='#64748B'
+      fontSize={11}
+      fontWeight={600}
+      transform='rotate(-45)'
+    >
       <title>{payload.value}</title>
-      {truncate(payload.value, 15)}
+      {truncate(payload.value, 22)}
     </text>
   </g>
 );

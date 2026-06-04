@@ -2,6 +2,7 @@ import React from 'react';
 import { Building2, Calendar, Clock, ListChecks, User, Users, X } from 'lucide-react';
 import { UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { UIProjectRow } from '../../types/pmo_dashboard';
+import { formatManagerName } from '../../utils/pmo_dashboard';
 
 type ProjectDetailsModalProps = {
   project: UIProjectRow | null;
@@ -93,10 +94,10 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onCl
               </h3>
               <div className='flex items-center gap-3'>
                 <div className='w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold text-sm border border-indigo-200 dark:border-indigo-700'>
-                  {project[UI_PROJECT_KEYS.PROJECT_MANAGER]?.split(' ').map((name) => name[0]).join('') || 'PM'}
+                  {formatManagerName(project[UI_PROJECT_KEYS.PROJECT_MANAGER] || '').split(' ').map((name) => name[0]).join('') || 'PM'}
                 </div>
                 <div>
-                  <div className='font-bold text-slate-800 dark:text-white'>{project[UI_PROJECT_KEYS.PROJECT_MANAGER] || 'Not Assigned'}</div>
+                  <div className='font-bold text-slate-800 dark:text-white'>{formatManagerName(project[UI_PROJECT_KEYS.PROJECT_MANAGER] || '') || 'Not Assigned'}</div>
                   <div className='text-xs text-slate-500 dark:text-slate-400 font-medium'>Lead Project Manager</div>
                 </div>
               </div>
@@ -109,7 +110,7 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onCl
                 {project[UI_PROJECT_KEYS.TEAM_MEMBERS]?.map((member, i) => (
                   <span key={`${member}-${i}`} className='px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5'>
                     <div className='w-1.5 h-1.5 rounded-full bg-emerald-500'></div>
-                    {member}
+                    {formatManagerName(member)}
                   </span>
                 ))}
               </div>

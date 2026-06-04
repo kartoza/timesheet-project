@@ -11,7 +11,6 @@ const STATUS_COLORS: Record<string, string> = {
   '🟢 On track': '#10B981',
   '🟡 Warning': '#EAB308',
   '🟡 Delayed': '#EAB308',
-  '🔴 At Risk': '#EF4444',
   '🔴 At risk': '#EF4444',
   '🔵 Overdue': '#3B82F6',
   '⚪ On Hold': '#94A3B8',
@@ -60,6 +59,7 @@ const StatusChart: React.FC<StatusChartProps> = ({ data, onStatusClick }) => {
             verticalAlign='bottom'
             height={36}
             iconType='circle'
+            formatter={(value: string) => value.split(' ').slice(1).join(' ')}
             wrapperStyle={{ fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
             onClick={(entry: any) => onStatusClick && onStatusClick(entry.value)}
           />
