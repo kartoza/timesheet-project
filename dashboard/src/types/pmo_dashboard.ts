@@ -23,6 +23,7 @@ export type ApiProject = {
   project_type?: string | null;
   status: string;
   status_label?: string | null;
+  status_reasons?: string[];
   rag: string | null;
   business_unit: string | null;
   due_date: string | null;
@@ -70,6 +71,7 @@ export type UIProjectRow = {
   [UI_PROJECT_KEYS.BUSINESS_UNIT]: string;
   [UI_PROJECT_KEYS.SUBTASKS]: UISubTask[];
   _statusKey?: string;
+  _statusReasons?: string[];
   _riskReason?: RiskReason[];
 };
 

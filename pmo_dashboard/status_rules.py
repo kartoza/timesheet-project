@@ -105,6 +105,57 @@ def _matches_condition(facts, condition):
     return _compare(facts.get(field), op, value)
 
 
+def _collect_ratio_thresholds(config):
+    """Walk all rule conditions and collect gte/gt thresholds for numeric ratio fields."""
+    thresholds = {}
+
+    def walk(condition):
+        if 'all' in condition:
+            for child in condition['all']:
+                walk(child)
+        elif 'any' in condition:
+            for child in condition['any']:
+                walk(child)
+        else:
+            field = condition.get('field')
+            op = condition.get('op')
+            value = condition.get('value')
+            if field and op in ('gte', 'gt') and isinstance(value, (int, float)):
+                thresholds.setdefault(field, set()).add(value)
+
+    for rule in config['rules']:
+        walk(rule['when'])
+    return thresholds
+
+
+def get_status_reasons(project):
+    """Return a list of human-readable reason strings explaining why a project has its status."""
+    config = get_effective_status_config()
+    facts = build_project_facts(project)
+    thresholds = _collect_ratio_thresholds(config)
+    reasons = []
+
+    if facts.get('behind_schedule'):
+        reasons.append('Behind Schedule')
+
+    if facts.get('over_budget'):
+        reasons.append('Budget Overrun')
+    else:
+        hours_ratio = facts.get('hours_ratio')
+        if hours_ratio is not None:
+            crossed = sorted(t for t in thresholds.get('hours_ratio', []) if hours_ratio >= t)
+            if crossed:
+                reasons.append(f'Hours at {int(crossed[0] * 100)}%+')
+
+    cost_ratio = facts.get('cost_ratio')
+    if cost_ratio is not None:
+        crossed = sorted(t for t in thresholds.get('cost_ratio', []) if cost_ratio >= t)
+        if crossed:
+            reasons.append(f'Cost at {int(crossed[0] * 100)}%+')
+
+    return reasons
+
+
 def evaluate_status(project):
     config = get_effective_status_config()
     facts = build_project_facts(project)

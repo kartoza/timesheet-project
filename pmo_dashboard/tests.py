@@ -29,6 +29,7 @@ class TestProjectListView(TestCase):
         self.prefs = preferences.TimesheetPreferences
         self.prefs.pmo_status_config = deepcopy(self.default_status_config)
         self.prefs.save()
+        self.prefs.pmo_allowed_groups.add(pmo_group)
 
     def tearDown(self):
         self.prefs.pmo_status_config = deepcopy(self.default_status_config)
@@ -63,6 +64,7 @@ class TestProjectListView(TestCase):
 
     def test_administrators_group_user_can_access_dashboard_and_api(self):
         admin_group, _ = Group.objects.get_or_create(name='Administrators')
+        self.prefs.pmo_allowed_groups.add(admin_group)
         admin_user = User.objects.create_user(username='admin_group_user', password='pass')
         admin_user.groups.add(admin_group)
 
@@ -154,10 +156,10 @@ class TestProjectListView(TestCase):
         self.assertEqual(p['gross_margin'], 4000.0)
         self.assertAlmostEqual(p['per_gross_margin'], 33.33, places=2)
 
-    def test_inactive_project_status_is_completed(self):
+    def test_inactive_project_not_returned_by_api(self):
+        # The API filters to is_active=True, so inactive/completed projects are excluded.
         Project.objects.create(name='Done', is_active=False)
-        p = self.client.get(self.url).json()[0]
-        self.assertEqual(p['status'], 'completed')
+        self.assertEqual(self.client.get(self.url).json(), [])
 
     def test_warning_status_when_consumed_hours_hit_90_percent(self):
         project = Project.objects.create(

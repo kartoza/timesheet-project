@@ -1,5 +1,9 @@
 module.exports = {
-  content: ['./src/components/pmo_dashboard/**/*.{js,jsx,ts,tsx}', './src/PMODashboard.tsx'],
+  content: [
+    './src/components/pmo_dashboard/**/*.{js,jsx,ts,tsx}',
+    './src/constants/**/*.{js,jsx,ts,tsx}',
+    './src/PMODashboard.tsx',
+  ],
   darkMode: 'class',
   theme: {
     extend: {
