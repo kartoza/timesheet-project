@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Gantt, Task, ViewMode } from 'gantt-task-react';
 import 'gantt-task-react/dist/index.css';
 import { Maximize2, Minimize2 } from 'lucide-react';
@@ -22,8 +22,11 @@ const CustomTooltip = ({ task, fontSize, fontFamily }: any) => {
   );
 };
 
+const COLUMN_WIDTH = 60;
+
 const GanttView: React.FC<GanttViewProps> = ({ data, onViewDetails }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   const tasks = useMemo<Task[]>(() => {
     return data.map((proj) => {
@@ -56,6 +59,27 @@ const GanttView: React.FC<GanttViewProps> = ({ data, onViewDetails }) => {
     });
   }, [data]);
 
+  useEffect(() => {
+    if (!wrapperRef.current || tasks.length === 0) return;
+    const minDate = new Date(Math.min(...tasks.map((t) => t.start.getTime())));
+    const today = new Date();
+    const monthsDiff =
+      (today.getFullYear() - minDate.getFullYear()) * 12 +
+      (today.getMonth() - minDate.getMonth());
+    const scrollTarget = Math.max(0, (monthsDiff - 2) * COLUMN_WIDTH);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!wrapperRef.current) return;
+        wrapperRef.current.querySelectorAll<HTMLElement>('*').forEach((el) => {
+          const { overflowX } = window.getComputedStyle(el);
+          if ((overflowX === 'auto' || overflowX === 'scroll') && el.scrollWidth > el.clientWidth) {
+            el.scrollLeft = scrollTarget;
+          }
+        });
+      });
+    });
+  }, [tasks]);
+
   if (tasks.length === 0) {
     return <div className='text-center py-10 text-slate-500'>No projects to display in Gantt View.</div>;
   }
@@ -73,7 +97,7 @@ const GanttView: React.FC<GanttViewProps> = ({ data, onViewDetails }) => {
       {isFullscreen && (
         <div className='fixed inset-0 z-[200] bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300' onClick={() => setIsFullscreen(false)} />
       )}
-      <div className={`bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm gantt-wrapper custom-scrollbar transition-all duration-300 flex flex-col ${isFullscreen ? 'fixed inset-4 z-[201] shadow-2xl' : 'relative overflow-x-auto overflow-y-hidden'}`}>
+      <div ref={wrapperRef} className={`bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm gantt-wrapper custom-scrollbar transition-all duration-300 flex flex-col ${isFullscreen ? 'fixed inset-4 z-[201] shadow-2xl' : 'relative overflow-x-auto overflow-y-hidden'}`}>
         <style>{`
           .dark .gantt-wrapper svg text { fill: #cbd5e1 !important; }
           .dark .gantt-wrapper svg line, .dark .gantt-wrapper svg path, .dark .gantt-wrapper svg polygon { stroke: #334155 !important; }
@@ -97,7 +121,7 @@ const GanttView: React.FC<GanttViewProps> = ({ data, onViewDetails }) => {
             viewMode={ViewMode.Month}
             onClick={handleTaskClick}
             listCellWidth='180px'
-            columnWidth={60}
+            columnWidth={COLUMN_WIDTH}
             fontFamily="'Outfit', 'Inter', sans-serif"
             fontSize='12px'
             rowHeight={45}

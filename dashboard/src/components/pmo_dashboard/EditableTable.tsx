@@ -49,15 +49,15 @@ const EditableTable: React.FC<EditableTableProps> = ({
         <table className='w-full text-left border-collapse whitespace-normal break-words table-fixed'>
           <thead className='sticky top-0 z-20 shadow-sm'>
             <tr className='bg-slate-100/90 dark:bg-slate-800/90 backdrop-blur-sm text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-bold'>
-              <th className='px-4 py-3 w-[18%]'>Project</th>
+              <th className='px-4 py-3 w-[20%]'>Project</th>
               <th className='px-4 py-3 w-[10%]'>Project Manager</th>
               <th className='px-4 py-3 w-[9%]'>Due Date</th>
-              <th className='px-4 py-3 w-[10%]'>Status</th>
-              <th className='px-4 py-3 w-[9%] text-right'>Budget (Hrs)</th>
+              <th className='px-4 py-3 w-[8%]'>Status</th>
+              <th className='px-4 py-3 w-[8%] text-right'>Budget (Hrs)</th>
               <th className='px-4 py-3 w-[9%] text-right'>Consumed (Hrs)</th>
-              <th className='px-4 py-3 w-[11%] text-right'>Sales (ZAR)</th>
-              <th className='px-4 py-3 w-[11%] text-right'>Cost (ZAR)</th>
-              <th className='px-4 py-3 w-[9%] text-right'>Progress</th>
+              <th className='px-4 py-3 w-[13%] text-right'>Sales (ZAR)</th>
+              <th className='px-4 py-3 w-[13%] text-right'>Cost (ZAR)</th>
+              <th className='px-4 py-3 w-[6%] text-right'>Progress</th>
             </tr>
           </thead>
           <tbody className='divide-y divide-slate-100'>
