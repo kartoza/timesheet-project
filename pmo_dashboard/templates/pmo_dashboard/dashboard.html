@@ -8,6 +8,10 @@
     <link rel="icon" href="/static/default-favicon.ico">
 </head>
 <body>
+    <script>
+        window.isLoggedIn = {% if user.is_authenticated %}true{% else %}false{% endif %};
+        window.canAccessPMO = {% if can_access_pmo %}true{% else %}false{% endif %};
+    </script>
     <div id="root"></div>
     {% render_bundle 'PMODashboard' %}
 </body>

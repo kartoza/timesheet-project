@@ -35,34 +35,36 @@ export const CircularMenu = (props) => {
                  */
                 rotationAngleInclusive={false}
             >
-                <CircleMenuItem
-                    onClick={() => window.location.href = '/'}
-                    tooltip="Timesheet"
-                >
-                    <MenuBookIcon />
-                </CircleMenuItem>
-                <CircleMenuItem tooltip="Planning"
-                                onClick={() => window.location.href = '/planning'}
-                                tooltipPlacement={TooltipPlacement.Left}>
-                    <CalendarMonthIcon />
-                </CircleMenuItem>
-                <CircleMenuItem tooltip="Burndown Chart"
-                                onClick={() => window.location.href = '/summary'}
-                                tooltipPlacement={TooltipPlacement.Left}>
-                    <ShowChartIcon />
-                </CircleMenuItem>
-                <CircleMenuItem tooltip="Insight"
-                                onClick={() => window.location.href = '/employee-insight/'}
-                                tooltipPlacement={TooltipPlacement.Left}>
-                    <InsightsIcon />
-                </CircleMenuItem>
-                {CAN_ACCESS_PMO ? (
-                    <CircleMenuItem tooltip="PMO Dashboard"
-                                    onClick={() => window.location.href = '/pmo-dashboard/'}
+                {[
+                    <CircleMenuItem key="timesheet"
+                        onClick={() => window.location.href = '/'}
+                        tooltip="Timesheet"
+                    >
+                        <MenuBookIcon />
+                    </CircleMenuItem>,
+                    <CircleMenuItem key="planning" tooltip="Planning"
+                                    onClick={() => window.location.href = '/planning'}
                                     tooltipPlacement={TooltipPlacement.Left}>
-                        <DashboardIcon />
-                    </CircleMenuItem>
-                ) : null}
+                        <CalendarMonthIcon />
+                    </CircleMenuItem>,
+                    <CircleMenuItem key="burndown" tooltip="Burndown Chart"
+                                    onClick={() => window.location.href = '/summary'}
+                                    tooltipPlacement={TooltipPlacement.Left}>
+                        <ShowChartIcon />
+                    </CircleMenuItem>,
+                    <CircleMenuItem key="insight" tooltip="Insight"
+                                    onClick={() => window.location.href = '/employee-insight/'}
+                                    tooltipPlacement={TooltipPlacement.Left}>
+                        <InsightsIcon />
+                    </CircleMenuItem>,
+                    CAN_ACCESS_PMO && (
+                        <CircleMenuItem key="pmo" tooltip="PMO Dashboard"
+                                        onClick={() => window.location.href = '/pmo-dashboard/'}
+                                        tooltipPlacement={TooltipPlacement.Left}>
+                            <DashboardIcon />
+                        </CircleMenuItem>
+                    ),
+                ].filter(Boolean)}
             </CircleMenu> : '' }
         </div>
     );
