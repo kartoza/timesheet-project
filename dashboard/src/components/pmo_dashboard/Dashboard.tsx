@@ -304,10 +304,10 @@ const Dashboard: React.FC<DashboardProps> = ({
             </ChartCard>
 
             <ChartCard
-              title='Revenue by Relationship Manager'
-              subtitle='Total sales grouped by Relationship Manager'
+              title='Revenue by Project Manager'
+              subtitle='Total sales grouped by Project Manager'
             >
-              <ManagerRevenueChart data={filteredData} />
+              <ManagerRevenueChart data={filteredData} group_by='project_manager' />
             </ChartCard>
           </div>
 

@@ -3,14 +3,19 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { UIProjectRow } from '../../types/pmo_dashboard';
 
+type GroupBy = 'project_manager' | 'relations_manager';
+
 type ManagerRevenueChartProps = {
   data: UIProjectRow[];
+  group_by?: GroupBy;
 };
 
-const ManagerRevenueChart: React.FC<ManagerRevenueChartProps> = ({ data }) => {
+const ManagerRevenueChart: React.FC<ManagerRevenueChartProps> = ({ data, group_by = 'project_manager' }) => {
+  const managerKey = group_by === 'project_manager' ? UI_PROJECT_KEYS.PROJECT_MANAGER : UI_PROJECT_KEYS.RELATIONSHIP_MANAGER;
+
   const managerRevenue: Record<string, number> = {};
   data.forEach((d) => {
-    const manager = d[UI_PROJECT_KEYS.RELATIONSHIP_MANAGER] || 'Unassigned';
+    const manager = d[managerKey] || 'Unassigned';
     const revenue = d[UI_PROJECT_KEYS.TOTAL_SALES_AMOUNT] || 0;
     managerRevenue[manager] = (managerRevenue[manager] || 0) + revenue;
   });
