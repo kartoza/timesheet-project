@@ -8,7 +8,7 @@ import {
   ShieldCheck,
   TrendingDown,
 } from 'lucide-react';
-import { UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
+import { AT_RISK_STATUS_KEYS, UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { RiskReason, UIProjectRow } from '../../types/pmo_dashboard';
 
 type AtRiskPanelProps = {
@@ -25,6 +25,8 @@ const AtRiskPanel: React.FC<AtRiskPanelProps> = ({ data, onViewDetails }) => {
     today.setHours(0, 0, 0, 0);
 
     data.forEach((proj) => {
+      if (!AT_RISK_STATUS_KEYS.has(proj._statusKey || '')) return;
+
       const budget = proj[UI_PROJECT_KEYS.BUDGET_HOURS] ?? 0;
       const consumed = proj[UI_PROJECT_KEYS.CONSUMED_TIME] ?? 0;
       const totalCosting = proj[UI_PROJECT_KEYS.TOTAL_COSTING] ?? 0;
@@ -39,11 +41,6 @@ const AtRiskPanel: React.FC<AtRiskPanelProps> = ({ data, onViewDetails }) => {
       const budgetWarning = budget > 0 && consumed >= budget * 0.9;
       const costAtRisk = totalSales > 0 && totalCosting > totalSales * 0.9;
       const costWarning = totalSales > 0 && totalCosting >= totalSales * 0.7;
-
-      const isAtRisk = behindSchedule || overBudget || costAtRisk;
-      const isWarning = !isAtRisk && (budgetWarning || costWarning);
-
-      if (!isAtRisk && !isWarning) return;
 
       const reasons: RiskReason[] = [];
       if (behindSchedule) reasons.push({ type: 'schedule', text: 'Behind Schedule', icon: <Clock size={14} /> });

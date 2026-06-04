@@ -1,6 +1,6 @@
 import React from 'react';
 import { PencilLine, Trash2 } from 'lucide-react';
-import { UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
+import { STATUS_KEY_BADGE, UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { UIProjectRow } from '../../types/pmo_dashboard';
 import { formatManagerName } from '../../utils/pmo_dashboard';
 
@@ -86,21 +86,17 @@ const EditableTable: React.FC<EditableTableProps> = ({
                     className='w-full bg-transparent border-b border-transparent focus:border-indigo-400 focus:bg-white dark:focus:bg-slate-700 px-1 py-1 outline-none text-sm text-slate-600 dark:text-slate-300 transition-all font-medium'
                   />
                 </td>
-                <td className='px-4 py-3 align-top bg-white/50 dark:bg-slate-800/50 group-hover:bg-transparent'>
-                  <select
-                    value={row.Status || ''}
-                    onChange={(e) => handleChange(row._id, 'Status', e.target.value)}
-                    className='w-full bg-transparent border border-transparent hover:border-indigo-200 dark:hover:border-indigo-700 focus:border-indigo-400 focus:bg-white dark:focus:bg-slate-700 rounded-md px-1 py-1 outline-none text-sm text-slate-600 dark:text-slate-300 font-medium transition-all cursor-pointer'
-                  >
-                    <option value='' hidden>Select Status...</option>
-                    <option value='🟢 On track'>🟢 On track</option>
-                    <option value='🟡 Warning'>🟡 Warning</option>
-                    <option value='🟡 Delayed'>🟡 Delayed</option>
-                    <option value='🔴 At risk'>🔴 At risk</option>
-                    <option value='🔵 Overdue'>🔵 Overdue</option>
-                    <option value='⚪ On Hold'>⚪ On Hold</option>
-                    <option value='🟣 Completed'>🟣 Completed</option>
-                  </select>
+                <td className='px-4 py-3 align-top'>
+                  {(() => {
+                    const key = row._statusKey || 'on_track';
+                    const style = STATUS_KEY_BADGE[key] || STATUS_KEY_BADGE['on_track'];
+                    return (
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold ${style.bg} ${style.text}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
+                        {row[UI_PROJECT_KEYS.STATUS] || '—'}
+                      </span>
+                    );
+                  })()}
                 </td>
                 <td className='px-4 py-3 align-top bg-white/50 dark:bg-slate-800/50 group-hover:bg-transparent'>
                   <input

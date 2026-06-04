@@ -16,6 +16,17 @@ export const UI_PROJECT_KEYS = {
   SUBTASKS: 'SubTasks',
 } as const;
 
+export const STATUS_KEY_BADGE: Record<string, { bg: string; text: string; dot: string }> = {
+  on_track:  { bg: 'bg-emerald-50 dark:bg-emerald-900/20',  text: 'text-emerald-700 dark:text-emerald-400', dot: 'bg-emerald-500' },
+  warning:   { bg: 'bg-amber-50 dark:bg-amber-900/20',     text: 'text-amber-700 dark:text-amber-400',    dot: 'bg-amber-400' },
+  at_risk:   { bg: 'bg-rose-50 dark:bg-rose-900/20',       text: 'text-rose-700 dark:text-rose-400',      dot: 'bg-rose-500' },
+  overdue:   { bg: 'bg-blue-50 dark:bg-blue-900/20',       text: 'text-blue-700 dark:text-blue-400',      dot: 'bg-blue-500' },
+  on_hold:   { bg: 'bg-slate-100 dark:bg-slate-800',       text: 'text-slate-500 dark:text-slate-400',    dot: 'bg-slate-400' },
+  completed: { bg: 'bg-violet-50 dark:bg-violet-900/20',   text: 'text-violet-700 dark:text-violet-400',  dot: 'bg-violet-500' },
+};
+
+export const AT_RISK_STATUS_KEYS = new Set(['at_risk', 'overdue', 'warning']);
+
 export const API_STATUS_TO_UI_STATUS: Record<string, string> = {
   on_track: '🟢 On track',
   warning: '🟡 Warning',

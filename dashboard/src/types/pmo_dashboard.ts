@@ -69,6 +69,7 @@ export type UIProjectRow = {
   [UI_PROJECT_KEYS.ACTUAL_PROGRESS]: number;
   [UI_PROJECT_KEYS.BUSINESS_UNIT]: string;
   [UI_PROJECT_KEYS.SUBTASKS]: UISubTask[];
+  _statusKey?: string;
   _riskReason?: RiskReason[];
 };
 
