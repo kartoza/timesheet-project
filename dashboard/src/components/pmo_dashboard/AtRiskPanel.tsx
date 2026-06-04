@@ -4,12 +4,10 @@ import {
   ArrowRight,
   ChevronDown,
   ChevronUp,
-  Clock,
   ShieldCheck,
-  TrendingDown,
 } from 'lucide-react';
-import { UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
-import { RiskReason, UIProjectRow } from '../../types/pmo_dashboard';
+import { AT_RISK_STATUS_KEYS, UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
+import { UIProjectRow } from '../../types/pmo_dashboard';
 
 type AtRiskPanelProps = {
   data: UIProjectRow[];
@@ -19,44 +17,10 @@ type AtRiskPanelProps = {
 const AtRiskPanel: React.FC<AtRiskPanelProps> = ({ data, onViewDetails }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const atRiskProjects = useMemo(() => {
-    const results: UIProjectRow[] = [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    data.forEach((proj) => {
-      const budget = proj[UI_PROJECT_KEYS.BUDGET_HOURS] ?? 0;
-      const consumed = proj[UI_PROJECT_KEYS.CONSUMED_TIME] ?? 0;
-      const totalCosting = proj[UI_PROJECT_KEYS.TOTAL_COSTING] ?? 0;
-      const totalSales = proj[UI_PROJECT_KEYS.TOTAL_SALES_AMOUNT] ?? 0;
-
-      const dueDateStr = proj[UI_PROJECT_KEYS.DUE_DATE];
-      const dueDate = dueDateStr ? new Date(dueDateStr) : null;
-      if (dueDate) dueDate.setHours(0, 0, 0, 0);
-
-      const behindSchedule = dueDate !== null && dueDate < today;
-      const overBudget = budget > 0 && consumed > budget;
-      const budgetWarning = budget > 0 && consumed >= budget * 0.9;
-      const costAtRisk = totalSales > 0 && totalCosting > totalSales * 0.9;
-      const costWarning = totalSales > 0 && totalCosting >= totalSales * 0.7;
-
-      const isAtRisk = behindSchedule || overBudget || costAtRisk;
-      const isWarning = !isAtRisk && (budgetWarning || costWarning);
-
-      if (!isAtRisk && !isWarning) return;
-
-      const reasons: RiskReason[] = [];
-      if (behindSchedule) reasons.push({ type: 'schedule', text: 'Behind Schedule', icon: <Clock size={14} /> });
-      if (overBudget) reasons.push({ type: 'budget', text: 'Budget Overrun', icon: <TrendingDown size={14} /> });
-      else if (budgetWarning) reasons.push({ type: 'budget', text: 'Budget at 90%+', icon: <AlertTriangle size={14} /> });
-      if (costAtRisk) reasons.push({ type: 'cost', text: 'Cost at 90%+', icon: <TrendingDown size={14} /> });
-      else if (costWarning) reasons.push({ type: 'cost', text: 'Cost at 70%+', icon: <AlertTriangle size={14} /> });
-
-      results.push({ ...proj, _riskReason: reasons });
-    });
-
-    return results;
-  }, [data]);
+  const atRiskProjects = useMemo(
+    () => data.filter((proj) => AT_RISK_STATUS_KEYS.has(proj._statusKey || '')),
+    [data],
+  );
 
   if (atRiskProjects.length === 0) {
     return (
@@ -113,9 +77,9 @@ const AtRiskPanel: React.FC<AtRiskPanelProps> = ({ data, onViewDetails }) => {
             </div>
 
             <div className='flex-1 flex flex-wrap gap-1.5 mb-4'>
-              {(proj._riskReason || []).map((reason, idx) => (
+              {(proj._statusReasons || []).map((reason, idx) => (
                 <div key={`${proj._id}-${idx}`} className='flex items-center gap-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 px-2 py-1 rounded-md w-fit'>
-                  {reason.icon} {reason.text}
+                  <AlertTriangle size={12} /> {reason}
                 </div>
               ))}
             </div>

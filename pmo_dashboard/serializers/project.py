@@ -2,7 +2,7 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from pmo_dashboard.status_rules import evaluate_status, get_status_label
+from pmo_dashboard.status_rules import evaluate_status, get_status_label, get_status_reasons
 from timesheet.models.project import Project
 from timesheet.models.task import Task
 
@@ -42,6 +42,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     customer = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     status_label = serializers.SerializerMethodField()
+    status_reasons = serializers.SerializerMethodField()
     rag = serializers.SerializerMethodField()
     start_date = serializers.DateField(source='expected_start_date')
     due_date = serializers.DateField(source='expected_end_date')
@@ -58,7 +59,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         fields = [
             'id', 'name', 'business_unit', 'project_type', 'customer',
-            'status', 'status_label', 'rag', 'start_date', 'due_date',
+            'status', 'status_label', 'status_reasons', 'rag', 'start_date', 'due_date',
             'project_manager', 'relations_manager',
             'budget_hours', 'consumed_time', 'progress_in_hours',
             'actual_progress', 'estimated_costing', 'total_sales_amount',
@@ -82,6 +83,10 @@ class ProjectSerializer(serializers.ModelSerializer):
     @extend_schema_field(OpenApiTypes.STR)
     def get_status_label(self, obj):
         return get_status_label(evaluate_status(obj))
+
+    @extend_schema_field({'type': 'array', 'items': {'type': 'string'}})
+    def get_status_reasons(self, obj):
+        return get_status_reasons(obj)
 
     @extend_schema_field(OpenApiTypes.STR)
     def get_rag(self, obj):

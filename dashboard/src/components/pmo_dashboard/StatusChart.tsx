@@ -8,27 +8,29 @@ type StatusChartProps = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  '🟢 On track': '#10B981',
-  '🟡 Warning': '#EAB308',
-  '🟡 Delayed': '#EAB308',
-  '🔴 At risk': '#EF4444',
-  '🔵 Overdue': '#3B82F6',
-  '⚪ On Hold': '#94A3B8',
-  '🟣 Completed': '#7C3AED',
+  on_track:  '#10B981',
+  warning:   '#EAB308',
+  at_risk:   '#EF4444',
+  overdue:   '#3B82F6',
+  on_hold:   '#94A3B8',
+  completed: '#7C3AED',
 };
 
 const FALLBACK_COLORS = ['#8B5CF6', '#64748B', '#06B6D4', '#F43F5E'];
 
 const StatusChart: React.FC<StatusChartProps> = ({ data, onStatusClick }) => {
-  const statusCounts: Record<string, number> = {};
+  const statusGroups: Record<string, { label: string; count: number }> = {};
   data.forEach((d) => {
-    const status = d.Status || 'Undefined';
-    statusCounts[status] = (statusCounts[status] || 0) + 1;
+    const key = d._statusKey || 'on_track';
+    const label = d.Status || key;
+    if (!statusGroups[key]) statusGroups[key] = { label, count: 0 };
+    statusGroups[key].count++;
   });
 
-  const chartData = Object.keys(statusCounts).map((key) => ({
-    name: key,
-    value: statusCounts[key],
+  const chartData = Object.entries(statusGroups).map(([key, { label, count }]) => ({
+    name: label,
+    statusKey: key,
+    value: count,
   }));
 
   return (
@@ -49,7 +51,7 @@ const StatusChart: React.FC<StatusChartProps> = ({ data, onStatusClick }) => {
             {chartData.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={STATUS_COLORS[entry.name] || FALLBACK_COLORS[index % FALLBACK_COLORS.length]}
+                fill={STATUS_COLORS[entry.statusKey] || FALLBACK_COLORS[index % FALLBACK_COLORS.length]}
                 style={{ outline: 'none' }}
               />
             ))}
@@ -59,7 +61,6 @@ const StatusChart: React.FC<StatusChartProps> = ({ data, onStatusClick }) => {
             verticalAlign='bottom'
             height={36}
             iconType='circle'
-            formatter={(value: string) => value.split(' ').slice(1).join(' ')}
             wrapperStyle={{ fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
             onClick={(entry: any) => onStatusClick && onStatusClick(entry.value)}
           />

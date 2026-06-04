@@ -38,6 +38,8 @@ const UI_PROJECT_MAPPERS: Record<keyof UIProjectRow, (project: ApiProject) => UI
   [UI_PROJECT_KEYS.ACTUAL_PROGRESS]: (project) => project.actual_progress || 0,
   [UI_PROJECT_KEYS.BUSINESS_UNIT]: (project) => project.business_unit || 'General',
   [UI_PROJECT_KEYS.SUBTASKS]: (project) => (project.subtasks || []).map(mapSubTask),
+  _statusKey: (project) => project.status,
+  _statusReasons: (project) => project.status_reasons || [],
   _riskReason: () => undefined,
 };
 
