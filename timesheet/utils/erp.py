@@ -79,8 +79,6 @@ def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '',
     if filters:
         url += '&filters=' + filters
     headers = get_auth_headers(user=user, erpnext_token=erpnext_token)
-    print(url)
-    print(headers)
     response = requests.request(
         'GET',
         url,
