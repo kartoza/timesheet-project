@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   AlertCircle,
   CheckCircle2,
-  Download,
   LogOut,
   Moon,
   Server,
@@ -127,17 +126,7 @@ const PMODashboardApp: React.FC = () => {
               {isDarkMode ? <Sun size={20} className='text-amber-400' /> : <Moon size={20} className='text-indigo-600' />}
             </button>
 
-            {hasData && (
-              <button
-                onClick={() => window.print()}
-                className='flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-300 shadow-sm'
-              >
-                <Download size={18} className='text-indigo-600 dark:text-indigo-400' />
-                <span className='hidden sm:inline'>Export PDF</span>
-              </button>
-            )}
-
-            <button
+<button
               onClick={handleLogout}
               className='p-2.5 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all duration-300'
               title='Logout'
