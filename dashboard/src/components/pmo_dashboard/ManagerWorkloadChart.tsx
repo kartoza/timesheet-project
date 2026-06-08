@@ -54,7 +54,7 @@ const ManagerWorkloadChart: React.FC<ManagerWorkloadChartProps> = ({ data }) => 
               <span className='text-slate-500 dark:text-slate-400'>Active Projects:</span> {payload[0].value}
             </p>
             <p className='text-amber-600 dark:text-amber-400 font-semibold text-sm'>
-              <span className='text-slate-500 dark:text-slate-400'>Total Hours Managed:</span> {payload[1].value}h
+              <span className='text-slate-500 dark:text-slate-400'>Total Hours Managed:</span> {+Number(payload[1].value).toFixed(2)}h
             </p>
           </div>
         </div>
