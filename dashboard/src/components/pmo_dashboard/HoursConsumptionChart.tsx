@@ -28,7 +28,7 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 ];
 
 const HoursConsumptionChart: React.FC<HoursConsumptionChartProps> = ({ data }) => {
-  const [sortBy, setSortBy] = useState<SortKey>('burnRate');
+  const [sortBy, setSortBy] = useState<SortKey>('budget');
 
   const chartData = data
     .map((d) => {
