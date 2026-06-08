@@ -58,14 +58,14 @@ const Dashboard: React.FC<DashboardProps> = ({
   }, [data]);
 
   const availableManagers = useMemo(() => {
-    const managers = new Set(data.map((d) => d[UI_PROJECT_KEYS.RELATIONSHIP_MANAGER]).filter(Boolean));
+    const managers = new Set(data.map((d) => d[UI_PROJECT_KEYS.PROJECT_MANAGER]).filter(Boolean));
     return Array.from(managers).sort();
   }, [data]);
 
   const fieldAccessors: Record<FilterFieldKey, (row: UIProjectRow) => string> = {
     projectType: (row) => String(row[UI_PROJECT_KEYS.PROJECT_TYPE] || ''),
     status: (row) => String(row[UI_PROJECT_KEYS.STATUS] || ''),
-    manager: (row) => String(row[UI_PROJECT_KEYS.RELATIONSHIP_MANAGER] || ''),
+    manager: (row) => String(row[UI_PROJECT_KEYS.PROJECT_MANAGER] || ''),
   };
 
   const getOptionCounts = (key: FilterFieldKey): Record<string, number> => {
