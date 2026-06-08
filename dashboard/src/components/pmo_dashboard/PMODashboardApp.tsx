@@ -102,6 +102,7 @@ const PMODashboardApp: React.FC = () => {
   const handleExportPDF = async () => {
     if (!exportFnRef.current) return;
     setIsExporting(true);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => setTimeout(resolve, 50)));
     try {
       await exportFnRef.current();
     } finally {

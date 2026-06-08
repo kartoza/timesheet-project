@@ -5,7 +5,7 @@ import {
   Pie, PieChart,
   ResponsiveContainer, XAxis, YAxis,
 } from 'recharts';
-import { UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
+import { AT_RISK_STATUS_KEYS, UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { UIProjectRow } from '../../types/pmo_dashboard';
 import { formatManagerName } from '../../utils/pmo_dashboard';
 
@@ -37,7 +37,8 @@ const sectionTitleStyle: React.CSSProperties = {
   textTransform: 'uppercase', letterSpacing: '0.05em',
 };
 
-const MAX_TABLE_ROWS = 36;
+const MAX_TABLE_ROWS = 40;
+const MAX_AT_RISK_CARDS = 30;
 
 type PrintViewProps = { filteredData: UIProjectRow[] };
 
@@ -115,6 +116,10 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
       .sort((a, b) => b.total - a.total).slice(0, 10),
   [filteredData]);
 
+  const atRiskProjects = useMemo(() =>
+    filteredData.filter(d => AT_RISK_STATUS_KEYS.has(d._statusKey || '')),
+  [filteredData]);
+
   const tableRows = filteredData.slice(0, MAX_TABLE_ROWS);
   const overflowCount = Math.max(0, filteredData.length - MAX_TABLE_ROWS);
 
@@ -133,10 +138,68 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
     </div>
   );
 
+  const footer = (
+    <div style={{ position: 'absolute', bottom: 28, left: 28, right: 28, borderTop: '1px solid #e2e8f0', paddingTop: 6, display: 'flex', justifyContent: 'space-between', fontSize: 8, color: '#94a3b8' }}>
+      <span>Kartoza PMO Dashboard</span>
+      <span>{new Date().getFullYear()}</span>
+    </div>
+  );
+
   return (
     <div ref={ref} style={{ position: 'absolute', left: -9999, top: 0 }}>
-      {/* ── Page 1: Project Table ── */}
+
+      {/* ── Page 1: Action Items ── */}
       <div data-print-page='1' style={PAGE_STYLE}>
+        <PageHeader subtitle={`Action Items · ${atRiskProjects.length} project${atRiskProjects.length !== 1 ? 's' : ''} requiring attention`} />
+
+        {atRiskProjects.length === 0 ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 120, color: '#10b981', fontSize: 13, fontWeight: 700, gap: 8 }}>
+            ✓ No projects currently require immediate attention.
+          </div>
+        ) : (
+          <div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+              {atRiskProjects.slice(0, MAX_AT_RISK_CARDS).map((proj, i) => {
+                const statusColor = STATUS_COLORS[proj._statusKey || 'at_risk'] || '#ef4444';
+                const pmName = formatManagerName(proj[UI_PROJECT_KEYS.PROJECT_MANAGER]) || 'Unassigned';
+                const pmInitials = pmName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+                return (
+                  <div key={i} style={{ background: '#fff', border: `1px solid ${statusColor}35`, borderLeft: `3px solid ${statusColor}`, borderRadius: 6, padding: '9px 11px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: '#1e293b', flex: 1, marginRight: 6, lineHeight: 1.3 }}>
+                        {trunc(proj.Project || '—', 26)}
+                      </span>
+                      <span style={{ fontSize: 7, fontWeight: 800, color: '#fff', background: '#64748b', borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        {pmInitials}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 8, color: '#64748b', marginBottom: 4 }}>{trunc(pmName, 22)}</div>
+                    <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', marginBottom: 4 }}>
+                      {(proj._statusReasons || [proj.Status || 'At risk']).slice(0, 3).map((reason: string, idx: number) => (
+                        <span key={idx} style={{ fontSize: 7, fontWeight: 700, color: statusColor, background: `${statusColor}18`, padding: '1px 5px', borderRadius: 3 }}>
+                          {reason}
+                        </span>
+                      ))}
+                    </div>
+                    <div style={{ fontSize: 8, color: '#94a3b8' }}>
+                      Due: <span style={{ fontWeight: 600, color: '#475569' }}>{proj[UI_PROJECT_KEYS.DUE_DATE] || 'N/A'}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {atRiskProjects.length > MAX_AT_RISK_CARDS && (
+              <div style={{ fontSize: 9, color: '#94a3b8', textAlign: 'center', marginTop: 8 }}>
+                +{atRiskProjects.length - MAX_AT_RISK_CARDS} more projects not shown
+              </div>
+            )}
+          </div>
+        )}
+        {footer}
+      </div>
+
+      {/* ── Page 2: Project List ── */}
+      <div data-print-page='2' style={PAGE_STYLE}>
         <PageHeader subtitle={`${filteredData.length} projects · Full list`} />
 
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 9 }}>
@@ -156,17 +219,17 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
               const statusColor = STATUS_COLORS[statusKey] || '#94a3b8';
               return (
                 <tr key={i} style={{ borderBottom: '1px solid #f1f5f9', background: i % 2 === 0 ? '#ffffff' : '#fafafa' }}>
-                  <td style={{ padding: '5px 8px', fontWeight: 600, color: '#1e293b', maxWidth: 160 }}>{trunc(d.Project || '—', 28)}</td>
-                  <td style={{ padding: '5px 8px', color: '#475569' }}>{trunc(formatManagerName(d[UI_PROJECT_KEYS.PROJECT_MANAGER]) || '—', 18)}</td>
-                  <td style={{ padding: '5px 8px' }}>
-                    <span style={{ display: 'inline-block', padding: '2px 6px', borderRadius: 4, background: `${statusColor}22`, color: statusColor, fontWeight: 700, fontSize: 8 }}>{d.Status || '—'}</span>
+                  <td style={{ padding: '5px 8px', fontWeight: 600, color: '#1e293b', maxWidth: 160, verticalAlign: 'middle' }}>{trunc(d.Project || '—', 28)}</td>
+                  <td style={{ padding: '5px 8px', color: '#475569', verticalAlign: 'middle' }}>{trunc(formatManagerName(d[UI_PROJECT_KEYS.PROJECT_MANAGER]) || '—', 18)}</td>
+                  <td style={{ padding: '5px 8px', verticalAlign: 'middle' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 6px', borderRadius: 4, background: `${statusColor}22`, color: statusColor, fontWeight: 700, fontSize: 8 }}>{d.Status || '—'}</span>
                   </td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569' }}>{d[UI_PROJECT_KEYS.DUE_DATE] || '—'}</td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569' }}>{fmtN(d[UI_PROJECT_KEYS.BUDGET_HOURS] || 0)}</td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569' }}>{fmtN(d[UI_PROJECT_KEYS.CONSUMED_TIME] || 0)}</td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', color: '#059669', fontWeight: 600 }}>{fmtCurrency(sales)}</td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', color: '#e11d48', fontWeight: 600 }}>{fmtCurrency(cost)}</td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', fontWeight: 700, color: margin >= 0 ? '#059669' : '#e11d48' }}>{fmtN(margin)}%</td>
+                  <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569', verticalAlign: 'middle' }}>{d[UI_PROJECT_KEYS.DUE_DATE] || '—'}</td>
+                  <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569', verticalAlign: 'middle' }}>{fmtN(d[UI_PROJECT_KEYS.BUDGET_HOURS] || 0)}</td>
+                  <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569', verticalAlign: 'middle' }}>{fmtN(d[UI_PROJECT_KEYS.CONSUMED_TIME] || 0)}</td>
+                  <td style={{ padding: '5px 8px', textAlign: 'right', color: '#059669', fontWeight: 600, verticalAlign: 'middle' }}>{fmtCurrency(sales)}</td>
+                  <td style={{ padding: '5px 8px', textAlign: 'right', color: '#e11d48', fontWeight: 600, verticalAlign: 'middle' }}>{fmtCurrency(cost)}</td>
+                  <td style={{ padding: '5px 8px', textAlign: 'right', fontWeight: 700, color: margin >= 0 ? '#059669' : '#e11d48', verticalAlign: 'middle' }}>{fmtN(margin)}%</td>
                 </tr>
               );
             })}
@@ -175,21 +238,16 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
 
         {overflowCount > 0 && (
           <div style={{ marginTop: 8, fontSize: 9, color: '#94a3b8', textAlign: 'center' }}>
-            ... and {overflowCount} more project{overflowCount > 1 ? 's' : ''} not shown
+            … and {overflowCount} more project{overflowCount > 1 ? 's' : ''} not shown
           </div>
         )}
-
-        <div style={{ position: 'absolute', bottom: 28, left: 28, right: 28, borderTop: '1px solid #e2e8f0', paddingTop: 6, display: 'flex', justifyContent: 'space-between', fontSize: 8, color: '#94a3b8' }}>
-          <span>Kartoza PMO Dashboard</span>
-          <span>{new Date().getFullYear()}</span>
-        </div>
+        {footer}
       </div>
 
-      {/* ── Page 2: Charts ── */}
-      <div data-print-page='1' style={PAGE_STYLE}>
+      {/* ── Page 3: Charts ── */}
+      <div data-print-page='3' style={PAGE_STYLE}>
         <PageHeader subtitle={`${filteredData.length} projects · Summary`} />
 
-        {/* Metrics */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
           {([
             { label: '# Projects', value: String(metrics.count), color: '#6366f1' },
@@ -205,7 +263,6 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
           ))}
         </div>
 
-        {/* Row 1: Sales vs Cost | Hours Consumption */}
         <div style={rowStyle}>
           <div style={cardStyle}>
             <div style={sectionTitleStyle}>Sales vs. Cost <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(top 10 by sales)</span></div>
@@ -241,7 +298,6 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
           </div>
         </div>
 
-        {/* Row 2: Status | Revenue by PM */}
         <div style={rowStyle}>
           <div style={cardStyle}>
             <div style={sectionTitleStyle}>Portfolio Status Distribution</div>
@@ -271,7 +327,6 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
           </div>
         </div>
 
-        {/* Row 3: PM Workload | Billable Efficiency */}
         <div style={rowStyle}>
           <div style={cardStyle}>
             <div style={sectionTitleStyle}>PM Workload Distribution</div>
