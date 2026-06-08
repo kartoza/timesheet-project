@@ -23,6 +23,7 @@ import {
     useGetTimeLogsQuery,
     useSubmitTimesheetMutation,
     useGetMicroblogPostsQuery,
+    useUpdateTimesheetMutation,
 } from "./services/api";
 import {
     ThemeProvider,
@@ -283,6 +284,7 @@ function AppContent() {
     const [tasks, setTasks] = useState<any>([])
     const [description, setDescription] = useState('')
     const [loading, setLoading] = useState(false)
+    const [descriptionSavedOpen, setDescriptionSavedOpen] = useState(false)
     const [quote, setQuote] = useState<any>({})
     const [runningTimeLog, setRunningTimeLog] = useState<TimeLog | null>(null)
     const [pausedTimeLog, setPausedTimeLog] = useState<TimeLog | null>(null)
@@ -297,6 +299,7 @@ function AppContent() {
     })
     const [compliment, setCompliment] = useState(randomCompliments[0])
     const [submitTimesheet, { isLoading: isUpdating, isSuccess, isError }] = useSubmitTimesheetMutation();
+    const [updateTimesheet] = useUpdateTimesheetMutation();
     const [deleteTimeLog, { isLoading: isDeleteLoading, isSuccess: isDeleteSuccess, isError: isDeleteError }] = useDeleteTimeLogMutation();
     const [deleteAllTimeLogs] = useDeleteAllTimeLogsMutation();
     const [breakTimesheet, { isLoading, error }] = useBreakTimesheetMutation();
@@ -309,6 +312,10 @@ function AppContent() {
     });
 
     const [pendingTimerStart, setPendingTimerStart] = useState(false);
+    const descriptionSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const descriptionEditedRef = useRef(false);
+    const descriptionSavedMessagePendingRef = useRef(false);
+    const lastAutoSavedDescriptionRef = useRef<{ id: string, description: string } | null>(null);
 
     const timeCardRef = useRef(null);
 
@@ -334,6 +341,16 @@ function AppContent() {
     useEffect(() => {
         window.localStorage.setItem(ANIMATIONS_STORAGE_KEY, String(animationsEnabled));
     }, [animationsEnabled]);
+
+    useEffect(() => {
+        if (!descriptionSavedOpen) {
+            return;
+        }
+        const timeout = setTimeout(() => {
+            setDescriptionSavedOpen(false);
+        }, 2000);
+        return () => clearTimeout(timeout);
+    }, [descriptionSavedOpen]);
 
      const getInstance = useCallback((instance) => {
         refAnimationInstance.current = instance;
@@ -409,6 +426,90 @@ function AppContent() {
         }
     }, [isSuccessFetching])
 
+    const saveDescription = useCallback((showFeedback = false) => {
+        const activeTimeLog = runningTimeLog;
+        if (!isTimerRunning || !activeTimeLog || !descriptionEditedRef.current) {
+            return Promise.resolve(false);
+        }
+
+        const normalizedDescription = description === '<p><br></p>' ? '' : description;
+        if (
+            activeTimeLog.description === normalizedDescription ||
+            (
+                lastAutoSavedDescriptionRef.current?.id === activeTimeLog.id &&
+                lastAutoSavedDescriptionRef.current?.description === normalizedDescription
+            )
+        ) {
+            if (showFeedback && isTimerRunning && descriptionSavedMessagePendingRef.current) {
+                setDescriptionSavedOpen(true);
+                descriptionSavedMessagePendingRef.current = false;
+                descriptionEditedRef.current = false;
+            }
+            return Promise.resolve(false);
+        }
+
+        const activityId = selectedActivity?.id || activeTimeLog.activity_id;
+        if (!activityId) {
+            return Promise.resolve(false);
+        }
+
+        return updateTimesheet({
+            id: activeTimeLog.id,
+            task: { id: selectedTask?.id || activeTimeLog.task_id || '-' },
+            activity: { id: activityId },
+            project: { id: selectedProject?.id || activeTimeLog.project_id || '' },
+            description: normalizedDescription,
+            start_time: activeTimeLog.from_time,
+            end_time: activeTimeLog.to_time || null,
+            is_paused: activeTimeLog.is_paused,
+            editing: !!activeTimeLog.to_time,
+        }).unwrap().then(() => {
+            lastAutoSavedDescriptionRef.current = {
+                id: activeTimeLog.id,
+                description: normalizedDescription,
+            };
+            if (showFeedback && isTimerRunning) {
+                setDescriptionSavedOpen(true);
+                descriptionSavedMessagePendingRef.current = false;
+                descriptionEditedRef.current = false;
+            } else if (isTimerRunning) {
+                descriptionSavedMessagePendingRef.current = true;
+            }
+            return true;
+        }).catch((err) => {
+            console.error('Failed to auto-save timelog description:', err);
+            return false;
+        });
+    }, [
+        description,
+        runningTimeLog,
+        isTimerRunning,
+        selectedActivity,
+        selectedTask,
+        selectedProject,
+        updateTimesheet,
+    ]);
+
+    useEffect(() => {
+        if (!isTimerRunning || !descriptionEditedRef.current) {
+            return;
+        }
+
+        if (descriptionSaveTimeoutRef.current) {
+            clearTimeout(descriptionSaveTimeoutRef.current);
+        }
+
+        descriptionSaveTimeoutRef.current = setTimeout(() => {
+            saveDescription(false);
+        }, 800);
+
+        return () => {
+            if (descriptionSaveTimeoutRef.current) {
+                clearTimeout(descriptionSaveTimeoutRef.current);
+            }
+        }
+    }, [description, isTimerRunning, saveDescription]);
+
     const updateSelectedTimeLog = (data: TimeLog, checkParent = true, forceTimer = false) => {
         setDescription(data.description)
         setSelectedActivity({
@@ -468,7 +569,7 @@ function AppContent() {
 
     useEffect(() => {
         if (runningTimeLog) {
-            updateSelectedTimeLog(runningTimeLog);
+            updateSelectedTimeLog(runningTimeLog, false);
         }
     }, [runningTimeLog])
 
@@ -751,10 +852,14 @@ function AppContent() {
         updateSelectedTimeLog(newData, true, true);
     }
 
-    const toggleTimer = (running: boolean) => {
+    const toggleTimer = (running: boolean, timeLog: TimeLog | null = null) => {
         if (!running) {
             setParent('')
             setInitialAccumulatedTimeMs(0)
+            setRunningTimeLog(null)
+            setPendingTimerStart(false)
+        } else if (timeLog) {
+            setRunningTimeLog(timeLog)
         }
         setIsTimerRunning(running);
     }
@@ -984,28 +1089,48 @@ function AppContent() {
                                 />
                             </Grid>
                             <Grid item xs={12} style={{ marginRight: 5, minHeight: 110 }}>
-                                <Suspense fallback={<Loader/>}>
-                                    <TReactQuill
-                                        formats={['bold', 'link', 'strike',
-                                        'italic', 'list', 'indent', 'align', 'code-block']}
-                                        modules={{
-                                            toolbar: [
-                                            ['bold', 'italic','strike', 'blockquote'],
-                                            [{'list': 'ordered'}, {'list': 'bullet'}],
-                                            ['link'],
-                                            ],
-                                        }}
-                                        value={description}
-                                        onChange={(value : any) => {
-                                            if (value === '<p><br></p>') {
-                                                setDescription('')
-                                            } else {
-                                                setDescription(value)
-                                            }
-                                        }}
-                                        style={{minHeight: '150px'}}
-                                    />
-                                </Suspense>
+                                <div className="description-editor-wrapper">
+                                    <Suspense fallback={<Loader/>}>
+                                        <TReactQuill
+                                            formats={['bold', 'link', 'strike',
+                                            'italic', 'list', 'indent', 'align', 'code-block']}
+                                            modules={{
+                                                toolbar: [
+                                                ['bold', 'italic','strike', 'blockquote'],
+                                                [{'list': 'ordered'}, {'list': 'bullet'}],
+                                                ['link'],
+                                                ],
+                                            }}
+                                            value={description}
+                                            onChange={(value : any) => {
+                                                descriptionEditedRef.current = isTimerRunning;
+                                                if (isTimerRunning) {
+                                                    setDescriptionSavedOpen(false);
+                                                }
+                                                if (value === '<p><br></p>') {
+                                                    setDescription('')
+                                                } else {
+                                                    setDescription(value)
+                                                }
+                                            }}
+                                            onBlur={() => {
+                                                if (!isTimerRunning || !descriptionEditedRef.current) {
+                                                    return;
+                                                }
+                                                if (descriptionSaveTimeoutRef.current) {
+                                                    clearTimeout(descriptionSaveTimeoutRef.current);
+                                                }
+                                                saveDescription(true);
+                                            }}
+                                            style={{minHeight: '150px'}}
+                                        />
+                                    </Suspense>
+                                    {descriptionSavedOpen && isTimerRunning ? (
+                                        <div className="description-save-status">
+                                            Description saved
+                                        </div>
+                                    ) : null}
+                                </div>
                             </Grid>
                         </Grid>
 

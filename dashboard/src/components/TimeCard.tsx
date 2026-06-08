@@ -79,6 +79,12 @@ export const TimeCard = forwardRef(({
     const [accumulatedTimeMs, setAccumulatedTimeMs] = useState<number>(0); // Time from parent (paused) timelog in milliseconds
     const runningTimeRef = useRef<string>('00:00:00'); // Ref to track current running time for pause
     const intervalRef = useRef<any>(null);
+    const getCurrentDescription = (fallback = '') => {
+        const currentDescription = typeof description === 'string'
+            ? description
+            : description?.toString() || '';
+        return currentDescription || fallback || '';
+    }
 
     useEffect(() => {
         setUpdatedTimesheet(updatedData)
@@ -113,7 +119,7 @@ export const TimeCard = forwardRef(({
     useEffect(() => {
         if (isAddSuccess && newTimesheet) {
             if (newTimesheet.running) {
-                toggleTimer(true)
+                toggleTimer(true, newTimesheet)
                 setLocalRunningTimeLog(newTimesheet);
                 setPausedTimeLog(null);
             } else {
@@ -238,7 +244,7 @@ export const TimeCard = forwardRef(({
         runningTimeClone['project'] = {
             'id': project ? project.id : (localRunningTimeLog.project_id || '')
         }
-        runningTimeClone['description'] = description || localRunningTimeLog.description;
+        runningTimeClone['description'] = getCurrentDescription(localRunningTimeLog.description);
         runningTimeClone['end_time'] = formatTime(new Date());
         updateTimesheet(runningTimeClone);
     }
@@ -247,9 +253,13 @@ export const TimeCard = forwardRef(({
         if (!localRunningTimeLog) return;
         const capturedTime = runningTimeRef.current;
         try {
-            const result = await pauseTimesheet({ id: localRunningTimeLog.id }).unwrap();
+            const result = await pauseTimesheet({
+                id: localRunningTimeLog.id,
+                description: getCurrentDescription(localRunningTimeLog.description),
+            }).unwrap();
             setPausedTimeLog(result);
             setLocalRunningTimeLog(null);
+            toggleTimer(false);
             clearInterval(intervalRef.current);
             intervalRef.current = null;
             const [hrs, mins, secs] = capturedTime.split(':').map(Number);
@@ -283,7 +293,7 @@ export const TimeCard = forwardRef(({
             task: { id: pausedTimeLog.task_id || '-' },
             activity: { id: pausedTimeLog.activity_id },
             project: { id: pausedTimeLog.project_id || '' },
-            description: pausedTimeLog.description,
+            description: getCurrentDescription(pausedTimeLog.description),
             timezone: currentTimeZone,
             parent: pausedTimeLog.id,
         });
@@ -298,7 +308,7 @@ export const TimeCard = forwardRef(({
                 task: { 'id': pausedTimeLog.task_id || '-' },
                 activity: { 'id': pausedTimeLog.activity_id },
                 project: { 'id': pausedTimeLog.project_id || '' },
-                description: pausedTimeLog.description || '',
+                description: getCurrentDescription(pausedTimeLog.description),
                 start_time: pausedTimeLog.from_time,
                 end_time: pausedTimeLog.to_time,
                 is_paused: false,

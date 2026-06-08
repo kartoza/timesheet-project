@@ -14,8 +14,6 @@ def _user_display(user):
     return full_name if full_name.strip() else user.email
 
 
-
-
 class TeamMemberSerializer(serializers.Serializer):
     id = serializers.IntegerField(source='user.id')
     name = serializers.SerializerMethodField()

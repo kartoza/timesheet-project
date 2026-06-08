@@ -37,3 +37,4 @@ class Command(BaseCommand):
         if credentialed_user:
             print('Updating project members')
             pull_project_members_from_erp(credentialed_user)
+
