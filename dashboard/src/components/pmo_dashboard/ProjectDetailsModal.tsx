@@ -1,6 +1,6 @@
 import React from 'react';
-import { Building2, Calendar, Clock, ListChecks, User, Users, X } from 'lucide-react';
-import { UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
+import { AlertTriangle, Building2, Calendar, Clock, ListChecks, User, Users, X } from 'lucide-react';
+import { STATUS_KEY_BADGE, UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { UIProjectRow } from '../../types/pmo_dashboard';
 import { formatManagerName } from '../../utils/pmo_dashboard';
 
@@ -48,13 +48,25 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onCl
       <div onClick={(e) => e.stopPropagation()} className='bg-white dark:bg-slate-900 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden border border-slate-200 dark:border-slate-700'>
         <div className='px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start bg-slate-50/50 dark:bg-slate-800/50'>
           <div>
-            <div className='flex items-center gap-2 mb-2'>
+            <div className='flex flex-wrap items-center gap-2 mb-2'>
               <span className='text-xs font-bold px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-md border border-indigo-200 dark:border-indigo-800 flex items-center gap-1'>
                 <Building2 size={12} /> {project[UI_PROJECT_KEYS.BUSINESS_UNIT] || 'General'}
               </span>
-              <span className='text-xs font-bold px-2 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-md'>
-                {project.Status}
-              </span>
+              {(() => {
+                const key = project._statusKey || 'on_track';
+                const style = STATUS_KEY_BADGE[key] || STATUS_KEY_BADGE['on_track'];
+                return (
+                  <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold ${style.bg} ${style.text}`}>
+                    <span className={`w-2 h-2 rounded-full ${style.dot}`} />
+                    {project.Status}
+                  </span>
+                );
+              })()}
+              {(project._statusReasons || []).map((reason, idx) => (
+                <span key={idx} className='inline-flex items-center gap-1 text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 px-2 py-1 rounded-md border border-rose-100 dark:border-rose-800/30'>
+                  <AlertTriangle size={11} /> {reason}
+                </span>
+              ))}
             </div>
             <h2 className='text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight'>{project.Project}</h2>
           </div>
