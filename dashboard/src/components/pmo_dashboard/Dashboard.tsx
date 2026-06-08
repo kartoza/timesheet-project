@@ -29,6 +29,7 @@ type DashboardProps = {
   onUpdateDataRow: (id: string, field: string, value: string | number) => Promise<void>;
   onDeleteDataRow: (id: string) => Promise<void>;
   onAddManualProject: (projectData: CreateProjectPayload) => Promise<void>;
+  pmOverloadThreshold: number;
 };
 
 const Dashboard: React.FC<DashboardProps> = ({
@@ -36,6 +37,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   onUpdateDataRow,
   onDeleteDataRow,
   onAddManualProject,
+  pmOverloadThreshold,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilters, setSelectedFilters] = useState<Record<FilterFieldKey, string[]>>({
@@ -316,7 +318,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               title='Project Manager Workload Distribution'
               subtitle='Active projects and allocated budget hours per PM'
             >
-              <ManagerWorkloadChart data={filteredData} />
+              <ManagerWorkloadChart data={filteredData} overloadThreshold={pmOverloadThreshold} />
             </ChartCard>
 
             <ChartCard

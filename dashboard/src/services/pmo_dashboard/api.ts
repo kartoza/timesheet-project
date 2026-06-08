@@ -193,3 +193,7 @@ export async function logout(): Promise<void> {
     method: 'POST',
   });
 }
+
+export async function fetchSettings(): Promise<{ pm_overload_threshold: number }> {
+  return apiFetch('/api/pmo/settings/');
+}

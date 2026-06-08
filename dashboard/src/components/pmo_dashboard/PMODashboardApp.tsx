@@ -13,6 +13,7 @@ import {
   createProject,
   deleteProject,
   fetchProjects,
+  fetchSettings,
   updateProject,
 } from '../../services/pmo_dashboard/api';
 import { CreateProjectPayload, SessionUser, UIProjectRow } from '../../types/pmo_dashboard';
@@ -24,6 +25,7 @@ const PMODashboardApp: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [user] = useState<SessionUser | null>({ username: 'dev-bypass' });
+  const [pmOverloadThreshold, setPmOverloadThreshold] = useState(4);
 
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('pmo_theme');
@@ -39,6 +41,10 @@ const PMODashboardApp: React.FC = () => {
       localStorage.setItem('pmo_theme', 'light');
     }
   }, [isDarkMode]);
+
+  useEffect(() => {
+    fetchSettings().then((s) => setPmOverloadThreshold(s.pm_overload_threshold)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -207,6 +213,7 @@ const PMODashboardApp: React.FC = () => {
               onUpdateDataRow={updateDataRow}
               onDeleteDataRow={deleteDataRow}
               onAddManualProject={addManualProject}
+              pmOverloadThreshold={pmOverloadThreshold}
             />
           </div>
         )}
