@@ -4,7 +4,6 @@ import {
   Briefcase,
   CalendarDays,
   Clock,
-  Download,
   Maximize2,
   Minimize2,
   Table,
@@ -32,6 +31,7 @@ type DashboardProps = {
   onUpdateDataRow: (id: string, field: string, value: string | number) => Promise<void>;
   onDeleteDataRow: (id: string) => Promise<void>;
   onAddManualProject: (projectData: CreateProjectPayload) => Promise<void>;
+  onRegisterExport?: (fn: () => Promise<void>) => void;
 };
 
 const Dashboard: React.FC<DashboardProps> = ({
@@ -39,6 +39,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   onUpdateDataRow,
   onDeleteDataRow,
   onAddManualProject,
+  onRegisterExport,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilters, setSelectedFilters] = useState<Record<FilterFieldKey, string[]>>({
@@ -49,18 +50,16 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [activeView, setActiveView] = useState<'table' | 'gantt'>('table');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProjectForDetails, setSelectedProjectForDetails] = useState<UIProjectRow | null>(null);
-  const [isExporting, setIsExporting] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
-  const handleExportPDF = async () => {
+  const handleExportPDF = React.useCallback(async () => {
     if (!printRef.current) return;
-    setIsExporting(true);
-    try {
-      await exportDashboardToPDF(printRef.current);
-    } finally {
-      setIsExporting(false);
-    }
-  };
+    await exportDashboardToPDF(printRef.current);
+  }, []);
+
+  React.useEffect(() => {
+    onRegisterExport?.(handleExportPDF);
+  }, [handleExportPDF, onRegisterExport]);
 
   const availableStatuses = useMemo(() => {
     const statuses = new Set(data.map((d) => d.Status).filter(Boolean));
@@ -240,15 +239,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       ) : (
         <>
           <div className='mt-8 flex flex-col gap-4'>
-            <div className='flex items-center justify-end gap-3'>
-              <button
-                onClick={handleExportPDF}
-                disabled={isExporting}
-                className='flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors shadow-sm print:hidden'
-              >
-                <Download size={15} />
-                {isExporting ? 'Generating…' : 'Export PDF'}
-              </button>
+            <div className='flex items-center justify-end'>
               <div className='bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur p-1 rounded-xl flex items-center border border-slate-200 dark:border-slate-700 shadow-sm inline-flex'>
                 <button
                   onClick={() => setActiveView('table')}

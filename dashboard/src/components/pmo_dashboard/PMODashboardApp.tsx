@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   AlertCircle,
   CheckCircle2,
+  Download,
   LogOut,
   Moon,
   Server,
@@ -95,6 +96,19 @@ const PMODashboardApp: React.FC = () => {
     }
   };
 
+  const exportFnRef = useRef<(() => Promise<void>) | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportPDF = async () => {
+    if (!exportFnRef.current) return;
+    setIsExporting(true);
+    try {
+      await exportFnRef.current();
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
   const hasData = data.length > 0;
@@ -118,6 +132,17 @@ const PMODashboardApp: React.FC = () => {
           </div>
 
           <div className='flex items-center gap-3 md:gap-4 print:hidden'>
+            {hasData && (
+              <button
+                onClick={handleExportPDF}
+                disabled={isExporting}
+                className='flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 shadow-sm'
+              >
+                <Download size={18} />
+                <span className='hidden sm:inline'>{isExporting ? 'Generating…' : 'Export PDF'}</span>
+              </button>
+            )}
+
             <button
               onClick={toggleTheme}
               className='p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-300 shadow-sm border border-slate-200 dark:border-slate-700'
@@ -196,6 +221,7 @@ const PMODashboardApp: React.FC = () => {
               onUpdateDataRow={updateDataRow}
               onDeleteDataRow={deleteDataRow}
               onAddManualProject={addManualProject}
+              onRegisterExport={(fn) => { exportFnRef.current = fn; }}
             />
           </div>
         )}
