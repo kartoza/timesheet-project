@@ -104,7 +104,7 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
 
   const clearAll = () => {
     setSelectedFilters({
-      projectType: [],
+      projectType: ['External'],
       status: [],
       manager: [],
     });
