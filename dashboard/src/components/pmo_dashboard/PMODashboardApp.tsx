@@ -108,7 +108,7 @@ const PMODashboardApp: React.FC = () => {
           <div className='flex items-center gap-4'>
             <div>
               <h1 className='text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-900 to-indigo-600 dark:from-indigo-400 dark:to-indigo-200 flex items-center gap-3'>
-                <img src='/kartoza-logo.png' alt='Company Logo' className='h-8 w-auto object-contain' onError={(e) => {
+                <img src='/static/kartoza-logo.png' alt='Company Logo' className='h-8 w-auto object-contain' onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
                 }} />
