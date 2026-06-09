@@ -313,7 +313,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
                 <BarChart data={revenueByPM} layout='vertical' margin={{ top: 4, right: 8, left: 4, bottom: 4 }}>
                   <CartesianGrid strokeDasharray='3 3' horizontal={false} stroke='#e2e8f0' />
                   <XAxis type='number' tick={{ fill: '#94a3b8', fontSize: 8 }} tickFormatter={v => `R${(Number(v) / 1000).toFixed(0)}k`} />
-                  <YAxis type='category' dataKey='name' tick={{ fill: '#64748b', fontSize: 8 }} width={68} />
+                  <YAxis type='category' dataKey='name' tick={{ fill: '#64748b', fontSize: 8 }} width={80} interval={0} />
                   <Bar dataKey='value' name='Revenue' fill='#6366f1' radius={[0, 3, 3, 0]} maxBarSize={14} />
                 </BarChart>
               </ResponsiveContainer>
