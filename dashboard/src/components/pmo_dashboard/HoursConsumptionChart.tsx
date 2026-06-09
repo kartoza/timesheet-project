@@ -59,7 +59,7 @@ const HoursConsumptionChart: React.FC<HoursConsumptionChartProps> = ({ data }) =
   return (
     <div className='w-full h-full min-h-[400px] flex flex-col'>
       <div className='flex items-center gap-2 mb-2 flex-wrap'>
-        <span className='text-xs text-slate-400 font-medium'>Sort by:</span>
+        <span className='text-xs text-slate-400 dark:text-slate-500 font-medium'>Sort by:</span>
         {SORT_OPTIONS.map((opt) => (
           <button
             key={opt.key}
@@ -67,7 +67,7 @@ const HoursConsumptionChart: React.FC<HoursConsumptionChartProps> = ({ data }) =
             className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
               sortBy === opt.key
                 ? 'bg-indigo-600 text-white'
-                : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
           >
             {opt.label}
@@ -115,7 +115,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
       <div className='bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 border border-slate-100 dark:border-slate-700 shadow-xl rounded-xl'>
-        <p className='font-bold text-slate-800 mb-2 border-b border-slate-100 pb-2 truncate max-w-[250px]' title={label}>
+        <p className='font-bold text-slate-800 dark:text-slate-100 mb-2 border-b border-slate-100 dark:border-slate-700 pb-2 truncate max-w-[250px]' title={label}>
           {label}
         </p>
         {payload.map((entry: any, index: number) => {
@@ -125,9 +125,9 @@ const CustomTooltip = ({ active, payload, label }: any) => {
             <div key={index} className='flex justify-between items-center gap-6 py-1 text-sm'>
               <span className='flex items-center gap-2'>
                 <div className='w-3 h-3 rounded-full shadow-sm' style={{ backgroundColor: entry.color }}></div>
-                <span className='text-slate-600 font-medium'>{entry.name}</span>
+                <span className='text-slate-600 dark:text-slate-300 font-medium'>{entry.name}</span>
               </span>
-              <span className='font-bold text-slate-900'>{val}</span>
+              <span className='font-bold text-slate-900 dark:text-slate-100'>{val}</span>
             </div>
           );
         })}

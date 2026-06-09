@@ -53,7 +53,12 @@ const GanttView: React.FC<GanttViewProps> = ({ data, onViewDetails }) => {
         progress: (proj[UI_PROJECT_KEYS.ACTUAL_PROGRESS] || 0) * 100,
         type: 'task',
         project: proj[UI_PROJECT_KEYS.BUSINESS_UNIT] || 'General',
-        styles: { progressColor: '#4f46e5', progressSelectedColor: '#4338ca' },
+        styles: {
+          backgroundColor: '#64748b',
+          backgroundSelectedColor: '#475569',
+          progressColor: '#4f46e5',
+          progressSelectedColor: '#4338ca',
+        },
         isDisabled: false,
       };
     });
@@ -81,7 +86,7 @@ const GanttView: React.FC<GanttViewProps> = ({ data, onViewDetails }) => {
   }, [tasks]);
 
   if (tasks.length === 0) {
-    return <div className='text-center py-10 text-slate-500'>No projects to display in Gantt View.</div>;
+    return <div className='text-center py-10 text-slate-500 dark:text-slate-400'>No projects to display in Gantt View.</div>;
   }
 
   const handleTaskClick = (task: Task) => {
@@ -99,11 +104,43 @@ const GanttView: React.FC<GanttViewProps> = ({ data, onViewDetails }) => {
       )}
       <div ref={wrapperRef} className={`bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm gantt-wrapper custom-scrollbar transition-all duration-300 flex flex-col ${isFullscreen ? 'fixed inset-4 z-[201] shadow-2xl' : 'relative overflow-x-auto overflow-y-hidden'}`}>
         <style>{`
-          .dark .gantt-wrapper svg text { fill: #cbd5e1 !important; }
-          .dark .gantt-wrapper svg line, .dark .gantt-wrapper svg path, .dark .gantt-wrapper svg polygon { stroke: #334155 !important; }
-          .dark .gantt-wrapper svg .grid-row { fill: #1e293b !important; }
-          .dark .gantt-wrapper svg .grid-row:nth-child(odd) { fill: #0f172a !important; }
-          .dark .gantt-wrapper ._3_a9F { background-color: transparent !important; }
+          .dark .gantt-wrapper ._3_ygE,
+          .dark .gantt-wrapper ._3ZbQT {
+            border-color: #334155 !important;
+            background-color: #0f172a !important;
+          }
+
+          .dark .gantt-wrapper ._34SS0:nth-of-type(even) {
+            background-color: #1e293b !important;
+          }
+
+          .dark .gantt-wrapper ._2dZTy,
+          .dark .gantt-wrapper ._2dZTy:nth-child(even) {
+            fill: #1e293b !important;
+          }
+
+          .dark .gantt-wrapper ._3rUKi,
+          .dark .gantt-wrapper ._RuwuK,
+          .dark .gantt-wrapper ._1rLuZ,
+          .dark .gantt-wrapper ._2eZzQ {
+            stroke: #334155 !important;
+            border-color: #334155 !important;
+          }
+
+          .dark .gantt-wrapper ._9w8d5,
+          .dark .gantt-wrapper ._2q1Kt,
+          .dark .gantt-wrapper ._3KcaM,
+          .dark .gantt-wrapper ._2TfEi,
+          .dark .gantt-wrapper ._2QjE6,
+          .dark .gantt-wrapper ._3lLk3 {
+            fill: #cbd5e1 !important;
+            color: #cbd5e1 !important;
+          }
+
+          .dark .gantt-wrapper ._35nLX {
+            fill: #334155 !important;
+            stroke: #475569 !important;
+          }
         `}</style>
 
         <div className='flex justify-end p-2 bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700'>

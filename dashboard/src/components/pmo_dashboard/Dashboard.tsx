@@ -254,7 +254,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       />
 
       {filteredData.length === 0 ? (
-        <div className='py-12 text-center text-slate-500 font-medium'>
+        <div className='py-12 text-center text-slate-500 dark:text-slate-400 font-medium'>
           No projects match your current filters.
         </div>
       ) : (
@@ -383,8 +383,8 @@ function MetricCard({ icon, title, value, bgColor, valueSize }: MetricCardProps)
         {icon}
       </div>
       <div className='min-w-0'>
-        <h4 className='text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider truncate'>{title}</h4>
-        <div className={`font-bold text-slate-800 tracking-tight truncate ${valueSize}`}>{value}</div>
+        <h4 className='text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider truncate'>{title}</h4>
+        <div className={`font-bold text-slate-800 dark:text-slate-100 tracking-tight truncate ${valueSize}`}>{value}</div>
       </div>
     </div>
   );
@@ -407,11 +407,11 @@ function ChartCard({ title, subtitle, children }: ChartCardProps) {
             <div className='flex justify-between items-start mb-6 shrink-0 border-b border-slate-100 dark:border-slate-800 pb-4'>
               <div>
                 <h3 className='text-2xl font-bold text-slate-800 dark:text-white'>{title}</h3>
-                <p className='text-base text-slate-500 font-medium mt-1'>{subtitle}</p>
+            <p className='text-base text-slate-500 dark:text-slate-400 font-medium mt-1'>{subtitle}</p>
               </div>
               <button
                 onClick={() => setIsFullscreen(false)}
-                className='p-3 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors'
+            className='p-3 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-xl transition-colors'
                 title='Exit Fullscreen'
               >
                 <Minimize2 size={28} />
@@ -432,7 +432,7 @@ function ChartCard({ title, subtitle, children }: ChartCardProps) {
           </div>
           <button
             onClick={() => setIsFullscreen(true)}
-            className='p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors print:hidden'
+            className='p-2 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors print:hidden'
             title='Fullscreen'
           >
             <Maximize2 size={18} />
