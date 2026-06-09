@@ -2,6 +2,7 @@ import React from 'react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { UIProjectRow } from '../../types/pmo_dashboard';
+import { formatManagerName } from '../../utils/pmo_dashboard';
 
 type GroupBy = 'project_manager' | 'relations_manager';
 
@@ -22,7 +23,7 @@ const ManagerRevenueChart: React.FC<ManagerRevenueChartProps> = ({ data, group_b
 
   const chartData = Object.keys(managerRevenue)
     .map((key) => ({
-      name: key,
+      name: formatManagerName(key),
       Revenue: managerRevenue[key],
     }))
     .sort((a, b) => b.Revenue - a.Revenue);
