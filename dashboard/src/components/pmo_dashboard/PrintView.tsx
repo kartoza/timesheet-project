@@ -45,7 +45,7 @@ const sectionTitleStyle: React.CSSProperties = {
 };
 
 const MAX_TABLE_ROWS = 40;
-const MAX_AT_RISK_CARDS = 30;
+const MAX_AT_RISK_CARDS = 50;
 
 type PrintViewProps = { filteredData: UIProjectRow[] };
 
@@ -160,47 +160,34 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
         <PageHeader subtitle={`Action Items · ${atRiskProjects.length} project${atRiskProjects.length !== 1 ? 's' : ''} requiring attention`} />
 
         {atRiskProjects.length === 0 ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 120, color: '#10b981', fontSize: 13, fontWeight: 700, gap: 8 }}>
+          <div style={{ marginTop: 40, textAlign: 'center', color: '#10b981', fontSize: 13, fontWeight: 700 }}>
             ✓ No projects currently require immediate attention.
           </div>
         ) : (
-          <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 9 }}>
+            <thead>
+              <tr style={{ background: '#f1f5f9', borderBottom: '2px solid #e2e8f0' }}>
+                {['Project', 'Project Manager', 'Due Date', 'Reason'].map(h => (
+                  <th key={h} style={{ padding: '7px 10px', textAlign: 'left', fontWeight: 700, color: '#475569', fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
               {atRiskProjects.slice(0, MAX_AT_RISK_CARDS).map((proj, i) => {
                 const statusColor = STATUS_COLORS[proj._statusKey || 'at_risk'] || '#ef4444';
-                const pmName = formatManagerName(proj[UI_PROJECT_KEYS.PROJECT_MANAGER]) || 'Unassigned';
-                const pmInitials = pmName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+                const pmName = formatManagerName(proj[UI_PROJECT_KEYS.PROJECT_MANAGER]) || '—';
+                const reasons = (proj._statusReasons || [proj.Status || 'At risk']).join(' · ');
                 return (
-                  <div key={i} style={{ background: '#fff', border: `1px solid ${hexRgba(statusColor, 0.2)}`, borderLeft: `3px solid ${statusColor}`, borderRadius: 6, padding: '9px 11px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 3 }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: '#1e293b', flex: 1, marginRight: 6, lineHeight: '14px' }}>
-                        {trunc(proj.Project || '—', 26)}
-                      </span>
-                      <span style={{ flexShrink: 0, width: 20, height: 20, lineHeight: '20px', textAlign: 'center', fontSize: 7, fontWeight: 800, color: '#fff', background: '#64748b', borderRadius: '50%', display: 'inline-block' }}>
-                        {pmInitials}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: 8, color: '#64748b', marginBottom: 4 }}>{trunc(pmName, 22)}</div>
-                    <div style={{ marginBottom: 4 }}>
-                      {(proj._statusReasons || [proj.Status || 'At risk']).slice(0, 3).map((reason: string, idx: number) => (
-                        <span key={idx} style={{ display: 'inline-block', marginRight: 3, marginBottom: 2, fontSize: 7, fontWeight: 700, color: statusColor, background: hexRgba(statusColor, 0.1), padding: '2px 5px', borderRadius: 3 }}>
-                          {reason}
-                        </span>
-                      ))}
-                    </div>
-                    <div style={{ fontSize: 8, color: '#94a3b8' }}>
-                      Due: <span style={{ fontWeight: 600, color: '#475569' }}>{proj[UI_PROJECT_KEYS.DUE_DATE] || 'N/A'}</span>
-                    </div>
-                  </div>
+                  <tr key={i} style={{ borderBottom: '1px solid #f1f5f9', borderLeft: `3px solid ${statusColor}`, background: i % 2 === 0 ? '#ffffff' : '#fafafa' }}>
+                    <td style={{ padding: '6px 10px', fontWeight: 600, color: '#1e293b', verticalAlign: 'middle' }}>{trunc(proj.Project || '—', 36)}</td>
+                    <td style={{ padding: '6px 10px', color: '#475569', verticalAlign: 'middle' }}>{trunc(pmName, 20)}</td>
+                    <td style={{ padding: '6px 10px', color: '#475569', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>{proj[UI_PROJECT_KEYS.DUE_DATE] || '—'}</td>
+                    <td style={{ padding: '6px 10px', color: statusColor, fontWeight: 600, verticalAlign: 'middle' }}>{trunc(reasons, 48)}</td>
+                  </tr>
                 );
               })}
-            </div>
-            {atRiskProjects.length > MAX_AT_RISK_CARDS && (
-              <div style={{ fontSize: 9, color: '#94a3b8', textAlign: 'center', marginTop: 8 }}>
-                +{atRiskProjects.length - MAX_AT_RISK_CARDS} more projects not shown
-              </div>
-            )}
-          </div>
+            </tbody>
+          </table>
         )}
         {footer}
       </div>
@@ -229,7 +216,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
                   <td style={{ padding: '5px 8px', fontWeight: 600, color: '#1e293b', maxWidth: 160, verticalAlign: 'middle' }}>{trunc(d.Project || '—', 28)}</td>
                   <td style={{ padding: '5px 8px', color: '#475569', verticalAlign: 'middle' }}>{trunc(formatManagerName(d[UI_PROJECT_KEYS.PROJECT_MANAGER]) || '—', 18)}</td>
                   <td style={{ padding: '5px 8px', verticalAlign: 'middle' }}>
-                    <span style={{ display: 'inline-block', padding: '2px 6px', borderRadius: 4, background: hexRgba(statusColor, 0.13), color: statusColor, fontWeight: 700, fontSize: 8 }}>{d.Status || '—'}</span>
+                    <span style={{ display: 'inline-block', padding: '2px 6px', borderRadius: 4, color: statusColor, fontWeight: 700, fontSize: 8 }}>{d.Status || '—'}</span>
                   </td>
                   <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569', verticalAlign: 'middle' }}>{d[UI_PROJECT_KEYS.DUE_DATE] || '—'}</td>
                   <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569', verticalAlign: 'middle' }}>{fmtN(d[UI_PROJECT_KEYS.BUDGET_HOURS] || 0)}</td>
