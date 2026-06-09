@@ -1,3 +1,5 @@
+from preferences import preferences
+
 from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.response import Response
@@ -30,3 +32,17 @@ class ProjectListView(APIView):
             .order_by('name')
         )
         return Response(ProjectSerializer(projects, many=True).data)
+
+
+@extend_schema(
+    tags=['PMO Dashboard'],
+    summary='PMO dashboard settings',
+    description='Returns configurable settings used by the PMO dashboard frontend.',
+)
+class SettingsView(APIView):
+    permission_classes = [IsAuthenticated, IsPMOMemberOrSuperuser]
+
+    def get(self, request):
+        return Response({
+            'pm_overload_threshold': preferences.TimesheetPreferences.pm_overload_threshold,
+        })

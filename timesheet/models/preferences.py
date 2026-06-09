@@ -233,6 +233,11 @@ class TimesheetPreferences(Preferences):
         help_text='Configurable PMO status labels and formulas. Keys are fixed: on_track, warning, at_risk, overdue, on_hold, completed.',
     )
 
+    pm_overload_threshold = models.PositiveSmallIntegerField(
+        default=4,
+        help_text='Number of active projects above which a Project Manager is considered overloaded in the workload chart.',
+    )
+
     def clean(self):
         super().clean()
         try:
