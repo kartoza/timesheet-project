@@ -16,6 +16,17 @@ type BillableHoursChartProps = {
   data: UIProjectRow[];
 };
 
+const renderLegend = (props: any) => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', paddingBottom: '8px' }}>
+    {props.payload.map((entry: any, i: number) => (
+      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', backgroundColor: entry.color, flexShrink: 0 }} />
+        <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569', lineHeight: 1 }}>{entry.value}</span>
+      </div>
+    ))}
+  </div>
+);
+
 const BillableHoursChart: React.FC<BillableHoursChartProps> = ({ data }) => {
   const chartData = useMemo(() => {
     return data
@@ -90,7 +101,7 @@ const BillableHoursChart: React.FC<BillableHoursChartProps> = ({ data }) => {
             <XAxis dataKey='name' axisLine={false} tickLine={false} tick={<CustomXAxisTick />} interval={0} />
             <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
-            <Legend verticalAlign='top' wrapperStyle={{ paddingBottom: '10px' }} />
+            <Legend verticalAlign='top' content={renderLegend} />
 
             <Bar dataKey='billable' name='Billable Hours' stackId='a' fill='#10b981' barSize={32} />
             <Bar dataKey='nonBillable' name='Non-Billable Hours' stackId='a' fill='#f43f5e' radius={[4, 4, 0, 0]} barSize={32} />
@@ -102,7 +113,7 @@ const BillableHoursChart: React.FC<BillableHoursChartProps> = ({ data }) => {
 };
 
 function truncate(str: string, n: number) {
-  return str && str.length > n ? `${str.substr(0, n - 1)}...` : str;
+  return str && str.length > n ? `${str.slice(0, n - 1)}...` : str;
 }
 
 const CustomXAxisTick = ({ x, y, payload }: any) => (

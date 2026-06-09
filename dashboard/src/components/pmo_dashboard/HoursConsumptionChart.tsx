@@ -27,6 +27,17 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'burnRate', label: 'Burn Rate' },
 ];
 
+const renderLegend = (props: any) => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '16px', paddingBottom: '16px' }}>
+    {props.payload.map((entry: any, i: number) => (
+      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: entry.color, flexShrink: 0 }} />
+        <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569', lineHeight: 1 }}>{entry.value}</span>
+      </div>
+    ))}
+  </div>
+);
+
 const HoursConsumptionChart: React.FC<HoursConsumptionChartProps> = ({ data }) => {
   const [sortBy, setSortBy] = useState<SortKey>('burnRate');
 
@@ -84,7 +95,7 @@ const HoursConsumptionChart: React.FC<HoursConsumptionChartProps> = ({ data }) =
             <YAxis yAxisId='right' orientation='right' axisLine={false} tickLine={false} tickFormatter={(val) => `${val}%`} domain={[0, 'dataMax']} tick={{ fill: '#14B8A6', fontSize: 12, fontWeight: 700 }} />
 
             <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.5)' }} />
-            <Legend align='right' verticalAlign='top' iconType='circle' wrapperStyle={{ paddingBottom: '20px', fontWeight: 600, fontSize: '13px' }} />
+            <Legend align='right' verticalAlign='top' content={renderLegend} />
 
             <Bar yAxisId='left' dataKey='Budget (hrs)' fill='#94A3B8' maxBarSize={40} barSize={24} radius={[4, 4, 0, 0]} />
             <Bar yAxisId='left' dataKey='Consumed (hrs)' fill='#F59E0B' maxBarSize={40} barSize={24} radius={[4, 4, 0, 0]} />
