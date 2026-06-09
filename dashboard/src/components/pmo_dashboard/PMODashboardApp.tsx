@@ -107,7 +107,7 @@ const PMODashboardApp: React.FC = () => {
   const hasData = data.length > 0;
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'dark' : ''} bg-slate-50 dark:bg-slate-950`}>
+    <div className='min-h-screen transition-colors duration-300 bg-slate-50 dark:bg-slate-950'>
       <CircularMenu />
       <header className='bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-[100] px-4 md:px-8 py-4 shadow-sm transition-colors duration-300'>
         <div className='max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-4'>
@@ -161,8 +161,8 @@ const PMODashboardApp: React.FC = () => {
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
             }} />
-            <h1 className='text-4xl font-bold text-slate-800 tracking-tight'>PMO Executive Portfolio Report</h1>
-            <p className='text-lg text-slate-500 font-medium mt-2'>Generated on: {new Date().toLocaleDateString(undefined, {
+            <h1 className='text-4xl font-bold text-slate-800 dark:text-slate-100 tracking-tight'>PMO Executive Portfolio Report</h1>
+            <p className='text-lg text-slate-500 dark:text-slate-400 font-medium mt-2'>Generated on: {new Date().toLocaleDateString(undefined, {
               year: 'numeric',
               month: 'long',
               day: 'numeric',
@@ -179,19 +179,19 @@ const PMODashboardApp: React.FC = () => {
                 <Server className='text-indigo-600 animate-bounce' size={40} />
               </div>
               <div className='text-center'>
-                <h2 className='text-2xl font-bold text-slate-800'>Connecting to ERPNext...</h2>
-                <p className='text-slate-500 mt-2 font-medium'>Fetching live project portfolios via Data Service API</p>
+                <h2 className='text-2xl font-bold text-slate-800 dark:text-slate-100'>Connecting to ERPNext...</h2>
+                <p className='text-slate-500 dark:text-slate-400 mt-2 font-medium'>Fetching live project portfolios via Data Service API</p>
               </div>
             </div>
           </div>
         )}
 
         {!isLoading && error && (
-          <div className='mb-8 p-6 bg-rose-50 rounded-2xl border border-rose-200 shadow-sm flex gap-4 items-start max-w-3xl mx-auto'>
+          <div className='mb-8 p-6 bg-rose-50 dark:bg-rose-950/40 rounded-2xl border border-rose-200 dark:border-rose-900 shadow-sm flex gap-4 items-start max-w-3xl mx-auto'>
             <AlertCircle size={28} className='text-rose-600 shrink-0 mt-1' />
             <div>
-              <h3 className='font-bold text-rose-800 text-lg mb-1'>Connection Failed</h3>
-              <p className='text-rose-600 font-medium'>{error}</p>
+              <h3 className='font-bold text-rose-800 dark:text-rose-200 text-lg mb-1'>Connection Failed</h3>
+              <p className='text-rose-600 dark:text-rose-300 font-medium'>{error}</p>
             </div>
           </div>
         )}
@@ -200,7 +200,7 @@ const PMODashboardApp: React.FC = () => {
           <div className='animate-in fade-in slide-in-from-bottom-4 duration-700'>
             <div className='flex flex-wrap items-center justify-between gap-4 mb-8 print:hidden'>
               <div className='flex items-center gap-4'>
-                <h2 className='text-3xl font-bold text-slate-900'>Portfolio Overview</h2>
+                <h2 className='text-3xl font-bold text-slate-900 dark:text-slate-100'>Portfolio Overview</h2>
                 <div className='flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 text-sm font-bold mt-1'>
                   <CheckCircle2 size={16} />
                   <span>Synced with ERPNext</span>
