@@ -62,11 +62,11 @@ const BillableHoursChart: React.FC<BillableHoursChartProps> = ({ data }) => {
           <div className='flex flex-col gap-1'>
             <p className='text-emerald-600 dark:text-emerald-400 font-semibold text-sm flex justify-between gap-4'>
               <span className='text-slate-500 dark:text-slate-400'>Billable:</span>
-              <span>{entry.billable}h</span>
+              <span>{+entry.billable.toFixed(2)}h</span>
             </p>
             <p className='text-rose-500 dark:text-rose-400 font-semibold text-sm flex justify-between gap-4'>
               <span className='text-slate-500 dark:text-slate-400'>Non-Billable:</span>
-              <span>{entry.nonBillable}h</span>
+              <span>{+entry.nonBillable.toFixed(2)}h</span>
             </p>
             <div className='mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center'>
               <span className='text-slate-500 dark:text-slate-400 text-xs font-bold uppercase'>Efficiency</span>
