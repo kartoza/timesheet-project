@@ -73,13 +73,13 @@ const StatusChart: React.FC<StatusChartProps> = ({ data, onStatusClick }) => {
 const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className='bg-white/95 backdrop-blur-sm p-4 border border-slate-100 shadow-xl rounded-xl'>
-        <p className='font-bold text-slate-800 flex items-center gap-2'>
+      <div className='bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm p-4 border border-slate-100 dark:border-slate-700 shadow-xl rounded-xl'>
+        <p className='font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2'>
           <div className='w-3 h-3 rounded-full' style={{ backgroundColor: payload[0].payload.fill }}></div>
           {payload[0].name}
         </p>
-        <p className='text-slate-600 font-medium mt-1'>
-          Count: <span className='text-slate-900 font-bold'>{payload[0].value} Projects</span>
+        <p className='text-slate-600 dark:text-slate-300 font-medium mt-1'>
+          Count: <span className='text-slate-900 dark:text-slate-100 font-bold'>{payload[0].value} Projects</span>
         </p>
       </div>
     );

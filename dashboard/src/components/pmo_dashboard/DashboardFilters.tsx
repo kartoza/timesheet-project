@@ -122,25 +122,25 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
 
   const renderMenuContent = () => (
     <>
-      <div className='max-h-80 overflow-y-auto space-y-1'>
+      <div className='max-h-80 overflow-y-auto space-y-1 custom-scrollbar'>
         {filterFields.map((field) => {
           const selectedCount = selectedFilters[field.key].length;
           const isExpanded = expandedSections[field.key];
           const optionCounts = field.optionCounts || {};
 
           return (
-            <div key={field.key} className='rounded-lg border border-slate-100'>
+            <div key={field.key} className='rounded-lg border border-slate-100 dark:border-slate-700'>
               <div className='flex items-center justify-between px-2 py-1'>
                 <button
                   onClick={() => toggleSection(field.key)}
-                  className='w-full flex items-center justify-between px-1 py-1.5 rounded text-sm text-slate-700 hover:bg-slate-50 transition-colors'
+                  className='w-full flex items-center justify-between px-1 py-1.5 rounded text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors'
                 >
                   <span className='inline-flex items-center gap-2'>
-                    {isExpanded ? <ChevronDown size={15} className='text-slate-400' /> : <ChevronRight size={15} className='text-slate-400' />}
+                    {isExpanded ? <ChevronDown size={15} className='text-slate-400 dark:text-slate-500' /> : <ChevronRight size={15} className='text-slate-400 dark:text-slate-500' />}
                     <span className='font-medium'>{field.label}</span>
                   </span>
                   {selectedCount > 0 && (
-                    <span className='text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-semibold'>
+                      <span className='text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-semibold'>
                       {selectedCount}
                     </span>
                   )}
@@ -149,7 +149,7 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
                 {selectedCount > 0 && (
                   <button
                     onClick={() => clearField(field.key)}
-                    className='ml-2 text-xs font-semibold text-slate-500 hover:text-rose-600 transition-colors'
+                    className='ml-2 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-300 transition-colors'
                   >
                     Clear
                   </button>
@@ -159,13 +159,13 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
               {isExpanded && (
                 <div className='px-3 pb-2 pt-1 space-y-1'>
                   {field.options.length === 0 ? (
-                    <div className='text-sm text-slate-400 py-1'>No values available</div>
+                    <div className='text-sm text-slate-400 dark:text-slate-500 py-1'>No values available</div>
                   ) : (
                     field.options.map((option) => {
                       const checked = selectedFilters[field.key].includes(option);
                       const count = optionCounts[option] || 0;
                       return (
-                        <label key={option} className='flex items-center gap-2 text-sm text-slate-700 px-1 py-1 rounded hover:bg-slate-50'>
+                        <label key={option} className='flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200 px-1 py-1 rounded hover:bg-slate-50 dark:hover:bg-slate-700/50'>
                           <input
                             type='checkbox'
                             checked={checked}
@@ -173,7 +173,7 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
                             className='h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500'
                           />
                           <span>{option}</span>
-                          <span className='text-slate-400'>({count})</span>
+                          <span className='text-slate-400 dark:text-slate-500'>({count})</span>
                         </label>
                       );
                     })
@@ -185,10 +185,10 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
         })}
       </div>
 
-      <div className='border-t border-slate-100 mt-2 pt-2 px-2'>
+      <div className='border-t border-slate-100 dark:border-slate-700 mt-2 pt-2 px-2'>
         <button
           onClick={clearAll}
-          className='text-sm font-semibold text-slate-500 hover:text-rose-600 transition-colors'
+          className='text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-300 transition-colors'
         >
           Clear all
         </button>
@@ -206,7 +206,7 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
             placeholder='Search projects...'
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className='w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all text-sm text-slate-700'
+            className='w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/40 transition-all text-sm text-slate-700 dark:text-slate-200'
           />
         </div>
 
@@ -223,8 +223,8 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
             }}
             className={`w-full md:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-colors ${
               isPanelOpen || totalActive > 0
-                ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
-                : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300'
+                : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/70'
             }`}
           >
             <Filter size={16} />
@@ -236,16 +236,16 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
       {activeChips.length > 0 && (
         <div className='flex flex-wrap items-center gap-2'>
           {activeChips.map((chip) => (
-            <span key={`${chip.field}-${chip.value}`} className='inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-sm text-slate-700'>
+            <span key={`${chip.field}-${chip.value}`} className='inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-200'>
               <span className='font-medium'>{chip.label}:</span>
               <span>{chip.value}</span>
-              <button onClick={() => toggleValue(chip.field, chip.value)} className='text-slate-400 hover:text-rose-600 transition-colors'>
+              <button onClick={() => toggleValue(chip.field, chip.value)} className='text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-300 transition-colors'>
                 <X size={14} />
               </button>
             </span>
           ))}
 
-          <button onClick={clearAll} className='text-sm font-semibold text-slate-500 hover:text-rose-600 transition-colors'>
+          <button onClick={clearAll} className='text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-300 transition-colors'>
             Clear all
           </button>
         </div>
@@ -254,7 +254,7 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
       {isPanelOpen && createPortal(
         <div
           ref={panelRef}
-          className='fixed z-[300] rounded-xl border border-slate-200 bg-white p-2 shadow-lg'
+          className='fixed z-[300] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-2 shadow-lg'
           style={{ top: panelPosition.top, left: panelPosition.left, width: panelPosition.width }}
         >
           {renderMenuContent()}
