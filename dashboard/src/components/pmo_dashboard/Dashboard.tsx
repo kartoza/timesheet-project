@@ -290,7 +290,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               subtitle='Status distribution of visible portfolio'
             >
               <StatusChart
-                data={data}
+                data={filteredData}
                 onStatusClick={(status) => {
                   setSelectedFilters((prev) => {
                     const hasStatus = prev.status.includes(status);
