@@ -71,7 +71,7 @@ const AtRiskPanel: React.FC<AtRiskPanelProps> = ({ data, onViewDetails }) => {
           >
             <div className='flex justify-between items-start mb-2'>
               <h4 className='font-bold text-slate-800 dark:text-white truncate pr-2' title={proj.Project}>{proj.Project}</h4>
-              <span className='shrink-0 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600' title={proj[UI_PROJECT_KEYS.PROJECT_MANAGER]}>
+              <span className='shrink-0 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 inline-flex items-center justify-center leading-none text-xs font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600' title={proj[UI_PROJECT_KEYS.PROJECT_MANAGER]}>
                 {proj[UI_PROJECT_KEYS.PROJECT_MANAGER]?.split(' ').map((name) => name[0]).join('') || 'PM'}
               </span>
             </div>

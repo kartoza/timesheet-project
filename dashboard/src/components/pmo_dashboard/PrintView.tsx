@@ -14,6 +14,13 @@ const STATUS_COLORS: Record<string, string> = {
   overdue: '#3B82F6', on_hold: '#94A3B8', completed: '#7C3AED',
 };
 
+const hexRgba = (hex: string, alpha: number) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+};
+
 const fmtCurrency = (n: number) =>
   new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(n);
 const fmtN = (n: number) =>
@@ -164,19 +171,19 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
                 const pmName = formatManagerName(proj[UI_PROJECT_KEYS.PROJECT_MANAGER]) || 'Unassigned';
                 const pmInitials = pmName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
                 return (
-                  <div key={i} style={{ background: '#fff', border: `1px solid ${statusColor}35`, borderLeft: `3px solid ${statusColor}`, borderRadius: 6, padding: '9px 11px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: '#1e293b', flex: 1, marginRight: 6, lineHeight: 1.3 }}>
+                  <div key={i} style={{ background: '#fff', border: `1px solid ${hexRgba(statusColor, 0.2)}`, borderLeft: `3px solid ${statusColor}`, borderRadius: 6, padding: '9px 11px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 3 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: '#1e293b', flex: 1, marginRight: 6, lineHeight: '14px' }}>
                         {trunc(proj.Project || '—', 26)}
                       </span>
-                      <span style={{ fontSize: 7, fontWeight: 800, color: '#fff', background: '#64748b', borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ flexShrink: 0, width: 20, height: 20, lineHeight: '20px', textAlign: 'center', fontSize: 7, fontWeight: 800, color: '#fff', background: '#64748b', borderRadius: '50%', display: 'inline-block' }}>
                         {pmInitials}
                       </span>
                     </div>
                     <div style={{ fontSize: 8, color: '#64748b', marginBottom: 4 }}>{trunc(pmName, 22)}</div>
-                    <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', marginBottom: 4 }}>
+                    <div style={{ marginBottom: 4 }}>
                       {(proj._statusReasons || [proj.Status || 'At risk']).slice(0, 3).map((reason: string, idx: number) => (
-                        <span key={idx} style={{ fontSize: 7, fontWeight: 700, color: statusColor, background: `${statusColor}18`, padding: '1px 5px', borderRadius: 3 }}>
+                        <span key={idx} style={{ display: 'inline-block', marginRight: 3, marginBottom: 2, fontSize: 7, fontWeight: 700, color: statusColor, background: hexRgba(statusColor, 0.1), padding: '2px 5px', borderRadius: 3 }}>
                           {reason}
                         </span>
                       ))}
@@ -222,7 +229,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
                   <td style={{ padding: '5px 8px', fontWeight: 600, color: '#1e293b', maxWidth: 160, verticalAlign: 'middle' }}>{trunc(d.Project || '—', 28)}</td>
                   <td style={{ padding: '5px 8px', color: '#475569', verticalAlign: 'middle' }}>{trunc(formatManagerName(d[UI_PROJECT_KEYS.PROJECT_MANAGER]) || '—', 18)}</td>
                   <td style={{ padding: '5px 8px', verticalAlign: 'middle' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 6px', borderRadius: 4, background: `${statusColor}22`, color: statusColor, fontWeight: 700, fontSize: 8 }}>{d.Status || '—'}</span>
+                    <span style={{ display: 'inline-block', padding: '2px 6px', borderRadius: 4, background: hexRgba(statusColor, 0.13), color: statusColor, fontWeight: 700, fontSize: 8 }}>{d.Status || '—'}</span>
                   </td>
                   <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569', verticalAlign: 'middle' }}>{d[UI_PROJECT_KEYS.DUE_DATE] || '—'}</td>
                   <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569', verticalAlign: 'middle' }}>{fmtN(d[UI_PROJECT_KEYS.BUDGET_HOURS] || 0)}</td>
