@@ -37,6 +37,12 @@
   }
 }
 
+/* Recharts legend alignment fix */
+.recharts-default-legend .recharts-legend-item {
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
 @layer utilities {
   .animate-entrance {
     animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;

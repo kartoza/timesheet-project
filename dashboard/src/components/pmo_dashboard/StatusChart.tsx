@@ -33,39 +33,54 @@ const StatusChart: React.FC<StatusChartProps> = ({ data, onStatusClick }) => {
     value: count,
   }));
 
-  return (
-    <div className='w-full h-[350px]'>
-      <ResponsiveContainer width='100%' height='100%'>
-        <PieChart>
-          <Pie
-            data={chartData}
-            cx='50%'
-            cy='45%'
-            innerRadius={80}
-            outerRadius={120}
-            paddingAngle={3}
-            dataKey='value'
-            onClick={(entry: any) => onStatusClick && onStatusClick(entry.name)}
-            className='cursor-pointer'
+  const renderLegend = (props: any) => {
+    const { payload } = props;
+    return (
+      <div className='flex flex-wrap justify-center gap-x-5 gap-y-2 pt-3 px-2'>
+        {payload.map((entry: any, index: number) => (
+          <button
+            key={index}
+            onClick={() => onStatusClick && onStatusClick(entry.value)}
+            className='flex items-center gap-2 hover:opacity-70 transition-opacity'
           >
-            {chartData.map((entry, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={STATUS_COLORS[entry.statusKey] || FALLBACK_COLORS[index % FALLBACK_COLORS.length]}
-                style={{ outline: 'none' }}
-              />
-            ))}
-          </Pie>
-          <Tooltip content={<CustomTooltip />} />
-          <Legend
-            verticalAlign='bottom'
-            height={36}
-            iconType='circle'
-            wrapperStyle={{ fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
-            onClick={(entry: any) => onStatusClick && onStatusClick(entry.value)}
-          />
-        </PieChart>
-      </ResponsiveContainer>
+            <span className='w-3 h-3 rounded-full shrink-0' style={{ backgroundColor: entry.color }} />
+            <span className='text-sm font-semibold text-slate-600 dark:text-slate-300'>{entry.value}</span>
+            <span className='text-xs text-slate-400 font-medium'>({entry.payload.value})</span>
+          </button>
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <div className='w-full h-[350px] flex flex-col'>
+      <div className='flex-1 min-h-0'>
+        <ResponsiveContainer width='100%' height='100%'>
+          <PieChart>
+            <Pie
+              data={chartData}
+              cx='50%'
+              cy='50%'
+              innerRadius={80}
+              outerRadius={120}
+              paddingAngle={3}
+              dataKey='value'
+              onClick={(entry: any) => onStatusClick && onStatusClick(entry.name)}
+              className='cursor-pointer'
+            >
+              {chartData.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={STATUS_COLORS[entry.statusKey] || FALLBACK_COLORS[index % FALLBACK_COLORS.length]}
+                  style={{ outline: 'none' }}
+                />
+              ))}
+            </Pie>
+            <Tooltip content={<CustomTooltip />} />
+            <Legend content={renderLegend} />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };
