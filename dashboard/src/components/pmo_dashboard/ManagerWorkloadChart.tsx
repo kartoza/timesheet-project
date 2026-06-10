@@ -27,17 +27,6 @@ type ManagerWorkloadChartProps = {
   overloadThreshold: number;
 };
 
-const renderLegend = (props: any) => (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', paddingTop: '8px' }}>
-    {props.payload.map((entry: any, i: number) => (
-      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', backgroundColor: entry.color, flexShrink: 0 }} />
-        <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569', lineHeight: 1 }}>{entry.value}</span>
-      </div>
-    ))}
-  </div>
-);
-
 const ManagerWorkloadChart: React.FC<ManagerWorkloadChartProps> = ({ data, overloadThreshold }) => {
   const [sortBy, setSortBy] = useState<SortKey>('projects');
   const chartData = useMemo(() => {
@@ -106,7 +95,7 @@ const ManagerWorkloadChart: React.FC<ManagerWorkloadChartProps> = ({ data, overl
           <YAxis yAxisId='left' axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} dx={-10} allowDecimals={false} />
           <YAxis yAxisId='right' orientation='right' axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} dx={10} />
           <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
-          <Legend content={renderLegend} />
+          <Legend wrapperStyle={{ paddingTop: '20px' }} />
 
           <Bar yAxisId='left' dataKey='projectsCount' name='Active Projects' fill='#6366f1' radius={[4, 4, 0, 0]} barSize={32}>
             {chartData.map((entry, index) => (

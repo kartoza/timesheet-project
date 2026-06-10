@@ -16,16 +16,6 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'ratio', label: 'Sales/Cost' },
 ];
 
-const renderLegend = (props: any) => (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '16px', paddingBottom: '16px' }}>
-    {props.payload.map((entry: any, i: number) => (
-      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: entry.color, flexShrink: 0 }} />
-        <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569', lineHeight: 1 }}>{entry.value}</span>
-      </div>
-    ))}
-  </div>
-);
 
 const SalesCostChart: React.FC<SalesCostChartProps> = ({ data }) => {
   const [sortBy, setSortBy] = useState<SortKey>('Sales');
@@ -74,7 +64,7 @@ const SalesCostChart: React.FC<SalesCostChartProps> = ({ data }) => {
             <XAxis dataKey='name' axisLine={false} tickLine={false} tick={<CustomXAxisTick />} interval={0} />
             <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12, fontWeight: 500 }} tickFormatter={(val) => `R${(Number(val) / 1000).toFixed(0)}k`} />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.5)' }} />
-            <Legend align='right' verticalAlign='top' content={renderLegend} />
+            <Legend align='right' verticalAlign='top' iconType='circle' wrapperStyle={{ paddingBottom: '20px', fontWeight: 600, fontSize: '13px' }} />
             <Bar dataKey='Sales' fill='#818CF8' maxBarSize={48} barSize={32} radius={[4, 4, 0, 0]} />
             <Bar dataKey='Cost' fill='#FB7185' maxBarSize={48} barSize={32} radius={[4, 4, 0, 0]} />
           </BarChart>
