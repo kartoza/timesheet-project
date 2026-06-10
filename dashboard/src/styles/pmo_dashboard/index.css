@@ -38,9 +38,8 @@
 }
 
 /* Recharts legend alignment fix */
-.recharts-default-legend .recharts-legend-item {
-  display: inline-flex !important;
-  align-items: center !important;
+.recharts-legend-item-text {
+  vertical-align: middle !important;
 }
 
 @layer utilities {

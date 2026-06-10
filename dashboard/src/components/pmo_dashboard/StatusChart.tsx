@@ -41,11 +41,11 @@ const StatusChart: React.FC<StatusChartProps> = ({ data, onStatusClick }) => {
           <button
             key={index}
             onClick={() => onStatusClick && onStatusClick(entry.value)}
-            className='flex items-center gap-2 hover:opacity-70 transition-opacity'
+            className='hover:opacity-70 transition-opacity'
           >
-            <span className='w-3 h-3 rounded-full shrink-0' style={{ backgroundColor: entry.color }} />
-            <span className='text-sm font-semibold text-slate-600 dark:text-slate-300'>{entry.value}</span>
-            <span className='text-xs text-slate-400 font-medium'>({entry.payload.value})</span>
+            <span className='w-3 h-3 rounded-full shrink-0' style={{ display: 'inline-block', backgroundColor: entry.color, verticalAlign: 'middle' }} />
+            <span className='text-sm font-semibold text-slate-600 dark:text-slate-300 leading-none' style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: 8 }}>{entry.value}</span>
+            <span className='text-xs text-slate-400 font-medium leading-none' style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: 4 }}>({entry.payload.value})</span>
           </button>
         ))}
       </div>

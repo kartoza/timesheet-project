@@ -28,6 +28,17 @@ const fmtN = (n: number) =>
 const trunc = (s: string, n: number) =>
   s && s.length > n ? s.slice(0, n - 1) + '…' : s;
 
+const renderPrintLegend = (props: any) => (
+  <div style={{ width: '100%', textAlign: 'center', paddingTop: 4, backgroundColor: "green" }}>
+    {props.payload.map((entry: any, i: number) => (
+      <span key={i} style={{ display: 'inline-block', marginRight: 12, backgroundColor: "yellow" }}>
+        <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, backgroundColor: entry.color, verticalAlign: 'middle' }} />
+        <span style={{ display: 'inline-flex', alignItems: 'center', height: '8px', fontSize: 8, fontWeight: 600, color: '#475569', verticalAlign: 'middle', marginLeft: 4 }}>{entry.value}</span>
+      </span>
+    ))}
+  </div>
+);
+
 const CHART_H = 238;
 const PAGE_STYLE: React.CSSProperties = {
   width: 794, height: 1123, padding: 28, boxSizing: 'border-box',
@@ -268,7 +279,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
                   <YAxis tick={{ fill: '#94a3b8', fontSize: 8 }} tickFormatter={v => `R${(Number(v) / 1000).toFixed(0)}k`} width={42} />
                   <Bar dataKey='Sales' fill='#818cf8' radius={[3, 3, 0, 0]} maxBarSize={18} />
                   <Bar dataKey='Cost' fill='#fb7185' radius={[3, 3, 0, 0]} maxBarSize={18} />
-                  <Legend iconSize={8} wrapperStyle={{ fontSize: 9 }} />
+                  <Legend content={renderPrintLegend} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -285,7 +296,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
                   <Bar yAxisId='left' dataKey='Budget (hrs)' fill='#94a3b8' radius={[3, 3, 0, 0]} maxBarSize={18} />
                   <Bar yAxisId='left' dataKey='Consumed (hrs)' fill='#f59e0b' radius={[3, 3, 0, 0]} maxBarSize={18} />
                   <Line yAxisId='right' type='monotone' dataKey='Progress (%)' stroke='#14B8A6' strokeWidth={2} dot={{ r: 3, fill: '#fff', strokeWidth: 2 }} />
-                  <Legend iconSize={8} wrapperStyle={{ fontSize: 9 }} />
+                  <Legend content={renderPrintLegend} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -301,7 +312,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
                   <Pie data={statusData} dataKey='count' nameKey='label' cx='50%' cy='48%' innerRadius={50} outerRadius={82} paddingAngle={2}>
                     {statusData.map((entry, i) => <Cell key={i} fill={STATUS_COLORS[entry.key] || '#94a3b8'} />)}
                   </Pie>
-                  <Legend iconSize={8} wrapperStyle={{ fontSize: 9 }} />
+                  <Legend content={renderPrintLegend} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -333,7 +344,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
                   <YAxis yAxisId='r' orientation='right' tick={{ fill: '#94a3b8', fontSize: 8 }} width={32} />
                   <Bar yAxisId='l' dataKey='projects' name='Projects' fill='#6366f1' radius={[3, 3, 0, 0]} maxBarSize={18} />
                   <Bar yAxisId='r' dataKey='hours' name='Budget Hrs' fill='#f59e0b' radius={[3, 3, 0, 0]} maxBarSize={18} />
-                  <Legend iconSize={8} wrapperStyle={{ fontSize: 9 }} />
+                  <Legend content={renderPrintLegend} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -348,7 +359,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
                   <YAxis tick={{ fill: '#94a3b8', fontSize: 8 }} width={32} />
                   <Bar dataKey='billable' name='Billable' stackId='a' fill='#10b981' maxBarSize={18} />
                   <Bar dataKey='nonBillable' name='Non-Billable' stackId='a' fill='#f43f5e' radius={[3, 3, 0, 0]} maxBarSize={18} />
-                  <Legend iconSize={8} wrapperStyle={{ fontSize: 9 }} />
+                  <Legend content={renderPrintLegend} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

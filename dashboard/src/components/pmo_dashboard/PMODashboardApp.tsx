@@ -24,6 +24,7 @@ const PMODashboardApp: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [user] = useState<SessionUser | null>({ username: 'dev-bypass' });
+  const [pmOverloadThreshold] = useState(4);
 
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('pmo_theme');
@@ -222,6 +223,7 @@ const PMODashboardApp: React.FC = () => {
               onUpdateDataRow={updateDataRow}
               onDeleteDataRow={deleteDataRow}
               onAddManualProject={addManualProject}
+              pmOverloadThreshold={pmOverloadThreshold}
               onRegisterExport={(fn) => { exportFnRef.current = fn; }}
             />
           </div>
