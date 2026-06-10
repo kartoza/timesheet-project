@@ -31,17 +31,22 @@ const trunc = (s: string, n: number) =>
 const renderPrintLegend = (props: any) => {
   const items: any[] = props.payload || [];
   if (items.length === 0) return null;
-  const CHAR_W = 7, DOT = 8, GAP = 4, ITEM_MARGIN = 16, H = 12;
-  const widths = items.map((e) => DOT + GAP + e.value.length * CHAR_W + ITEM_MARGIN);
-  const positions = widths.map((_: number, i: number) => widths.slice(0, i).reduce((a: number, b: number) => a + b, 0));
-  const totalW = positions[positions.length - 1] + widths[widths.length - 1] - ITEM_MARGIN;
+  const CHAR_W = 5.5, DOT = 8, GAP = 3, ITEM_GAP = 8, H = 10;
+  const labels = items.map((e: any) =>
+    e.payload?.count != null ? `${e.value} (${e.payload.count})` : e.value
+  );
+  const itemWidths = labels.map((l: string) => DOT + GAP + l.length * CHAR_W);
+  const positions = itemWidths.map((_: number, i: number) =>
+    itemWidths.slice(0, i).reduce((a: number, b: number) => a + b, 0) + i * ITEM_GAP
+  );
+  const totalW = positions[positions.length - 1] + itemWidths[itemWidths.length - 1];
   return (
     <div style={{ width: '100%', textAlign: 'center', paddingTop: 4 }}>
       <svg width={totalW} height={H} style={{ display: 'inline-block', overflow: 'visible' }}>
         {items.map((entry: any, i: number) => (
           <g key={i} transform={`translate(${positions[i]}, 0)`}>
-            <rect x="0" y="2" width={DOT} height={DOT} rx="2" ry="2" fill={entry.color} />
-            <text x={DOT + GAP} y={H / 2} dominantBaseline="middle" fontSize="8" fontWeight="600" fill="#475569">{entry.value}</text>
+            <rect x="0" y="1" width={DOT} height={DOT} rx="2" ry="2" fill={entry.color} />
+            <text x={DOT + GAP} y={H / 2} dominantBaseline="middle" fontSize="8" fontWeight="600" fill="#475569">{labels[i]}</text>
           </g>
         ))}
       </svg>
@@ -63,6 +68,7 @@ const rowStyle: React.CSSProperties = { display: 'flex', gap: 12, marginBottom: 
 const sectionTitleStyle: React.CSSProperties = {
   fontSize: 10, fontWeight: 700, color: '#475569', marginBottom: 6,
   textTransform: 'uppercase', letterSpacing: '0.05em',
+  display: 'flex', alignItems: 'center', gap: 4,
 };
 
 const MAX_TABLE_ROWS = 40;
@@ -280,10 +286,10 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
 
         <div style={rowStyle}>
           <div style={cardStyle}>
-            <div style={sectionTitleStyle}>Sales vs. Cost <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9, verticalAlign: 'middle' }}>(top 10 by sales)</span></div>
+            <div style={sectionTitleStyle}>Sales vs. Cost <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(top 10 by sales)</span></div>
             <div style={{ height: CHART_H }}>
               <ResponsiveContainer width='100%' height='100%'>
-                <BarChart data={salesCostData} margin={{ top: 4, right: 4, left: 0, bottom: 48 }}>
+                <BarChart data={salesCostData} margin={{ top: 4, right: 4, left: 0, bottom: 4 }}>
                   <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='#e2e8f0' />
                   <XAxis dataKey='name' tick={{ fill: '#64748b', fontSize: 8 }} interval={0} angle={-35} textAnchor='end' height={52} />
                   <YAxis tick={{ fill: '#94a3b8', fontSize: 8 }} tickFormatter={v => `R${(Number(v) / 1000).toFixed(0)}k`} width={42} />
@@ -295,10 +301,10 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
             </div>
           </div>
           <div style={cardStyle}>
-            <div style={sectionTitleStyle}>Time Budget Consumption <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9, verticalAlign: 'middle' }}>(top 10 by budget)</span></div>
+            <div style={sectionTitleStyle}>Time Budget Consumption <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(top 10 by budget)</span></div>
             <div style={{ height: CHART_H }}>
               <ResponsiveContainer width='100%' height='100%'>
-                <ComposedChart data={hoursData} margin={{ top: 4, right: 28, left: 0, bottom: 48 }}>
+                <ComposedChart data={hoursData} margin={{ top: 4, right: 28, left: 0, bottom: 4 }}>
                   <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='#e2e8f0' />
                   <XAxis dataKey='name' tick={{ fill: '#64748b', fontSize: 8 }} interval={0} angle={-35} textAnchor='end' height={52} />
                   <YAxis yAxisId='left' tick={{ fill: '#94a3b8', fontSize: 8 }} width={35} />
@@ -345,9 +351,9 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
         <div style={rowStyle}>
           <div style={cardStyle}>
             <div style={sectionTitleStyle}>PM Workload Distribution</div>
-            <div style={{ height: CHART_H }}>
+            <div style={{ height: CHART_H + 60 }}>
               <ResponsiveContainer width='100%' height='100%'>
-                <BarChart data={workloadData} margin={{ top: 4, right: 4, left: 0, bottom: 34 }}>
+                <BarChart data={workloadData} margin={{ top: 4, right: 4, left: 0, bottom: 4 }}>
                   <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='#e2e8f0' />
                   <XAxis dataKey='name' tick={{ fill: '#64748b', fontSize: 8 }} interval={0} angle={-20} textAnchor='end' height={38} />
                   <YAxis yAxisId='l' tick={{ fill: '#94a3b8', fontSize: 8 }} allowDecimals={false} width={22} />
@@ -360,10 +366,10 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
             </div>
           </div>
           <div style={cardStyle}>
-            <div style={sectionTitleStyle}>Billable Efficiency <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9, verticalAlign: 'middle' }}>(top 10 by consumed)</span></div>
-            <div style={{ height: CHART_H }}>
+            <div style={sectionTitleStyle}>Billable Efficiency <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(top 10 by consumed)</span></div>
+            <div style={{ height: CHART_H + 60 }}>
               <ResponsiveContainer width='100%' height='100%'>
-                <BarChart data={billableData} margin={{ top: 4, right: 4, left: 0, bottom: 48 }}>
+                <BarChart data={billableData} margin={{ top: 4, right: 4, left: 0, bottom: 4 }}>
                   <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='#e2e8f0' />
                   <XAxis dataKey='name' tick={{ fill: '#64748b', fontSize: 8 }} interval={0} angle={-35} textAnchor='end' height={52} />
                   <YAxis tick={{ fill: '#94a3b8', fontSize: 8 }} width={32} />
