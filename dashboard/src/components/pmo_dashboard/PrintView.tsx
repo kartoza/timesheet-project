@@ -29,11 +29,11 @@ const trunc = (s: string, n: number) =>
   s && s.length > n ? s.slice(0, n - 1) + '…' : s;
 
 const renderPrintLegend = (props: any) => (
-  <div style={{ width: '100%', textAlign: 'center', paddingTop: 4, backgroundColor: "green" }}>
+  <div style={{ width: '100%', textAlign: 'center', paddingTop: 4}}>
     {props.payload.map((entry: any, i: number) => (
-      <span key={i} style={{ display: 'inline-block', marginRight: 12, backgroundColor: "yellow" }}>
-        <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, backgroundColor: entry.color, verticalAlign: 'middle' }} />
-        <span style={{ display: 'inline-flex', alignItems: 'center', height: '8px', fontSize: 8, fontWeight: 600, color: '#475569', verticalAlign: 'middle', marginLeft: 4 }}>{entry.value}</span>
+      <span key={i} style={{ display: 'inline-block', marginRight: 12}}>
+        <span style={{ display: 'inline-block', width: 8, height: '8px', borderRadius: 2, backgroundColor: entry.color, verticalAlign: 'middle' }} />
+        <span style={{ display: 'inline-flex', height: '8px', fontSize: 8, fontWeight: 600, color: '#475569', verticalAlign: 'middle', marginLeft: 4, marginBottom: '14px' }}>{entry.value}</span>
       </span>
     ))}
   </div>
