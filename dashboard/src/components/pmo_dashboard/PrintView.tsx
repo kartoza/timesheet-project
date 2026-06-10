@@ -28,16 +28,26 @@ const fmtN = (n: number) =>
 const trunc = (s: string, n: number) =>
   s && s.length > n ? s.slice(0, n - 1) + '…' : s;
 
-const renderPrintLegend = (props: any) => (
-  <div style={{ width: '100%', textAlign: 'center', paddingTop: 4}}>
-    {props.payload.map((entry: any, i: number) => (
-      <span key={i} style={{ display: 'inline-block', marginRight: 12}}>
-        <span style={{ display: 'inline-block', width: 8, height: '8px', borderRadius: 2, backgroundColor: entry.color, verticalAlign: 'middle' }} />
-        <span style={{ display: 'inline-flex', height: '8px', fontSize: 8, fontWeight: 600, color: '#475569', verticalAlign: 'middle', marginLeft: 4, marginBottom: '14px' }}>{entry.value}</span>
-      </span>
-    ))}
-  </div>
-);
+const renderPrintLegend = (props: any) => {
+  const items: any[] = props.payload || [];
+  if (items.length === 0) return null;
+  const CHAR_W = 7, DOT = 8, GAP = 4, ITEM_MARGIN = 16, H = 12;
+  const widths = items.map((e) => DOT + GAP + e.value.length * CHAR_W + ITEM_MARGIN);
+  const positions = widths.map((_: number, i: number) => widths.slice(0, i).reduce((a: number, b: number) => a + b, 0));
+  const totalW = positions[positions.length - 1] + widths[widths.length - 1] - ITEM_MARGIN;
+  return (
+    <div style={{ width: '100%', textAlign: 'center', paddingTop: 4 }}>
+      <svg width={totalW} height={H} style={{ display: 'inline-block', overflow: 'visible' }}>
+        {items.map((entry: any, i: number) => (
+          <g key={i} transform={`translate(${positions[i]}, 0)`}>
+            <rect x="0" y="2" width={DOT} height={DOT} rx="2" ry="2" fill={entry.color} />
+            <text x={DOT + GAP} y={H / 2} dominantBaseline="middle" fontSize="8" fontWeight="600" fill="#475569">{entry.value}</text>
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+};
 
 const CHART_H = 238;
 const PAGE_STYLE: React.CSSProperties = {
@@ -270,7 +280,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
 
         <div style={rowStyle}>
           <div style={cardStyle}>
-            <div style={sectionTitleStyle}>Sales vs. Cost <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(top 10 by sales)</span></div>
+            <div style={sectionTitleStyle}>Sales vs. Cost <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9, verticalAlign: 'middle' }}>(top 10 by sales)</span></div>
             <div style={{ height: CHART_H }}>
               <ResponsiveContainer width='100%' height='100%'>
                 <BarChart data={salesCostData} margin={{ top: 4, right: 4, left: 0, bottom: 48 }}>
@@ -285,7 +295,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
             </div>
           </div>
           <div style={cardStyle}>
-            <div style={sectionTitleStyle}>Time Budget Consumption <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(top 10 by budget)</span></div>
+            <div style={sectionTitleStyle}>Time Budget Consumption <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9, verticalAlign: 'middle' }}>(top 10 by budget)</span></div>
             <div style={{ height: CHART_H }}>
               <ResponsiveContainer width='100%' height='100%'>
                 <ComposedChart data={hoursData} margin={{ top: 4, right: 28, left: 0, bottom: 48 }}>
@@ -350,7 +360,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
             </div>
           </div>
           <div style={cardStyle}>
-            <div style={sectionTitleStyle}>Billable Efficiency <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(top 10 by consumed)</span></div>
+            <div style={sectionTitleStyle}>Billable Efficiency <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9, verticalAlign: 'middle' }}>(top 10 by consumed)</span></div>
             <div style={{ height: CHART_H }}>
               <ResponsiveContainer width='100%' height='100%'>
                 <BarChart data={billableData} margin={{ top: 4, right: 4, left: 0, bottom: 48 }}>
