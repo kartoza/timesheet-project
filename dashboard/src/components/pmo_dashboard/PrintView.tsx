@@ -62,7 +62,7 @@ const renderPrintLegend = (props: any) => {
   );
 };
 
-const CHART_H = 220;
+const CHART_H = 275;
 
 const PAGE_STYLE: React.CSSProperties = {
   width: 794, height: 1123, padding: 28, boxSizing: 'border-box',
@@ -81,7 +81,6 @@ const sectionTitleStyle: React.CSSProperties = {
 };
 const lblStyle = { fontSize: 6, fill: '#64748b', fontWeight: 600 } as const;
 
-const MAX_TABLE_ROWS = 40;
 const MAX_AT_RISK_CARDS = 50;
 
 type PrintViewProps = { filteredData: UIProjectRow[] };
@@ -164,8 +163,44 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
     filteredData.filter(d => AT_RISK_STATUS_KEYS.has(d._statusKey || '')),
   [filteredData]);
 
-  const tableRows = filteredData.slice(0, MAX_TABLE_ROWS);
-  const overflowCount = Math.max(0, filteredData.length - MAX_TABLE_ROWS);
+  const ROWS_P1 = 30;
+  const ROWS_P2 = 35;
+  const tableRowsP1 = filteredData.slice(0, ROWS_P1);
+  const tableRowsP2 = filteredData.slice(ROWS_P1, ROWS_P1 + ROWS_P2);
+  const overflowCount = Math.max(0, filteredData.length - ROWS_P1 - ROWS_P2);
+  const hasPage2 = filteredData.length > ROWS_P1;
+
+  const tableHead = (
+    <thead>
+      <tr style={{ background: '#f1f5f9', borderBottom: '2px solid #e2e8f0' }}>
+        {['Project', 'Project Manager', 'Status', 'Due Date', 'Budget (h)', 'Consumed (h)', 'Sales', 'Cost', 'Margin'].map(h => (
+          <th key={h} style={{ padding: '6px 8px', textAlign: ['Project', 'Project Manager', 'Status'].includes(h) ? 'left' : 'right', fontWeight: 700, color: '#475569', fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</th>
+        ))}
+      </tr>
+    </thead>
+  );
+
+  const renderRow = (d: UIProjectRow, i: number) => {
+    const sales = d[UI_PROJECT_KEYS.TOTAL_SALES_AMOUNT] || 0;
+    const cost  = d[UI_PROJECT_KEYS.TOTAL_COSTING] || 0;
+    const margin = sales > 0 ? ((sales - cost) / sales) * 100 : 0;
+    const statusColor = STATUS_COLORS[d._statusKey || 'on_track'] || '#94a3b8';
+    return (
+      <tr key={i} style={{ borderBottom: '1px solid #f1f5f9', background: i % 2 === 0 ? '#ffffff' : '#fafafa' }}>
+        <td style={{ padding: '5px 8px', fontWeight: 600, color: '#1e293b', maxWidth: 160, verticalAlign: 'middle' }}>{trunc(d.Project || '—', 28)}</td>
+        <td style={{ padding: '5px 8px', color: '#475569', verticalAlign: 'middle' }}>{trunc(formatManagerName(d[UI_PROJECT_KEYS.PROJECT_MANAGER]) || '—', 18)}</td>
+        <td style={{ padding: '5px 8px', verticalAlign: 'middle' }}>
+          <span style={{ display: 'inline-block', padding: '2px 6px', borderRadius: 4, color: statusColor, fontWeight: 700, fontSize: 8 }}>{d.Status || '—'}</span>
+        </td>
+        <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569', verticalAlign: 'middle' }}>{d[UI_PROJECT_KEYS.DUE_DATE] || '—'}</td>
+        <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569', verticalAlign: 'middle' }}>{fmtN(d[UI_PROJECT_KEYS.BUDGET_HOURS] || 0)}</td>
+        <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569', verticalAlign: 'middle' }}>{fmtN(d[UI_PROJECT_KEYS.CONSUMED_TIME] || 0)}</td>
+        <td style={{ padding: '5px 8px', textAlign: 'right', color: '#059669', fontWeight: 600, verticalAlign: 'middle' }}>{fmtCurrency(sales)}</td>
+        <td style={{ padding: '5px 8px', textAlign: 'right', color: '#e11d48', fontWeight: 600, verticalAlign: 'middle' }}>{fmtCurrency(cost)}</td>
+        <td style={{ padding: '5px 8px', textAlign: 'right', fontWeight: 700, color: margin >= 0 ? '#059669' : '#e11d48', verticalAlign: 'middle' }}>{fmtN(margin)}%</td>
+      </tr>
+    );
+  };
 
 
   const PageHeader = ({ subtitle }: { subtitle: string }) => (
@@ -193,17 +228,17 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
   return (
     <div ref={ref} style={{ position: 'absolute', left: -9999, top: 0 }}>
 
-      {/* ── Page 1: Overview / Summary ── */}
+      {/* ── Page 1: Overview + Project List ── */}
       <div data-print-page='1' style={PAGE_STYLE}>
         <PageHeader subtitle={`${filteredData.length} projects · Executive Overview`} />
 
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
           {([
-            { label: '# Projects',        value: String(metrics.count),                                   color: '#6366f1' },
-            { label: 'Total Sales',        value: fmtCurrency(metrics.totalSales),                         color: '#10b981' },
-            { label: 'Total Cost',         value: fmtCurrency(metrics.totalCost),                          color: '#f43f5e' },
-            { label: 'Profit Margin',      value: `${fmtN(metrics.margin)}%`,                             color: '#8b5cf6' },
-            { label: 'Budget / Consumed',  value: `${fmtN(metrics.totalBudget)}h / ${fmtN(metrics.totalConsumed)}h`, color: '#f59e0b' },
+            { label: '# Projects',       value: String(metrics.count),                                            color: '#6366f1' },
+            { label: 'Total Sales',       value: fmtCurrency(metrics.totalSales),                                  color: '#10b981' },
+            { label: 'Total Cost',        value: fmtCurrency(metrics.totalCost),                                   color: '#f43f5e' },
+            { label: 'Profit Margin',     value: `${fmtN(metrics.margin)}%`,                                      color: '#8b5cf6' },
+            { label: 'Budget/Consumed',   value: `${fmtN(metrics.totalBudget)}h / ${fmtN(metrics.totalConsumed)}h`, color: '#f59e0b' },
           ] as { label: string; value: string; color: string }[]).map(m => (
             <div key={m.label} style={{ flex: 1, padding: '8px 10px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0', borderLeft: `4px solid ${m.color}` }}>
               <div style={{ fontSize: 8, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 3 }}>{m.label}</div>
@@ -212,54 +247,37 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
           ))}
         </div>
 
-        {footer}
-      </div>
-
-      {/* ── Page 2: Full Project List ── */}
-      <div data-print-page='2' style={PAGE_STYLE}>
-        <PageHeader subtitle={`${filteredData.length} projects · Full list`} />
-
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 9 }}>
-          <thead>
-            <tr style={{ background: '#f1f5f9', borderBottom: '2px solid #e2e8f0' }}>
-              {['Project', 'Project Manager', 'Status', 'Due Date', 'Budget (h)', 'Consumed (h)', 'Sales', 'Cost', 'Margin'].map(h => (
-                <th key={h} style={{ padding: '6px 8px', textAlign: h === 'Project' || h === 'Project Manager' || h === 'Status' ? 'left' : 'right', fontWeight: 700, color: '#475569', fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {tableRows.map((d, i) => {
-              const sales = d[UI_PROJECT_KEYS.TOTAL_SALES_AMOUNT] || 0;
-              const cost = d[UI_PROJECT_KEYS.TOTAL_COSTING] || 0;
-              const margin = sales > 0 ? ((sales - cost) / sales) * 100 : 0;
-              const statusKey = d._statusKey || 'on_track';
-              const statusColor = STATUS_COLORS[statusKey] || '#94a3b8';
-              return (
-                <tr key={i} style={{ borderBottom: '1px solid #f1f5f9', background: i % 2 === 0 ? '#ffffff' : '#fafafa' }}>
-                  <td style={{ padding: '5px 8px', fontWeight: 600, color: '#1e293b', maxWidth: 160, verticalAlign: 'middle' }}>{trunc(d.Project || '—', 28)}</td>
-                  <td style={{ padding: '5px 8px', color: '#475569', verticalAlign: 'middle' }}>{trunc(formatManagerName(d[UI_PROJECT_KEYS.PROJECT_MANAGER]) || '—', 18)}</td>
-                  <td style={{ padding: '5px 8px', verticalAlign: 'middle' }}>
-                    <span style={{ display: 'inline-block', padding: '2px 6px', borderRadius: 4, color: statusColor, fontWeight: 700, fontSize: 8 }}>{d.Status || '—'}</span>
-                  </td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569', verticalAlign: 'middle' }}>{d[UI_PROJECT_KEYS.DUE_DATE] || '—'}</td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569', verticalAlign: 'middle' }}>{fmtN(d[UI_PROJECT_KEYS.BUDGET_HOURS] || 0)}</td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569', verticalAlign: 'middle' }}>{fmtN(d[UI_PROJECT_KEYS.CONSUMED_TIME] || 0)}</td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', color: '#059669', fontWeight: 600, verticalAlign: 'middle' }}>{fmtCurrency(sales)}</td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', color: '#e11d48', fontWeight: 600, verticalAlign: 'middle' }}>{fmtCurrency(cost)}</td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', fontWeight: 700, color: margin >= 0 ? '#059669' : '#e11d48', verticalAlign: 'middle' }}>{fmtN(margin)}%</td>
-                </tr>
-              );
-            })}
-          </tbody>
+          {tableHead}
+          <tbody>{tableRowsP1.map(renderRow)}</tbody>
         </table>
 
-        {overflowCount > 0 && (
+        {!hasPage2 && overflowCount > 0 && (
           <div style={{ marginTop: 8, fontSize: 9, color: '#94a3b8', textAlign: 'center' }}>
             … and {overflowCount} more project{overflowCount > 1 ? 's' : ''} not shown
           </div>
         )}
         {footer}
       </div>
+
+      {/* ── Page 2: Project List continued (conditional) ── */}
+      {hasPage2 && (
+        <div data-print-page='2' style={PAGE_STYLE}>
+          <PageHeader subtitle={`Project list continued · ${filteredData.length} projects total`} />
+
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 9 }}>
+            {tableHead}
+            <tbody>{tableRowsP2.map(renderRow)}</tbody>
+          </table>
+
+          {overflowCount > 0 && (
+            <div style={{ marginTop: 8, fontSize: 9, color: '#94a3b8', textAlign: 'center' }}>
+              … and {overflowCount} more project{overflowCount > 1 ? 's' : ''} not shown
+            </div>
+          )}
+          {footer}
+        </div>
+      )}
 
       {/* ── Page 3: Charts 1 ── */}
       <div data-print-page='3' style={PAGE_STYLE}>
@@ -272,7 +290,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
               <PieChart>
                 <Pie
                   data={statusData} dataKey='count' nameKey='label'
-                  cx='50%' cy='40%' innerRadius={40} outerRadius={70}
+                  cx='50%' cy='44%' innerRadius={52} outerRadius={92}
                   paddingAngle={2}
                   label={renderPieLabel}
                   labelLine={{ stroke: '#cbd5e1', strokeWidth: 1 }}
@@ -289,7 +307,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
           <div style={sectionTitleStyle}>Sales vs. Cost <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(all projects, sorted by sales)</span></div>
           <div style={{ height: CHART_H }}>
             <ResponsiveContainer width='100%' height='100%'>
-              <BarChart data={salesCostData} margin={{ top: 16, right: 4, left: 0, bottom: 52 }}>
+              <BarChart data={salesCostData} margin={{ top: 16, right: 4, left: 0, bottom: 4 }}>
                 <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='#e2e8f0' />
                 <XAxis dataKey='name' tick={{ fill: '#64748b', fontSize: 7 }} interval={0} angle={-35} textAnchor='end' height={56} />
                 <YAxis tick={{ fill: '#94a3b8', fontSize: 7 }} tickFormatter={v => fmtK(Number(v))} width={40} />
@@ -332,7 +350,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
           <div style={sectionTitleStyle}>Time Budget Consumption <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(all projects, sorted by budget)</span></div>
           <div style={{ height: CHART_H }}>
             <ResponsiveContainer width='100%' height='100%'>
-              <ComposedChart data={hoursData} margin={{ top: 16, right: 32, left: 0, bottom: 52 }}>
+              <ComposedChart data={hoursData} margin={{ top: 16, right: 32, left: 0, bottom: 4 }}>
                 <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='#e2e8f0' />
                 <XAxis dataKey='name' tick={{ fill: '#64748b', fontSize: 7 }} interval={0} angle={-35} textAnchor='end' height={56} />
                 <YAxis yAxisId='left' tick={{ fill: '#94a3b8', fontSize: 7 }} width={32} />
@@ -356,7 +374,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
           <div style={sectionTitleStyle}>PM Workload Distribution</div>
           <div style={{ height: CHART_H }}>
             <ResponsiveContainer width='100%' height='100%'>
-              <BarChart data={workloadData} margin={{ top: 16, right: 36, left: 0, bottom: 36 }}>
+              <BarChart data={workloadData} margin={{ top: 16, right: 36, left: 0, bottom: 4 }}>
                 <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='#e2e8f0' />
                 <XAxis dataKey='name' tick={{ fill: '#64748b', fontSize: 7 }} interval={0} angle={-20} textAnchor='end' height={38} />
                 <YAxis yAxisId='l' tick={{ fill: '#94a3b8', fontSize: 7 }} allowDecimals={false} width={22} />
@@ -377,7 +395,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
           <div style={sectionTitleStyle}>Billable Efficiency <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(all projects, sorted by consumed)</span></div>
           <div style={{ height: CHART_H }}>
             <ResponsiveContainer width='100%' height='100%'>
-              <BarChart data={billableData} margin={{ top: 16, right: 4, left: 0, bottom: 52 }}>
+              <BarChart data={billableData} margin={{ top: 16, right: 4, left: 0, bottom: 4 }}>
                 <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='#e2e8f0' />
                 <XAxis dataKey='name' tick={{ fill: '#64748b', fontSize: 7 }} interval={0} angle={-35} textAnchor='end' height={56} />
                 <YAxis tick={{ fill: '#94a3b8', fontSize: 7 }} width={32} />
