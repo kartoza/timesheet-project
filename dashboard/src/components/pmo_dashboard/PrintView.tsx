@@ -336,7 +336,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
         </div>
 
         <div style={cardStyle}>
-          <div style={sectionTitleStyle}>Sales vs. Cost <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(all projects, sorted by sales)</span></div>
+          <div style={sectionTitleStyle}>Sales vs. Cost <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(top 15 by sales)</span></div>
           <div style={{ height: CHART_H }}>
             <ResponsiveContainer width='100%' height='100%'>
               <BarChart data={salesCostData} margin={{ top: 34, right: 4, left: 0, bottom: 4 }}>
@@ -356,7 +356,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
         </div>
 
         <div style={cardStyle}>
-          <div style={sectionTitleStyle}>Revenue by Project Manager</div>
+          <div style={sectionTitleStyle}>Revenue by Project Manager <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(top 15 by revenue)</span></div>
           <div style={{ height: CHART_H }}>
             <ResponsiveContainer width='100%' height='100%'>
               <BarChart data={revenueByPM} layout='vertical' margin={{ top: 4, right: 60, left: 4, bottom: 4 }}>
@@ -403,7 +403,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
         </div>
 
         <div style={cardStyle}>
-          <div style={sectionTitleStyle}>PM Workload Distribution</div>
+          <div style={sectionTitleStyle}>PM Workload Distribution <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(top 15 by project count)</span></div>
           <div style={{ height: CHART_H }}>
             <ResponsiveContainer width='100%' height='100%'>
               <BarChart data={workloadData} margin={{ top: 16, right: 36, left: 0, bottom: 4 }}>
@@ -424,7 +424,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
         </div>
 
         <div style={cardStyle}>
-          <div style={sectionTitleStyle}>Billable Efficiency <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(all projects, sorted by consumed)</span></div>
+          <div style={sectionTitleStyle}>Billable Efficiency <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(top 15 by consumed hours)</span></div>
           <div style={{ height: CHART_H }}>
             <ResponsiveContainer width='100%' height='100%'>
               <BarChart data={billableData} margin={{ top: 34, right: 4, left: 0, bottom: 4 }}>
