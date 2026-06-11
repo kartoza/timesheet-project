@@ -125,7 +125,8 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
   const salesCostData = useMemo(() =>
     filteredData
       .map(d => ({ name: trunc(d.Project || 'Unknown', 16), Sales: d[UI_PROJECT_KEYS.TOTAL_SALES_AMOUNT] || 0, Cost: d[UI_PROJECT_KEYS.TOTAL_COSTING] || 0 }))
-      .sort((a, b) => b.Sales - a.Sales),
+      .sort((a, b) => b.Sales - a.Sales)
+      .slice(0, 15),
   [filteredData]);
 
   const hoursData = useMemo(() =>
@@ -158,7 +159,9 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
     });
     return Object.entries(groups)
       .map(([name, value]) => ({ name: trunc(name, 14), value }))
-      .sort((a, b) => b.value - a.value);
+      .filter(d => d.value > 0)
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 15);
   }, [filteredData]);
 
   const workloadData = useMemo(() => {
@@ -169,7 +172,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
       groups[pm].projects++;
       groups[pm].hours += d[UI_PROJECT_KEYS.BUDGET_HOURS] || 0;
     });
-    return Object.values(groups).sort((a, b) => b.projects - a.projects);
+    return Object.values(groups).sort((a, b) => b.projects - a.projects).slice(0, 15);
   }, [filteredData]);
 
   const billableData = useMemo(() =>
@@ -184,7 +187,8 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
         }
         return { name: trunc(d.Project || 'Unknown', 16), billable, nonBillable: Math.max(0, consumed - billable), total: consumed };
       })
-      .sort((a, b) => b.total - a.total),
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 15),
   [filteredData]);
 
   const atRiskProjects = useMemo(() =>
