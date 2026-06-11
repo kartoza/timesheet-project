@@ -23,6 +23,7 @@ from schedule.api_views.schedule import (
 from schedule.models import Schedule
 from timesheet.enums.doctype import DocType
 from timesheet.models import Timelog, Project, Task, Activity
+from timesheet.models.department import Department
 from pmo_dashboard.models import BusinessUnit
 from timesheet.models.project_member import ProjectMember
 from timesheet.models.profile import get_country_code_from_timezone
@@ -267,6 +268,24 @@ def generate_api_key(user: get_user_model()):
             user.profile.save()
 
 
+def pull_department_from_erp(user=None):
+    from django.contrib.auth.models import Group
+    departments = get_erp_data(DocType.DEPARTMENT, user=user)
+    for dept in departments:
+        if dept.get('disabled'):
+            continue
+        erp_id = dept.get('name', '')
+        dept_name = dept.get('department_name', erp_id)
+        if not erp_id or dept_name == 'All Departments':
+            continue
+
+        group, _ = Group.objects.get_or_create(name=dept_name)
+        Department.objects.update_or_create(
+            erp_id=erp_id,
+            defaults={'name': dept_name, 'group': group}
+        )
+
+
 def pull_user_data_from_erp(user: get_user_model()):
 
     # if not user.profile.token:
@@ -281,6 +300,17 @@ def pull_user_data_from_erp(user: get_user_model()):
         employee_data = employee[0]
         user.profile.employee_name = employee_data['employee_name']
         user.profile.employee_id = employee_data['employee']
+
+        dept_erp_id = employee_data.get('department', '')
+        if dept_erp_id:
+            try:
+                department = Department.objects.get(erp_id=dept_erp_id)
+                user.profile.department = department
+                if department.group:
+                    user.groups.add(department.group)
+            except Department.DoesNotExist:
+                pass
+
         user.profile.save()
 
         user.first_name = employee_data['first_name']

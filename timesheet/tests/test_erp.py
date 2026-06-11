@@ -11,10 +11,13 @@ from timesheet.tests.model_factories import (
     UserFactory,
     ProjectFactory,
 )
+from timesheet.models.department import Department
 from timesheet.utils.erp import (
     push_timesheet_to_erp,
     pull_projects_from_erp,
     pull_project_members_from_erp,
+    pull_department_from_erp,
+    pull_user_data_from_erp,
     ProjectsNotFound,
 )
 from pmo_dashboard.models import BusinessUnit
@@ -252,3 +255,127 @@ class TestPullProjectMembersFromErp(TestCase):
         Project.objects.all().delete()
         pull_project_members_from_erp(self.user)
         mock_detail.assert_not_called()
+
+
+@patch('timesheet.utils.erp.get_erp_data')
+class TestPullDepartmentFromErp(TestCase):
+    def test_creates_department_and_group(self, mock_get_erp_data):
+        mock_get_erp_data.return_value = [
+            {'name': 'PMO - K', 'department_name': 'PMO', 'disabled': 0},
+        ]
+        pull_department_from_erp()
+        dept = Department.objects.get(erp_id='PMO - K')
+        self.assertEqual(dept.name, 'PMO')
+        self.assertIsNotNone(dept.group)
+        self.assertEqual(dept.group.name, 'PMO')
+
+    def test_updates_existing_department(self, mock_get_erp_data):
+        from django.contrib.auth.models import Group
+        group = Group.objects.create(name='PMO')
+        Department.objects.create(erp_id='PMO - K', name='PMO Old', group=group)
+        mock_get_erp_data.return_value = [
+            {'name': 'PMO - K', 'department_name': 'PMO', 'disabled': 0},
+        ]
+        pull_department_from_erp()
+        dept = Department.objects.get(erp_id='PMO - K')
+        self.assertEqual(dept.name, 'PMO')
+        self.assertEqual(Department.objects.filter(erp_id='PMO - K').count(), 1)
+
+    def test_skips_disabled_departments(self, mock_get_erp_data):
+        mock_get_erp_data.return_value = [
+            {'name': 'Disabled - K', 'department_name': 'Disabled', 'disabled': 1},
+        ]
+        pull_department_from_erp()
+        self.assertFalse(Department.objects.filter(erp_id='Disabled - K').exists())
+
+    def test_skips_all_departments_entry(self, mock_get_erp_data):
+        mock_get_erp_data.return_value = [
+            {'name': 'All Departments', 'department_name': 'All Departments', 'disabled': 0},
+        ]
+        pull_department_from_erp()
+        self.assertFalse(Department.objects.filter(erp_id='All Departments').exists())
+
+    def test_skips_empty_erp_id(self, mock_get_erp_data):
+        mock_get_erp_data.return_value = [
+            {'name': '', 'department_name': 'No ID', 'disabled': 0},
+        ]
+        pull_department_from_erp()
+        self.assertFalse(Department.objects.filter(name='No ID').exists())
+
+    def test_two_departments_with_same_display_name_share_group(self, mock_get_erp_data):
+        mock_get_erp_data.return_value = [
+            {'name': 'Accounts - K', 'department_name': 'Accounts', 'disabled': 0},
+            {'name': 'Accounts - KE', 'department_name': 'Accounts', 'disabled': 0},
+        ]
+        pull_department_from_erp()
+        self.assertEqual(Department.objects.count(), 2)
+        from django.contrib.auth.models import Group
+        self.assertEqual(Group.objects.filter(name='Accounts').count(), 1)
+
+
+@patch('timesheet.utils.erp.get_erp_data')
+class TestPullUserDataFromErp(TestCase):
+    def setUp(self):
+        self.user = UserFactory.create()
+        self.user.profile.save()
+        from django.contrib.auth.models import Group
+        self.group = Group.objects.create(name='Engineering')
+        self.department = Department.objects.create(
+            erp_id='Engineering - K', name='Engineering', group=self.group
+        )
+
+    def _mock_employee(self, mock, **overrides):
+        data = {
+            'employee_name': 'Jane Doe',
+            'employee': 'EMP001',
+            'first_name': 'Jane',
+            'last_name': 'Doe',
+            'department': 'Engineering - K',
+        }
+        data.update(overrides)
+        mock.return_value = [data]
+
+    def test_updates_profile_fields(self, mock_get_erp_data):
+        self._mock_employee(mock_get_erp_data)
+        pull_user_data_from_erp(self.user)
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.employee_name, 'Jane Doe')
+        self.assertEqual(self.user.profile.employee_id, 'EMP001')
+
+    def test_assigns_department_to_profile(self, mock_get_erp_data):
+        self._mock_employee(mock_get_erp_data)
+        pull_user_data_from_erp(self.user)
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.department, self.department)
+
+    def test_adds_user_to_department_group(self, mock_get_erp_data):
+        self._mock_employee(mock_get_erp_data)
+        pull_user_data_from_erp(self.user)
+        self.assertIn(self.group, self.user.groups.all())
+
+    def test_unknown_department_leaves_profile_unchanged(self, mock_get_erp_data):
+        self._mock_employee(mock_get_erp_data, department='Unknown - K')
+        original_dept = self.user.profile.department
+        pull_user_data_from_erp(self.user)
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.department, original_dept)
+
+    def test_empty_department_skips_assignment(self, mock_get_erp_data):
+        self._mock_employee(mock_get_erp_data, department='')
+        pull_user_data_from_erp(self.user)
+        self.user.profile.refresh_from_db()
+        self.assertIsNone(self.user.profile.department)
+        self.assertNotIn(self.group, self.user.groups.all())
+
+    def test_no_employee_record_does_nothing(self, mock_get_erp_data):
+        mock_get_erp_data.return_value = []
+        pull_user_data_from_erp(self.user)
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.employee_name, '')
+
+    def test_updates_user_name_fields(self, mock_get_erp_data):
+        self._mock_employee(mock_get_erp_data, first_name='Jane', last_name='Doe')
+        pull_user_data_from_erp(self.user)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, 'Jane')
+        self.assertEqual(self.user.last_name, 'Doe')

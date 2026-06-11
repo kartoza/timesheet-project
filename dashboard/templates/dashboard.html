@@ -34,6 +34,7 @@
         window.isLoggedIn = {% if user.is_authenticated %}true{% else %}false{% endif %};
         window.unavailableDates = "{{ preferences.TimesheetPreferences.unavailable_dates }}";
         window.isStaff = {% if user.is_staff %}true{% else %}false{% endif %};
+        window.canAccessPMO = {% if can_access_pmo %}true{% else %}false{% endif %};
     </script>
     <style>
         @font-face {

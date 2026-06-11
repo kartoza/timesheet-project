@@ -89,6 +89,14 @@ class Profile(models.Model):
         blank=True
     )
 
+    department = models.ForeignKey(
+        'timesheet.Department',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='profiles'
+    )
+
     @property
     def token(self):
         if self.api_key and self.api_secret:
