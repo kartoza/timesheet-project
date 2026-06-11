@@ -81,6 +81,33 @@ const sectionTitleStyle: React.CSSProperties = {
 };
 const lblStyle = { fontSize: 6, fill: '#64748b', fontWeight: 600 } as const;
 
+const makeVerticalLabel = (fmt: (v: number) => string) =>
+  ({ x, y, width, value }: any) => {
+    if (value == null || value === 0) return null;
+    const cx = x + width / 2;
+    const top = y - 3;
+    return (
+      <text x={cx} y={top} textAnchor='start' dominantBaseline='middle'
+        transform={`rotate(-90, ${cx}, ${top})`}
+        fontSize={6} fontWeight={600} fill='#64748b'>{fmt(Number(value))}</text>
+    );
+  };
+
+const makeStaggerLabel = (fmt: (v: number) => string) =>
+  ({ x, y, width, value, index }: any) => {
+    if (value == null || value === 0) return null;
+    const cx = x + width / 2;
+    const textY = y - (index % 2 === 0 ? 10 : 26);
+    return (
+      <g>
+        <line x1={cx} y1={textY + 2} x2={cx} y2={y - 2}
+          stroke='#cbd5e1' strokeWidth={0.8} strokeDasharray='2,2' />
+        <text x={cx} y={textY} textAnchor='middle' dominantBaseline='auto'
+          fontSize={6} fontWeight={600} fill='#64748b'>{fmt(Number(value))}</text>
+      </g>
+    );
+  };
+
 const MAX_AT_RISK_CARDS = 50;
 
 type PrintViewProps = { filteredData: UIProjectRow[] };
@@ -109,7 +136,8 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
         'Consumed (hrs)': d[UI_PROJECT_KEYS.CONSUMED_TIME] || 0,
         'Progress (%)': Number(d[UI_PROJECT_KEYS.ACTUAL_PROGRESS] || 0) * 100,
       }))
-      .sort((a, b) => b['Budget (hrs)'] - a['Budget (hrs)']),
+      .sort((a, b) => b['Budget (hrs)'] - a['Budget (hrs)'])
+      .slice(0, 15),
   [filteredData]);
 
   const statusData = useMemo(() => {
@@ -307,15 +335,15 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
           <div style={sectionTitleStyle}>Sales vs. Cost <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(all projects, sorted by sales)</span></div>
           <div style={{ height: CHART_H }}>
             <ResponsiveContainer width='100%' height='100%'>
-              <BarChart data={salesCostData} margin={{ top: 16, right: 4, left: 0, bottom: 4 }}>
+              <BarChart data={salesCostData} margin={{ top: 34, right: 4, left: 0, bottom: 4 }}>
                 <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='#e2e8f0' />
                 <XAxis dataKey='name' tick={{ fill: '#64748b', fontSize: 7 }} interval={0} angle={-35} textAnchor='end' height={56} />
                 <YAxis tick={{ fill: '#94a3b8', fontSize: 7 }} tickFormatter={v => fmtK(Number(v))} width={40} />
                 <Bar dataKey='Sales' fill='#818cf8' radius={[2, 2, 0, 0]} maxBarSize={20}>
-                  <LabelList dataKey='Sales' position='top' formatter={(v: any) => fmtK(Number(v))} style={lblStyle} />
+                  <LabelList dataKey='Sales' content={makeVerticalLabel(fmtK)} />
                 </Bar>
                 <Bar dataKey='Cost' fill='#fb7185' radius={[2, 2, 0, 0]} maxBarSize={20}>
-                  <LabelList dataKey='Cost' position='top' formatter={(v: any) => fmtK(Number(v))} style={lblStyle} />
+                  <LabelList dataKey='Cost' content={makeVerticalLabel(fmtK)} />
                 </Bar>
                 <Legend content={renderPrintLegend} />
               </BarChart>
@@ -395,13 +423,13 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
           <div style={sectionTitleStyle}>Billable Efficiency <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(all projects, sorted by consumed)</span></div>
           <div style={{ height: CHART_H }}>
             <ResponsiveContainer width='100%' height='100%'>
-              <BarChart data={billableData} margin={{ top: 16, right: 4, left: 0, bottom: 4 }}>
+              <BarChart data={billableData} margin={{ top: 34, right: 4, left: 0, bottom: 4 }}>
                 <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='#e2e8f0' />
                 <XAxis dataKey='name' tick={{ fill: '#64748b', fontSize: 7 }} interval={0} angle={-35} textAnchor='end' height={56} />
                 <YAxis tick={{ fill: '#94a3b8', fontSize: 7 }} width={32} />
                 <Bar dataKey='billable' name='Billable' stackId='a' fill='#10b981' maxBarSize={20} />
                 <Bar dataKey='nonBillable' name='Non-Billable' stackId='a' fill='#f43f5e' radius={[2, 2, 0, 0]} maxBarSize={20}>
-                  <LabelList dataKey='total' position='top' formatter={(v: any) => fmtHrs(Number(v))} style={lblStyle} />
+                  <LabelList dataKey='total' content={makeStaggerLabel(fmtHrs)} />
                 </Bar>
                 <Legend content={renderPrintLegend} />
               </BarChart>
