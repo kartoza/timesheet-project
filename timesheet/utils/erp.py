@@ -344,14 +344,23 @@ def pull_project_members_from_erp(user: get_user_model()):
         return (
             project_name,
             detail.get('project_team_members', []),
-            detail.get('project_lead', '')
+            detail.get('project_lead', ''),
+            bool(detail),
         )
 
+    stale_project_names = []
     with ThreadPoolExecutor(max_workers=10) as executor:
         futures = {executor.submit(fetch_members, p.name): p.name for p in projects}
         for future in as_completed(futures):
-            name, members, project_lead_email = future.result()
+            name, members, project_lead_email, found = future.result()
+            if not found:
+                stale_project_names.append(name)
+                continue
             project_members_map[name] = {'members': members, 'project_lead': project_lead_email.lower()}
+
+    if stale_project_names:
+        logger.info(f'Deleting {len(stale_project_names)} stale project(s) renamed in ERP: {stale_project_names}')
+        Project.objects.filter(name__in=stale_project_names).delete()
 
     User = get_user_model()
     with transaction.atomic():
