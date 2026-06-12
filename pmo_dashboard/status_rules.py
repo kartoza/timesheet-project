@@ -151,7 +151,7 @@ def get_status_reasons(project):
     if cost_ratio is not None:
         crossed = sorted(t for t in thresholds.get('cost_ratio', []) if cost_ratio >= t)
         if crossed:
-            reasons.append(f'Cost at {int(crossed[0] * 100)}%+')
+            reasons.append(f'Cost at {round(cost_ratio * 100)}%')
 
     return reasons
 
