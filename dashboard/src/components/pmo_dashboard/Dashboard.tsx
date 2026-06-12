@@ -63,60 +63,46 @@ const Dashboard: React.FC<DashboardProps> = ({
     onRegisterExport?.(handleExportPDF);
   }, [handleExportPDF, onRegisterExport]);
 
-  const availableStatuses = useMemo(() => {
-    const statuses = new Set(data.map((d) => d.Status).filter(Boolean));
-    return Array.from(statuses).sort();
-  }, [data]);
-
-  const availableProjectTypes = useMemo(() => {
-    const projectTypes = new Set(data.map((d) => d[UI_PROJECT_KEYS.PROJECT_TYPE]).filter(Boolean));
-    return Array.from(projectTypes).sort();
-  }, [data]);
-
-  const availableManagers = useMemo(() => {
-    const managers = new Set(data.map((d) => d[UI_PROJECT_KEYS.PROJECT_MANAGER]).filter(Boolean));
-    return Array.from(managers).sort();
-  }, [data]);
-
   const fieldAccessors: Record<FilterFieldKey, (row: UIProjectRow) => string> = {
     projectType: (row) => String(row[UI_PROJECT_KEYS.PROJECT_TYPE] || ''),
     status: (row) => String(row[UI_PROJECT_KEYS.STATUS] || ''),
     manager: (row) => String(row[UI_PROJECT_KEYS.PROJECT_MANAGER] || ''),
   };
 
-  const getOptionCounts = (key: FilterFieldKey): Record<string, number> => {
-    const counts: Record<string, number> = {};
-    data.forEach((row) => {
-      const value = fieldAccessors[key](row);
-      if (!value) return;
-      counts[value] = (counts[value] || 0) + 1;
-    });
-    return counts;
-  };
+  const filterFields: FilterFieldConfig[] = useMemo(() => {
+    const applyFiltersExcept = (excludeKey: FilterFieldKey) =>
+      data.filter((row) => {
+        for (const key of Object.keys(selectedFilters) as FilterFieldKey[]) {
+          if (key === excludeKey) continue;
+          const values = selectedFilters[key];
+          if (values.length === 0) continue;
+          if (!values.includes(fieldAccessors[key](row))) return false;
+        }
+        return true;
+      });
 
-  const filterFields: FilterFieldConfig[] = useMemo(
-    () => [
-      {
-        key: 'projectType',
-        label: 'Project Type',
-        options: availableProjectTypes,
-        optionCounts: getOptionCounts('projectType'),
-      },
-      {
-        key: 'status',
-        label: 'Status',
-        options: availableStatuses,
-        optionCounts: getOptionCounts('status'),
-      },
-      {
-        key: 'manager',
-        label: 'Manager',
-        options: availableManagers,
-        optionCounts: getOptionCounts('manager'),
-      },
-    ],
-    [availableProjectTypes, availableStatuses, availableManagers, data]
-  );
+    const toOptions = (rows: UIProjectRow[], key: FilterFieldKey) =>
+      Array.from(new Set(rows.map((d) => fieldAccessors[key](d)).filter(Boolean))).sort();
+
+    const toCounts = (rows: UIProjectRow[], key: FilterFieldKey) => {
+      const counts: Record<string, number> = {};
+      rows.forEach((row) => {
+        const value = fieldAccessors[key](row);
+        if (value) counts[value] = (counts[value] || 0) + 1;
+      });
+      return counts;
+    };
+
+    const forProjectType = applyFiltersExcept('projectType');
+    const forStatus = applyFiltersExcept('status');
+    const forManager = applyFiltersExcept('manager');
+
+    return [
+      { key: 'projectType', label: 'Project Type', options: toOptions(forProjectType, 'projectType'), optionCounts: toCounts(forProjectType, 'projectType') },
+      { key: 'status', label: 'Status', options: toOptions(forStatus, 'status'), optionCounts: toCounts(forStatus, 'status') },
+      { key: 'manager', label: 'Manager', options: toOptions(forManager, 'manager'), optionCounts: toCounts(forManager, 'manager') },
+    ];
+  }, [data, selectedFilters]);
 
   const filteredData = useMemo(() => {
     return data.filter((d) => {
