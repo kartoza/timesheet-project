@@ -25,7 +25,7 @@ export const STATUS_KEY_BADGE: Record<string, { bg: string; text: string; dot: s
   completed: { bg: 'bg-violet-50 dark:bg-violet-900/20',   text: 'text-violet-700 dark:text-violet-400',  dot: 'bg-violet-500' },
 };
 
-export const AT_RISK_STATUS_KEYS = new Set(['at_risk', 'overdue', 'warning']);
+export const AT_RISK_STATUS_KEYS = new Set(['at_risk', 'overdue']);
 
 export const API_STATUS_TO_UI_STATUS: Record<string, string> = {
   on_track: '🟢 On track',
