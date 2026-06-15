@@ -359,8 +359,24 @@ def pull_project_members_from_erp(user: get_user_model()):
             project_members_map[name] = {'members': members, 'project_lead': project_lead_email.lower()}
 
     if stale_project_names:
-        logger.info(f'Deleting {len(stale_project_names)} stale project(s) renamed in ERP: {stale_project_names}')
-        Project.objects.filter(name__in=stale_project_names).delete()
+        stale_with_unsubmitted = Project.objects.filter(
+            name__in=stale_project_names,
+            timelog__submitted=False
+        ).distinct().values_list('name', flat=True)
+        stale_with_unsubmitted = list(stale_with_unsubmitted)
+
+        safe_to_delete = [n for n in stale_project_names if n not in stale_with_unsubmitted]
+
+        if stale_with_unsubmitted:
+            logger.warning(
+                f'Stale project(s) with unsubmitted timelogs — marking inactive instead of deleting: '
+                f'{stale_with_unsubmitted}'
+            )
+            Project.objects.filter(name__in=stale_with_unsubmitted).update(is_active=False)
+
+        if safe_to_delete:
+            logger.info(f'Deleting {len(safe_to_delete)} stale project(s) with no unsubmitted timelogs: {safe_to_delete}')
+            Project.objects.filter(name__in=safe_to_delete).delete()
 
     User = get_user_model()
     with transaction.atomic():

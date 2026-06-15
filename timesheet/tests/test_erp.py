@@ -256,6 +256,25 @@ class TestPullProjectMembersFromErp(TestCase):
         pull_project_members_from_erp(self.user)
         mock_detail.assert_not_called()
 
+    def test_stale_project_with_unsubmitted_timelogs_set_inactive(self, mock_detail):
+        mock_detail.return_value = {}
+        TimelogFactory.create(user=self.user, project=self.project, task=None, submitted=False)
+        pull_project_members_from_erp(self.user)
+        self.project.refresh_from_db()
+        self.assertFalse(self.project.is_active)
+        self.assertTrue(Project.objects.filter(pk=self.project.pk).exists())
+
+    def test_stale_project_with_no_timelogs_deleted(self, mock_detail):
+        mock_detail.return_value = {}
+        pull_project_members_from_erp(self.user)
+        self.assertFalse(Project.objects.filter(pk=self.project.pk).exists())
+
+    def test_stale_project_with_only_submitted_timelogs_deleted(self, mock_detail):
+        mock_detail.return_value = {}
+        TimelogFactory.create(user=self.user, project=self.project, task=None, submitted=True)
+        pull_project_members_from_erp(self.user)
+        self.assertFalse(Project.objects.filter(pk=self.project.pk).exists())
+
 
 @patch('timesheet.utils.erp.get_erp_data')
 class TestPullDepartmentFromErp(TestCase):
