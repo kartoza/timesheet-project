@@ -45,7 +45,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilters, setSelectedFilters] = useState<Record<FilterFieldKey, string[]>>({
-    projectType: [],
+    projectType: ['External'],
     status: [],
     manager: [],
   });

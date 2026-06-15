@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from pmo_dashboard.access import can_access_pmo
 from pmo_dashboard.serializers.project import ProjectSerializer
 from timesheet.models.project import Project
-from timesheet.utils.erp import pull_projects_from_erp
+from timesheet.utils.erp import pull_projects_only_from_erp
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +30,9 @@ class ProjectListView(APIView):
 
     def get(self, request):
         t0 = time.perf_counter()
-        pull_projects_from_erp(request.user, filters='[["status", "=", "Open"]]')
+        pull_projects_only_from_erp(request.user, filters='[["status", "=", "Open"]]')
         t1 = time.perf_counter()
-        logger.warning('pull_projects_from_erp took %.2fs', t1 - t0)
+        logger.warning('pull_projects_only_from_erp took %.2fs', t1 - t0)
 
         projects = (
             Project.objects.filter(is_active=True)
