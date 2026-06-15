@@ -16,9 +16,10 @@ import { formatManagerName } from '../../utils/pmo_dashboard';
 
 type ManagerWorkloadChartProps = {
   data: UIProjectRow[];
+  overloadThreshold: number;
 };
 
-const ManagerWorkloadChart: React.FC<ManagerWorkloadChartProps> = ({ data }) => {
+const ManagerWorkloadChart: React.FC<ManagerWorkloadChartProps> = ({ data, overloadThreshold }) => {
   const chartData = useMemo(() => {
     const managerStats: Record<string, { name: string; projectsCount: number; totalHours: number }> = {};
 
@@ -74,9 +75,9 @@ const ManagerWorkloadChart: React.FC<ManagerWorkloadChartProps> = ({ data }) => 
           <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
           <Legend wrapperStyle={{ paddingTop: '20px' }} />
 
-          <Bar yAxisId='left' dataKey='projectsCount' name='Active Projects' radius={[4, 4, 0, 0]} barSize={32}>
+          <Bar yAxisId='left' dataKey='projectsCount' name='Active Projects' fill='#6366f1' radius={[4, 4, 0, 0]} barSize={32}>
             {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.projectsCount > 4 ? '#ef4444' : '#6366f1'} />
+              <Cell key={`cell-${index}`} fill={entry.projectsCount > overloadThreshold ? '#ef4444' : '#6366f1'} />
             ))}
           </Bar>
           <Bar yAxisId='right' dataKey='totalHours' name='Budget Hours' fill='#f59e0b' radius={[4, 4, 0, 0]} barSize={32} />

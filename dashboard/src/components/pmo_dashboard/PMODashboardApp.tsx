@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   AlertCircle,
   CheckCircle2,
@@ -24,6 +24,7 @@ const PMODashboardApp: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [user] = useState<SessionUser | null>({ username: 'dev-bypass' });
+  const [pmOverloadThreshold] = useState(4);
 
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('pmo_theme');
@@ -96,6 +97,20 @@ const PMODashboardApp: React.FC = () => {
     }
   };
 
+  const exportFnRef = useRef<(() => Promise<void>) | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportPDF = async () => {
+    if (!exportFnRef.current) return;
+    setIsExporting(true);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => setTimeout(resolve, 50)));
+    try {
+      await exportFnRef.current();
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
   const hasData = data.length > 0;
@@ -119,6 +134,17 @@ const PMODashboardApp: React.FC = () => {
           </div>
 
           <div className='flex items-center gap-3 md:gap-4 print:hidden'>
+            {hasData && (
+              <button
+                onClick={handleExportPDF}
+                disabled={isExporting}
+                className='flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 shadow-sm'
+              >
+                <Download size={18} />
+                <span className='hidden sm:inline'>{isExporting ? 'Generating…' : 'Export PDF'}</span>
+              </button>
+            )}
+
             <button
               onClick={toggleTheme}
               className='p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-300 shadow-sm border border-slate-200 dark:border-slate-700'
@@ -127,17 +153,7 @@ const PMODashboardApp: React.FC = () => {
               {isDarkMode ? <Sun size={20} className='text-amber-400' /> : <Moon size={20} className='text-indigo-600' />}
             </button>
 
-            {hasData && (
-              <button
-                onClick={() => window.print()}
-                className='flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-300 shadow-sm'
-              >
-                <Download size={18} className='text-indigo-600 dark:text-indigo-400' />
-                <span className='hidden sm:inline'>Export PDF</span>
-              </button>
-            )}
-
-            <button
+<button
               onClick={handleLogout}
               className='p-2.5 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all duration-300'
               title='Logout'
@@ -207,6 +223,8 @@ const PMODashboardApp: React.FC = () => {
               onUpdateDataRow={updateDataRow}
               onDeleteDataRow={deleteDataRow}
               onAddManualProject={addManualProject}
+              pmOverloadThreshold={pmOverloadThreshold}
+              onRegisterExport={(fn) => { exportFnRef.current = fn; }}
             />
           </div>
         )}

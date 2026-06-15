@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useRef, useMemo, useState } from 'react';
 import {
   Banknote,
   Briefcase,
@@ -9,6 +9,8 @@ import {
   Table,
   TrendingUp,
 } from 'lucide-react';
+import PrintView from './PrintView';
+import { exportDashboardToPDF } from '../../utils/exportPDF';
 import { UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { CreateProjectPayload, UIProjectRow } from '../../types/pmo_dashboard';
 import AddProjectModal from './AddProjectModal';
@@ -29,6 +31,8 @@ type DashboardProps = {
   onUpdateDataRow: (id: string, field: string, value: string | number) => Promise<void>;
   onDeleteDataRow: (id: string) => Promise<void>;
   onAddManualProject: (projectData: CreateProjectPayload) => Promise<void>;
+  pmOverloadThreshold: number;
+  onRegisterExport?: (fn: () => Promise<void>) => void;
 };
 
 const Dashboard: React.FC<DashboardProps> = ({
@@ -36,6 +40,8 @@ const Dashboard: React.FC<DashboardProps> = ({
   onUpdateDataRow,
   onDeleteDataRow,
   onAddManualProject,
+  pmOverloadThreshold,
+  onRegisterExport,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilters, setSelectedFilters] = useState<Record<FilterFieldKey, string[]>>({
@@ -46,6 +52,16 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [activeView, setActiveView] = useState<'table' | 'gantt'>('table');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProjectForDetails, setSelectedProjectForDetails] = useState<UIProjectRow | null>(null);
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPDF = React.useCallback(async () => {
+    if (!printRef.current) return;
+    await exportDashboardToPDF(printRef.current);
+  }, []);
+
+  React.useEffect(() => {
+    onRegisterExport?.(handleExportPDF);
+  }, [handleExportPDF, onRegisterExport]);
 
   const availableStatuses = useMemo(() => {
     const statuses = new Set(data.map((d) => d.Status).filter(Boolean));
@@ -316,7 +332,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               title='Project Manager Workload Distribution'
               subtitle='Active projects and allocated budget hours per PM'
             >
-              <ManagerWorkloadChart data={filteredData} />
+              <ManagerWorkloadChart data={filteredData} overloadThreshold={pmOverloadThreshold} />
             </ChartCard>
 
             <ChartCard
@@ -326,6 +342,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               <BillableHoursChart data={filteredData} />
             </ChartCard>
           </div>
+          <PrintView ref={printRef} filteredData={filteredData} />
         </>
       )}
     </div>

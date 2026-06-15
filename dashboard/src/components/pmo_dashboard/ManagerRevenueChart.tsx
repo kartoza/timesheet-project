@@ -27,13 +27,18 @@ const ManagerRevenueChart: React.FC<ManagerRevenueChartProps> = ({ data, group_b
     }))
     .sort((a, b) => b.Revenue - a.Revenue);
 
+  const yAxisWidth = Math.min(
+    Math.max(80, Math.max(...chartData.map((d) => d.name.length)) * 10 + 20),
+    240,
+  );
+
   return (
     <div className='w-full h-[350px] mt-2'>
       <ResponsiveContainer width='100%' height='100%'>
-        <BarChart data={chartData} layout='vertical' margin={{ top: 10, right: 30, left: 20, bottom: 0 }}>
-          <CartesianGrid strokeDasharray='3 3' horizontal vertical={false} stroke='#E2E8F0' />
+        <BarChart data={chartData} layout='vertical' margin={{ top: 10, right: 30, left: 4, bottom: 0 }}>
+          <CartesianGrid strokeDasharray='3 3' horizontal={false} vertical stroke='#E2E8F0' />
           <XAxis type='number' axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12, fontWeight: 500 }} tickFormatter={(val) => `R${(Number(val) / 1000000).toFixed(1)}M`} />
-          <YAxis dataKey='name' type='category' axisLine={false} tickLine={false} tick={{ fill: '#475569', fontSize: 13, fontWeight: 600 }} width={120} />
+          <YAxis dataKey='name' type='category' axisLine={false} tickLine={false} tick={{ fill: '#475569', fontSize: 13, fontWeight: 600 }} width={yAxisWidth} interval={0} />
           <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.5)' }} />
           <Bar dataKey='Revenue' fill='#6366F1' radius={[0, 6, 6, 0]} barSize={24} />
         </BarChart>
