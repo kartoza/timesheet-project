@@ -275,7 +275,6 @@ class TestPullProjectMembersFromErp(TestCase):
         pull_project_members_from_erp(self.user)
         self.assertFalse(Project.objects.filter(pk=self.project.pk).exists())
 
-
 @patch('timesheet.utils.erp.get_erp_data')
 class TestPullDepartmentFromErp(TestCase):
     def test_creates_department_and_group(self, mock_get_erp_data):
