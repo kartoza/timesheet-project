@@ -16,6 +16,7 @@ type BillableHoursChartProps = {
   data: UIProjectRow[];
 };
 
+
 const BillableHoursChart: React.FC<BillableHoursChartProps> = ({ data }) => {
   const chartData = useMemo(() => {
     return data
@@ -102,7 +103,7 @@ const BillableHoursChart: React.FC<BillableHoursChartProps> = ({ data }) => {
 };
 
 function truncate(str: string, n: number) {
-  return str && str.length > n ? `${str.substr(0, n - 1)}...` : str;
+  return str && str.length > n ? `${str.slice(0, n - 1)}...` : str;
 }
 
 const CustomXAxisTick = ({ x, y, payload }: any) => (

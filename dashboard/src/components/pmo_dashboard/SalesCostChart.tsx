@@ -16,6 +16,7 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'ratio', label: 'Sales/Cost' },
 ];
 
+
 const SalesCostChart: React.FC<SalesCostChartProps> = ({ data }) => {
   const [sortBy, setSortBy] = useState<SortKey>('Sales');
 
