@@ -426,11 +426,12 @@ def pull_project_members_from_erp(user: get_user_model()):
             ])
 
 
-def pull_projects_from_erp(user: get_user_model()):
-    projects = get_erp_data(DocType.PROJECT, user=user)
+def pull_projects_from_erp(user: get_user_model(), filters: str = ''):
+    projects = get_erp_data(DocType.PROJECT, user=user, filters=filters)
 
     if len(projects) == 0:
         raise ProjectsNotFound
+    
 
     with transaction.atomic():
         updated = timezone.now()
@@ -537,6 +538,7 @@ def pull_projects_from_erp(user: get_user_model()):
                 name=activity['name']
             )
 
+        return projects
 
 def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
     serializer = TimelogSerializerERP(

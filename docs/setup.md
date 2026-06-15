@@ -3,7 +3,7 @@
 ## Prepare Django App
 - Set environment variable `ERPNEXT_SITE_LOCATION` to `https://dev-staging.m.frappe.cloud`. Make sure no trailing slash in the URL.
 ```
-export ERPNEXT_SITE_LOCATION=https://dev-staging.m.frappe.cloud
+export ERPNEXT_SITE_LOCATION=https://kartoza-dev-15.m.frappe.cloud
 ```
 - Create Python virtual environment
 ```
