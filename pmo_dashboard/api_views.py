@@ -1,6 +1,10 @@
+import logging
+import time
+
 from preferences import preferences
 
 from drf_spectacular.utils import extend_schema
+from rest_framework import status
 from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -8,6 +12,9 @@ from rest_framework.views import APIView
 from pmo_dashboard.access import can_access_pmo
 from pmo_dashboard.serializers.project import ProjectSerializer
 from timesheet.models.project import Project
+from timesheet.utils.erp import pull_project_members_from_erp, pull_projects_only_from_erp, pull_tasks_from_erp
+
+logger = logging.getLogger(__name__)
 
 
 class IsPMOMemberOrSuperuser(BasePermission):
@@ -25,13 +32,34 @@ class ProjectListView(APIView):
     permission_classes = [IsAuthenticated, IsPMOMemberOrSuperuser]
 
     def get(self, request):
+        t0 = time.perf_counter()
+        erp_synced = True
+        try:
+            updated_projects = pull_projects_only_from_erp(
+                None,
+                filters='[["status", "=", "Open"]]',
+            )
+            Project.objects.filter(is_active=True).exclude(id__in=updated_projects).update(is_active=False)
+        except Exception:
+            erp_synced = False
+            logger.warning('ProjectListView: ERP sync failed, serving cached data')
+
+        t1 = time.perf_counter()
+        logger.warning('pull_projects_only_from_erp took %.2fs (synced=%s)', t1 - t0, erp_synced)
+
         projects = (
             Project.objects.filter(is_active=True)
             .select_related('business_unit', 'project_lead', 'relations_manager')
             .prefetch_related('members__user', 'task_set')
             .order_by('name')
         )
-        return Response(ProjectSerializer(projects, many=True).data)
+
+        t2 = time.perf_counter()
+        logger.warning('ProjectListView total (sync + query) took %.2fs', t2 - t0)
+
+        response = Response(ProjectSerializer(projects, many=True).data)
+        response['X-Sync-Status'] = 'live' if erp_synced else 'cached'
+        return response
 
 
 @extend_schema(
@@ -46,3 +74,43 @@ class SettingsView(APIView):
         return Response({
             'pm_overload_threshold': preferences.TimesheetPreferences.pm_overload_threshold,
         })
+
+
+@extend_schema(
+    tags=['PMO Dashboard'],
+    summary='Get project detail',
+    description='Syncs and returns a single project with fresh members and tasks from ERPNext.',
+    responses={200: ProjectSerializer()},
+)
+class ProjectDetailView(APIView):
+    permission_classes = [IsAuthenticated, IsPMOMemberOrSuperuser]
+
+    def get(self, request, pk):
+        try:
+            project = Project.objects.get(pk=pk)
+        except Project.DoesNotExist:
+            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        t0 = time.perf_counter()
+        name = project.name
+        updated_projects = [project]
+
+        pull_tasks_from_erp(
+            None,
+            updated_projects,
+            filters=f'[["project", "=", "{name}"]]',
+        )
+        t1 = time.perf_counter()
+        logger.warning('ProjectDetailView pull_tasks_from_erp took %.2fs', t1 - t0)
+
+        pull_project_members_from_erp(None, project_name=name)
+        t2 = time.perf_counter()
+        logger.warning('ProjectDetailView pull_project_members_from_erp took %.2fs', t2 - t1)
+
+        project = (
+            Project.objects.select_related('business_unit', 'project_lead', 'relations_manager')
+            .prefetch_related('members__user', 'task_set')
+            .get(pk=pk)
+        )
+        logger.warning('ProjectDetailView total took %.2fs', time.perf_counter() - t0)
+        return Response(ProjectSerializer(project).data)

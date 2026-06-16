@@ -42,18 +42,22 @@ def get_auth_headers(user=None, erpnext_token=None):
     if user:
         oauth_token = get_valid_oauth_token(user)
         if oauth_token:
+            print(f'oauth_token: {oauth_token}')
             return {'Authorization': f'Bearer {oauth_token}'}
         else:
             user_token = user.profile.token
+            print(f'user_token: {user_token}')
             if user_token:
                 return {'Authorization': f'token {user_token}'}
 
     if not erpnext_token:
         erpnext_token = settings.ERPNEXT_TOKEN
+    print(f'erpnext_token: {erpnext_token}')
     return {'Authorization': f'token {erpnext_token}'}
 
 
 def retry_operation(func):
+    """Decorator: retry up to 5 times on SQLite 'database is locked' errors."""
     def wrapper(*args, **kwargs):
         attempts = 5
         while attempts > 0:
@@ -74,6 +78,7 @@ class ProjectsNotFound(Exception):
 
 
 def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '', doctype_value: str = '', user=None) -> list:
+    """Fetch a list (or single doc) from ERPNext REST API. Returns empty list on failure."""
     path = f'resource/{doctype.value}/{doctype_value}'.rstrip('/')
     url = f'{settings.ERPNEXT_SITE_LOCATION}/api/{path}?limit_page_length=None&fields=["*"]'
     if filters:
@@ -96,6 +101,7 @@ def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '',
 
 
 def get_erp_project_detail(project_name: str, user=None) -> dict:
+    """Fetch full project doc including child tables (e.g. project_team_members) by name."""
     url = f'{settings.ERPNEXT_SITE_LOCATION}/api/resource/Project/{quote(project_name)}?fields=["*"]'
     headers = get_auth_headers(user=user)
     response = requests.get(url, headers=headers)
@@ -106,6 +112,7 @@ def get_erp_project_detail(project_name: str, user=None) -> dict:
 
 
 def generate_api_secret(user: get_user_model()):
+    """Generate and store a fresh ERPNext API secret for the user via the admin token."""
     url = (
         f'{settings.ERPNEXT_SITE_LOCATION}/api/'
         f'method/frappe.core.doctype.user.user.generate_keys?user='
@@ -245,6 +252,7 @@ def pull_holiday_list(user):
 
 
 def generate_api_key(user: get_user_model()):
+    """Fetch and store the ERPNext API key for the user, then generate an API secret."""
     users = get_erp_data(
         DocType.USER, preferences.TimesheetPreferences.admin_token,
         f'[["email", "=", "{user.email}"]]'
@@ -269,6 +277,7 @@ def generate_api_key(user: get_user_model()):
 
 
 def pull_department_from_erp(user=None):
+    """Sync ERPNext departments into local Department model and Django Groups."""
     from django.contrib.auth.models import Group
     departments = get_erp_data(DocType.DEPARTMENT, user=user)
     for dept in departments:
@@ -287,6 +296,7 @@ def pull_department_from_erp(user=None):
 
 
 def pull_user_data_from_erp(user: get_user_model()):
+    """Sync employee name, ID, and department from ERPNext into the user's local profile."""
 
     # if not user.profile.token:
     #     generate_api_key(user)
@@ -319,6 +329,7 @@ def pull_user_data_from_erp(user: get_user_model()):
 
 
 def _user_by_email(email: str):
+    """Return the local User for the given email, creating a stub account if needed."""
     if not email:
         return None
     email = email.lower()
@@ -330,28 +341,72 @@ def _user_by_email(email: str):
 
 
 @retry_operation
-def pull_project_members_from_erp(user: get_user_model()):
-    projects = list(Project.objects.all())
-    if not projects:
-        return
+def pull_project_members_from_erp(user: get_user_model(), project_name: str = None):
+    """Sync ERPNext project team members into the local ProjectMember model.
 
-    project_members_map = {}
-
-    # Unfortunately, we cannot fetch all project members at once.
-    # Fetch each project individually in parallel to get project_team_members
-    def fetch_members(project_name):
+    If project_name is given, syncs only that project (1 ERP call, no stale detection).
+    If project_name is None (default), syncs all projects in parallel and removes stale ones.
+    """
+    if project_name is not None:
+        try:
+            project = Project.objects.get(name=project_name)
+        except Project.DoesNotExist:
+            return
+        projects = [project]
         detail = get_erp_project_detail(project_name, user=user)
-        return (
-            project_name,
-            detail.get('project_team_members', []),
-            detail.get('project_lead', '')
-        )
+        project_members_map = {
+            project_name: {
+                'members': detail.get('project_team_members', []),
+                'project_lead': detail.get('project_lead', '').lower(),
+            }
+        }
+    else:
+        projects = list(Project.objects.all())
+        if not projects:
+            return
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = {executor.submit(fetch_members, p.name): p.name for p in projects}
-        for future in as_completed(futures):
-            name, members, project_lead_email = future.result()
-            project_members_map[name] = {'members': members, 'project_lead': project_lead_email.lower()}
+        project_members_map = {}
+
+        # Unfortunately, we cannot fetch all project members at once.
+        # Fetch each project individually in parallel to get project_team_members
+        def fetch_members(p_name):
+            detail = get_erp_project_detail(p_name, user=user)
+            return (
+                p_name,
+                detail.get('project_team_members', []),
+                detail.get('project_lead', ''),
+                bool(detail),
+            )
+
+        stale_project_names = []
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = {executor.submit(fetch_members, p.name): p.name for p in projects}
+            for future in as_completed(futures):
+                name, members, project_lead_email, found = future.result()
+                if not found:
+                    stale_project_names.append(name)
+                    continue
+                project_members_map[name] = {'members': members, 'project_lead': project_lead_email.lower()}
+
+    if project_name is None and stale_project_names:
+        stale_with_unsubmitted = Project.objects.filter(
+            name__in=stale_project_names,
+            timelog__submitted=False
+        ).distinct().values_list('name', flat=True)
+        stale_with_unsubmitted = list(stale_with_unsubmitted)
+
+        safe_to_delete = [n for n in stale_project_names if n not in stale_with_unsubmitted]
+
+        if stale_with_unsubmitted:
+            logger.warning(
+                f'Stale project(s) with unsubmitted timelogs — marking inactive instead of deleting: '
+                f'{stale_with_unsubmitted}'
+            )
+            Project.objects.filter(name__in=stale_with_unsubmitted).update(is_active=False)
+
+        if safe_to_delete:
+            logger.info(f'Deleting {len(safe_to_delete)} stale project(s) with no unsubmitted timelogs: {safe_to_delete}')
+            Project.objects.filter(name__in=safe_to_delete).delete()
 
     User = get_user_model()
     with transaction.atomic():
@@ -401,8 +456,13 @@ def pull_project_members_from_erp(user: get_user_model()):
             ])
 
 
-def pull_projects_from_erp(user: get_user_model()):
-    projects = get_erp_data(DocType.PROJECT, user=user)
+def pull_projects_only_from_erp(user: get_user_model(), filters: str = '') -> list:
+    """Upsert projects from ERPNext into the local DB. Returns list of updated project IDs.
+
+    Does not sync tasks or activities — call pull_tasks_from_erp / pull_activities_from_erp
+    separately, or use pull_projects_from_erp to do all three at once.
+    """
+    projects = get_erp_data(DocType.PROJECT, user=user, filters=filters)
 
     if len(projects) == 0:
         raise ProjectsNotFound
@@ -416,7 +476,7 @@ def pull_projects_from_erp(user: get_user_model()):
             business_unit = None
             if business_unit_name:
                 business_unit, _ = BusinessUnit.objects.get_or_create(name=business_unit_name)
-            
+
             _project, _ = Project.objects.update_or_create(
                 name=project['name'],
                 defaults={
@@ -443,77 +503,83 @@ def pull_projects_from_erp(user: get_user_model()):
                     'per_gross_margin': project.get('per_gross_margin'),
                 }
             )
-            UserProject.objects.get_or_create(
-                user=user,
-                project=_project
-            )
+            if user:
+                UserProject.objects.get_or_create(
+                    user=user,
+                    project=_project
+                )
             updated_projects.append(_project.id)
 
-        # Check inactive projects
-        inactive = UserProject.objects.exclude(
-            project__updated=updated
-        )
-        # if inactive.exists():
-        #     inactive_projects = Project.objects.filter(
-        #         id__in=inactive.values('project')
-        #     ).distinct()
-        #     inactive_projects.update(is_active=False)
+    return updated_projects
 
-        tasks = get_erp_data(
-            DocType.TASK, preferences.TimesheetPreferences.admin_token,
-            user=user
-        )
-        updated_tasks = []
-        for task in tasks:
-            try:
-                project = Project.objects.get(name=task['project'])
-            except Project.DoesNotExist:
-                continue
-            try:
-                task, _ = Task.objects.update_or_create(
-                    project=project,
-                    name=task['subject'],
-                    erp_id=task['name'],
-                    defaults={
-                        "expected_time": task['expected_time'],
-                        "actual_time": task['actual_time']
-                    }
-                )
-                updated_tasks.append(task.id)
-            except Task.MultipleObjectsReturned:
-                tasks = Task.objects.filter(
-                    project=project,
-                    name=task['subject'],
-                    erp_id=task['name'],
-                ).order_by('-id')
-                latest_task = tasks.first()
-                tasks.exclude(id=latest_task.id).delete()
-                tasks.update(
-                    expected_time=task['expected_time'],
-                    actual_time=task['actual_time']
-                )
-                updated_tasks.append(latest_task.id)
 
-        # Check inactive tasks
-        inactive_tasks = Task.objects.filter(
-            project_id__in=updated_projects
-        ).exclude(
-            id__in=updated_tasks
-        ).distinct()
-        print('inactive_tasks : {}'.format(inactive_tasks.count()))
+def pull_tasks_from_erp(user: get_user_model(), updated_projects: list, filters: str = ''):
+    """Upsert tasks from ERPNext for the given project IDs. Deduplicates on MultipleObjectsReturned.
 
-        activities = get_erp_data(
-            DocType.ACTIVITY, user=user)
-
-        for activity in activities:
-            if 'name' not in activity:
-                continue
-            Activity.objects.get_or_create(
-                name=activity['name']
+    Pass filters to scope the ERP fetch (e.g. '[["project", "=", "My Project"]]').
+    Without filters, all tasks are fetched and then matched against updated_projects in Python.
+    """
+    tasks = get_erp_data(
+        DocType.TASK, preferences.TimesheetPreferences.admin_token,
+        user=user, filters=filters
+    )
+    updated_tasks = []
+    for task in tasks:
+        try:
+            project = Project.objects.get(name=task['project'])
+        except Project.DoesNotExist:
+            continue
+        try:
+            task_obj, _ = Task.objects.update_or_create(
+                project=project,
+                name=task['subject'],
+                erp_id=task['name'],
+                defaults={
+                    'expected_time': task['expected_time'],
+                    'actual_time': task['actual_time'],
+                }
             )
+            updated_tasks.append(task_obj.id)
+        except Task.MultipleObjectsReturned:
+            duplicates = Task.objects.filter(
+                project=project,
+                name=task['subject'],
+                erp_id=task['name'],
+            ).order_by('-id')
+            latest = duplicates.first()
+            duplicates.exclude(id=latest.id).delete()
+            duplicates.update(
+                expected_time=task['expected_time'],
+                actual_time=task['actual_time'],
+            )
+            updated_tasks.append(latest.id)
+
+    inactive_tasks = Task.objects.filter(
+        project_id__in=updated_projects
+    ).exclude(
+        id__in=updated_tasks
+    ).distinct()
+    logger.info('inactive_tasks: %d', inactive_tasks.count())
+
+
+def pull_activities_from_erp(user: get_user_model()):
+    """Sync ERPNext activity types into the local Activity model."""
+    activities = get_erp_data(DocType.ACTIVITY, user=user)
+    for activity in activities:
+        if 'name' not in activity:
+            continue
+        Activity.objects.get_or_create(name=activity['name'])
+
+
+def pull_projects_from_erp(user: get_user_model(), filters: str = ''):
+    """Full project sync: upsert projects, tasks, and activities from ERPNext."""
+    updated_projects = pull_projects_only_from_erp(user, filters=filters)
+    pull_tasks_from_erp(user, updated_projects)
+    pull_activities_from_erp(user)
 
 
 def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
+    """Push local timelogs to ERPNext as Timesheet documents, grouped by project."""
     serializer = TimelogSerializerERP(
         queryset.order_by('start_time'), many=True)
 
@@ -595,6 +661,7 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
 
 
 def get_report_data(report_name: str, erpnext_token: str = None, filters: str = '', user=None) -> list:
+    """Run a named ERPNext report and return its result rows."""
     url = (
         f'{settings.ERPNEXT_SITE_LOCATION}/api/'
         f'method/frappe.desk.query_report.run?report_name={report_name}'
@@ -623,6 +690,7 @@ def get_report_data(report_name: str, erpnext_token: str = None, filters: str = 
 
 
 def get_detailed_report_data(project_name: str, filters: str = '', user = None):
+    """Fetch 'Timesheet Detailed Report' rows for a project."""
     if not filters:
         filters = f'{{"Project":"{project_name}"}}'
     timesheet_detail = get_report_data(
@@ -633,6 +701,7 @@ def get_detailed_report_data(project_name: str, filters: str = '', user = None):
     return timesheet_detail
 
 def get_detailed_report_data_by_employee(employee_id: str, start_date: str, end_date: str):
+    """Fetch 'Timesheet Detailed Report' rows for an employee within a date range."""
     filters = f'{{"Employee ID":"{employee_id}","start_date":"{start_date}","end_date":"{end_date}"}}'
     timesheet_detail = get_report_data(
         'Timesheet%20Detailed%20Report',
@@ -649,6 +718,7 @@ def get_week_of_month(dt):
 
 
 def get_burndown_chart_data(project_name):
+    """Return weekly hours and task totals for a burndown chart, sourced from ERPNext reports."""
     try:
         project = Project.objects.get(name=project_name)
     except Project.DoesNotExist:

@@ -139,9 +139,24 @@ async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
   return response.json();
 }
 
-export async function fetchProjects(): Promise<UIProjectRow[]> {
-  const data = await apiFetch<ApiProject[]>('/api/pmo/projects/');
-  return data.map(mapApiProject);
+export async function fetchProjects(): Promise<{ projects: UIProjectRow[]; synced: boolean }> {
+  const response = await fetch('/api/pmo/projects/', { credentials: 'same-origin' });
+  if (!response.ok) {
+    let message = `Request failed (${response.status})`;
+    try {
+      const json = await response.json();
+      if (json?.detail) message = json.detail;
+    } catch (_error) {}
+    throw new Error(message);
+  }
+  const data: ApiProject[] = await response.json();
+  const synced = response.headers.get('X-Sync-Status') === 'live';
+  return { projects: data.map(mapApiProject), synced };
+}
+
+export async function fetchProjectDetail(id: string): Promise<UIProjectRow> {
+  const data = await apiFetch<ApiProject>(`/api/pmo/projects/${id}/`);
+  return mapApiProject(data);
 }
 
 export async function updateProject(id: string, field: string, value: string | number): Promise<void> {

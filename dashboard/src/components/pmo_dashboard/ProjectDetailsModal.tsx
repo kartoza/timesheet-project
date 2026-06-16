@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, Building2, Calendar, Clock, ListChecks, User, Users, X } from 'lucide-react';
+import { AlertTriangle, Building2, Calendar, CheckCircle2, Clock, ListChecks, Loader, User, Users, X } from 'lucide-react';
 import { STATUS_KEY_BADGE, UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { UIProjectRow } from '../../types/pmo_dashboard';
 import { formatManagerName } from '../../utils/pmo_dashboard';
@@ -7,9 +7,10 @@ import { formatManagerName } from '../../utils/pmo_dashboard';
 type ProjectDetailsModalProps = {
   project: UIProjectRow | null;
   onClose: () => void;
+  detailSyncStatus?: 'loading' | 'live' | null;
 };
 
-const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onClose }) => {
+const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onClose, detailSyncStatus }) => {
   if (!project) return null;
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('en-ZA', {
@@ -67,6 +68,16 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onCl
                   <AlertTriangle size={11} /> {reason}
                 </span>
               ))}
+              {detailSyncStatus === 'loading' && (
+                <span className='text-xs font-bold px-2 py-1 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 rounded-md flex items-center gap-1 animate-pulse'>
+                  <Loader size={11} className='animate-spin' /> Refreshing...
+                </span>
+              )}
+              {detailSyncStatus === 'live' && (
+                <span className='text-xs font-bold px-2 py-1 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 rounded-md flex items-center gap-1'>
+                  <CheckCircle2 size={11} /> Live
+                </span>
+              )}
             </div>
             <h2 className='text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight'>{project.Project}</h2>
           </div>

@@ -9,7 +9,7 @@ from timesheet.utils.erp import (
     pull_holiday_list,
     pull_department_from_erp,
     pull_user_data_from_erp,
-    update_schedule_countdown,
+    update_schedule_countdown
 )
 
 logger = logging.getLogger(__name__)
@@ -37,4 +37,3 @@ class Command(BaseCommand):
         if credentialed_user:
             print('Updating project members')
             pull_project_members_from_erp(credentialed_user)
-
