@@ -12,6 +12,7 @@ import Dashboard from './Dashboard';
 import {
   createProject,
   deleteProject,
+  fetchProjectDetail,
   fetchProjects,
   updateProject,
 } from '../../services/pmo_dashboard/api';
@@ -94,6 +95,17 @@ const PMODashboardApp: React.FC = () => {
       setData((prev) => [...prev, createdProject]);
     } catch (err) {
       console.error('Failed to create remote project', err);
+    }
+  };
+
+  const loadProjectDetail = async (id: string): Promise<UIProjectRow | null> => {
+    try {
+      const fresh = await fetchProjectDetail(id);
+      setData((prev) => prev.map((p) => (p._id === id ? fresh : p)));
+      return fresh;
+    } catch (err) {
+      console.error('Failed to fetch project detail', err);
+      return null;
     }
   };
 
@@ -225,6 +237,7 @@ const PMODashboardApp: React.FC = () => {
               onAddManualProject={addManualProject}
               pmOverloadThreshold={pmOverloadThreshold}
               onRegisterExport={(fn) => { exportFnRef.current = fn; }}
+              onProjectDetailOpen={loadProjectDetail}
             />
           </div>
         )}

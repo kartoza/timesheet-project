@@ -1,4 +1,3 @@
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.scss';
 import reportWebVitals from './reportWebVitals';
@@ -10,10 +9,10 @@ const root = ReactDOM.createRoot(
 );
 
 root.render(
-  <React.StrictMode>
+  <>
     <CircularMenu />
     <PMODashboardApp />
-  </React.StrictMode>
+  </>
 );
 
 reportWebVitals();

@@ -144,6 +144,11 @@ export async function fetchProjects(): Promise<UIProjectRow[]> {
   return data.map(mapApiProject);
 }
 
+export async function fetchProjectDetail(id: string): Promise<UIProjectRow> {
+  const data = await apiFetch<ApiProject>(`/api/pmo/projects/${id}/`);
+  return mapApiProject(data);
+}
+
 export async function updateProject(id: string, field: string, value: string | number): Promise<void> {
   const body = mapFieldToBackend(field, value);
   await apiFetch(`/api/pmo/projects/${id}/`, {
