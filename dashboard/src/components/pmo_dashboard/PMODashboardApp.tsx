@@ -226,7 +226,10 @@ const PMODashboardApp: React.FC = () => {
               <div className='flex items-center gap-4'>
                 <h2 className='text-3xl font-bold text-slate-900'>Portfolio Overview</h2>
                 {isSynced === false ? (
-                  <div className='flex items-center gap-1.5 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200 text-sm font-bold mt-1'>
+                  <div
+                    className='flex items-center gap-1.5 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200 text-sm font-bold mt-1 cursor-default'
+                    title='Failed to fetch from ERPNext. Showing last known data from timesheet backend.'
+                  >
                     <AlertCircle size={16} />
                     <span>Cached data</span>
                   </div>
