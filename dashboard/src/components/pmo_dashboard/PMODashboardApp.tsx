@@ -24,6 +24,7 @@ const PMODashboardApp: React.FC = () => {
   const [data, setData] = useState<UIProjectRow[]>([]);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSynced, setIsSynced] = useState<boolean | null>(null);
   const [user] = useState<SessionUser | null>({ username: 'dev-bypass' });
   const [pmOverloadThreshold] = useState(4);
 
@@ -55,8 +56,9 @@ const PMODashboardApp: React.FC = () => {
     setIsLoading(true);
     setError('');
     try {
-      const projects = await fetchProjects();
+      const { projects, synced } = await fetchProjects();
       setData(projects);
+      setIsSynced(synced);
     } catch (err) {
       const message = err instanceof Error
         ? err.message
@@ -223,10 +225,17 @@ const PMODashboardApp: React.FC = () => {
             <div className='flex flex-wrap items-center justify-between gap-4 mb-8 print:hidden'>
               <div className='flex items-center gap-4'>
                 <h2 className='text-3xl font-bold text-slate-900'>Portfolio Overview</h2>
-                <div className='flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 text-sm font-bold mt-1'>
-                  <CheckCircle2 size={16} />
-                  <span>Synced with ERPNext</span>
-                </div>
+                {isSynced === false ? (
+                  <div className='flex items-center gap-1.5 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200 text-sm font-bold mt-1'>
+                    <AlertCircle size={16} />
+                    <span>Cached data</span>
+                  </div>
+                ) : (
+                  <div className='flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 text-sm font-bold mt-1'>
+                    <CheckCircle2 size={16} />
+                    <span>Synced with ERPNext</span>
+                  </div>
+                )}
               </div>
             </div>
 

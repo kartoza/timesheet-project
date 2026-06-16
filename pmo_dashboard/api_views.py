@@ -31,9 +31,19 @@ class ProjectListView(APIView):
 
     def get(self, request):
         t0 = time.perf_counter()
-        pull_projects_only_from_erp(request.user, filters='[["status", "=", "Open"]]')
+        erp_synced = True
+        try:
+            updated_projects = pull_projects_only_from_erp(
+                request.user,
+                filters='[["status", "=", "Open"]]',
+            )
+            Project.objects.filter(is_active=True).exclude(id__in=updated_projects).update(is_active=False)
+        except Exception:
+            erp_synced = False
+            logger.warning('ProjectListView: ERP sync failed, serving cached data')
+
         t1 = time.perf_counter()
-        logger.warning('pull_projects_only_from_erp took %.2fs', t1 - t0)
+        logger.warning('pull_projects_only_from_erp took %.2fs (synced=%s)', t1 - t0, erp_synced)
 
         projects = (
             Project.objects.filter(is_active=True)
@@ -45,7 +55,9 @@ class ProjectListView(APIView):
         t2 = time.perf_counter()
         logger.warning('ProjectListView total (sync + query) took %.2fs', t2 - t0)
 
-        return Response(ProjectSerializer(projects, many=True).data)
+        response = Response(ProjectSerializer(projects, many=True).data)
+        response['X-Sync-Status'] = 'live' if erp_synced else 'cached'
+        return response
 
 
 @extend_schema(

@@ -54,13 +54,16 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [activeView, setActiveView] = useState<'table' | 'gantt'>('table');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProjectForDetails, setSelectedProjectForDetails] = useState<UIProjectRow | null>(null);
+  const [detailSyncStatus, setDetailSyncStatus] = useState<'loading' | 'live' | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
   const handleViewDetails = (project: UIProjectRow) => {
     setSelectedProjectForDetails(project);
     if (onProjectDetailOpen) {
+      setDetailSyncStatus('loading');
       onProjectDetailOpen(project._id).then((fresh) => {
         if (fresh) setSelectedProjectForDetails(fresh);
+        setDetailSyncStatus('live');
       });
     }
   };
@@ -185,7 +188,8 @@ const Dashboard: React.FC<DashboardProps> = ({
     <div className='space-y-6'>
       <ProjectDetailsModal
         project={selectedProjectForDetails}
-        onClose={() => setSelectedProjectForDetails(null)}
+        detailSyncStatus={detailSyncStatus}
+        onClose={() => { setSelectedProjectForDetails(null); setDetailSyncStatus(null); }}
       />
       <AddProjectModal
         isOpen={isModalOpen}
