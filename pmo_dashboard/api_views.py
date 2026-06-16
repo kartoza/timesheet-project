@@ -34,7 +34,7 @@ class ProjectListView(APIView):
         erp_synced = True
         try:
             updated_projects = pull_projects_only_from_erp(
-                request.user,
+                None,
                 filters='[["status", "=", "Open"]]',
             )
             Project.objects.filter(is_active=True).exclude(id__in=updated_projects).update(is_active=False)
@@ -80,14 +80,14 @@ class ProjectDetailView(APIView):
         updated_projects = [project]
 
         pull_tasks_from_erp(
-            request.user,
+            None,
             updated_projects,
             filters=f'[["project", "=", "{name}"]]',
         )
         t1 = time.perf_counter()
         logger.warning('ProjectDetailView pull_tasks_from_erp took %.2fs', t1 - t0)
 
-        pull_project_members_from_erp(request.user, project_name=name)
+        pull_project_members_from_erp(None, project_name=name)
         t2 = time.perf_counter()
         logger.warning('ProjectDetailView pull_project_members_from_erp took %.2fs', t2 - t1)
 

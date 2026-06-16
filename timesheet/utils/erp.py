@@ -42,14 +42,17 @@ def get_auth_headers(user=None, erpnext_token=None):
     if user:
         oauth_token = get_valid_oauth_token(user)
         if oauth_token:
+            print(f'oauth_token: {oauth_token}')
             return {'Authorization': f'Bearer {oauth_token}'}
         else:
             user_token = user.profile.token
+            print(f'user_token: {user_token}')
             if user_token:
                 return {'Authorization': f'token {user_token}'}
 
     if not erpnext_token:
         erpnext_token = settings.ERPNEXT_TOKEN
+    print(f'erpnext_token: {erpnext_token}')
     return {'Authorization': f'token {erpnext_token}'}
 
 
@@ -500,10 +503,11 @@ def pull_projects_only_from_erp(user: get_user_model(), filters: str = '') -> li
                     'per_gross_margin': project.get('per_gross_margin'),
                 }
             )
-            UserProject.objects.get_or_create(
-                user=user,
-                project=_project
-            )
+            if user:
+                UserProject.objects.get_or_create(
+                    user=user,
+                    project=_project
+                )
             updated_projects.append(_project.id)
 
     return updated_projects
