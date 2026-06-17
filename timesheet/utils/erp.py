@@ -50,7 +50,6 @@ def get_auth_headers(user=None, erpnext_token=None):
 
     if not erpnext_token:
         erpnext_token = settings.ERPNEXT_TOKEN
-    print(f'erpnext_token: {erpnext_token}')
     return {'Authorization': f'token {erpnext_token}'}
 
 
