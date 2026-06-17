@@ -45,7 +45,6 @@ def get_auth_headers(user=None, erpnext_token=None):
             return {'Authorization': f'Bearer {oauth_token}'}
         else:
             user_token = user.profile.token
-            print(f'user_token: {user_token}')
             if user_token:
                 return {'Authorization': f'token {user_token}'}
 
