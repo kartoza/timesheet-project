@@ -75,7 +75,20 @@ class ProjectSyncView(APIView):
             logger.warning('ProjectSyncView: ERP sync failed')
             return Response({'detail': 'ERP sync failed.'}, status=status.HTTP_502_BAD_GATEWAY)
 
-        logger.warning('ProjectSyncView took %.2fs', time.perf_counter() - t0)
+        t1 = time.perf_counter()
+        logger.warning('ProjectSyncView pull_projects_only_from_erp took %.2fs', t1 - t0)
+
+        active_projects = list(Project.objects.filter(is_active=True))
+
+        pull_tasks_from_erp(None, active_projects)
+        t2 = time.perf_counter()
+        logger.warning('ProjectSyncView pull_tasks_from_erp took %.2fs', t2 - t1)
+
+        pull_project_members_from_erp(None, project_names=[p.name for p in active_projects])
+        t3 = time.perf_counter()
+        logger.warning('ProjectSyncView pull_project_members_from_erp took %.2fs', t3 - t2)
+
+        logger.warning('ProjectSyncView total took %.2fs', t3 - t0)
         return Response(ProjectSerializer(_project_qs(), many=True).data)
 
 
@@ -118,7 +131,7 @@ class ProjectDetailSyncView(APIView):
         t1 = time.perf_counter()
         logger.warning('ProjectDetailSyncView pull_tasks_from_erp took %.2fs', t1 - t0)
 
-        pull_project_members_from_erp(None, project_name=name)
+        pull_project_members_from_erp(None, project_names=[name])
         t2 = time.perf_counter()
         logger.warning('ProjectDetailSyncView pull_project_members_from_erp took %.2fs', t2 - t1)
 
