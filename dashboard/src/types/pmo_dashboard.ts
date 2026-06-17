@@ -37,6 +37,7 @@ export type ApiProject = {
   actual_progress: number | null;
   team_members?: TeamMember[];
   subtasks?: Subtask[];
+  last_synced_at?: string | null;
 };
 
 export type UISubTask = {
@@ -73,6 +74,7 @@ export type UIProjectRow = {
   _statusKey?: string;
   _statusReasons?: string[];
   _riskReason?: RiskReason[];
+  _lastSyncedAt?: string | null;
 };
 
 export type UIProjectKey = UIKeyValue;

@@ -341,54 +341,46 @@ def _user_by_email(email: str):
 
 
 @retry_operation
-def pull_project_members_from_erp(user: get_user_model(), project_name: str = None):
+def pull_project_members_from_erp(user: get_user_model(), project_names: list = None):
     """Sync ERPNext project team members into the local ProjectMember model.
 
-    If project_name is given, syncs only that project (1 ERP call, no stale detection).
-    If project_name is None (default), syncs all projects in parallel and removes stale ones.
+    If project_names is given, syncs only those projects in parallel (no stale detection).
+    If project_names is None (default), syncs all projects in parallel and removes stale ones.
     """
-    if project_name is not None:
-        try:
-            project = Project.objects.get(name=project_name)
-        except Project.DoesNotExist:
-            return
-        projects = [project]
-        detail = get_erp_project_detail(project_name, user=user)
-        project_members_map = {
-            project_name: {
-                'members': detail.get('project_team_members', []),
-                'project_lead': detail.get('project_lead', '').lower(),
-            }
-        }
+    is_subset = project_names is not None
+
+    if is_subset:
+        projects = list(Project.objects.filter(name__in=project_names))
     else:
         projects = list(Project.objects.all())
-        if not projects:
-            return
 
-        project_members_map = {}
+    if not projects:
+        return
 
-        # Unfortunately, we cannot fetch all project members at once.
-        # Fetch each project individually in parallel to get project_team_members
-        def fetch_members(p_name):
-            detail = get_erp_project_detail(p_name, user=user)
-            return (
-                p_name,
-                detail.get('project_team_members', []),
-                detail.get('project_lead', ''),
-                bool(detail),
-            )
+    project_members_map = {}
+    stale_project_names = []
 
-        stale_project_names = []
-        with ThreadPoolExecutor(max_workers=10) as executor:
-            futures = {executor.submit(fetch_members, p.name): p.name for p in projects}
-            for future in as_completed(futures):
-                name, members, project_lead_email, found = future.result()
-                if not found:
-                    stale_project_names.append(name)
-                    continue
-                project_members_map[name] = {'members': members, 'project_lead': project_lead_email.lower()}
+    # Unfortunately, we cannot fetch all project members at once.
+    # Fetch each project individually in parallel to get project_team_members
+    def fetch_members(p_name):
+        detail = get_erp_project_detail(p_name, user=user)
+        return (
+            p_name,
+            detail.get('project_team_members', []),
+            detail.get('project_lead', ''),
+            bool(detail),
+        )
 
-    if project_name is None and stale_project_names:
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(fetch_members, p.name): p.name for p in projects}
+        for future in as_completed(futures):
+            name, members, project_lead_email, found = future.result()
+            if not found and not is_subset:
+                stale_project_names.append(name)
+                continue
+            project_members_map[name] = {'members': members, 'project_lead': project_lead_email.lower()}
+
+    if not is_subset and stale_project_names:
         stale_with_unsubmitted = Project.objects.filter(
             name__in=stale_project_names,
             timelog__submitted=False

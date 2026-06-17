@@ -52,6 +52,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     total_costing = serializers.FloatField(source='total_costing_amount', allow_null=True)
     team_members = serializers.SerializerMethodField()
     subtasks = serializers.SerializerMethodField()
+    last_synced_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Project
@@ -63,7 +64,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             'actual_progress', 'estimated_costing', 'total_sales_amount',
             'total_costing', 'total_billable_amount', 'total_billed_amount',
             'gross_margin', 'per_gross_margin',
-            'team_members', 'subtasks',
+            'team_members', 'subtasks', 'last_synced_at',
         ]
 
     @extend_schema_field(OpenApiTypes.STR)
