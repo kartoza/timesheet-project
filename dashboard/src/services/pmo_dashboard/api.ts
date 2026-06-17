@@ -41,6 +41,7 @@ const UI_PROJECT_MAPPERS: Record<keyof UIProjectRow, (project: ApiProject) => UI
   _statusKey: (project) => project.status,
   _statusReasons: (project) => project.status_reasons || [],
   _riskReason: () => undefined,
+  _lastSyncedAt: (project) => project.last_synced_at ?? null,
 };
 
 function getCookie(name: string): string {
@@ -139,23 +140,23 @@ async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
   return response.json();
 }
 
-export async function fetchProjects(): Promise<{ projects: UIProjectRow[]; synced: boolean }> {
-  const response = await fetch('/api/pmo/projects/', { credentials: 'same-origin' });
-  if (!response.ok) {
-    let message = `Request failed (${response.status})`;
-    try {
-      const json = await response.json();
-      if (json?.detail) message = json.detail;
-    } catch (_error) {}
-    throw new Error(message);
-  }
-  const data: ApiProject[] = await response.json();
-  const synced = response.headers.get('X-Sync-Status') === 'live';
-  return { projects: data.map(mapApiProject), synced };
+export async function fetchProjects(): Promise<UIProjectRow[]> {
+  const data = await apiFetch<ApiProject[]>('/api/pmo/projects/');
+  return data.map(mapApiProject);
 }
 
 export async function fetchProjectDetail(id: string): Promise<UIProjectRow> {
   const data = await apiFetch<ApiProject>(`/api/pmo/projects/${id}/`);
+  return mapApiProject(data);
+}
+
+export async function syncProjects(): Promise<UIProjectRow[]> {
+  const data = await apiFetch<ApiProject[]>('/api/pmo/projects/sync/', { method: 'POST' });
+  return data.map(mapApiProject);
+}
+
+export async function syncProjectDetail(id: string): Promise<UIProjectRow> {
+  const data = await apiFetch<ApiProject>(`/api/pmo/projects/${id}/sync/`, { method: 'POST' });
   return mapApiProject(data);
 }
 

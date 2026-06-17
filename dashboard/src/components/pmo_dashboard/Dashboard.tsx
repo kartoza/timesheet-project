@@ -58,14 +58,17 @@ const Dashboard: React.FC<DashboardProps> = ({
   const printRef = useRef<HTMLDivElement>(null);
 
   const handleViewDetails = (project: UIProjectRow) => {
+    setDetailSyncStatus(null);
     setSelectedProjectForDetails(project);
-    if (onProjectDetailOpen) {
-      setDetailSyncStatus('loading');
-      onProjectDetailOpen(project._id).then((fresh) => {
-        if (fresh) setSelectedProjectForDetails(fresh);
-        setDetailSyncStatus('live');
-      });
-    }
+  };
+
+  const handleRefreshProjectDetail = () => {
+    if (!selectedProjectForDetails || !onProjectDetailOpen) return;
+    setDetailSyncStatus('loading');
+    onProjectDetailOpen(selectedProjectForDetails._id).then((fresh) => {
+      if (fresh) setSelectedProjectForDetails(fresh);
+      setDetailSyncStatus('live');
+    });
   };
 
   const handleExportPDF = React.useCallback(async () => {
@@ -190,6 +193,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         project={selectedProjectForDetails}
         detailSyncStatus={detailSyncStatus}
         onClose={() => { setSelectedProjectForDetails(null); setDetailSyncStatus(null); }}
+        onRefresh={onProjectDetailOpen ? handleRefreshProjectDetail : undefined}
       />
       <AddProjectModal
         isOpen={isModalOpen}
