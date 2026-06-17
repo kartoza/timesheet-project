@@ -33,6 +33,7 @@ type DashboardProps = {
   onAddManualProject: (projectData: CreateProjectPayload) => Promise<void>;
   pmOverloadThreshold: number;
   onRegisterExport?: (fn: () => Promise<void>) => void;
+  onProjectDetailOpen?: (id: string) => Promise<UIProjectRow | null>;
 };
 
 const Dashboard: React.FC<DashboardProps> = ({
@@ -42,17 +43,33 @@ const Dashboard: React.FC<DashboardProps> = ({
   onAddManualProject,
   pmOverloadThreshold,
   onRegisterExport,
+  onProjectDetailOpen,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilters, setSelectedFilters] = useState<Record<FilterFieldKey, string[]>>({
-    projectType: [],
+    projectType: ['External'],
     status: [],
     manager: [],
   });
   const [activeView, setActiveView] = useState<'table' | 'gantt'>('table');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProjectForDetails, setSelectedProjectForDetails] = useState<UIProjectRow | null>(null);
+  const [detailSyncStatus, setDetailSyncStatus] = useState<'loading' | 'live' | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
+
+  const handleViewDetails = (project: UIProjectRow) => {
+    setDetailSyncStatus(null);
+    setSelectedProjectForDetails(project);
+  };
+
+  const handleRefreshProjectDetail = () => {
+    if (!selectedProjectForDetails || !onProjectDetailOpen) return;
+    setDetailSyncStatus('loading');
+    onProjectDetailOpen(selectedProjectForDetails._id).then((fresh) => {
+      if (fresh) setSelectedProjectForDetails(fresh);
+      setDetailSyncStatus('live');
+    });
+  };
 
   const handleExportPDF = React.useCallback(async () => {
     if (!printRef.current) return;
@@ -174,7 +191,9 @@ const Dashboard: React.FC<DashboardProps> = ({
     <div className='space-y-6'>
       <ProjectDetailsModal
         project={selectedProjectForDetails}
-        onClose={() => setSelectedProjectForDetails(null)}
+        detailSyncStatus={detailSyncStatus}
+        onClose={() => { setSelectedProjectForDetails(null); setDetailSyncStatus(null); }}
+        onRefresh={onProjectDetailOpen ? handleRefreshProjectDetail : undefined}
       />
       <AddProjectModal
         isOpen={isModalOpen}
@@ -231,7 +250,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       <AtRiskPanel
         data={filteredData}
-        onViewDetails={(project) => setSelectedProjectForDetails(project)}
+        onViewDetails={(project) => handleViewDetails(project)}
       />
 
       {filteredData.length === 0 ? (
@@ -272,13 +291,13 @@ const Dashboard: React.FC<DashboardProps> = ({
                 onUpdateDataRow={onUpdateDataRow}
                 onDeleteDataRow={onDeleteDataRow}
                 onAddProject={() => setIsModalOpen(true)}
-                onViewDetails={(project) => setSelectedProjectForDetails(project)}
+                onViewDetails={(project) => handleViewDetails(project)}
               />
             ) : (
               <div className='glass-card mb-8 p-1'>
                 <GanttView
                   data={filteredData}
-                  onViewDetails={(project) => setSelectedProjectForDetails(project)}
+                  onViewDetails={(project) => handleViewDetails(project)}
                 />
               </div>
             )}

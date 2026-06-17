@@ -18,6 +18,11 @@ class Project(models.Model):
         blank=True
     )
 
+    last_synced_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
     name = models.CharField(
         help_text='Name of the project',
         max_length=512,

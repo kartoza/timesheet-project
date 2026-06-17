@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, Calendar, Clock, ListChecks, User, Users, X } from 'lucide-react';
+import { Building2, Calendar, CheckCircle2, Clock, ListChecks, Loader, RefreshCw, User, Users, X } from 'lucide-react';
 import { UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { UIProjectRow } from '../../types/pmo_dashboard';
 import { formatManagerName } from '../../utils/pmo_dashboard';
@@ -7,9 +7,11 @@ import { formatManagerName } from '../../utils/pmo_dashboard';
 type ProjectDetailsModalProps = {
   project: UIProjectRow | null;
   onClose: () => void;
+  detailSyncStatus?: 'loading' | 'live' | null;
+  onRefresh?: () => void;
 };
 
-const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onClose }) => {
+const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onClose, detailSyncStatus, onRefresh }) => {
   if (!project) return null;
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('en-ZA', {
@@ -55,16 +57,43 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onCl
               <span className='text-xs font-bold px-2 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-md'>
                 {project.Status}
               </span>
+              {detailSyncStatus === 'loading' && (
+                <span className='text-xs font-bold px-2 py-1 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 rounded-md flex items-center gap-1 animate-pulse'>
+                  <Loader size={11} className='animate-spin' /> Refreshing...
+                </span>
+              )}
+              {detailSyncStatus === 'live' && (
+                <span className='text-xs font-bold px-2 py-1 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 rounded-md flex items-center gap-1'>
+                  <CheckCircle2 size={11} /> Live
+                </span>
+              )}
             </div>
             <h2 className='text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight'>{project.Project}</h2>
+            <p className='text-xs text-slate-400 dark:text-slate-500 mt-1'>
+              {project._lastSyncedAt
+                ? `Last synced: ${new Date(project._lastSyncedAt).toLocaleString()}`
+                : 'Never synced'}
+            </p>
           </div>
-          <button
-            onClick={onClose}
-            className='p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors shrink-0'
-            title='Close'
-          >
-            <X size={24} />
-          </button>
+          <div className='flex items-center gap-2 shrink-0'>
+            {onRefresh && (
+              <button
+                onClick={onRefresh}
+                disabled={detailSyncStatus === 'loading'}
+                className='p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                title='Refresh from ERPNext'
+              >
+                <RefreshCw size={18} className={detailSyncStatus === 'loading' ? 'animate-spin' : ''} />
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className='p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors'
+              title='Close'
+            >
+              <X size={24} />
+            </button>
+          </div>
         </div>
 
         <div className='flex-1 overflow-y-auto p-6 space-y-8'>

@@ -41,6 +41,7 @@ const UI_PROJECT_MAPPERS: Record<keyof UIProjectRow, (project: ApiProject) => UI
   _statusKey: (project) => project.status,
   _statusReasons: (project) => project.status_reasons || [],
   _riskReason: () => undefined,
+  _lastSyncedAt: (project) => project.last_synced_at ?? null,
 };
 
 function getCookie(name: string): string {
@@ -142,6 +143,21 @@ async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
 export async function fetchProjects(): Promise<UIProjectRow[]> {
   const data = await apiFetch<ApiProject[]>('/api/pmo/projects/');
   return data.map(mapApiProject);
+}
+
+export async function fetchProjectDetail(id: string): Promise<UIProjectRow> {
+  const data = await apiFetch<ApiProject>(`/api/pmo/projects/${id}/`);
+  return mapApiProject(data);
+}
+
+export async function syncProjects(): Promise<UIProjectRow[]> {
+  const data = await apiFetch<ApiProject[]>('/api/pmo/projects/sync/', { method: 'POST' });
+  return data.map(mapApiProject);
+}
+
+export async function syncProjectDetail(id: string): Promise<UIProjectRow> {
+  const data = await apiFetch<ApiProject>(`/api/pmo/projects/${id}/sync/`, { method: 'POST' });
+  return mapApiProject(data);
 }
 
 export async function updateProject(id: string, field: string, value: string | number): Promise<void> {

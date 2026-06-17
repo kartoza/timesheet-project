@@ -1,8 +1,9 @@
-from datetime import timedelta
 from copy import deepcopy
+from datetime import timedelta
+from unittest.mock import patch
 
-from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.test import TestCase
 from django.utils import timezone
 from preferences import preferences
@@ -96,6 +97,17 @@ class TestProjectListView(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), [])
+
+    def test_list_does_not_call_erp(self):
+        with patch('pmo_dashboard.api_views.pull_projects_only_from_erp') as mock:
+            self.client.get(self.url)
+            mock.assert_not_called()
+
+    def test_last_synced_at_included_in_response(self):
+        Project.objects.create(name='Synced', is_active=True)
+        p = self.client.get(self.url).json()[0]
+        self.assertIn('last_synced_at', p)
+        self.assertIsNone(p['last_synced_at'])
 
     def test_project_fields_serialized_correctly(self):
         bu = BusinessUnit.objects.create(name='Tech')
@@ -381,3 +393,155 @@ class TestProjectListView(TestCase):
         data = {d['id']: d for d in self.client.get(self.url).json()}
         self.assertEqual(data[project.id]['status'], 'warning')
         self.assertEqual(data[project.id]['status_label'], 'Warning')
+
+
+class PMOTestBase(TestCase):
+    """Shared setUp for PMO endpoint tests."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.pmo_group, _ = Group.objects.get_or_create(name='PMO')
+        self.user = User.objects.create_user(username='pmo_base', password='pass')
+        self.user.groups.add(self.pmo_group)
+        self.client.login(username='pmo_base', password='pass')
+        self.prefs = preferences.TimesheetPreferences
+        self.prefs.pmo_allowed_groups.add(self.pmo_group)
+
+    def _outsider_client(self):
+        outsider = User.objects.create_user(
+            username=f'outsider_{id(self)}', password='pass'
+        )
+        client = APIClient()
+        client.login(username=outsider.username, password='pass')
+        return client
+
+
+class TestProjectDetailView(PMOTestBase):
+    def setUp(self):
+        super().setUp()
+        self.project = Project.objects.create(name='Detail Project', is_active=True)
+        self.url = reverse('pmo-project-detail', kwargs={'pk': self.project.pk})
+
+    def test_unauthenticated_returns_401(self):
+        self.assertEqual(APIClient().get(self.url).status_code, 401)
+
+    def test_non_pmo_user_returns_403(self):
+        self.assertEqual(self._outsider_client().get(self.url).status_code, 403)
+
+    def test_nonexistent_project_returns_404(self):
+        url = reverse('pmo-project-detail', kwargs={'pk': 99999})
+        self.assertEqual(self.client.get(url).status_code, 404)
+
+    def test_returns_project_data(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['name'], 'Detail Project')
+
+    def test_last_synced_at_null_when_not_set(self):
+        self.assertIsNone(self.client.get(self.url).json()['last_synced_at'])
+
+    def test_last_synced_at_returned_when_set(self):
+        self.project.last_synced_at = timezone.now()
+        self.project.save()
+        self.assertIsNotNone(self.client.get(self.url).json()['last_synced_at'])
+
+    def test_does_not_call_erp(self):
+        with patch('pmo_dashboard.api_views.pull_tasks_from_erp') as mock_tasks, \
+             patch('pmo_dashboard.api_views.pull_project_members_from_erp') as mock_members:
+            self.client.get(self.url)
+            mock_tasks.assert_not_called()
+            mock_members.assert_not_called()
+
+
+class TestProjectSyncView(PMOTestBase):
+    def setUp(self):
+        super().setUp()
+        self.url = reverse('pmo-project-sync')
+        self.project = Project.objects.create(name='Sync Project', is_active=True)
+
+    def test_unauthenticated_returns_401(self):
+        self.assertEqual(APIClient().post(self.url).status_code, 401)
+
+    def test_non_pmo_user_returns_403(self):
+        self.assertEqual(self._outsider_client().post(self.url).status_code, 403)
+
+    def test_calls_all_erp_functions(self):
+        with patch('pmo_dashboard.api_views.pull_projects_only_from_erp', return_value=[self.project.id]) as mock_p, \
+             patch('pmo_dashboard.api_views.pull_tasks_from_erp') as mock_t, \
+             patch('pmo_dashboard.api_views.pull_project_members_from_erp') as mock_m:
+            response = self.client.post(self.url)
+            self.assertEqual(response.status_code, 200)
+            mock_p.assert_called_once()
+            mock_t.assert_called_once()
+            mock_m.assert_called_once()
+
+    def test_sets_last_synced_at_on_updated_projects(self):
+        self.assertIsNone(self.project.last_synced_at)
+        with patch('pmo_dashboard.api_views.pull_projects_only_from_erp', return_value=[self.project.id]), \
+             patch('pmo_dashboard.api_views.pull_tasks_from_erp'), \
+             patch('pmo_dashboard.api_views.pull_project_members_from_erp'):
+            self.client.post(self.url)
+        self.project.refresh_from_db()
+        self.assertIsNotNone(self.project.last_synced_at)
+
+    def test_deactivates_stale_projects(self):
+        stale = Project.objects.create(name='Stale', is_active=True)
+        with patch('pmo_dashboard.api_views.pull_projects_only_from_erp', return_value=[self.project.id]), \
+             patch('pmo_dashboard.api_views.pull_tasks_from_erp'), \
+             patch('pmo_dashboard.api_views.pull_project_members_from_erp'):
+            self.client.post(self.url)
+        stale.refresh_from_db()
+        self.assertFalse(stale.is_active)
+
+    def test_returns_502_when_erp_fails(self):
+        with patch('pmo_dashboard.api_views.pull_projects_only_from_erp', side_effect=Exception('ERP down')):
+            response = self.client.post(self.url)
+            self.assertEqual(response.status_code, 502)
+
+    def test_returns_updated_project_list(self):
+        with patch('pmo_dashboard.api_views.pull_projects_only_from_erp', return_value=[self.project.id]), \
+             patch('pmo_dashboard.api_views.pull_tasks_from_erp'), \
+             patch('pmo_dashboard.api_views.pull_project_members_from_erp'):
+            data = self.client.post(self.url).json()
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]['name'], 'Sync Project')
+
+
+class TestProjectDetailSyncView(PMOTestBase):
+    def setUp(self):
+        super().setUp()
+        self.project = Project.objects.create(name='Detail Sync Project', is_active=True)
+        self.url = reverse('pmo-project-detail-sync', kwargs={'pk': self.project.pk})
+
+    def test_unauthenticated_returns_401(self):
+        self.assertEqual(APIClient().post(self.url).status_code, 401)
+
+    def test_non_pmo_user_returns_403(self):
+        self.assertEqual(self._outsider_client().post(self.url).status_code, 403)
+
+    def test_nonexistent_project_returns_404(self):
+        url = reverse('pmo-project-detail-sync', kwargs={'pk': 99999})
+        self.assertEqual(self.client.post(url).status_code, 404)
+
+    def test_calls_erp_functions(self):
+        with patch('pmo_dashboard.api_views.pull_tasks_from_erp') as mock_t, \
+             patch('pmo_dashboard.api_views.pull_project_members_from_erp') as mock_m:
+            response = self.client.post(self.url)
+            self.assertEqual(response.status_code, 200)
+            mock_t.assert_called_once()
+            mock_m.assert_called_once()
+
+    def test_sets_last_synced_at(self):
+        self.assertIsNone(self.project.last_synced_at)
+        with patch('pmo_dashboard.api_views.pull_tasks_from_erp'), \
+             patch('pmo_dashboard.api_views.pull_project_members_from_erp'):
+            self.client.post(self.url)
+        self.project.refresh_from_db()
+        self.assertIsNotNone(self.project.last_synced_at)
+
+    def test_returns_updated_project_data(self):
+        with patch('pmo_dashboard.api_views.pull_tasks_from_erp'), \
+             patch('pmo_dashboard.api_views.pull_project_members_from_erp'):
+            response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['name'], 'Detail Sync Project')
