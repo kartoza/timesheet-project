@@ -8,7 +8,7 @@ test.describe('Authentication & Access Control', () => {
 
   test('Unauthenticated user is redirected to login', async ({ page }) => {
     // 1. Open a fresh browser session (no cookies) and navigate to /pmo-dashboard/
-    await page.goto('/pmo-dashboard/');
+    await page.goto('http://localhost:8000/pmo-dashboard/');
 
     // Expect: The browser is redirected to the login page (URL contains /accounts/login/)
     await expect(page).toHaveURL(/accounts\/login/);
