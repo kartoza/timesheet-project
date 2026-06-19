@@ -42,7 +42,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
         <h3 className='text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2'>
           <PencilLine size={18} className='text-indigo-600' /> Kartoza Running Projects
         </h3>
-        <p className='text-sm font-medium text-slate-500'>Live-syncs with Dashboard</p>
+        <p className='text-sm font-medium text-slate-500 dark:text-slate-400'>Live-syncs with Dashboard</p>
       </div>
 
       <div className='w-full max-h-[65vh] overflow-y-auto pb-2 relative print:max-h-none print:overflow-visible print:border-none'>
@@ -60,13 +60,13 @@ const EditableTable: React.FC<EditableTableProps> = ({
               <th className='px-4 py-3 w-[6%] text-right'>Progress</th>
             </tr>
           </thead>
-          <tbody className='divide-y divide-slate-100'>
+          <tbody className='divide-y divide-slate-100 dark:divide-slate-800'>
             {data.map((row) => (
-              <tr key={row._id} className='hover:bg-indigo-50/30 transition-colors group'>
-                <td className='px-4 py-3 align-top font-medium text-slate-800 text-sm leading-relaxed'>
+              <tr key={row._id} className='hover:bg-indigo-50/30 dark:hover:bg-slate-800/50 transition-colors group'>
+                <td className='px-4 py-3 align-top font-medium text-slate-800 dark:text-slate-100 text-sm leading-relaxed'>
                   <button
                     onClick={() => onViewDetails(row)}
-                    className='text-left w-full hover:text-indigo-600 transition-colors font-bold underline decoration-indigo-200 underline-offset-4 focus:outline-none'
+                    className='text-left w-full hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors font-bold underline decoration-indigo-200 dark:decoration-indigo-700 underline-offset-4 focus:outline-none'
                     title='View Project Summary'
                   >
                     {row.Project}
@@ -77,7 +77,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
                     {formatManagerName(row[UI_PROJECT_KEYS.PROJECT_MANAGER]) || '—'}
                   </div>
                 </td>
-                <td className='px-4 py-3 align-top bg-white/50 dark:bg-slate-800/50 group-hover:bg-transparent'>
+                <td className='px-4 py-3 align-top'>
                   <input
                     type='date'
                     value={row[UI_PROJECT_KEYS.DUE_DATE] || ''}
@@ -103,7 +103,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
                 <td className='px-4 py-3 align-top text-right text-sm text-slate-600 dark:text-slate-300'>
                   {row[UI_PROJECT_KEYS.CONSUMED_TIME].toFixed(2)}
                 </td>
-                <td className='px-4 py-3 align-top bg-white/50 dark:bg-slate-800/50 group-hover:bg-transparent'>
+                <td className='px-4 py-3 align-top'>
                   <input
                     type='text'
                     value={formatNumberInt(row[UI_PROJECT_KEYS.TOTAL_SALES_AMOUNT] || 0)}
@@ -114,7 +114,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
                     className='w-full bg-transparent border-b border-transparent focus:border-emerald-400 focus:bg-white dark:focus:bg-slate-700 outline-none text-sm text-emerald-600 font-medium transition-all text-right'
                   />
                 </td>
-                <td className='px-4 py-3 align-top bg-white/50 dark:bg-slate-800/50 group-hover:bg-transparent'>
+                <td className='px-4 py-3 align-top'>
                   <input
                     type='text'
                     value={formatNumberInt(row[UI_PROJECT_KEYS.TOTAL_COSTING] || 0)}

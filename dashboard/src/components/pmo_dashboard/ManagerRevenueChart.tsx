@@ -57,7 +57,7 @@ const CustomTooltip = ({ active, payload }: any) => {
 
     return (
       <div className='bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm p-4 border border-slate-100 dark:border-slate-700 shadow-xl rounded-xl'>
-        <p className='font-bold text-slate-800 mb-1'>{payload[0].payload.name}</p>
+        <p className='font-bold text-slate-800 dark:text-slate-100 mb-1'>{payload[0].payload.name}</p>
         <p className='text-indigo-600 font-semibold'>{formatCurrency(payload[0].value)} Revenue</p>
       </div>
     );
