@@ -93,21 +93,6 @@ const makeVerticalLabel = (fmt: (v: number) => string) =>
     );
   };
 
-const makeStaggerLabel = (fmt: (v: number) => string) =>
-  ({ x, y, width, value, index }: any) => {
-    if (value == null || value === 0) return null;
-    const cx = x + width / 2;
-    const textY = y - (index % 2 === 0 ? 10 : 26);
-    return (
-      <g>
-        <line x1={cx} y1={textY + 2} x2={cx} y2={y - 2}
-          stroke='#cbd5e1' strokeWidth={0.8} strokeDasharray='2,2' />
-        <text x={cx} y={textY} textAnchor='middle' dominantBaseline='auto'
-          fontSize={6} fontWeight={600} fill='#64748b'>{fmt(Number(value))}</text>
-      </g>
-    );
-  };
-
 const MAX_AT_RISK_CARDS = 50;
 
 type PrintViewProps = { filteredData: UIProjectRow[] };
@@ -185,7 +170,16 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
           consumed = d[UI_PROJECT_KEYS.CONSUMED_TIME] || 0;
           billable = Math.floor(consumed * 0.8);
         }
-        return { name: trunc(d.Project || 'Unknown', 16), billable, nonBillable: Math.max(0, consumed - billable), total: consumed };
+        const nonBillable = Math.max(0, consumed - billable);
+        const showSplitLabels = consumed >= 100;
+        return {
+          name: trunc(d.Project || 'Unknown', 16),
+          billable,
+          nonBillable,
+          total: consumed,
+          billableLabel: showSplitLabels ? `B-${fmtHrs(billable)}` : '',
+          nonBillableLabel: showSplitLabels ? `NB-${fmtHrs(nonBillable)}` : '',
+        };
       })
       .sort((a, b) => b.total - a.total)
       .slice(0, 15),
@@ -427,13 +421,14 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
           <div style={sectionTitleStyle}>Billable Efficiency <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(top 15 by consumed hours)</span></div>
           <div style={{ height: CHART_H }}>
             <ResponsiveContainer width='100%' height='100%'>
-              <BarChart data={billableData} margin={{ top: 34, right: 4, left: 0, bottom: 4 }}>
+              <BarChart data={billableData} margin={{ top: 48, right: 4, left: 0, bottom: 4 }}>
                 <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='#e2e8f0' />
                 <XAxis dataKey='name' tick={{ fill: '#64748b', fontSize: 7 }} interval={0} angle={-35} textAnchor='end' height={56} />
                 <YAxis tick={{ fill: '#94a3b8', fontSize: 7 }} width={32} />
                 <Bar dataKey='billable' name='Billable' stackId='a' fill='#10b981' maxBarSize={20} />
                 <Bar dataKey='nonBillable' name='Non-Billable' stackId='a' fill='#f43f5e' radius={[2, 2, 0, 0]} maxBarSize={20}>
-                  <LabelList dataKey='total' content={makeStaggerLabel(fmtHrs)} />
+                  <LabelList dataKey='billableLabel' position='top' offset={18} style={{ fontSize: 6, fill: '#047857', fontWeight: 700 }} />
+                  <LabelList dataKey='nonBillableLabel' position='top' offset={8} style={{ fontSize: 6, fill: '#be123c', fontWeight: 700 }} />
                 </Bar>
                 <Legend content={renderPrintLegend} />
               </BarChart>
