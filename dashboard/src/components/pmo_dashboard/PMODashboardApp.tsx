@@ -118,7 +118,6 @@ const PMODashboardApp: React.FC = () => {
     }
   };
 
-
   const loadProjectDetail = async (id: string): Promise<UIProjectRow | null> => {
     try {
       const fresh = await syncProjectDetail(id);
@@ -129,7 +128,6 @@ const PMODashboardApp: React.FC = () => {
       return null;
     }
   };
-
 
   const exportFnRef = useRef<(() => Promise<void>) | null>(null);
   const [isExporting, setIsExporting] = useState(false);

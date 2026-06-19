@@ -77,7 +77,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
                     {formatManagerName(row[UI_PROJECT_KEYS.PROJECT_MANAGER]) || '—'}
                   </div>
                 </td>
-                <td className='px-4 py-3 align-top bg-white/50 dark:bg-slate-800/50 group-hover:bg-transparent'>
+                <td className='px-4 py-3 align-top'>
                   <input
                     type='date'
                     value={row[UI_PROJECT_KEYS.DUE_DATE] || ''}
@@ -103,7 +103,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
                 <td className='px-4 py-3 align-top text-right text-sm text-slate-600 dark:text-slate-300'>
                   {row[UI_PROJECT_KEYS.CONSUMED_TIME].toFixed(2)}
                 </td>
-                <td className='px-4 py-3 align-top bg-white/50 dark:bg-slate-800/50 group-hover:bg-transparent'>
+                <td className='px-4 py-3 align-top'>
                   <input
                     type='text'
                     value={formatNumberInt(row[UI_PROJECT_KEYS.TOTAL_SALES_AMOUNT] || 0)}
@@ -114,7 +114,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
                     className='w-full bg-transparent border-b border-transparent focus:border-emerald-400 focus:bg-white dark:focus:bg-slate-700 outline-none text-sm text-emerald-600 font-medium transition-all text-right'
                   />
                 </td>
-                <td className='px-4 py-3 align-top bg-white/50 dark:bg-slate-800/50 group-hover:bg-transparent'>
+                <td className='px-4 py-3 align-top'>
                   <input
                     type='text'
                     value={formatNumberInt(row[UI_PROJECT_KEYS.TOTAL_COSTING] || 0)}

@@ -55,6 +55,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProjectForDetails, setSelectedProjectForDetails] = useState<UIProjectRow | null>(null);
   const [detailSyncStatus, setDetailSyncStatus] = useState<'loading' | 'live' | null>(null);
+  const [isRenderingPrintView, setIsRenderingPrintView] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   const handleViewDetails = (project: UIProjectRow) => {
@@ -72,8 +73,19 @@ const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const handleExportPDF = React.useCallback(async () => {
-    if (!printRef.current) return;
-    await exportDashboardToPDF(printRef.current);
+    const waitForRender = async () => {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    };
+
+    setIsRenderingPrintView(true);
+    try {
+      await waitForRender();
+      if (!printRef.current) return;
+      await exportDashboardToPDF(printRef.current);
+    } finally {
+      setIsRenderingPrintView(false);
+    }
   }, []);
 
   React.useEffect(() => {
@@ -347,7 +359,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               <BillableHoursChart data={filteredData} />
             </ChartCard>
           </div>
-          <PrintView ref={printRef} filteredData={filteredData} />
+          {isRenderingPrintView && <PrintView ref={printRef} filteredData={filteredData} />}
         </>
       )}
     </div>
