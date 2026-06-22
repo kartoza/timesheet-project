@@ -179,7 +179,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     onAddManualProject(projectData);
     setSearchTerm('');
     setSelectedFilters({
-      projectType: [],
+      projectType: ['External'],
       status: [],
       manager: [],
     });
