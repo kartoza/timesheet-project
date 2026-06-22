@@ -3,7 +3,6 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
 from django.test import TestCase
 from django.utils import timezone
 from preferences import preferences
@@ -13,6 +12,7 @@ from rest_framework.test import APIClient
 from pmo_dashboard.models import BusinessUnit
 from timesheet.models.preferences import get_default_pmo_status_config
 from timesheet.models import Project, Task
+from timesheet.models.profile import ProfileRole
 from timesheet.models.project_member import ProjectMember
 
 User = get_user_model()
@@ -22,15 +22,14 @@ class TestProjectListView(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(username='pmo_user', password='pass')
-        pmo_group, _ = Group.objects.get_or_create(name='PMO')
-        self.user.groups.add(pmo_group)
+        self.user.profile.role = ProfileRole.PROJECT_MANAGER
+        self.user.profile.save()
         self.client.login(username='pmo_user', password='pass')
         self.url = reverse('pmo-project-list')
         self.default_status_config = deepcopy(get_default_pmo_status_config())
         self.prefs = preferences.TimesheetPreferences
         self.prefs.pmo_status_config = deepcopy(self.default_status_config)
         self.prefs.save()
-        self.prefs.pmo_allowed_groups.add(pmo_group)
 
     def tearDown(self):
         self.prefs.pmo_status_config = deepcopy(self.default_status_config)
@@ -63,14 +62,13 @@ class TestProjectListView(TestCase):
         api_response = client.get(self.url)
         self.assertEqual(api_response.status_code, 403)
 
-    def test_administrators_group_user_can_access_dashboard_and_api(self):
-        admin_group, _ = Group.objects.get_or_create(name='Administrators')
-        self.prefs.pmo_allowed_groups.add(admin_group)
-        admin_user = User.objects.create_user(username='admin_group_user', password='pass')
-        admin_user.groups.add(admin_group)
+    def test_project_manager_role_user_can_access_dashboard_and_api(self):
+        pm_user = User.objects.create_user(username='pm_user', password='pass')
+        pm_user.profile.role = ProfileRole.PROJECT_MANAGER
+        pm_user.profile.save()
 
         client = APIClient()
-        client.login(username='admin_group_user', password='pass')
+        client.login(username='pm_user', password='pass')
 
         dashboard_response = client.get(reverse('pmo-dashboard'))
         self.assertEqual(dashboard_response.status_code, 200)
@@ -400,12 +398,11 @@ class PMOTestBase(TestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.pmo_group, _ = Group.objects.get_or_create(name='PMO')
         self.user = User.objects.create_user(username='pmo_base', password='pass')
-        self.user.groups.add(self.pmo_group)
+        self.user.profile.role = ProfileRole.PROJECT_MANAGER
+        self.user.profile.save()
         self.client.login(username='pmo_base', password='pass')
         self.prefs = preferences.TimesheetPreferences
-        self.prefs.pmo_allowed_groups.add(self.pmo_group)
 
     def _outsider_client(self):
         outsider = User.objects.create_user(
