@@ -520,25 +520,47 @@ class TestProjectDetailSyncView(PMOTestBase):
         url = reverse('pmo-project-detail-sync', kwargs={'pk': 99999})
         self.assertEqual(self.client.post(url).status_code, 404)
 
-    def test_calls_erp_functions(self):
-        with patch('pmo_dashboard.api_views.pull_tasks_from_erp') as mock_t, \
+    def _patch_erp(self):
+        return (
+            patch('pmo_dashboard.api_views.pull_projects_only_from_erp'),
+            patch('pmo_dashboard.api_views.pull_tasks_from_erp'),
+            patch('pmo_dashboard.api_views.pull_project_members_from_erp'),
+        )
+
+    def test_calls_all_erp_functions(self):
+        with patch('pmo_dashboard.api_views.pull_projects_only_from_erp') as mock_p, \
+             patch('pmo_dashboard.api_views.pull_tasks_from_erp') as mock_t, \
              patch('pmo_dashboard.api_views.pull_project_members_from_erp') as mock_m:
             response = self.client.post(self.url)
             self.assertEqual(response.status_code, 200)
+            mock_p.assert_called_once_with(
+                self.user,
+                filters=f'[["name", "=", "{self.project.name}"]]',
+            )
             mock_t.assert_called_once()
             mock_m.assert_called_once()
 
     def test_sets_last_synced_at(self):
         self.assertIsNone(self.project.last_synced_at)
-        with patch('pmo_dashboard.api_views.pull_tasks_from_erp'), \
+        with patch('pmo_dashboard.api_views.pull_projects_only_from_erp'), \
+             patch('pmo_dashboard.api_views.pull_tasks_from_erp'), \
              patch('pmo_dashboard.api_views.pull_project_members_from_erp'):
             self.client.post(self.url)
         self.project.refresh_from_db()
         self.assertIsNotNone(self.project.last_synced_at)
 
     def test_returns_updated_project_data(self):
-        with patch('pmo_dashboard.api_views.pull_tasks_from_erp'), \
+        with patch('pmo_dashboard.api_views.pull_projects_only_from_erp'), \
+             patch('pmo_dashboard.api_views.pull_tasks_from_erp'), \
              patch('pmo_dashboard.api_views.pull_project_members_from_erp'):
             response = self.client.post(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['name'], 'Detail Sync Project')
+
+    def test_project_not_found_in_erp_marks_inactive_and_returns_404(self):
+        from timesheet.utils.erp import ProjectsNotFound
+        with patch('pmo_dashboard.api_views.pull_projects_only_from_erp', side_effect=ProjectsNotFound):
+            response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 404)
+        self.project.refresh_from_db()
+        self.assertFalse(self.project.is_active)

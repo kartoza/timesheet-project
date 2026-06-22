@@ -239,7 +239,7 @@ SITE_ID = 1
 LOGIN_REDIRECT_URL = '/'
 
 EMAIL_BACKEND = 'core.email_backend.ResendBackend'
-ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 
 DBBACKUP_STORAGE_OPTIONS = {'location': 'backups'}
 
