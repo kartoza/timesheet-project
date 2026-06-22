@@ -547,11 +547,14 @@ def pull_tasks_from_erp(user: get_user_model(), updated_projects: list, filters:
             updated_tasks.append(latest.id)
 
     inactive_tasks = Task.objects.filter(
-        project_id__in=updated_projects
+        project_id__in=updated_projects,
+        active=True,
     ).exclude(
         id__in=updated_tasks
     ).distinct()
-    logger.info('inactive_tasks: %d', inactive_tasks.count())
+    count = inactive_tasks.update(active=False)
+    if count:
+        logger.info('Marked %d stale task(s) inactive', count)
 
 
 def pull_activities_from_erp(user: get_user_model()):
