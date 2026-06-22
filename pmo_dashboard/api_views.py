@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from pmo_dashboard.access import can_access_pmo
 from pmo_dashboard.serializers.project import ProjectSerializer
 from timesheet.models.project import Project
-from timesheet.utils.erp import pull_project_members_from_erp, pull_projects_only_from_erp, pull_tasks_from_erp
+from timesheet.utils.erp import ProjectsNotFound, pull_project_members_from_erp, pull_projects_only_from_erp, pull_tasks_from_erp
 
 logger = logging.getLogger(__name__)
 
@@ -127,13 +127,21 @@ class ProjectDetailSyncView(APIView):
         t0 = time.perf_counter()
         name = project.name
 
-        pull_tasks_from_erp(request.user, [project], filters=f'[["project", "=", "{name}"]]')
+        try:
+            pull_projects_only_from_erp(request.user, filters=f'[["name", "=", "{name}"]]')
+        except ProjectsNotFound:
+            Project.objects.filter(pk=pk).update(is_active=False)
+            return Response({'detail': 'Project no longer exists in ERPNext.'}, status=status.HTTP_404_NOT_FOUND)
         t1 = time.perf_counter()
-        logger.warning('ProjectDetailSyncView pull_tasks_from_erp took %.2fs', t1 - t0)
+        logger.warning('ProjectDetailSyncView pull_projects_only_from_erp took %.2fs', t1 - t0)
+
+        pull_tasks_from_erp(request.user, [project], filters=f'[["project", "=", "{name}"]]')
+        t2 = time.perf_counter()
+        logger.warning('ProjectDetailSyncView pull_tasks_from_erp took %.2fs', t2 - t1)
 
         pull_project_members_from_erp(request.user, project_names=[name])
-        t2 = time.perf_counter()
-        logger.warning('ProjectDetailSyncView pull_project_members_from_erp took %.2fs', t2 - t1)
+        t3 = time.perf_counter()
+        logger.warning('ProjectDetailSyncView pull_project_members_from_erp took %.2fs', t3 - t2)
 
         Project.objects.filter(pk=pk).update(last_synced_at=timezone.now())
         logger.warning('ProjectDetailSyncView total took %.2fs', time.perf_counter() - t0)

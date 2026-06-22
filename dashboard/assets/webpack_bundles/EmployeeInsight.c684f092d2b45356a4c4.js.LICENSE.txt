@@ -12,7 +12,7 @@
  * Released under the MIT License
  */
 
-/*! js-cookie v3.0.1 | MIT */
+/*! js-cookie v3.0.8 | MIT */
 
 /**
  * @license React

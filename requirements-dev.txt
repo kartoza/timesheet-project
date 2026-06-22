@@ -1,0 +1,6 @@
+-r requirements.txt
+
+# Security
+safety==3.8.1
+bandit[toml]==1.8.3
+pip-audit==2.9.0
