@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 – Page Not Found</title>
+    <link rel="icon" href="/static/default-favicon.ico">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background: #0a0a0a;
+            color: #00ff41;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow: hidden;
+        }
+
+        /* CRT scanline overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.15) 2px,
+                rgba(0, 0, 0, 0.15) 4px
+            );
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .card {
+            border: 4px solid #00ff41;
+            image-rendering: pixelated;
+            box-shadow:
+                4px 4px 0 #00ff41,
+                inset 0 0 40px rgba(0, 255, 65, 0.05);
+            padding: 2.5rem 2rem;
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            background: #0d0d0d;
+        }
+
+        /* pixel corner decorations */
+        .card::before {
+            content: '■ ■ ■';
+            position: absolute;
+            top: -1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0a0a0a;
+            padding: 0 0.5rem;
+            font-size: 0.5rem;
+            letter-spacing: 4px;
+            color: #00ff41;
+        }
+
+        .code {
+            font-size: 3.5rem;
+            color: #00ff41;
+            text-shadow:
+                0 0 8px #00ff41,
+                0 0 20px rgba(0, 255, 65, 0.4);
+            margin-bottom: 1.5rem;
+            animation: flicker 4s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 95%, 97%, 100% { opacity: 1; }
+            96% { opacity: 0.4; }
+        }
+
+        h1 {
+            font-size: 0.75rem;
+            color: #00ff41;
+            margin-bottom: 1.5rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .gif-frame {
+            border: 3px solid #00ff41;
+            box-shadow: 3px 3px 0 #00ff41;
+            margin: 0 auto 1.5rem;
+            display: inline-block;
+            overflow: hidden;
+            image-rendering: pixelated;
+        }
+
+        .gif-frame img {
+            display: block;
+            width: 280px;
+            image-rendering: pixelated;
+            filter: sepia(0.2) hue-rotate(80deg) saturate(1.4);
+        }
+
+        p {
+            font-size: 0.5rem;
+            color: #00cc33;
+            line-height: 2;
+            margin-bottom: 2rem;
+            letter-spacing: 1px;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 1em;
+            background: #00ff41;
+            margin-left: 4px;
+            vertical-align: middle;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        a {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.55rem;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: #00ff41;
+            color: #0a0a0a;
+            border: none;
+            box-shadow: 4px 4px 0 #007a1f;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="code">404</div>
+        <h1>Page Not Found<span class="cursor"></span></h1>
+        <div class="gif-frame">
+            <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExY255d3BhNG5ndGk5MThpaXd3bWR0N3Y3bTcxbHA0dGR6bTdwZTB1dyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/g01ZnwAUvutuK8GIQn/giphy.gif" alt="confused">
+        </div>
+        <p>The page you're looking for doesn't exist<br>or may have been moved.</p>
+        <a href="/">▶ Go Home</a>
+    </div>
+</body>
+</html>

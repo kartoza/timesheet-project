@@ -9,6 +9,14 @@ import pytz
 TIMEZONES = tuple(zip(pytz.all_timezones, pytz.all_timezones))
 
 
+class ProfileRole(models.TextChoices):
+    EMPLOYEE = 'employee', 'Employee'
+    PROJECT_MANAGER = 'project_manager', 'Project Manager'
+    RELATIONS_MANAGER = 'relations_manager', 'Relations Manager'
+    DIRECTOR = 'director', 'Director'
+    ADMIN = 'admin', 'Admin'
+
+
 def get_country_code_from_timezone(timezone_str):
     timezone_country = {}
     for countrycode in pytz.country_timezones:
@@ -95,6 +103,12 @@ class Profile(models.Model):
         null=True,
         blank=True,
         related_name='profiles'
+    )
+
+    role = models.CharField(
+        max_length=32,
+        choices=ProfileRole.choices,
+        default=ProfileRole.EMPLOYEE,
     )
 
     @property
