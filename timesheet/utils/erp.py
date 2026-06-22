@@ -372,8 +372,11 @@ def pull_project_members_from_erp(user: get_user_model(), project_names: list = 
         futures = {executor.submit(fetch_members, p.name): p.name for p in projects}
         for future in as_completed(futures):
             name, members, project_lead_email, found = future.result()
-            if not found and not is_subset:
-                stale_project_names.append(name)
+            if not found:
+                if is_subset:
+                    Project.objects.filter(name=name).update(is_active=False)
+                else:
+                    stale_project_names.append(name)
                 continue
             project_members_map[name] = {'members': members, 'project_lead': project_lead_email.lower()}
 

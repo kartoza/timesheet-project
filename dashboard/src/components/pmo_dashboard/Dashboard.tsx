@@ -56,11 +56,70 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [selectedProjectForDetails, setSelectedProjectForDetails] = useState<UIProjectRow | null>(null);
   const [detailSyncStatus, setDetailSyncStatus] = useState<'loading' | 'live' | null>(null);
   const [isRenderingPrintView, setIsRenderingPrintView] = useState(false);
+  const [fullscreenChart, setFullscreenChart] = useState<string | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
+
+  const setUrlParam = (key: string, value: string | null) => {
+    const params = new URLSearchParams(window.location.search);
+    if (value) {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
+    const qs = params.toString();
+    history.pushState({}, '', qs ? `?${qs}` : window.location.pathname);
+  };
+
+  const setProjectUrl = (id: string | null) => setUrlParam('project', id);
+  const setChartUrl = (id: string | null) => setUrlParam('chart', id);
+
+  const handleChartFullscreen = (id: string, open: boolean) => {
+    const next = open ? id : null;
+    setFullscreenChart(next);
+    setChartUrl(next);
+  };
+
+  // Open modal for project ID in URL once data is available
+  React.useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('project');
+    if (!id || !data.length) return;
+    const project = data.find((p) => p._id === id);
+    if (project && selectedProjectForDetails?._id !== id) {
+      setSelectedProjectForDetails(project);
+    }
+  }, [data]);
+
+  // Read chart fullscreen from URL on mount
+  React.useEffect(() => {
+    const chartId = new URLSearchParams(window.location.search).get('chart');
+    if (chartId) setFullscreenChart(chartId);
+  }, []);
+
+  // Sync state with browser back/forward navigation
+  React.useEffect(() => {
+    const onPopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const projectId = params.get('project');
+      const chartId = params.get('chart');
+
+      if (projectId) {
+        const project = data.find((p) => p._id === projectId);
+        if (project) { setDetailSyncStatus(null); setSelectedProjectForDetails(project); }
+      } else {
+        setSelectedProjectForDetails(null);
+        setDetailSyncStatus(null);
+      }
+
+      setFullscreenChart(chartId);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [data]);
 
   const handleViewDetails = (project: UIProjectRow) => {
     setDetailSyncStatus(null);
     setSelectedProjectForDetails(project);
+    setProjectUrl(project._id);
   };
 
   const handleRefreshProjectDetail = () => {
@@ -190,7 +249,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       <ProjectDetailsModal
         project={selectedProjectForDetails}
         detailSyncStatus={detailSyncStatus}
-        onClose={() => { setSelectedProjectForDetails(null); setDetailSyncStatus(null); }}
+        onClose={() => { setSelectedProjectForDetails(null); setDetailSyncStatus(null); setProjectUrl(null); }}
         onRefresh={onProjectDetailOpen ? handleRefreshProjectDetail : undefined}
       />
       <AddProjectModal
@@ -303,15 +362,21 @@ const Dashboard: React.FC<DashboardProps> = ({
 
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8'>
             <ChartCard
+              id='sales-cost'
               title='Sales vs. Cost Analysis'
               subtitle='Financial health overview per project'
+              isFullscreen={fullscreenChart === 'sales-cost'}
+              onFullscreenChange={(open) => handleChartFullscreen('sales-cost', open)}
             >
               <SalesCostChart data={filteredData} />
             </ChartCard>
 
             <ChartCard
+              id='hours-consumption'
               title='Time Budget Consumption'
               subtitle='Hour utilization against actual completion rate'
+              isFullscreen={fullscreenChart === 'hours-consumption'}
+              onFullscreenChange={(open) => handleChartFullscreen('hours-consumption', open)}
             >
               <HoursConsumptionChart data={filteredData} />
             </ChartCard>
@@ -319,8 +384,11 @@ const Dashboard: React.FC<DashboardProps> = ({
 
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6'>
             <ChartCard
+              id='portfolio-health'
               title='Kartoza Portfolio Health'
               subtitle='Status distribution of visible portfolio'
+              isFullscreen={fullscreenChart === 'portfolio-health'}
+              onFullscreenChange={(open) => handleChartFullscreen('portfolio-health', open)}
             >
               <StatusChart
                 data={data}
@@ -337,8 +405,11 @@ const Dashboard: React.FC<DashboardProps> = ({
             </ChartCard>
 
             <ChartCard
+              id='revenue-by-pm'
               title='Revenue by Project Manager'
               subtitle='Total sales grouped by Project Manager'
+              isFullscreen={fullscreenChart === 'revenue-by-pm'}
+              onFullscreenChange={(open) => handleChartFullscreen('revenue-by-pm', open)}
             >
               <ManagerRevenueChart data={filteredData} group_by='project_manager' />
             </ChartCard>
@@ -346,15 +417,21 @@ const Dashboard: React.FC<DashboardProps> = ({
 
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 mb-8'>
             <ChartCard
+              id='pm-workload'
               title='Project Manager Workload Distribution'
               subtitle='Active projects and allocated budget hours per PM'
+              isFullscreen={fullscreenChart === 'pm-workload'}
+              onFullscreenChange={(open) => handleChartFullscreen('pm-workload', open)}
             >
               <ManagerWorkloadChart data={filteredData} overloadThreshold={pmOverloadThreshold} />
             </ChartCard>
 
             <ChartCard
+              id='billable-efficiency'
               title='Billable Efficiency by Project'
               subtitle=''
+              isFullscreen={fullscreenChart === 'billable-efficiency'}
+              onFullscreenChange={(open) => handleChartFullscreen('billable-efficiency', open)}
             >
               <BillableHoursChart data={filteredData} />
             </ChartCard>
@@ -389,14 +466,15 @@ function MetricCard({ icon, title, value, bgColor, valueSize }: MetricCardProps)
 }
 
 type ChartCardProps = {
+  id: string;
   title: string;
   subtitle: string;
   children: React.ReactNode;
+  isFullscreen: boolean;
+  onFullscreenChange: (open: boolean) => void;
 };
 
-function ChartCard({ title, subtitle, children }: ChartCardProps) {
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
+function ChartCard({ title, subtitle, children, isFullscreen, onFullscreenChange }: ChartCardProps) {
   return (
     <>
       {isFullscreen && (
@@ -405,11 +483,11 @@ function ChartCard({ title, subtitle, children }: ChartCardProps) {
             <div className='flex justify-between items-start mb-6 shrink-0 border-b border-slate-100 dark:border-slate-800 pb-4'>
               <div>
                 <h3 className='text-2xl font-bold text-slate-800 dark:text-white'>{title}</h3>
-            <p className='text-base text-slate-500 dark:text-slate-400 font-medium mt-1'>{subtitle}</p>
+                <p className='text-base text-slate-500 dark:text-slate-400 font-medium mt-1'>{subtitle}</p>
               </div>
               <button
-                onClick={() => setIsFullscreen(false)}
-            className='p-3 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-xl transition-colors'
+                onClick={() => onFullscreenChange(false)}
+                className='p-3 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-xl transition-colors'
                 title='Exit Fullscreen'
               >
                 <Minimize2 size={28} />
@@ -429,7 +507,7 @@ function ChartCard({ title, subtitle, children }: ChartCardProps) {
             <p className='text-sm text-slate-500 font-medium'>{subtitle}</p>
           </div>
           <button
-            onClick={() => setIsFullscreen(true)}
+            onClick={() => onFullscreenChange(true)}
             className='p-2 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors print:hidden'
             title='Fullscreen'
           >
