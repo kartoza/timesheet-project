@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Update in Progress</title>
+    <link rel="icon" href="/static/default-favicon.ico">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background: #0a0a0a;
+            color: #ffe600;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow: hidden;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.15) 2px,
+                rgba(0, 0, 0, 0.15) 4px
+            );
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .card {
+            border: 4px solid #ffe600;
+            box-shadow:
+                4px 4px 0 #ffe600,
+                inset 0 0 40px rgba(255, 230, 0, 0.04);
+            padding: 2.5rem 2rem;
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            background: #0d0d0d;
+        }
+
+        .card::before {
+            content: '■ ■ ■';
+            position: absolute;
+            top: -1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0a0a0a;
+            padding: 0 0.5rem;
+            font-size: 0.5rem;
+            letter-spacing: 4px;
+            color: #ffe600;
+        }
+
+        .icon {
+            font-size: 2.5rem;
+            margin-bottom: 1.25rem;
+            animation: spin-pause 3s steps(8) infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin-pause {
+            0%   { content: '⚙'; transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        h1 {
+            font-size: 0.7rem;
+            color: #ffe600;
+            text-shadow: 0 0 8px #ffe600, 0 0 20px rgba(255, 230, 0, 0.3);
+            margin-bottom: 1.5rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            line-height: 1.8;
+            animation: flicker 5s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 93%, 95%, 100% { opacity: 1; }
+            94% { opacity: 0.3; }
+        }
+
+        .gif-frame {
+            border: 3px solid #ffe600;
+            box-shadow: 3px 3px 0 #ffe600;
+            margin: 0 auto 1.75rem;
+            display: inline-block;
+            overflow: hidden;
+            image-rendering: pixelated;
+        }
+
+        .gif-frame img {
+            display: block;
+            width: 280px;
+            image-rendering: pixelated;
+            filter: sepia(0.2) hue-rotate(20deg) saturate(1.4);
+        }
+
+        p {
+            font-size: 0.45rem;
+            color: #ccb800;
+            line-height: 2.2;
+            margin-bottom: 2rem;
+            letter-spacing: 1px;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 0.9em;
+            background: #ffe600;
+            margin-left: 4px;
+            vertical-align: middle;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0; }
+        }
+
+        .status {
+            font-size: 0.4rem;
+            color: #665c00;
+            letter-spacing: 1px;
+            border-top: 1px solid #333;
+            padding-top: 1rem;
+        }
+
+        .status span {
+            color: #ffe600;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>System Update<br>In Progress<span class="cursor"></span></h1>
+        <div class="gif-frame">
+            <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExczJucGF2cHNzdTYwd2RtMXA3Z2dxYnBqOGNkdDBudXNyeWdlNnRwbCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/VHMuWhPNHPrXgNvEkA/giphy.gif" alt="updating">
+        </div>
+        <p>
+            We're updating the system.<br>
+            Please check back in a few minutes.
+        </p>
+    </div>
+</body>
+</html>

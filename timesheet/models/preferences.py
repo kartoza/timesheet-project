@@ -233,6 +233,11 @@ class TimesheetPreferences(Preferences):
         help_text='Configurable PMO status labels and formulas. Keys are fixed: on_track, warning, at_risk, overdue, on_hold, completed.',
     )
 
+    is_updating = models.BooleanField(
+        default=False,
+        help_text='When enabled, all non-admin users see a maintenance page instead of the app.',
+    )
+
     def clean(self):
         super().clean()
         try:
