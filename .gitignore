@@ -111,7 +111,8 @@ GitHub.sublime-settings
 !.vscode/settings.json 
 !.vscode/tasks.json 
 !.vscode/launch.json 
-!.vscode/extensions.json 
+!.vscode/extensions.json
+!.vscode/mcp.json
 .history
 
 node_modules
@@ -135,3 +136,5 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 *.djcache
+
+*.playwright-mcp
