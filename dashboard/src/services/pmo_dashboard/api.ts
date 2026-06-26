@@ -35,6 +35,7 @@ const UI_PROJECT_MAPPERS: Record<keyof UIProjectRow, (project: ApiProject) => UI
   [UI_PROJECT_KEYS.CONSUMED_TIME]: (project) => project.consumed_time || 0,
   [UI_PROJECT_KEYS.TOTAL_COSTING]: (project) => project.total_costing || 0,
   [UI_PROJECT_KEYS.TOTAL_SALES_AMOUNT]: (project) => project.total_sales_amount || 0,
+  [UI_PROJECT_KEYS.TOTAL_BILLED_AMOUNT]: (project) => project.total_billed_amount || 0,
   [UI_PROJECT_KEYS.ACTUAL_PROGRESS]: (project) => project.actual_progress || 0,
   [UI_PROJECT_KEYS.BUSINESS_UNIT]: (project) => project.business_unit || 'General',
   [UI_PROJECT_KEYS.SUBTASKS]: (project) => (project.subtasks || []).map(mapSubTask),
