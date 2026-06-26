@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Gantt, Task, ViewMode } from 'gantt-task-react';
 import 'gantt-task-react/dist/index.css';
 import { Maximize2, Minimize2 } from 'lucide-react';
@@ -72,18 +73,26 @@ const GanttView: React.FC<GanttViewProps> = ({ data, onViewDetails }) => {
       (today.getFullYear() - minDate.getFullYear()) * 12 +
       (today.getMonth() - minDate.getMonth());
     const scrollTarget = Math.max(0, (monthsDiff - 2) * COLUMN_WIDTH);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (!wrapperRef.current) return;
-        wrapperRef.current.querySelectorAll<HTMLElement>('*').forEach((el) => {
-          const { overflowX } = window.getComputedStyle(el);
-          if ((overflowX === 'auto' || overflowX === 'scroll') && el.scrollWidth > el.clientWidth) {
-            el.scrollLeft = scrollTarget;
-          }
-        });
-      });
-    });
-  }, [tasks]);
+    let raf: number;
+    let attempts = 0;
+    const tryScroll = () => {
+      if (!wrapperRef.current || attempts >= 30) return;
+      attempts++;
+      let applied = false;
+      const scrollEl = (el: HTMLElement) => {
+        const { overflowX } = window.getComputedStyle(el);
+        if ((overflowX === 'auto' || overflowX === 'scroll') && el.scrollWidth > el.clientWidth) {
+          el.scrollLeft = scrollTarget;
+          applied = true;
+        }
+      };
+      scrollEl(wrapperRef.current);
+      wrapperRef.current.querySelectorAll<HTMLElement>('*').forEach(scrollEl);
+      if (!applied) raf = requestAnimationFrame(tryScroll);
+    };
+    raf = requestAnimationFrame(tryScroll);
+    return () => cancelAnimationFrame(raf);
+  }, [tasks, isFullscreen]);
 
   if (tasks.length === 0) {
     return <div className='text-center py-10 text-slate-500 dark:text-slate-400'>No projects to display in Gantt View.</div>;
@@ -97,76 +106,91 @@ const GanttView: React.FC<GanttViewProps> = ({ data, onViewDetails }) => {
     return true;
   };
 
+  const darkStyles = `
+    .dark .gantt-wrapper ._3_ygE,
+    .dark .gantt-wrapper ._3ZbQT {
+      border-color: #334155 !important;
+      background-color: #0f172a !important;
+    }
+    .dark .gantt-wrapper ._34SS0:nth-of-type(even) {
+      background-color: #1e293b !important;
+    }
+    .dark .gantt-wrapper ._2dZTy,
+    .dark .gantt-wrapper ._2dZTy:nth-child(even) {
+      fill: #1e293b !important;
+    }
+    .dark .gantt-wrapper ._3rUKi,
+    .dark .gantt-wrapper ._RuwuK,
+    .dark .gantt-wrapper ._1rLuZ,
+    .dark .gantt-wrapper ._2eZzQ {
+      stroke: #334155 !important;
+      border-color: #334155 !important;
+    }
+    .dark .gantt-wrapper ._9w8d5,
+    .dark .gantt-wrapper ._2q1Kt,
+    .dark .gantt-wrapper ._3KcaM,
+    .dark .gantt-wrapper ._2TfEi,
+    .dark .gantt-wrapper ._2QjE6,
+    .dark .gantt-wrapper ._3lLk3 {
+      fill: #cbd5e1 !important;
+      color: #cbd5e1 !important;
+    }
+    .dark .gantt-wrapper ._35nLX {
+      fill: #334155 !important;
+      stroke: #475569 !important;
+    }
+  `;
+
+  const ganttChart = (
+    <Gantt
+      tasks={tasks}
+      viewMode={ViewMode.Month}
+      onClick={handleTaskClick}
+      listCellWidth='180px'
+      columnWidth={COLUMN_WIDTH}
+      fontFamily="'Outfit', 'Inter', sans-serif"
+      fontSize='12px'
+      rowHeight={45}
+      TooltipContent={CustomTooltip}
+    />
+  );
+
+  if (isFullscreen) {
+    return createPortal(
+      <>
+        <div className='fixed inset-0 z-[9998] bg-slate-900/60 backdrop-blur-sm' onClick={() => setIsFullscreen(false)} />
+        <div ref={wrapperRef} className='fixed inset-4 z-[9999] bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col gantt-wrapper overflow-hidden'>
+          <style>{darkStyles}</style>
+          <div className='flex justify-end p-2 bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700'>
+            <button
+              onClick={() => setIsFullscreen(false)}
+              className='flex items-center gap-2 px-3 py-1.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 rounded-lg transition-colors'
+            >
+              <Minimize2 size={16} /> Exit Fullscreen
+            </button>
+          </div>
+          <div className='flex-1 overflow-auto p-4'>
+            {ganttChart}
+          </div>
+        </div>
+      </>,
+      document.body,
+    );
+  }
+
   return (
-    <>
-      {isFullscreen && (
-        <div className='fixed inset-0 z-[200] bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300' onClick={() => setIsFullscreen(false)} />
-      )}
-      <div ref={wrapperRef} className={`bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm gantt-wrapper custom-scrollbar transition-all duration-300 flex flex-col ${isFullscreen ? 'fixed inset-4 z-[201] shadow-2xl' : 'relative overflow-x-auto overflow-y-hidden'}`}>
-        <style>{`
-          .dark .gantt-wrapper ._3_ygE,
-          .dark .gantt-wrapper ._3ZbQT {
-            border-color: #334155 !important;
-            background-color: #0f172a !important;
-          }
-
-          .dark .gantt-wrapper ._34SS0:nth-of-type(even) {
-            background-color: #1e293b !important;
-          }
-
-          .dark .gantt-wrapper ._2dZTy,
-          .dark .gantt-wrapper ._2dZTy:nth-child(even) {
-            fill: #1e293b !important;
-          }
-
-          .dark .gantt-wrapper ._3rUKi,
-          .dark .gantt-wrapper ._RuwuK,
-          .dark .gantt-wrapper ._1rLuZ,
-          .dark .gantt-wrapper ._2eZzQ {
-            stroke: #334155 !important;
-            border-color: #334155 !important;
-          }
-
-          .dark .gantt-wrapper ._9w8d5,
-          .dark .gantt-wrapper ._2q1Kt,
-          .dark .gantt-wrapper ._3KcaM,
-          .dark .gantt-wrapper ._2TfEi,
-          .dark .gantt-wrapper ._2QjE6,
-          .dark .gantt-wrapper ._3lLk3 {
-            fill: #cbd5e1 !important;
-            color: #cbd5e1 !important;
-          }
-
-          .dark .gantt-wrapper ._35nLX {
-            fill: #334155 !important;
-            stroke: #475569 !important;
-          }
-        `}</style>
-
-        <div className='flex justify-end p-2 bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700'>
-          <button
-            onClick={() => setIsFullscreen(!isFullscreen)}
-            className='flex items-center gap-2 px-3 py-1.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 rounded-lg transition-colors'
-          >
-            {isFullscreen ? <><Minimize2 size={16} /> Exit Fullscreen</> : <><Maximize2 size={16} /> Fullscreen</>}
-          </button>
-        </div>
-
-        <div className={isFullscreen ? 'flex-1 overflow-auto p-4' : ''}>
-          <Gantt
-            tasks={tasks}
-            viewMode={ViewMode.Month}
-            onClick={handleTaskClick}
-            listCellWidth='180px'
-            columnWidth={COLUMN_WIDTH}
-            fontFamily="'Outfit', 'Inter', sans-serif"
-            fontSize='12px'
-            rowHeight={45}
-            TooltipContent={CustomTooltip}
-          />
-        </div>
+    <div ref={wrapperRef} className='bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm gantt-wrapper custom-scrollbar relative overflow-x-auto overflow-y-hidden'>
+      <style>{darkStyles}</style>
+      <div className='flex justify-end p-2 bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700'>
+        <button
+          onClick={() => setIsFullscreen(true)}
+          className='flex items-center gap-2 px-3 py-1.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 rounded-lg transition-colors'
+        >
+          <Maximize2 size={16} /> Fullscreen
+        </button>
       </div>
-    </>
+      {ganttChart}
+    </div>
   );
 };
 
