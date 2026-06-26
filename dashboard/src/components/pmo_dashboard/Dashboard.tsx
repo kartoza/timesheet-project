@@ -391,7 +391,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               onFullscreenChange={(open) => handleChartFullscreen('portfolio-health', open)}
             >
               <StatusChart
-                data={data}
+                data={filteredData}
                 onStatusClick={(status) => {
                   setSelectedFilters((prev) => {
                     const hasStatus = prev.status.includes(status);
