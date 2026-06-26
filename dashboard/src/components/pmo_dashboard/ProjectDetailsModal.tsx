@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { Building2, Calendar, CheckCircle2, Clock, ListChecks, Loader, RefreshCw, User, Users, X } from 'lucide-react';
 import { UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { UIProjectRow } from '../../types/pmo_dashboard';
@@ -45,8 +46,8 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onCl
 
   const schedulePercent = getSchedulePercent();
 
-  return (
-    <div onClick={onClose} className='fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200'>
+  return createPortal(
+    <div onClick={onClose} className='fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200'>
       <div onClick={(e) => e.stopPropagation()} className='bg-white dark:bg-slate-900 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden border border-slate-200 dark:border-slate-700'>
         <div className='px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start bg-slate-50/50 dark:bg-slate-800/50'>
           <div>
@@ -228,7 +229,8 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onCl
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

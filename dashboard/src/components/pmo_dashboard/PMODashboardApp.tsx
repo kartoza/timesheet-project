@@ -234,7 +234,7 @@ const PMODashboardApp: React.FC = () => {
         )}
 
         {hasData && (
-          <div className='animate-in fade-in slide-in-from-bottom-4 duration-700'>
+          <div className='animate-in fade-in slide-in-from-bottom-4 duration-700 relative z-0'>
             <div className='flex flex-wrap items-center justify-between gap-4 mb-8 print:hidden'>
               <div className='flex items-center gap-4'>
                 <h2 className='text-3xl font-bold text-slate-900 dark:text-slate-100'>Portfolio Overview</h2>

@@ -73,17 +73,25 @@ const GanttView: React.FC<GanttViewProps> = ({ data, onViewDetails }) => {
       (today.getFullYear() - minDate.getFullYear()) * 12 +
       (today.getMonth() - minDate.getMonth());
     const scrollTarget = Math.max(0, (monthsDiff - 2) * COLUMN_WIDTH);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (!wrapperRef.current) return;
-        wrapperRef.current.querySelectorAll<HTMLElement>('*').forEach((el) => {
-          const { overflowX } = window.getComputedStyle(el);
-          if ((overflowX === 'auto' || overflowX === 'scroll') && el.scrollWidth > el.clientWidth) {
-            el.scrollLeft = scrollTarget;
-          }
-        });
-      });
-    });
+    let raf: number;
+    let attempts = 0;
+    const tryScroll = () => {
+      if (!wrapperRef.current || attempts >= 30) return;
+      attempts++;
+      let applied = false;
+      const scrollEl = (el: HTMLElement) => {
+        const { overflowX } = window.getComputedStyle(el);
+        if ((overflowX === 'auto' || overflowX === 'scroll') && el.scrollWidth > el.clientWidth) {
+          el.scrollLeft = scrollTarget;
+          applied = true;
+        }
+      };
+      scrollEl(wrapperRef.current);
+      wrapperRef.current.querySelectorAll<HTMLElement>('*').forEach(scrollEl);
+      if (!applied) raf = requestAnimationFrame(tryScroll);
+    };
+    raf = requestAnimationFrame(tryScroll);
+    return () => cancelAnimationFrame(raf);
   }, [tasks, isFullscreen]);
 
   if (tasks.length === 0) {
