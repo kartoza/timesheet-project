@@ -213,6 +213,27 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onCl
                         </tr>
                       );
                     })}
+                    {project.SubTasks.length > 1 && (() => {
+                      const totalBudget = project.SubTasks.reduce((s, t) => s + (t.budgetTime || 0), 0);
+                      const totalConsumed = project.SubTasks.reduce((s, t) => s + (t.consumedTime || 0), 0);
+                      const totalBillable = project.SubTasks.reduce((s, t) => s + (t.billableHours || 0), 0);
+                      const totalLeft = project.SubTasks.reduce((s, t) => s + ((t.budgetTime || 0) - (t.billableHours || 0)), 0);
+                      const totalBurn = totalBudget > 0 ? (totalConsumed / totalBudget) * 100 : 0;
+                      return (
+                        <tr className='bg-slate-50 dark:bg-slate-800/60 border-t-2 border-slate-300 dark:border-slate-600'>
+                          <td className='px-4 py-3 text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider'>Total</td>
+                          <td className='px-4 py-3 text-right font-extrabold text-slate-800 dark:text-white text-sm'>{totalBudget.toFixed(2)}h</td>
+                          <td className='px-4 py-3 text-right font-extrabold text-slate-800 dark:text-white text-sm'>{totalConsumed.toFixed(2)}h</td>
+                          <td className='px-4 py-3 text-right font-extrabold text-slate-800 dark:text-white text-sm'>{totalBillable.toFixed(2)}h</td>
+                          <td className='px-4 py-3 text-right font-extrabold text-slate-800 dark:text-white text-sm'>{totalLeft.toFixed(2)}h</td>
+                          <td className='px-4 py-3 text-right'>
+                            <span className={`inline-block px-2 py-1 rounded-md text-[10px] font-bold ${totalBurn > 100 ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400' : totalBurn > 85 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'}`}>
+                              {totalBurn.toFixed(1)}%
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })()}
                   </tbody>
                 </table>
               </div>
