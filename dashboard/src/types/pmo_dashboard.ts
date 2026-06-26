@@ -32,6 +32,7 @@ export type ApiProject = {
   consumed_time: number | null;
   total_costing: number | null;
   total_sales_amount: number | null;
+  total_billed_amount: number | null;
   relations_manager: string | null;
   project_manager: string | null;
   actual_progress: number | null;
@@ -68,6 +69,7 @@ export type UIProjectRow = {
   [UI_PROJECT_KEYS.CONSUMED_TIME]: number;
   [UI_PROJECT_KEYS.TOTAL_COSTING]: number;
   [UI_PROJECT_KEYS.TOTAL_SALES_AMOUNT]: number;
+  [UI_PROJECT_KEYS.TOTAL_BILLED_AMOUNT]: number;
   [UI_PROJECT_KEYS.ACTUAL_PROGRESS]: number;
   [UI_PROJECT_KEYS.BUSINESS_UNIT]: string;
   [UI_PROJECT_KEYS.SUBTASKS]: UISubTask[];
@@ -106,5 +108,6 @@ export type CreateProjectPayload = {
   'Consumed Time': number;
   'Total Sales Amount (via Sales Order)': number;
   'Total Costing': number;
+  'Total Billed Amount'?: number;
   'Actual Progress': number;
 };

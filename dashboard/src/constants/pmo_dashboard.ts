@@ -11,6 +11,7 @@ export const UI_PROJECT_KEYS = {
   CONSUMED_TIME: 'Consumed Time',
   TOTAL_COSTING: 'Total Costing',
   TOTAL_SALES_AMOUNT: 'Total Sales Amount (via Sales Order)',
+  TOTAL_BILLED_AMOUNT: 'Total Billed Amount',
   ACTUAL_PROGRESS: 'Actual Progress',
   BUSINESS_UNIT: 'Business Unit',
   SUBTASKS: 'SubTasks',

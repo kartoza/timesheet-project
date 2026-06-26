@@ -97,7 +97,7 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onCl
         </div>
 
         <div className='flex-1 overflow-y-auto p-6 space-y-8'>
-          <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
+          <div className='grid grid-cols-2 md:grid-cols-5 gap-4'>
             <div className='p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50 shadow-sm'>
               <div className='text-slate-500 dark:text-slate-400 text-xs font-bold uppercase mb-1 flex items-center gap-1.5'><Calendar size={14} /> Start Date</div>
               <div className='font-extrabold text-slate-800 dark:text-white'>{project[UI_PROJECT_KEYS.START_DATE] || 'N/A'}</div>
@@ -113,6 +113,10 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onCl
             <div className='p-4 bg-rose-50 dark:bg-rose-900/20 rounded-xl border border-rose-100 dark:border-rose-800/50 shadow-sm'>
               <div className='text-rose-700 dark:text-rose-400 text-xs font-bold uppercase mb-1'>Total Costing</div>
               <div className='font-extrabold text-rose-900 dark:text-rose-100'>{formatCurrency(project[UI_PROJECT_KEYS.TOTAL_COSTING])}</div>
+            </div>
+            <div className='p-4 bg-violet-50 dark:bg-violet-900/20 rounded-xl border border-violet-100 dark:border-violet-800/50 shadow-sm'>
+              <div className='text-violet-700 dark:text-violet-400 text-xs font-bold uppercase mb-1'>Total Billed</div>
+              <div className='font-extrabold text-violet-900 dark:text-violet-100'>{formatCurrency(project[UI_PROJECT_KEYS.TOTAL_BILLED_AMOUNT])}</div>
             </div>
           </div>
 
