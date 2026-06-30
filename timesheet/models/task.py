@@ -29,6 +29,10 @@ class Task(models.Model):
         default=0.0,
     )
 
+    billable_hours = models.FloatField(
+        default=0.0,
+    )
+
     expected_time = models.FloatField(
         default=0.0
     )

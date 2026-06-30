@@ -8,6 +8,7 @@ from django.utils import timezone
 from timesheet.models.project import Project
 from timesheet.models.project_member import ProjectMember
 from timesheet.models.user_project import UserProject
+from pmo_dashboard.billable_sync import fetch_and_save_billable_hours
 from timesheet.utils.erp import (
     ProjectsNotFound,
     pull_department_from_erp,
@@ -68,15 +69,23 @@ class Command(BaseCommand):
         t2 = time.perf_counter()
         self.stdout.write(f'  tasks      {t2 - t1:.2f}s')
 
-        pull_project_members_from_erp(user, project_names=[p.name for p in active_projects])
+        for project in active_projects:
+            try:
+                fetch_and_save_billable_hours(project.name)
+            except Exception:
+                logger.warning('billable sync failed for %s', project.name, exc_info=True)
         t3 = time.perf_counter()
-        self.stdout.write(f'  members    {t3 - t2:.2f}s')
+        self.stdout.write(f'  billable   {t3 - t2:.2f}s')
+
+        pull_project_members_from_erp(user, project_names=[p.name for p in active_projects])
+        t4 = time.perf_counter()
+        self.stdout.write(f'  members    {t4 - t3:.2f}s')
 
         self._sync_user_projects_from_members()
-        t4 = time.perf_counter()
-        self.stdout.write(f'  user_projects  {t4 - t3:.2f}s')
+        t5 = time.perf_counter()
+        self.stdout.write(f'  user_projects  {t5 - t4:.2f}s')
 
-        self.stdout.write(self.style.SUCCESS(f'PMO sync done in {t4 - t0:.2f}s'))
+        self.stdout.write(self.style.SUCCESS(f'PMO sync done in {t5 - t0:.2f}s'))
 
     def _sync_user_projects_from_members(self):
         """Create UserProject records to mirror ProjectMember assignments."""

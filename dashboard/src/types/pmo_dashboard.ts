@@ -15,6 +15,7 @@ export type Subtask = {
   name: string;
   budget_time: number | null;
   consumed_time: number | null;
+  billable_hours: number | null;
 };
 
 export type ApiProject = {

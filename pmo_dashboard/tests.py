@@ -302,7 +302,7 @@ class TestProjectListView(TestCase):
 
     def test_subtasks_only_includes_active(self):
         project = Project.objects.create(name='Task Project', is_active=True)
-        Task.objects.create(name='Active Task', project=project, active=True, expected_time=10.0, actual_time=5.0)
+        Task.objects.create(name='Active Task', project=project, active=True, expected_time=10.0, actual_time=5.0, billable_hours=4.0)
         Task.objects.create(name='Inactive Task', project=project, active=False)
 
         p = self.client.get(self.url).json()[0]
@@ -310,6 +310,7 @@ class TestProjectListView(TestCase):
         self.assertEqual(p['subtasks'][0]['name'], 'Active Task')
         self.assertEqual(p['subtasks'][0]['budget_time'], 10.0)
         self.assertEqual(p['subtasks'][0]['consumed_time'], 5.0)
+        self.assertEqual(p['subtasks'][0]['billable_hours'], 4.0)
 
     def test_projects_ordered_by_name(self):
         Project.objects.create(name='Zebra')
@@ -520,16 +521,20 @@ class TestProjectDetailSyncView(PMOTestBase):
         url = reverse('pmo-project-detail-sync', kwargs={'pk': 99999})
         self.assertEqual(self.client.post(url).status_code, 404)
 
+    BILLABLE_PATCH = 'pmo_dashboard.api_views.fetch_and_save_billable_hours'
+
     def _patch_erp(self):
         return (
             patch('pmo_dashboard.api_views.pull_projects_only_from_erp'),
             patch('pmo_dashboard.api_views.pull_tasks_from_erp'),
+            patch(self.BILLABLE_PATCH),
             patch('pmo_dashboard.api_views.pull_project_members_from_erp'),
         )
 
     def test_calls_all_erp_functions(self):
         with patch('pmo_dashboard.api_views.pull_projects_only_from_erp') as mock_p, \
              patch('pmo_dashboard.api_views.pull_tasks_from_erp') as mock_t, \
+             patch(self.BILLABLE_PATCH) as mock_b, \
              patch('pmo_dashboard.api_views.pull_project_members_from_erp') as mock_m:
             response = self.client.post(self.url)
             self.assertEqual(response.status_code, 200)
@@ -538,12 +543,31 @@ class TestProjectDetailSyncView(PMOTestBase):
                 filters=f'[["name", "=", "{self.project.name}"]]',
             )
             mock_t.assert_called_once()
+            mock_b.assert_called_once_with(self.project.name)
             mock_m.assert_called_once()
+
+    def test_billable_hours_saved_on_detail_sync(self):
+        task = Task.objects.create(name='Task A', project=self.project, active=True, expected_time=10.0)
+        with patch('pmo_dashboard.api_views.pull_projects_only_from_erp'), \
+             patch('pmo_dashboard.api_views.pull_tasks_from_erp'), \
+             patch(self.BILLABLE_PATCH) as mock_b, \
+             patch('pmo_dashboard.api_views.pull_project_members_from_erp'):
+            self.client.post(self.url)
+        mock_b.assert_called_once_with(self.project.name)
+
+    def test_billable_sync_failure_does_not_break_response(self):
+        with patch('pmo_dashboard.api_views.pull_projects_only_from_erp'), \
+             patch('pmo_dashboard.api_views.pull_tasks_from_erp'), \
+             patch(self.BILLABLE_PATCH, side_effect=Exception('ERP down')), \
+             patch('pmo_dashboard.api_views.pull_project_members_from_erp'):
+            response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 200)
 
     def test_sets_last_synced_at(self):
         self.assertIsNone(self.project.last_synced_at)
         with patch('pmo_dashboard.api_views.pull_projects_only_from_erp'), \
              patch('pmo_dashboard.api_views.pull_tasks_from_erp'), \
+             patch(self.BILLABLE_PATCH), \
              patch('pmo_dashboard.api_views.pull_project_members_from_erp'):
             self.client.post(self.url)
         self.project.refresh_from_db()
@@ -552,6 +576,7 @@ class TestProjectDetailSyncView(PMOTestBase):
     def test_returns_updated_project_data(self):
         with patch('pmo_dashboard.api_views.pull_projects_only_from_erp'), \
              patch('pmo_dashboard.api_views.pull_tasks_from_erp'), \
+             patch(self.BILLABLE_PATCH), \
              patch('pmo_dashboard.api_views.pull_project_members_from_erp'):
             response = self.client.post(self.url)
         self.assertEqual(response.status_code, 200)
