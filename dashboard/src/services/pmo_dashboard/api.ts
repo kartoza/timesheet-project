@@ -57,13 +57,12 @@ function getCookie(name: string): string {
 type ApiSubTask = NonNullable<ApiProject['subtasks']>[number];
 
 function mapSubTask(subtask: ApiSubTask): UISubTask {
-  const consumed = subtask.consumed_time || 0;
   return {
     id: subtask.id,
     name: subtask.name,
     budgetTime: subtask.budget_time || 0,
-    consumedTime: consumed,
-    billableHours: Math.floor(consumed * 0.8),
+    consumedTime: subtask.consumed_time || 0,
+    billableHours: subtask.billable_hours || 0,
   };
 }
 

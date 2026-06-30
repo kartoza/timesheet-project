@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from pmo_dashboard.access import can_access_pmo
+from pmo_dashboard.billable_sync import fetch_and_save_billable_hours
 from pmo_dashboard.serializers.project import ProjectSerializer
 from timesheet.models.project import Project
 from timesheet.utils.erp import ProjectsNotFound, pull_project_members_from_erp, pull_projects_only_from_erp, pull_tasks_from_erp
@@ -139,11 +140,18 @@ class ProjectDetailSyncView(APIView):
         t2 = time.perf_counter()
         logger.warning('ProjectDetailSyncView pull_tasks_from_erp took %.2fs', t2 - t1)
 
-        pull_project_members_from_erp(request.user, project_names=[name])
+        try:
+            fetch_and_save_billable_hours(name)
+        except Exception:
+            logger.warning('ProjectDetailSyncView billable sync failed for %s', name, exc_info=True)
         t3 = time.perf_counter()
-        logger.warning('ProjectDetailSyncView pull_project_members_from_erp took %.2fs', t3 - t2)
+        logger.warning('ProjectDetailSyncView fetch_and_save_billable_hours took %.2fs', t3 - t2)
+
+        pull_project_members_from_erp(request.user, project_names=[name])
+        t4 = time.perf_counter()
+        logger.warning('ProjectDetailSyncView pull_project_members_from_erp took %.2fs', t4 - t3)
 
         Project.objects.filter(pk=pk).update(last_synced_at=timezone.now())
-        logger.warning('ProjectDetailSyncView total took %.2fs', time.perf_counter() - t0)
+        logger.warning('ProjectDetailSyncView total took %.2fs', t4 - t0)
 
         return Response(ProjectSerializer(_single_project_qs(pk)).data)

@@ -29,10 +29,11 @@ class TeamMemberSerializer(serializers.Serializer):
 class SubtaskSerializer(serializers.ModelSerializer):
     budget_time = serializers.FloatField(source='expected_time', allow_null=True)
     consumed_time = serializers.FloatField(source='actual_time', allow_null=True)
+    billable_hours = serializers.FloatField(allow_null=True)
 
     class Meta:
         model = Task
-        fields = ['id', 'name', 'budget_time', 'consumed_time']
+        fields = ['id', 'name', 'budget_time', 'consumed_time', 'billable_hours']
 
 
 class ProjectSerializer(serializers.ModelSerializer):
