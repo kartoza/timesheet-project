@@ -27,6 +27,7 @@ const PMODashboardApp: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [syncAllError, setSyncAllError] = useState<string | null>(null);
   const [user] = useState<SessionUser | null>({ username: 'dev-bypass' });
   const [pmOverloadThreshold] = useState(4);
 
@@ -72,11 +73,12 @@ const PMODashboardApp: React.FC = () => {
 
   const handleSyncAll = async () => {
     setIsSyncing(true);
+    setSyncAllError(null);
     try {
       const projects = await syncProjects();
       setData(projects);
     } catch (err) {
-      console.error('ERP sync failed', err);
+      setSyncAllError(err instanceof Error ? err.message : 'ERPNext sync failed');
     } finally {
       setIsSyncing(false);
     }
@@ -114,14 +116,9 @@ const PMODashboardApp: React.FC = () => {
   };
 
   const loadProjectDetail = async (id: string): Promise<UIProjectRow | null> => {
-    try {
-      const fresh = await syncProjectDetail(id);
-      setData((prev) => prev.map((p) => (p._id === id ? fresh : p)));
-      return fresh;
-    } catch (err) {
-      console.error('Failed to sync project detail', err);
-      return null;
-    }
+    const fresh = await syncProjectDetail(id);
+    setData((prev) => prev.map((p) => (p._id === id ? fresh : p)));
+    return fresh;
   };
 
   const exportFnRef = useRef<(() => Promise<void>) | null>(null);
@@ -239,15 +236,20 @@ const PMODashboardApp: React.FC = () => {
               <div className='flex items-center gap-4'>
                 <h2 className='text-3xl font-bold text-slate-900 dark:text-slate-100'>Portfolio Overview</h2>
                 <div className='flex items-center gap-2 mt-1'>
-                  <button
-                    onClick={handleSyncAll}
-                    disabled={isSyncing}
-                    className='flex items-center gap-1.5 text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-200 text-sm font-bold hover:bg-indigo-100 disabled:opacity-60 disabled:cursor-not-allowed transition-colors'
-                    title='Refresh all projects from ERPNext'
-                  >
-                    <RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
-                    <span>{isSyncing ? 'Syncing...' : 'Refresh from ERPNext'}</span>
-                  </button>
+                  <div className='flex flex-col items-start gap-1'>
+                    <button
+                      onClick={handleSyncAll}
+                      disabled={isSyncing}
+                      className='flex items-center gap-1.5 text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-200 text-sm font-bold hover:bg-indigo-100 disabled:opacity-60 disabled:cursor-not-allowed transition-colors'
+                      title='Refresh all projects from ERPNext'
+                    >
+                      <RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
+                      <span>{isSyncing ? 'Syncing...' : 'Refresh from ERPNext'}</span>
+                    </button>
+                    {syncAllError && (
+                      <span className='text-xs text-red-500 font-medium px-1'>{syncAllError}</span>
+                    )}
+                  </div>
                   {(() => {
                     const latest = data.reduce<string | null>((acc, p) => {
                       if (!p._lastSyncedAt) return acc;

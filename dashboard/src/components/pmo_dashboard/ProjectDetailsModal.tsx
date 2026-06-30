@@ -10,9 +10,10 @@ type ProjectDetailsModalProps = {
   onClose: () => void;
   detailSyncStatus?: 'loading' | 'live' | null;
   onRefresh?: () => void;
+  syncError?: string | null;
 };
 
-const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onClose, detailSyncStatus, onRefresh }) => {
+const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onClose, detailSyncStatus, onRefresh, syncError }) => {
   if (!project) return null;
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('en-ZA', {
@@ -78,14 +79,19 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onCl
           </div>
           <div className='flex items-center gap-2 shrink-0'>
             {onRefresh && (
-              <button
-                onClick={onRefresh}
-                disabled={detailSyncStatus === 'loading'}
-                className='p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-                title='Refresh from ERPNext'
-              >
-                <RefreshCw size={18} className={detailSyncStatus === 'loading' ? 'animate-spin' : ''} />
-              </button>
+              <div className='flex flex-col items-end gap-1'>
+                <button
+                  onClick={onRefresh}
+                  disabled={detailSyncStatus === 'loading'}
+                  className='p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                  title='Refresh from ERPNext'
+                >
+                  <RefreshCw size={18} className={detailSyncStatus === 'loading' ? 'animate-spin' : ''} />
+                </button>
+                {syncError && (
+                  <span className='text-xs text-red-500 font-medium max-w-[200px] text-right leading-tight'>{syncError}</span>
+                )}
+              </div>
             )}
             <button
               onClick={onClose}
