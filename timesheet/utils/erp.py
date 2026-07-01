@@ -34,6 +34,41 @@ from timesheet.utils.erpnext_oauth import get_valid_oauth_token
 logger = logging.getLogger(__name__)
 
 
+class ProjectsNotFound(Exception):
+    "Raised when projects are not found in erpnext"
+    pass
+
+
+class ERPSyncError(Exception):
+    """Raised when an ERPNext API call returns an HTTP error."""
+    pass
+
+
+class ERPAuthError(ERPSyncError):
+    """401 - credentials invalid or expired."""
+    pass
+
+
+class ERPPermissionError(ERPSyncError):
+    """403 - permission denied."""
+    pass
+
+
+class ERPServerError(ERPSyncError):
+    """5xx - ERPNext server error."""
+    pass
+
+
+def erp_http_error(status_code: int) -> ERPSyncError:
+    if status_code == 401:
+        return ERPAuthError('ERPNext credentials are invalid or expired.')
+    if status_code == 403:
+        return ERPPermissionError('Permission denied in ERPNext. Check user permissions.')
+    if status_code == 404:
+        return ERPSyncError('Resource not found in ERPNext.')
+    return ERPServerError(f'ERPNext returned an error (HTTP {status_code}).')
+
+
 def get_auth_headers(user=None, erpnext_token=None):
     """Return auth headers for ERPNext API calls.
 
@@ -69,26 +104,22 @@ def retry_operation(func):
     return wrapper
 
 
-class ProjectsNotFound(Exception):
-    "Raised when projects are not found in erpnext"
-    pass
-
-
 def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '', doctype_value: str = '', user=None) -> list:
-    """Fetch a list (or single doc) from ERPNext REST API. Returns empty list on failure."""
+    """Fetch a list (or single doc) from ERPNext REST API."""
     path = f'resource/{doctype.value}/{doctype_value}'.rstrip('/')
     url = f'{settings.ERPNEXT_SITE_LOCATION}/api/{path}?limit_page_length=None&fields=["*"]'
     if filters:
         url += '&filters=' + filters
     headers = get_auth_headers(user=user, erpnext_token=erpnext_token)
-    response = requests.request(
-        'GET',
-        url,
-        headers=headers
-    )
-    if not response.status_code == 200:
+    try:
+        response = requests.request('GET', url, headers=headers)
+    except requests.exceptions.ConnectionError:
+        raise ERPSyncError('Cannot connect to ERPNext.')
+    except requests.exceptions.Timeout:
+        raise ERPSyncError('ERPNext request timed out.')
+    if response.status_code != 200:
         logger.error(response.content)
-        return []
+        raise erp_http_error(response.status_code)
 
     response_data = response.json()
     if 'data' not in response_data:
@@ -664,14 +695,15 @@ def get_report_data(report_name: str, erpnext_token: str = None, filters: str = 
     if filters:
         url += '&filters=' + filters
     headers = get_auth_headers(user=user, erpnext_token=erpnext_token)
-    response = requests.request(
-        'GET',
-        url,
-        headers=headers
-    )
-    if not response.status_code == 200:
+    try:
+        response = requests.request('GET', url, headers=headers)
+    except requests.exceptions.ConnectionError:
+        raise ERPSyncError('Cannot connect to ERPNext.')
+    except requests.exceptions.Timeout:
+        raise ERPSyncError('ERPNext request timed out.')
+    if response.status_code != 200:
         logger.error(response.content)
-        return []
+        raise erp_http_error(response.status_code)
 
     response_data = response.json()
     if 'message' not in response_data:

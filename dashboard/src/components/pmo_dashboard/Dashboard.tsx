@@ -55,6 +55,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProjectForDetails, setSelectedProjectForDetails] = useState<UIProjectRow | null>(null);
   const [detailSyncStatus, setDetailSyncStatus] = useState<'loading' | 'live' | null>(null);
+  const [detailSyncError, setDetailSyncError] = useState<string | null>(null);
   const [isRenderingPrintView, setIsRenderingPrintView] = useState(false);
   const [fullscreenChart, setFullscreenChart] = useState<string | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
@@ -122,13 +123,18 @@ const Dashboard: React.FC<DashboardProps> = ({
     setProjectUrl(project._id);
   };
 
-  const handleRefreshProjectDetail = () => {
+  const handleRefreshProjectDetail = async () => {
     if (!selectedProjectForDetails || !onProjectDetailOpen) return;
     setDetailSyncStatus('loading');
-    onProjectDetailOpen(selectedProjectForDetails._id).then((fresh) => {
+    setDetailSyncError(null);
+    try {
+      const fresh = await onProjectDetailOpen(selectedProjectForDetails._id);
       if (fresh) setSelectedProjectForDetails(fresh);
       setDetailSyncStatus('live');
-    });
+    } catch (err) {
+      setDetailSyncError(err instanceof Error ? err.message : 'ERPNext sync failed');
+      setDetailSyncStatus(null);
+    }
   };
 
   const handleExportPDF = React.useCallback(async () => {
@@ -249,7 +255,8 @@ const Dashboard: React.FC<DashboardProps> = ({
       <ProjectDetailsModal
         project={selectedProjectForDetails}
         detailSyncStatus={detailSyncStatus}
-        onClose={() => { setSelectedProjectForDetails(null); setDetailSyncStatus(null); setProjectUrl(null); }}
+        syncError={detailSyncError}
+        onClose={() => { setSelectedProjectForDetails(null); setDetailSyncStatus(null); setDetailSyncError(null); setProjectUrl(null); }}
         onRefresh={onProjectDetailOpen ? handleRefreshProjectDetail : undefined}
       />
       <AddProjectModal
