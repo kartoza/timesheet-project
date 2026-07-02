@@ -480,7 +480,7 @@ function ChartCard({ title, subtitle, children, isFullscreen, onFullscreenChange
       {isFullscreen && (
         <div className='fixed inset-0 z-[120] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4'>
           <div className='bg-white dark:bg-slate-900 p-6 md:p-8 shadow-2xl rounded-2xl w-full h-full flex flex-col animate-in zoom-in-95 duration-200 border border-transparent dark:border-slate-700'>
-            <div className='flex justify-between items-start mb-6 shrink-0 border-b border-slate-100 dark:border-slate-800 pb-4'>
+            <div className='relative z-10 flex justify-between items-start mb-6 shrink-0 border-b border-slate-100 dark:border-slate-800 pb-4'>
               <div>
                 <h3 className='text-2xl font-bold text-slate-800 dark:text-white'>{title}</h3>
                 <p className='text-base text-slate-500 dark:text-slate-400 font-medium mt-1'>{subtitle}</p>
@@ -493,14 +493,14 @@ function ChartCard({ title, subtitle, children, isFullscreen, onFullscreenChange
                 <Minimize2 size={28} />
               </button>
             </div>
-            <div className='flex-1 min-h-0 w-full relative'>
+            <div className='flex-1 min-h-0 w-full relative overflow-hidden'>
               {children}
             </div>
           </div>
         </div>
       )}
 
-      <div className='glass-card p-6 bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col'>
+      <div className='glass-card h-full p-6 bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col'>
         <div className='flex justify-between items-start mb-6 shrink-0'>
           <div>
             <h3 className='text-lg font-bold text-slate-800 dark:text-white'>{title}</h3>
@@ -514,7 +514,7 @@ function ChartCard({ title, subtitle, children, isFullscreen, onFullscreenChange
             <Maximize2 size={18} />
           </button>
         </div>
-        <div className='h-[380px] min-h-[380px]'>
+        <div className='h-[420px]'>
           {!isFullscreen && children}
         </div>
       </div>
