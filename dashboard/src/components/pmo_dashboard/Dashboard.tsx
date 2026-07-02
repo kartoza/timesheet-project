@@ -500,7 +500,7 @@ function ChartCard({ title, subtitle, children, isFullscreen, onFullscreenChange
         </div>
       )}
 
-      <div className='glass-card p-6 bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col'>
+      <div className='glass-card h-full p-6 bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col'>
         <div className='flex justify-between items-start mb-6 shrink-0'>
           <div>
             <h3 className='text-lg font-bold text-slate-800 dark:text-white'>{title}</h3>
@@ -514,7 +514,7 @@ function ChartCard({ title, subtitle, children, isFullscreen, onFullscreenChange
             <Maximize2 size={18} />
           </button>
         </div>
-        <div className='h-[380px] min-h-[380px]'>
+        <div className='h-[420px]'>
           {!isFullscreen && children}
         </div>
       </div>

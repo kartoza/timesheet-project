@@ -33,7 +33,7 @@ const ManagerRevenueChart: React.FC<ManagerRevenueChartProps> = ({ data, group_b
   );
 
   return (
-    <div className='w-full h-[350px] mt-2'>
+    <div className='w-full h-full min-h-[350px] mt-2'>
       <ResponsiveContainer width='100%' height='100%'>
         <BarChart data={chartData} layout='vertical' margin={{ top: 10, right: 30, left: 4, bottom: 0 }}>
           <CartesianGrid strokeDasharray='3 3' horizontal={false} vertical stroke='#E2E8F0' />
