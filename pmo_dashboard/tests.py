@@ -492,9 +492,18 @@ class TestProjectSyncView(PMOTestBase):
         self.assertFalse(stale.is_active)
 
     def test_returns_502_when_erp_fails(self):
-        with patch('pmo_dashboard.api_views.pull_projects_only_from_erp', side_effect=Exception('ERP down')):
+        from timesheet.utils.erp import ERPAuthError
+        with patch('pmo_dashboard.api_views.pull_projects_only_from_erp', side_effect=ERPAuthError('ERPNext credentials are invalid or expired.')):
             response = self.client.post(self.url)
             self.assertEqual(response.status_code, 502)
+            self.assertIn('ERPNext credentials', response.json()['detail'])
+
+    def test_returns_502_error_message_from_erp(self):
+        from timesheet.utils.erp import ERPPermissionError
+        with patch('pmo_dashboard.api_views.pull_projects_only_from_erp', side_effect=ERPPermissionError('Permission denied in ERPNext. Check user permissions.')):
+            response = self.client.post(self.url)
+            self.assertEqual(response.status_code, 502)
+            self.assertEqual(response.json()['detail'], 'Permission denied in ERPNext. Check user permissions.')
 
     def test_returns_updated_project_list(self):
         with patch('pmo_dashboard.api_views.pull_projects_only_from_erp', return_value=[self.project.id]), \

@@ -12,7 +12,7 @@ from pmo_dashboard.access import can_access_pmo
 from pmo_dashboard.billable_sync import fetch_and_save_billable_hours
 from pmo_dashboard.serializers.project import ProjectSerializer
 from timesheet.models.project import Project
-from timesheet.utils.erp import ProjectsNotFound, pull_project_members_from_erp, pull_projects_only_from_erp, pull_tasks_from_erp
+from timesheet.utils.erp import ERPSyncError, ProjectsNotFound, pull_project_members_from_erp, pull_projects_only_from_erp, pull_tasks_from_erp
 
 logger = logging.getLogger(__name__)
 
@@ -72,9 +72,12 @@ class ProjectSyncView(APIView):
             )
             Project.objects.filter(is_active=True).exclude(id__in=updated_projects).update(is_active=False)
             Project.objects.filter(id__in=updated_projects).update(last_synced_at=timezone.now())
-        except Exception:
-            logger.warning('ProjectSyncView: ERP sync failed')
-            return Response({'detail': 'ERP sync failed.'}, status=status.HTTP_502_BAD_GATEWAY)
+        except ProjectsNotFound:
+            logger.warning('ProjectSyncView: no open projects returned from ERPNext')
+            return Response({'detail': 'No open projects found in ERPNext.'}, status=status.HTTP_502_BAD_GATEWAY)
+        except ERPSyncError as e:
+            logger.warning('ProjectSyncView: %s', e)
+            return Response({'detail': str(e)}, status=status.HTTP_502_BAD_GATEWAY)
 
         t1 = time.perf_counter()
         logger.warning('ProjectSyncView pull_projects_only_from_erp took %.2fs', t1 - t0)
@@ -133,23 +136,30 @@ class ProjectDetailSyncView(APIView):
         except ProjectsNotFound:
             Project.objects.filter(pk=pk).update(is_active=False)
             return Response({'detail': 'Project no longer exists in ERPNext.'}, status=status.HTTP_404_NOT_FOUND)
+        except ERPSyncError as e:
+            logger.warning('ProjectDetailSyncView pull_projects_only_from_erp: %s', e)
+            return Response({'detail': str(e)}, status=status.HTTP_502_BAD_GATEWAY)
         t1 = time.perf_counter()
         logger.warning('ProjectDetailSyncView pull_projects_only_from_erp took %.2fs', t1 - t0)
 
-        pull_tasks_from_erp(request.user, [project], filters=f'[["project", "=", "{name}"]]')
-        t2 = time.perf_counter()
-        logger.warning('ProjectDetailSyncView pull_tasks_from_erp took %.2fs', t2 - t1)
-
         try:
-            fetch_and_save_billable_hours(name)
-        except Exception:
-            logger.warning('ProjectDetailSyncView billable sync failed for %s', name, exc_info=True)
-        t3 = time.perf_counter()
-        logger.warning('ProjectDetailSyncView fetch_and_save_billable_hours took %.2fs', t3 - t2)
+            pull_tasks_from_erp(request.user, [project], filters=f'[["project", "=", "{name}"]]')
+            t2 = time.perf_counter()
+            logger.warning('ProjectDetailSyncView pull_tasks_from_erp took %.2fs', t2 - t1)
 
-        pull_project_members_from_erp(request.user, project_names=[name])
-        t4 = time.perf_counter()
-        logger.warning('ProjectDetailSyncView pull_project_members_from_erp took %.2fs', t4 - t3)
+            try:
+                fetch_and_save_billable_hours(name)
+            except Exception:
+                logger.warning('ProjectDetailSyncView billable sync failed for %s', name, exc_info=True)
+            t3 = time.perf_counter()
+            logger.warning('ProjectDetailSyncView fetch_and_save_billable_hours took %.2fs', t3 - t2)
+
+            pull_project_members_from_erp(request.user, project_names=[name])
+            t4 = time.perf_counter()
+            logger.warning('ProjectDetailSyncView pull_project_members_from_erp took %.2fs', t4 - t3)
+        except ERPSyncError as e:
+            logger.warning('ProjectDetailSyncView sync: %s', e)
+            return Response({'detail': str(e)}, status=status.HTTP_502_BAD_GATEWAY)
 
         Project.objects.filter(pk=pk).update(last_synced_at=timezone.now())
         logger.warning('ProjectDetailSyncView total took %.2fs', t4 - t0)
