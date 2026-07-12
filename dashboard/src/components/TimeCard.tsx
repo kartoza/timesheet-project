@@ -170,9 +170,7 @@ export const TimeCard = forwardRef(({
     }, [runningTimeLog])
 
     useEffect(() => {
-        if (initialAccumulatedTimeMs > 0) {
-            setAccumulatedTimeMs(initialAccumulatedTimeMs);
-        }
+        setAccumulatedTimeMs(initialAccumulatedTimeMs);
     }, [initialAccumulatedTimeMs])
 
     useEffect(() => {
