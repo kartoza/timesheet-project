@@ -60,7 +60,7 @@ const baseQueryWithInterceptor = async (
 ) => {
   let results = await baseQuery(args, api, extraOptions);
   if (results.error && results.error.status === 401) {
-    console.log(results);
+    window.location.href = '/accounts/login/';
   }
   return results;
 };
