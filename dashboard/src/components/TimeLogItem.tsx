@@ -1,5 +1,5 @@
-import {TimeLog} from "../services/api";
-import React, {useState} from "react";
+import {TimeLog, useUpdateTimesheetMutation} from "../services/api";
+import React, {useState, Suspense} from "react";
 import moment from "moment/moment";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
@@ -21,6 +21,8 @@ import MenuItem from "@mui/material/MenuItem";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import {cloneTimeLogSignal, deleteTimeLogSignal, editTimeLogSignal, resumeTimeLogSignal, breakTimeLogSignal} from "../utils/sharedSignals";
 
+const TReactQuill = React.lazy(() => import('./ReactQuill'));
+
 
 export function TimeLogItem(prop : TimeLog)    {
     const [loading, setLoading] = useState(false);
@@ -29,6 +31,10 @@ export function TimeLogItem(prop : TimeLog)    {
     const metaColor = mode === 'dark' ? '#bdbdbd' : '#424242';
     // @ts-ignore
     const open = Boolean(anchorEl);
+
+    const [editingDescription, setEditingDescription] = useState(false);
+    const [descriptionValue, setDescriptionValue] = useState('');
+    const [updateTimesheet, { isLoading: isSaving }] = useUpdateTimesheetMutation();
 
     const getTime = ( date : string ) => {
         return moment(date, 'YYYY-MM-DD hh:mm').format('HH:mm')
@@ -83,6 +89,36 @@ export function TimeLogItem(prop : TimeLog)    {
         resumeTimeLogSignal.value(prop);
     }
 
+    const startEditingDescription = () => {
+        setDescriptionValue(prop.description || '');
+        setEditingDescription(true);
+    };
+
+    const saveDescription = async () => {
+        const normalized = descriptionValue === '<p><br></p>' ? '' : descriptionValue;
+        try {
+            await updateTimesheet({
+                id: prop.id,
+                task: { id: prop.task_id || '-' },
+                activity: { id: prop.activity_id },
+                project: { id: prop.project_id || '' },
+                description: normalized,
+                start_time: prop.from_time,
+                end_time: prop.to_time || null,
+                is_paused: prop.is_paused,
+                editing: !!prop.to_time,
+            }).unwrap();
+            setEditingDescription(false);
+        } catch (e) {
+            console.error('Failed to save description', e);
+        }
+    };
+
+    const cancelEditingDescription = () => {
+        setEditingDescription(false);
+        setDescriptionValue('');
+    };
+
     return (
         <Grid container spacing={1} className={"time-log-row" + (prop.submitted ? " timelog-submitted": "") + (prop.is_paused ? " timelog-paused": "")}>
             {prop.submitted && <span className="submitted-badge">Submitted</span>}
@@ -109,10 +145,61 @@ export function TimeLogItem(prop : TimeLog)    {
                             Project Inactive
                         </div> ) : null }
                 </Stack>
-                <div style={{display: "flex"}}>
-                    <Typography sx={{ display: "inline-block", fontWeight: "bold", whiteSpace: "pre-line"}}>
-                        <div dangerouslySetInnerHTML={{__html: prop.description}} />
-                    </Typography>
+                <div style={{display: "flex", width: '100%'}}>
+                    {editingDescription ? (
+                        <div style={{ width: '100%', border: `1px solid ${metaColor}`, borderRadius: 4, padding: '4px 6px' }}>
+                            <Suspense fallback={null}>
+                                <TReactQuill
+                                    formats={['bold', 'link', 'strike', 'italic', 'list', 'indent', 'align', 'code-block']}
+                                    modules={{
+                                        toolbar: [
+                                            ['bold', 'italic', 'strike', 'blockquote'],
+                                            [{'list': 'ordered'}, {'list': 'bullet'}],
+                                            ['link'],
+                                        ],
+                                    }}
+                                    value={descriptionValue}
+                                    onChange={(value: any) => setDescriptionValue(value)}
+                                    style={{ minHeight: 80 }}
+                                />
+                            </Suspense>
+                            <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
+                                <TButton size="small" variant="contained" onClick={saveDescription} disabled={isSaving}>
+                                    Save
+                                </TButton>
+                                <TButton size="small" variant="text" onClick={cancelEditingDescription} disabled={isSaving}>
+                                    Cancel
+                                </TButton>
+                            </div>
+                        </div>
+                    ) : (
+                        <Typography
+                            sx={{
+                                display: "inline-block",
+                                fontWeight: "bold",
+                                whiteSpace: "pre-line",
+                                width: '100%',
+                                cursor: !prop.submitted ? 'text' : 'default',
+                                borderRadius: 1,
+                                padding: '2px 4px',
+                                '&:hover': !prop.submitted ? {
+                                    outline: '1px dashed',
+                                    outlineColor: metaColor,
+                                } : {},
+                            }}
+                            onClick={!prop.submitted ? startEditingDescription : undefined}
+                        >
+                            {prop.description ? (
+                                <div dangerouslySetInnerHTML={{__html: prop.description}} />
+                            ) : (
+                                !prop.submitted && (
+                                    <span style={{ color: metaColor, fontStyle: 'italic', fontWeight: 'normal', opacity: 0.6 }}>
+                                        Add description...
+                                    </span>
+                                )
+                            )}
+                        </Typography>
+                    )}
                 </div>
             </Grid>
             <Divider orientation="vertical" variant="middle" flexItem />
