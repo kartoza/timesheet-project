@@ -27,6 +27,9 @@ import CircularProgress from "@mui/material/CircularProgress";
 import {cloneTimeLogSignal, deleteTimeLogSignal, editTimeLogSignal, resumeTimeLogSignal, breakTimeLogSignal} from "../utils/sharedSignals";
 import {getColorFromTaskLabel, isColorLight} from "../utils/Theme";
 import {formatTime} from "../utils/time";
+import {LocalizationProvider, StaticTimePicker} from "@mui/x-date-pickers";
+import {AdapterDateFns} from "@mui/x-date-pickers/AdapterDateFns";
+import Popover from "@mui/material/Popover";
 
 const TReactQuill = React.lazy(() => import('./ReactQuill'));
 
@@ -42,23 +45,29 @@ const roundHours = (hours: number) => {
 function ChildLogRow({ log, metaColor }: { log: TimeLog; metaColor: string }) {
     const [updateTimesheet, { isLoading: isSaving }] = useUpdateTimesheetMutation();
     const [deleteTimeLog] = useDeleteTimeLogMutation();
-    const [hoursInput, setHoursInput] = useState(() => String(roundHours(parseFloat(log.hours))));
     const canEdit = !log.submitted && !log.running;
 
-    useEffect(() => {
-        setHoursInput(String(roundHours(parseFloat(log.hours))));
-    }, [log.hours]);
-
+    const parseDate = (str: string) => moment(str, 'YYYY-MM-DD HH:mm').toDate();
     const getTime = (date: string) => moment(date, 'YYYY-MM-DD HH:mm').format('HH:mm');
 
-    const onHoursBlur = async () => {
-        const newHours = parseFloat(hoursInput);
-        if (isNaN(newHours) || newHours <= 0) {
-            setHoursInput(String(roundHours(parseFloat(log.hours))));
-            return;
-        }
-        const fromM = moment(log.from_time, 'YYYY-MM-DD HH:mm');
-        const newEnd = fromM.clone().add(newHours * 60, 'minutes').toDate();
+    const [startDate, setStartDate] = useState<Date>(() => parseDate(log.from_time));
+    const [endDate, setEndDate] = useState<Date | null>(() => log.to_time ? parseDate(log.to_time) : null);
+    const [hoursInput, setHoursInput] = useState(() => String(roundHours(parseFloat(log.hours))));
+
+    const [startAnchor, setStartAnchor] = useState<HTMLElement | null>(null);
+    const [endAnchor, setEndAnchor] = useState<HTMLElement | null>(null);
+
+    useEffect(() => { setStartDate(parseDate(log.from_time)); }, [log.from_time]);
+    useEffect(() => { setEndDate(log.to_time ? parseDate(log.to_time) : null); }, [log.to_time]);
+    useEffect(() => { setHoursInput(String(roundHours(parseFloat(log.hours)))); }, [log.hours]);
+
+    const recalcHours = (start: Date, end: Date | null) => {
+        if (!end) return;
+        const diff = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+        if (diff > 0) setHoursInput(String(roundHours(diff)));
+    };
+
+    const save = async (start: Date, end: Date | null) => {
         try {
             await updateTimesheet({
                 id: log.id,
@@ -66,72 +75,156 @@ function ChildLogRow({ log, metaColor }: { log: TimeLog; metaColor: string }) {
                 activity: { id: log.activity_id },
                 project: { id: log.project_id || '' },
                 description: log.description || '',
-                start_time: formatTime(fromM.toDate()),
-                end_time: formatTime(newEnd),
+                start_time: formatTime(start),
+                end_time: end ? formatTime(end) : null,
                 is_paused: log.is_paused,
                 editing: true,
             }).unwrap();
         } catch (e) {
             console.error('Failed to save child time', e);
-            setHoursInput(String(roundHours(parseFloat(log.hours))));
         }
     };
 
+    const onHoursBlur = async () => {
+        const newHours = parseFloat(hoursInput);
+        if (isNaN(newHours) || newHours <= 0) {
+            setHoursInput(String(roundHours(parseFloat(log.hours))));
+            return;
+        }
+        const newEnd = new Date(startDate.getTime() + newHours * 60 * 60 * 1000);
+        setEndDate(newEnd);
+        await save(startDate, newEnd);
+    };
+
+    const onStartAccept = async (value: Date | null) => {
+        if (!value) return;
+        setStartDate(value);
+        setStartAnchor(null);
+        recalcHours(value, endDate);
+        await save(value, endDate);
+    };
+
+    const onEndAccept = async (value: Date | null) => {
+        if (!value) return;
+        setEndDate(value);
+        setEndAnchor(null);
+        recalcHours(startDate, value);
+        await save(startDate, value);
+    };
+
+    const timeStyle: React.CSSProperties = canEdit ? {
+        cursor: 'pointer',
+        borderBottom: `1px dashed ${metaColor}`,
+        paddingBottom: 1,
+    } : {};
+
     return (
-        <Grid container spacing={1} sx={{ opacity: 0.9, borderTop: `1px solid ${metaColor}22` }}>
-            <Grid item xs={12} md={7.9} />
-            <Divider orientation="vertical" variant="middle" flexItem />
-            <Grid item xs={2.75} sx={{ textAlign: 'center', fontSize: '0.85em', letterSpacing: 0.8, paddingTop: '4px !important', paddingBottom: '4px !important' }}>
-                <Typography sx={{ fontSize: '1.5em', fontWeight: 'bolder' }} color="text.primary">
-                    {canEdit ? (
-                        <input
-                            type="number"
-                            value={hoursInput}
-                            onChange={e => setHoursInput(e.target.value)}
-                            onBlur={onHoursBlur}
-                            disabled={isSaving}
-                            step="0.25"
-                            min="0"
-                            style={{
-                                fontSize: 'inherit',
-                                fontWeight: 'inherit',
-                                color: 'inherit',
-                                border: 'none',
-                                borderBottom: `1px dashed ${metaColor}`,
-                                background: 'transparent',
-                                outline: 'none',
-                                width: `${Math.max(2, hoursInput.length + 1)}ch`,
-                                textAlign: 'center',
-                                padding: 0,
-                            }}
-                        />
-                    ) : (
-                        roundHours(parseFloat(log.hours))
-                    )}
-                </Typography>
-                <div style={{ fontSize: '0.85em' }}>
-                    {getTime(log.from_time)}{log.to_time ? ' - ' + getTime(log.to_time) : ''}
-                </div>
-            </Grid>
-            <Divider orientation="vertical" variant="middle" flexItem />
-            <Grid item xs={0.6}>
-                {canEdit && (
-                    <TButton
-                        variant="text"
-                        size="small"
-                        style={{ marginLeft: '8px', marginTop: '5px' }}
-                        onClick={() => {
-                            if (window.confirm('Are you sure you want to delete this record?')) {
-                                deleteTimeLog({ id: log.id });
-                            }
-                        }}
-                        disabled={isSaving}
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <Grid container spacing={1} sx={{ opacity: 0.9, borderTop: `1px solid ${metaColor}22` }}>
+                <Grid item xs={12} md={7.9} />
+                <Divider orientation="vertical" variant="middle" flexItem />
+                <Grid item xs={2.75} sx={{ textAlign: 'center', fontSize: '0.85em', letterSpacing: 0.8, paddingTop: '4px !important', paddingBottom: '4px !important' }}>
+                    <Typography sx={{ fontSize: '1.5em', fontWeight: 'bolder' }} color="text.primary">
+                        {canEdit ? (
+                            <input
+                                type="number"
+                                value={hoursInput}
+                                onChange={e => setHoursInput(e.target.value)}
+                                onBlur={onHoursBlur}
+                                disabled={isSaving}
+                                step="0.25"
+                                min="0"
+                                style={{
+                                    fontSize: 'inherit',
+                                    fontWeight: 'inherit',
+                                    color: 'inherit',
+                                    border: 'none',
+                                    borderBottom: `1px dashed ${metaColor}`,
+                                    background: 'transparent',
+                                    outline: 'none',
+                                    width: `${Math.max(2, hoursInput.length + 1)}ch`,
+                                    textAlign: 'center',
+                                    padding: 0,
+                                }}
+                            />
+                        ) : (
+                            roundHours(parseFloat(log.hours))
+                        )}
+                    </Typography>
+                    <div style={{ fontSize: '0.85em', display: 'flex', justifyContent: 'center', gap: 4 }}>
+                        <span
+                            style={timeStyle}
+                            onClick={canEdit ? (e) => setStartAnchor(e.currentTarget) : undefined}
+                        >
+                            {getTime(log.from_time)}
+                        </span>
+                        {log.to_time && (
+                            <>
+                                <span>-</span>
+                                <span
+                                    style={timeStyle}
+                                    onClick={canEdit ? (e) => setEndAnchor(e.currentTarget) : undefined}
+                                >
+                                    {endDate ? getTime(moment(endDate).format('YYYY-MM-DD HH:mm')) : getTime(log.to_time)}
+                                </span>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Start time picker */}
+                    <Popover
+                        open={Boolean(startAnchor)}
+                        anchorEl={startAnchor}
+                        onClose={() => setStartAnchor(null)}
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
                     >
-                        <DeleteSweepIcon fontSize="small" />
-                    </TButton>
-                )}
+                        <StaticTimePicker
+                            ampm={false}
+                            value={startDate}
+                            onChange={(v) => v && setStartDate(v)}
+                            onAccept={onStartAccept}
+                            onClose={() => setStartAnchor(null)}
+                        />
+                    </Popover>
+
+                    {/* End time picker */}
+                    <Popover
+                        open={Boolean(endAnchor)}
+                        anchorEl={endAnchor}
+                        onClose={() => setEndAnchor(null)}
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+                    >
+                        <StaticTimePicker
+                            ampm={false}
+                            value={endDate}
+                            onChange={(v) => v && setEndDate(v)}
+                            onAccept={onEndAccept}
+                            onClose={() => setEndAnchor(null)}
+                        />
+                    </Popover>
+                </Grid>
+                <Divider orientation="vertical" variant="middle" flexItem />
+                <Grid item xs={0.6}>
+                    {canEdit && (
+                        <TButton
+                            variant="text"
+                            size="small"
+                            style={{ marginLeft: '8px', marginTop: '5px' }}
+                            onClick={() => {
+                                if (window.confirm('Are you sure you want to delete this record?')) {
+                                    deleteTimeLog({ id: log.id });
+                                }
+                            }}
+                            disabled={isSaving}
+                        >
+                            <DeleteSweepIcon fontSize="small" />
+                        </TButton>
+                    )}
+                </Grid>
             </Grid>
-        </Grid>
+        </LocalizationProvider>
     );
 }
 
@@ -183,10 +276,28 @@ export function TimeLogItem(prop : TimeLogItemProps)    {
     // Time editing — just the total hours input, saves end_time on blur
     const canEditTime = !prop.submitted && !prop.running && prop.total_children === 0;
     const [hoursInput, setHoursInput] = useState(() => String(roundHours(parseFloat(prop.all_hours))));
+    const [parentStartDate, setParentStartDate] = useState<Date>(() => moment(prop.from_time, 'YYYY-MM-DD HH:mm').toDate());
+    const [parentEndDate, setParentEndDate] = useState<Date | null>(() => prop.to_time ? moment(prop.to_time, 'YYYY-MM-DD HH:mm').toDate() : null);
+    const [startTimeAnchor, setStartTimeAnchor] = useState<HTMLElement | null>(null);
+    const [endTimeAnchor, setEndTimeAnchor] = useState<HTMLElement | null>(null);
 
-    useEffect(() => {
-        setHoursInput(String(roundHours(parseFloat(prop.all_hours))));
-    }, [prop.all_hours]);
+    useEffect(() => { setHoursInput(String(roundHours(parseFloat(prop.all_hours)))); }, [prop.all_hours]);
+    useEffect(() => { setParentStartDate(moment(prop.from_time, 'YYYY-MM-DD HH:mm').toDate()); }, [prop.from_time]);
+    useEffect(() => { setParentEndDate(prop.to_time ? moment(prop.to_time, 'YYYY-MM-DD HH:mm').toDate() : null); }, [prop.to_time]);
+
+    const saveParentTime = async (start: Date, end: Date | null) => {
+        await updateTimesheet({
+            id: prop.id,
+            task: { id: prop.task_id || '-' },
+            activity: { id: prop.activity_id },
+            project: { id: prop.project_id || '' },
+            description: prop.description || '',
+            start_time: formatTime(start),
+            end_time: end ? formatTime(end) : null,
+            is_paused: prop.is_paused,
+            editing: true,
+        }).unwrap();
+    };
 
     const onHoursBlur = async () => {
         const newHours = parseFloat(hoursInput);
@@ -194,24 +305,34 @@ export function TimeLogItem(prop : TimeLogItemProps)    {
             setHoursInput(String(roundHours(parseFloat(prop.all_hours))));
             return;
         }
-        const fromM = moment(prop.from_time, 'YYYY-MM-DD HH:mm');
-        const newEnd = fromM.clone().add(newHours * 60, 'minutes').toDate();
+        const newEnd = new Date(parentStartDate.getTime() + newHours * 60 * 60 * 1000);
+        setParentEndDate(newEnd);
         try {
-            await updateTimesheet({
-                id: prop.id,
-                task: { id: prop.task_id || '-' },
-                activity: { id: prop.activity_id },
-                project: { id: prop.project_id || '' },
-                description: prop.description || '',
-                start_time: formatTime(fromM.toDate()),
-                end_time: formatTime(newEnd),
-                is_paused: prop.is_paused,
-                editing: true,
-            }).unwrap();
+            await saveParentTime(parentStartDate, newEnd);
         } catch (e) {
             console.error('Failed to save time', e);
             setHoursInput(String(roundHours(parseFloat(prop.all_hours))));
         }
+    };
+
+    const onParentStartAccept = async (value: Date | null) => {
+        if (!value) return;
+        setParentStartDate(value);
+        setStartTimeAnchor(null);
+        if (parentEndDate) {
+            const diff = (parentEndDate.getTime() - value.getTime()) / (1000 * 60 * 60);
+            if (diff > 0) setHoursInput(String(roundHours(diff)));
+        }
+        try { await saveParentTime(value, parentEndDate); } catch (e) { console.error(e); }
+    };
+
+    const onParentEndAccept = async (value: Date | null) => {
+        if (!value) return;
+        setParentEndDate(value);
+        setEndTimeAnchor(null);
+        const diff = (value.getTime() - parentStartDate.getTime()) / (1000 * 60 * 60);
+        if (diff > 0) setHoursInput(String(roundHours(diff)));
+        try { await saveParentTime(parentStartDate, value); } catch (e) { console.error(e); }
     };
 
     // Meta (activity / project / task)
@@ -622,7 +743,31 @@ export function TimeLogItem(prop : TimeLogItemProps)    {
                     { prop.is_paused ? <PauseCircleIcon color={'warning'} style={{marginLeft: '0.2em'}} titleAccess="Paused"/> : null }
                 </Typography>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                    { getTime(prop.all_from_time) } { !prop.running ? '- ' + getTime(prop.all_to_time) : '' }
+                    <span
+                        style={canEditTime ? { cursor: 'pointer', borderBottom: `1px dashed ${metaColor}` } : {}}
+                        onClick={canEditTime ? (e) => setStartTimeAnchor(e.currentTarget) : undefined}
+                    >
+                        { getTime(prop.all_from_time) }
+                    </span>
+                    { !prop.running && (
+                        <>
+                            <span>-</span>
+                            <span
+                                style={canEditTime ? { cursor: 'pointer', borderBottom: `1px dashed ${metaColor}` } : {}}
+                                onClick={canEditTime ? (e) => setEndTimeAnchor(e.currentTarget) : undefined}
+                            >
+                                { getTime(prop.all_to_time) }
+                            </span>
+                        </>
+                    )}
+                    <LocalizationProvider dateAdapter={AdapterDateFns}>
+                        <Popover open={Boolean(startTimeAnchor)} anchorEl={startTimeAnchor} onClose={() => setStartTimeAnchor(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} transformOrigin={{ vertical: 'top', horizontal: 'center' }}>
+                            <StaticTimePicker ampm={false} value={parentStartDate} onChange={(v) => v && setParentStartDate(v)} onAccept={onParentStartAccept} onClose={() => setStartTimeAnchor(null)} />
+                        </Popover>
+                        <Popover open={Boolean(endTimeAnchor)} anchorEl={endTimeAnchor} onClose={() => setEndTimeAnchor(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} transformOrigin={{ vertical: 'top', horizontal: 'center' }}>
+                            <StaticTimePicker ampm={false} value={parentEndDate} onChange={(v) => v && setParentEndDate(v)} onAccept={onParentEndAccept} onClose={() => setEndTimeAnchor(null)} />
+                        </Popover>
+                    </LocalizationProvider>
                     { childLogs.length > 0 ? (
                         <span
                             onClick={() => setExpanded(e => !e)}
