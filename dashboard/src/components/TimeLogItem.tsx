@@ -1,4 +1,4 @@
-import {TimeLog, useUpdateTimesheetMutation} from "../services/api";
+import {TimeLog, useUpdateTimesheetMutation, useDeleteTimeLogMutation} from "../services/api";
 import React, {useState, Suspense, useEffect, useRef} from "react";
 import moment from "moment/moment";
 import Grid from "@mui/material/Grid";
@@ -19,18 +19,130 @@ import TButton from "../loadable/Button";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import CircularProgress from "@mui/material/CircularProgress";
 import {cloneTimeLogSignal, deleteTimeLogSignal, editTimeLogSignal, resumeTimeLogSignal, breakTimeLogSignal} from "../utils/sharedSignals";
 import {getColorFromTaskLabel, isColorLight} from "../utils/Theme";
+import {formatTime} from "../utils/time";
 
 const TReactQuill = React.lazy(() => import('./ReactQuill'));
 
+const roundHours = (hours: number) => {
+    // Source - https://stackoverflow.com/a/11832950
+    // Posted by Brian Ustas, modified by community. See post 'Timeline' for change history
+    // Retrieved 2026-02-11, License - CC BY-SA 4.0
+    let rounded = Math.round(hours * 100) / 100;
+    if (rounded === 0) rounded = 0.01;
+    return rounded;
+};
 
-export function TimeLogItem(prop : TimeLog)    {
+function ChildLogRow({ log, metaColor }: { log: TimeLog; metaColor: string }) {
+    const [updateTimesheet, { isLoading: isSaving }] = useUpdateTimesheetMutation();
+    const [deleteTimeLog] = useDeleteTimeLogMutation();
+    const [hoursInput, setHoursInput] = useState(() => String(roundHours(parseFloat(log.hours))));
+    const canEdit = !log.submitted && !log.running;
+
+    useEffect(() => {
+        setHoursInput(String(roundHours(parseFloat(log.hours))));
+    }, [log.hours]);
+
+    const getTime = (date: string) => moment(date, 'YYYY-MM-DD HH:mm').format('HH:mm');
+
+    const onHoursBlur = async () => {
+        const newHours = parseFloat(hoursInput);
+        if (isNaN(newHours) || newHours <= 0) {
+            setHoursInput(String(roundHours(parseFloat(log.hours))));
+            return;
+        }
+        const fromM = moment(log.from_time, 'YYYY-MM-DD HH:mm');
+        const newEnd = fromM.clone().add(newHours * 60, 'minutes').toDate();
+        try {
+            await updateTimesheet({
+                id: log.id,
+                task: { id: log.task_id || '-' },
+                activity: { id: log.activity_id },
+                project: { id: log.project_id || '' },
+                description: log.description || '',
+                start_time: formatTime(fromM.toDate()),
+                end_time: formatTime(newEnd),
+                is_paused: log.is_paused,
+                editing: true,
+            }).unwrap();
+        } catch (e) {
+            console.error('Failed to save child time', e);
+            setHoursInput(String(roundHours(parseFloat(log.hours))));
+        }
+    };
+
+    return (
+        <Grid container spacing={1} sx={{ opacity: 0.9, borderTop: `1px solid ${metaColor}22` }}>
+            <Grid item xs={12} md={7.9} />
+            <Divider orientation="vertical" variant="middle" flexItem />
+            <Grid item xs={2.75} sx={{ textAlign: 'center', fontSize: '0.85em', letterSpacing: 0.8, paddingTop: '4px !important', paddingBottom: '4px !important' }}>
+                <Typography sx={{ fontSize: '1.5em', fontWeight: 'bolder' }} color="text.primary">
+                    {canEdit ? (
+                        <input
+                            type="number"
+                            value={hoursInput}
+                            onChange={e => setHoursInput(e.target.value)}
+                            onBlur={onHoursBlur}
+                            disabled={isSaving}
+                            step="0.25"
+                            min="0"
+                            style={{
+                                fontSize: 'inherit',
+                                fontWeight: 'inherit',
+                                color: 'inherit',
+                                border: 'none',
+                                borderBottom: `1px dashed ${metaColor}`,
+                                background: 'transparent',
+                                outline: 'none',
+                                width: `${Math.max(2, hoursInput.length + 1)}ch`,
+                                textAlign: 'center',
+                                padding: 0,
+                            }}
+                        />
+                    ) : (
+                        roundHours(parseFloat(log.hours))
+                    )}
+                </Typography>
+                <div style={{ fontSize: '0.85em' }}>
+                    {getTime(log.from_time)}{log.to_time ? ' - ' + getTime(log.to_time) : ''}
+                </div>
+            </Grid>
+            <Divider orientation="vertical" variant="middle" flexItem />
+            <Grid item xs={0.6}>
+                {canEdit && (
+                    <TButton
+                        variant="text"
+                        size="small"
+                        style={{ marginLeft: '8px', marginTop: '5px' }}
+                        onClick={() => {
+                            if (window.confirm('Are you sure you want to delete this record?')) {
+                                deleteTimeLog({ id: log.id });
+                            }
+                        }}
+                        disabled={isSaving}
+                    >
+                        <DeleteSweepIcon fontSize="small" />
+                    </TButton>
+                )}
+            </Grid>
+        </Grid>
+    );
+}
+
+
+type TimeLogItemProps = TimeLog & { childLogs?: TimeLog[] };
+
+export function TimeLogItem(prop : TimeLogItemProps)    {
     const [loading, setLoading] = useState(false);
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const [expanded, setExpanded] = useState(false);
+    const childLogs = prop.childLogs || [];
     const { mode } = useColorScheme();
     const metaColor = mode === 'dark' ? '#bdbdbd' : '#424242';
     // @ts-ignore
@@ -67,6 +179,40 @@ export function TimeLogItem(prop : TimeLog)    {
         document.addEventListener('mousedown', handleMouseDown);
         return () => document.removeEventListener('mousedown', handleMouseDown);
     }, [editingDescription]);
+
+    // Time editing — just the total hours input, saves end_time on blur
+    const canEditTime = !prop.submitted && !prop.running && prop.total_children === 0;
+    const [hoursInput, setHoursInput] = useState(() => String(roundHours(parseFloat(prop.all_hours))));
+
+    useEffect(() => {
+        setHoursInput(String(roundHours(parseFloat(prop.all_hours))));
+    }, [prop.all_hours]);
+
+    const onHoursBlur = async () => {
+        const newHours = parseFloat(hoursInput);
+        if (isNaN(newHours) || newHours <= 0) {
+            setHoursInput(String(roundHours(parseFloat(prop.all_hours))));
+            return;
+        }
+        const fromM = moment(prop.from_time, 'YYYY-MM-DD HH:mm');
+        const newEnd = fromM.clone().add(newHours * 60, 'minutes').toDate();
+        try {
+            await updateTimesheet({
+                id: prop.id,
+                task: { id: prop.task_id || '-' },
+                activity: { id: prop.activity_id },
+                project: { id: prop.project_id || '' },
+                description: prop.description || '',
+                start_time: formatTime(fromM.toDate()),
+                end_time: formatTime(newEnd),
+                is_paused: prop.is_paused,
+                editing: true,
+            }).unwrap();
+        } catch (e) {
+            console.error('Failed to save time', e);
+            setHoursInput(String(roundHours(parseFloat(prop.all_hours))));
+        }
+    };
 
     // Meta (activity / project / task)
     const [activities, setActivities] = useState<any[]>([]);
@@ -182,17 +328,6 @@ export function TimeLogItem(prop : TimeLog)    {
         return moment(date, 'YYYY-MM-DD hh:mm').format('HH:mm')
     }
 
-    const roundHours = (hours: number) => {
-        // Source - https://stackoverflow.com/a/11832950
-        // Posted by Brian Ustas, modified by community. See post 'Timeline' for change history
-        // Retrieved 2026-02-11, License - CC BY-SA 4.0
-        let roundedHours = Math.round(hours * 100) / 100
-        if (roundedHours == 0) {
-            roundedHours = 0.01
-        }
-        return roundedHours
-    }
-
     const calculateHours = (fromTime: string) => {
         let fromTimeObj = moment(fromTime, 'YYYY-MM-DD hh:mm')
         return moment.duration(moment().diff(fromTimeObj)).asHours().toFixed(2)
@@ -263,6 +398,7 @@ export function TimeLogItem(prop : TimeLog)    {
     };
 
     return (
+        <>
         <Grid container spacing={1} className={"time-log-row" + (prop.submitted ? " timelog-submitted": "") + (prop.is_paused ? " timelog-paused": "")}>
             {prop.submitted && <span className="submitted-badge">Submitted</span>}
             <Grid className="time-log-item left-item" item xs={12} md={8}>
@@ -457,14 +593,45 @@ export function TimeLogItem(prop : TimeLog)    {
                 </div>
             </Grid>
             <Divider orientation="vertical" variant="middle" flexItem />
-            <Grid className="time-log-item center-item"  item xs={2.8} sx={{ fontSize: "0.85em", letterSpacing: 0.8 }}>
+            <Grid className="time-log-item center-item" item xs={2.8} sx={{ fontSize: "0.85em", letterSpacing: 0.8 }}>
                 <Typography sx={{ fontSize: "2em", fontWeight: "bolder" }} color="text.primary">
-                    { !prop.running ? roundHours(parseFloat(prop.all_hours)) : calculateHours(prop.from_time) }
+                    {canEditTime ? (
+                        <input
+                            type="number"
+                            value={hoursInput}
+                            onChange={e => setHoursInput(e.target.value)}
+                            onBlur={onHoursBlur}
+                            step="0.25"
+                            min="0"
+                            style={{
+                                fontSize: 'inherit',
+                                fontWeight: 'inherit',
+                                color: 'inherit',
+                                border: 'none',
+                                borderBottom: `1px dashed ${metaColor}`,
+                                background: 'transparent',
+                                outline: 'none',
+                                width: `${Math.max(2, hoursInput.length + 1)}ch`,
+                                textAlign: 'center',
+                                padding: 0,
+                            }}
+                        />
+                    ) : (
+                        !prop.running ? roundHours(parseFloat(prop.all_hours)) : calculateHours(prop.from_time)
+                    )}
                     { prop.is_paused ? <PauseCircleIcon color={'warning'} style={{marginLeft: '0.2em'}} titleAccess="Paused"/> : null }
                 </Typography>
-                <div>
-                    { prop.total_children > 0 ? <Chip size={'small'} label={prop.total_children + 1} style={{ marginRight: 5 }}/> : ''}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                     { getTime(prop.all_from_time) } { !prop.running ? '- ' + getTime(prop.all_to_time) : '' }
+                    { childLogs.length > 0 ? (
+                        <span
+                            onClick={() => setExpanded(e => !e)}
+                            style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', opacity: 0.7, marginRight: -15 }}
+                            title={expanded ? 'Hide sessions' : `Show ${childLogs.length + 1} sessions`}
+                        >
+                            {expanded ? <KeyboardArrowUpIcon fontSize="small"/> : <KeyboardArrowDownIcon fontSize="small"/>}
+                        </span>
+                    ) : null }
                 </div>
             </Grid>
             <Divider orientation="vertical" variant="middle" flexItem />
@@ -503,5 +670,14 @@ export function TimeLogItem(prop : TimeLog)    {
                 ) : null }
             </Grid>
         </Grid>
+        {expanded && childLogs.length > 0 && (
+            <div>
+                {[prop, ...childLogs]
+                    .sort((a, b) => a.from_time.localeCompare(b.from_time))
+                    .map(log => <ChildLogRow key={log.id} log={log} metaColor={metaColor} />)
+                }
+            </div>
+        )}
+        </>
     )
 }

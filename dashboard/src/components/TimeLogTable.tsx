@@ -67,9 +67,10 @@ function TimeLogTable(props: any) {
             <CardContent sx={{padding: 0}}>
                 {data.map((timeLogData: TimeLog) => {
                   if (!timeLogData.running && !timeLogData.parent) {
+                    const childLogs = data.filter((t: TimeLog) => t.parent === timeLogData.id);
                     return (
                       <div key={timeLogData.id}>
-                        <TimeLogItem {...timeLogData}/>
+                        <TimeLogItem {...timeLogData} childLogs={childLogs}/>
                         <Divider sx={{marginBottom: 1}}/>
                       </div>
                     )
