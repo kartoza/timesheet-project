@@ -24,7 +24,7 @@ from schedule.models import Schedule
 from timesheet.enums.doctype import DocType
 from timesheet.models import Timelog, Project, Task, Activity
 from timesheet.models.department import Department
-from pmo_dashboard.models import BusinessUnit
+from pmo_dashboard.models import BusinessUnit, ContractTracker, Issue
 from timesheet.models.project_member import ProjectMember
 from timesheet.models.profile import get_country_code_from_timezone
 from timesheet.models.user_project import UserProject
@@ -703,6 +703,80 @@ def get_detailed_report_data_by_employee(employee_id: str, start_date: str, end_
         preferences.TimesheetPreferences.admin_token,
         filters)
     return timesheet_detail
+
+def get_sla_report_data(user=None) -> list:
+    """Fetch 'SLA Report' rows (client, project, dates, sla_type, contact) from ERPNext."""
+    return get_report_data(
+        'SLA%20Report',
+        preferences.TimesheetPreferences.admin_token,
+        user=user,
+    )
+
+
+def pull_issues_from_erp(user: get_user_model(), filters: str = '') -> list:
+    """Upsert Issues from ERPNext into the local Issue model.
+
+    An issue is internal if its ERPNext Project is unset, or if the matched
+    local Project is of type INTERNAL. Returns list of updated Issue IDs.
+    """
+    issues = get_erp_data(
+        DocType.ISSUE, preferences.TimesheetPreferences.admin_token,
+        filters=filters, user=user,
+    )
+    updated_ids = []
+    with transaction.atomic():
+        for issue in issues:
+            project = None
+            project_name = issue.get('project')
+            if project_name:
+                project = Project.objects.filter(name=project_name).first()
+            is_internal = project is None or project.project_type == 'INTERNAL'
+
+            obj, _ = Issue.objects.update_or_create(
+                erp_id=issue['name'],
+                defaults={
+                    'subject': issue.get('subject') or '',
+                    'project': project,
+                    'raised_by': issue.get('raised_by') or '',
+                    'status': issue.get('status') or '',
+                    'priority': issue.get('priority') or '',
+                    'opening_date': parse_date(issue['opening_date']) if issue.get('opening_date') else None,
+                    'is_internal': is_internal,
+                }
+            )
+            updated_ids.append(obj.id)
+    return updated_ids
+
+
+def pull_contracts_from_erp(user: get_user_model()) -> list:
+    """Upsert Contract Tracker rows from ERPNext's 'SLA Report' into the local ContractTracker model.
+
+    Skips rows whose project name doesn't match an already-synced local Project.
+    Returns list of updated ContractTracker IDs.
+    """
+    rows = get_sla_report_data(user=user)
+    updated_ids = []
+    with transaction.atomic():
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            project_name = row.get('project')
+            if not project_name:
+                continue
+            project = Project.objects.filter(name=project_name).first()
+            if not project:
+                continue
+
+            obj, _ = ContractTracker.objects.update_or_create(
+                project=project,
+                defaults={
+                    'contact_email': row.get('contact_detail') or '',
+                    'sla_type': row.get('sla_type') or '',
+                }
+            )
+            updated_ids.append(obj.id)
+    return updated_ids
+
 
 def get_week_of_month(dt):
     """Calculate the week number within the month for a given date."""

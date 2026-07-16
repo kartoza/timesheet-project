@@ -1,6 +1,8 @@
 import {
+  ApiContractTracker,
   ApiProject,
   CreateProjectPayload,
+  IssueSummaryResponse,
   LoginResponse,
   SessionResponse,
   UIProjectRow,
@@ -191,6 +193,22 @@ export async function createProject(projectData: CreateProjectPayload): Promise<
     body: JSON.stringify(payload),
   });
   return mapApiProject(created);
+}
+
+export async function fetchContracts(): Promise<ApiContractTracker[]> {
+  return apiFetch<ApiContractTracker[]>('/api/pmo/support/contracts/');
+}
+
+export async function syncContracts(): Promise<ApiContractTracker[]> {
+  return apiFetch<ApiContractTracker[]>('/api/pmo/support/contracts/sync/', { method: 'POST' });
+}
+
+export async function fetchIssueSummary(): Promise<IssueSummaryResponse> {
+  return apiFetch<IssueSummaryResponse>('/api/pmo/support/issues/');
+}
+
+export async function syncIssues(): Promise<IssueSummaryResponse> {
+  return apiFetch<IssueSummaryResponse>('/api/pmo/support/issues/sync/', { method: 'POST' });
 }
 
 export async function getSession(): Promise<SessionResponse> {

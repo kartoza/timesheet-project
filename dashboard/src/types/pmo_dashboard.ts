@@ -100,6 +100,33 @@ export type SessionResponse = {
   user: SessionUser | null;
 };
 
+export type ContractStatus = 'Open' | 'Expires in 3 Months' | 'Expires in 2 Months' | 'Expires in 1 Month' | 'Closed';
+
+export type ApiContractTracker = {
+  id: number;
+  client: string | null;
+  project: string;
+  contract_type: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  contact: string;
+  status: ContractStatus;
+};
+
+export type IssueSummaryRow = {
+  project: string;
+  total: number;
+  low: number;
+  medium: number;
+  high: number;
+  closed: number;
+};
+
+export type IssueSummaryResponse = {
+  all_time: IssueSummaryRow[];
+  last_sprint: IssueSummaryRow[];
+};
+
 export type CreateProjectPayload = {
   Project: string;
   'Relationship Manager': string;

@@ -4,36 +4,32 @@ import { createPortal } from 'react-dom';
 
 export type FilterFieldKey = 'projectType' | 'status' | 'manager';
 
-export type FilterFieldConfig = {
-  key: FilterFieldKey;
+export type FilterFieldConfig<K extends string = string> = {
+  key: K;
   label: string;
   options: string[];
   optionCounts?: Record<string, number>;
 };
 
-type SelectedFilters = Record<FilterFieldKey, string[]>;
+type SelectedFilters<K extends string> = Record<K, string[]>;
 
-type DashboardFiltersProps = {
+type DashboardFiltersProps<K extends string> = {
   searchTerm: string;
   setSearchTerm: (value: string) => void;
-  selectedFilters: SelectedFilters;
-  setSelectedFilters: React.Dispatch<React.SetStateAction<SelectedFilters>>;
-  filterFields: FilterFieldConfig[];
+  selectedFilters: SelectedFilters<K>;
+  setSelectedFilters: React.Dispatch<React.SetStateAction<SelectedFilters<K>>>;
+  filterFields: FilterFieldConfig<K>[];
 };
 
-const DashboardFilters: React.FC<DashboardFiltersProps> = ({
+function DashboardFilters<K extends string>({
   searchTerm,
   setSearchTerm,
   selectedFilters,
   setSelectedFilters,
   filterFields,
-}) => {
+}: DashboardFiltersProps<K>) {
   const [isPanelOpen, setIsPanelOpen] = React.useState(false);
-  const [expandedSections, setExpandedSections] = React.useState<Record<FilterFieldKey, boolean>>({
-    projectType: false,
-    status: false,
-    manager: false,
-  });
+  const [expandedSections, setExpandedSections] = React.useState<Partial<Record<K, boolean>>>({});
   const [panelPosition, setPanelPosition] = React.useState({ top: 0, left: 0, width: 320 });
   const triggerRef = React.useRef<HTMLDivElement | null>(null);
   const panelRef = React.useRef<HTMLDivElement | null>(null);
@@ -87,7 +83,7 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
     };
   }, []);
 
-  const toggleValue = (field: FilterFieldKey, value: string) => {
+  const toggleValue = (field: K, value: string) => {
     setSelectedFilters((prev) => {
       const values = prev[field];
       const hasValue = values.includes(value);
@@ -98,23 +94,25 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
     });
   };
 
-  const clearField = (field: FilterFieldKey) => {
+  const clearField = (field: K) => {
     setSelectedFilters((prev) => ({ ...prev, [field]: [] }));
   };
 
   const clearAll = () => {
-    setSelectedFilters({
-      projectType: [],
-      status: [],
-      manager: [],
+    setSelectedFilters((prev) => {
+      const next = { ...prev };
+      (Object.keys(next) as K[]).forEach((key) => {
+        next[key] = [];
+      });
+      return next;
     });
   };
 
-  const toggleSection = (field: FilterFieldKey) => {
+  const toggleSection = (field: K) => {
     setExpandedSections((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
-  const totalActive = Object.values(selectedFilters).reduce((sum, values) => sum + values.length, 0);
+  const totalActive = Object.values<string[]>(selectedFilters).reduce((sum, values) => sum + values.length, 0);
 
   const activeChips = filterFields.flatMap((field) =>
     selectedFilters[field.key].map((value) => ({ field: field.key, label: field.label, value }))
@@ -263,6 +261,6 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
       )}
     </div>
   );
-};
+}
 
 export default DashboardFilters;
