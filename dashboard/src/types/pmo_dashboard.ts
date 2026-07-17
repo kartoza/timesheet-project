@@ -113,20 +113,6 @@ export type ApiContractTracker = {
   status: ContractStatus;
 };
 
-export type IssueSummaryRow = {
-  project: string;
-  total: number;
-  low: number;
-  medium: number;
-  high: number;
-  closed: number;
-};
-
-export type IssueSummaryResponse = {
-  all_time: IssueSummaryRow[];
-  last_sprint: IssueSummaryRow[];
-};
-
 export type CreateProjectPayload = {
   Project: string;
   'Relationship Manager': string;

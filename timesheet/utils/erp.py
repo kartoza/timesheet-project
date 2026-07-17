@@ -24,7 +24,7 @@ from schedule.models import Schedule
 from timesheet.enums.doctype import DocType
 from timesheet.models import Timelog, Project, Task, Activity
 from timesheet.models.department import Department
-from pmo_dashboard.models import BusinessUnit, ContractTracker, Issue
+from pmo_dashboard.models import BusinessUnit, ContractTracker
 from timesheet.models.project_member import ProjectMember
 from timesheet.models.profile import get_country_code_from_timezone
 from timesheet.models.user_project import UserProject
@@ -711,41 +711,6 @@ def get_sla_report_data(user=None) -> list:
         preferences.TimesheetPreferences.admin_token,
         user=user,
     )
-
-
-def pull_issues_from_erp(user: get_user_model(), filters: str = '') -> list:
-    """Upsert Issues from ERPNext into the local Issue model.
-
-    An issue is internal if its ERPNext Project is unset, or if the matched
-    local Project is of type INTERNAL. Returns list of updated Issue IDs.
-    """
-    issues = get_erp_data(
-        DocType.ISSUE, preferences.TimesheetPreferences.admin_token,
-        filters=filters, user=user,
-    )
-    updated_ids = []
-    with transaction.atomic():
-        for issue in issues:
-            project = None
-            project_name = issue.get('project')
-            if project_name:
-                project = Project.objects.filter(name=project_name).first()
-            is_internal = project is None or project.project_type == 'INTERNAL'
-
-            obj, _ = Issue.objects.update_or_create(
-                erp_id=issue['name'],
-                defaults={
-                    'subject': issue.get('subject') or '',
-                    'project': project,
-                    'raised_by': issue.get('raised_by') or '',
-                    'status': issue.get('status') or '',
-                    'priority': issue.get('priority') or '',
-                    'opening_date': parse_date(issue['opening_date']) if issue.get('opening_date') else None,
-                    'is_internal': is_internal,
-                }
-            )
-            updated_ids.append(obj.id)
-    return updated_ids
 
 
 def pull_contracts_from_erp(user: get_user_model()) -> list:

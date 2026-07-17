@@ -3,8 +3,6 @@ from django.urls import path
 from pmo_dashboard.api_views import (
     ContractTrackerListView,
     ContractTrackerSyncView,
-    IssueSummaryView,
-    IssueSyncView,
     ProjectDetailSyncView,
     ProjectDetailView,
     ProjectListView,
@@ -18,8 +16,6 @@ urlpatterns = [
     path('api/pmo/projects/sync/', ProjectSyncView.as_view(), name='pmo-project-sync'),
     path('api/pmo/projects/<int:pk>/', ProjectDetailView.as_view(), name='pmo-project-detail'),
     path('api/pmo/projects/<int:pk>/sync/', ProjectDetailSyncView.as_view(), name='pmo-project-detail-sync'),
-    path('api/pmo/support/issues/', IssueSummaryView.as_view(), name='pmo-support-issues'),
-    path('api/pmo/support/issues/sync/', IssueSyncView.as_view(), name='pmo-support-issues-sync'),
     path('api/pmo/support/contracts/', ContractTrackerListView.as_view(), name='pmo-support-contracts'),
     path('api/pmo/support/contracts/sync/', ContractTrackerSyncView.as_view(), name='pmo-support-contracts-sync'),
 ]

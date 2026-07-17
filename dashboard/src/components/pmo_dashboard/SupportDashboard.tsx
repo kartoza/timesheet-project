@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import ContractTrackerTable from './ContractTrackerTable';
-import IssuePriorityChart from './IssuePriorityChart';
-import { fetchContracts, fetchIssueSummary, syncContracts, syncIssues } from '../../services/pmo_dashboard/api';
-import { ApiContractTracker, IssueSummaryResponse } from '../../types/pmo_dashboard';
-
-const EMPTY_SUMMARY: IssueSummaryResponse = { all_time: [], last_sprint: [] };
+import { fetchContracts, syncContracts } from '../../services/pmo_dashboard/api';
+import { ApiContractTracker } from '../../types/pmo_dashboard';
 
 const SupportDashboard: React.FC = () => {
   const [contracts, setContracts] = useState<ApiContractTracker[]>([]);
-  const [issueSummary, setIssueSummary] = useState<IssueSummaryResponse>(EMPTY_SUMMARY);
   const [isLoading, setIsLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState('');
@@ -18,9 +14,8 @@ const SupportDashboard: React.FC = () => {
     setIsLoading(true);
     setError('');
     try {
-      const [contractsData, summaryData] = await Promise.all([fetchContracts(), fetchIssueSummary()]);
+      const contractsData = await fetchContracts();
       setContracts(contractsData);
-      setIssueSummary(summaryData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load Support Dashboard data.');
     } finally {
@@ -35,9 +30,8 @@ const SupportDashboard: React.FC = () => {
   const handleSync = async () => {
     setIsSyncing(true);
     try {
-      const [contractsData, summaryData] = await Promise.all([syncContracts(), syncIssues()]);
+      const contractsData = await syncContracts();
       setContracts(contractsData);
-      setIssueSummary(summaryData);
     } catch (err) {
       console.error('Support Dashboard sync failed', err);
     } finally {
@@ -54,10 +48,10 @@ const SupportDashboard: React.FC = () => {
             onClick={handleSync}
             disabled={isSyncing || isLoading}
             className='flex items-center gap-1.5 text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-200 text-sm font-bold hover:bg-indigo-100 disabled:opacity-60 disabled:cursor-not-allowed transition-colors'
-            title='Sync Contract Tracker and Issues from ERPNext'
+            title='Sync Contract Tracker from ERPNext'
           >
             <RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
-            <span>{isSyncing ? 'Syncing...' : 'Sync Contracts & Issues'}</span>
+            <span>{isSyncing ? 'Syncing...' : 'Sync Contracts'}</span>
           </button>
         </div>
       </div>
