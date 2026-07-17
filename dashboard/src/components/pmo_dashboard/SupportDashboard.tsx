@@ -76,19 +76,6 @@ const SupportDashboard: React.FC = () => {
       ) : (
         <div className='space-y-8'>
           <ContractTrackerTable data={contracts} />
-
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-            <IssuePriorityChart
-              title='Support Tickets (All Time)'
-              data={issueSummary.all_time}
-              emptyMessage='No support ticket data yet. Try syncing from ERPNext.'
-            />
-            <IssuePriorityChart
-              title='Tickets Last Sprint (14 Days)'
-              data={issueSummary.last_sprint}
-              emptyMessage='No tickets opened in the last sprint.'
-            />
-          </div>
         </div>
       )}
     </div>

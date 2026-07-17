@@ -100,11 +100,11 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onCl
         <div className='flex-1 overflow-y-auto p-6 space-y-8'>
           <div className='grid grid-cols-2 md:grid-cols-5 gap-4'>
             <div className='p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50 shadow-sm'>
-              <div className='text-slate-500 dark:text-slate-400 text-xs font-bold uppercase mb-1 min-h-[2rem] flex items-start gap-1.5'><Calendar size={14} className='shrink-0 mt-0.5' /> Start Date</div>
+              <div className='text-slate-500 dark:text-slate-400 text-xs font-bold uppercase mb-1 min-h-[2rem] flex items-start gap-1.5'>Start Date</div>
               <div className='font-extrabold text-slate-800 dark:text-white'>{project[UI_PROJECT_KEYS.START_DATE] || 'N/A'}</div>
             </div>
             <div className='p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50 shadow-sm'>
-              <div className='text-slate-500 dark:text-slate-400 text-xs font-bold uppercase mb-1 min-h-[2rem] flex items-start gap-1.5'><Calendar size={14} className='shrink-0 mt-0.5' /> Expected End</div>
+              <div className='text-slate-500 dark:text-slate-400 text-xs font-bold uppercase mb-1 min-h-[2rem] flex items-start gap-1.5'>Expected End</div>
               <div className='font-extrabold text-slate-800 dark:text-white'>{project[UI_PROJECT_KEYS.DUE_DATE] || 'N/A'}</div>
             </div>
             <div className='p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800/50 shadow-sm'>
