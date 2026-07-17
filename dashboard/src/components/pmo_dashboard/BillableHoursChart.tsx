@@ -32,18 +32,19 @@ const BillableHoursChart: React.FC<BillableHoursChartProps> = ({ data }) => {
           });
         } else {
           totalConsumed = proj[UI_PROJECT_KEYS.CONSUMED_TIME] || 0;
-          totalBillable = Math.floor(totalConsumed * 0.8);
         }
 
-        const nonBillable = Math.max(0, totalConsumed - totalBillable);
-        const efficiency = totalConsumed > 0 ? ((totalBillable / totalConsumed) * 100).toFixed(1) : '0';
+        const billable = Math.round(totalBillable * 100) / 100;
+        const consumed = Math.round(totalConsumed * 100) / 100;
+        const nonBillable = Math.round(Math.max(0, consumed - billable) * 100) / 100;
+        const efficiency = consumed > 0 ? ((billable / consumed) * 100).toFixed(1) : '0';
 
         return {
           name: proj.Project?.split(' (')[0] || 'Unknown',
           fullName: proj.Project,
-          billable: totalBillable,
+          billable,
           nonBillable,
-          total: totalConsumed,
+          total: consumed,
           efficiency: parseFloat(efficiency),
         };
       })

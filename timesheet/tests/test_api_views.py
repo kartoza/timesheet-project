@@ -268,6 +268,49 @@ class TestOnlineUserApiView(TestCase):
         )
         self.assertEqual(response.status_code, int(HTTPStatus.CREATED))
 
+    def test_create_timesheet_stops_existing_running_timesheet(self):
+        client = APIClient()
+        client.login(
+            username=self.user.username, password='password')
+        running_timesheet = TimelogFactory.create(
+            user=self.user,
+            task=self.task,
+            project=self.task.project,
+            activity=self.activity,
+            end_time=None,
+        )
+
+        data = json.dumps({
+            'user': {
+                'id': self.user.id
+            },
+            'task': {
+                'id': self.task.id
+            },
+            'project': {
+                'id': self.task.project.id
+            },
+            'start_time': '2022-12-12',
+            'activity': {
+                'id': self.activity.id
+            }
+        })
+        response = client.post(
+            '/api/timesheet/',
+            data,
+            content_type='application/json'
+        )
+
+        self.assertEqual(response.status_code, int(HTTPStatus.CREATED))
+        running_timesheet.refresh_from_db()
+        self.assertIsNotNone(running_timesheet.end_time)
+        self.assertTrue(
+            Timelog.objects.filter(
+                user=self.user,
+                end_time__isnull=True,
+            ).exclude(id=running_timesheet.id).exists()
+        )
+
     def test_update_timesheet_authenticated(self):
         client = APIClient()
         client.login(

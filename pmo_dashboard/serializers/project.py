@@ -7,6 +7,12 @@ from timesheet.models.project import Project
 from timesheet.models.task import Task
 
 
+class RoundedFloatField(serializers.FloatField):
+    def to_representation(self, value):
+        value = super().to_representation(value)
+        return round(value, 2) if value is not None else None
+
+
 def _user_display(user):
     if not user:
         return None
@@ -27,9 +33,9 @@ class TeamMemberSerializer(serializers.Serializer):
 
 
 class SubtaskSerializer(serializers.ModelSerializer):
-    budget_time = serializers.FloatField(source='expected_time', allow_null=True)
-    consumed_time = serializers.FloatField(source='actual_time', allow_null=True)
-    billable_hours = serializers.FloatField(allow_null=True)
+    budget_time = RoundedFloatField(source='expected_time', allow_null=True)
+    consumed_time = RoundedFloatField(source='actual_time', allow_null=True)
+    billable_hours = RoundedFloatField(allow_null=True)
 
     class Meta:
         model = Task
@@ -47,10 +53,17 @@ class ProjectSerializer(serializers.ModelSerializer):
     due_date = serializers.DateField(source='expected_end_date')
     project_manager = serializers.SerializerMethodField()
     relations_manager = serializers.SerializerMethodField()
-    budget_hours = serializers.FloatField(source='expected_time', allow_null=True)
-    consumed_time = serializers.FloatField(source='actual_time', allow_null=True)
+    budget_hours = RoundedFloatField(source='expected_time', allow_null=True)
+    consumed_time = RoundedFloatField(source='actual_time', allow_null=True)
+    progress_in_hours = RoundedFloatField(allow_null=True)
     actual_progress = serializers.SerializerMethodField()
-    total_costing = serializers.FloatField(source='total_costing_amount', allow_null=True)
+    estimated_costing = RoundedFloatField(allow_null=True)
+    total_sales_amount = RoundedFloatField(allow_null=True)
+    total_costing = RoundedFloatField(source='total_costing_amount', allow_null=True)
+    total_billable_amount = RoundedFloatField(allow_null=True)
+    total_billed_amount = RoundedFloatField(allow_null=True)
+    gross_margin = RoundedFloatField(allow_null=True)
+    per_gross_margin = RoundedFloatField(allow_null=True)
     team_members = serializers.SerializerMethodField()
     subtasks = serializers.SerializerMethodField()
     last_synced_at = serializers.DateTimeField(read_only=True)

@@ -10,6 +10,7 @@ from timesheet.models.project_member import ProjectMember
 from timesheet.models.user_project import UserProject
 from pmo_dashboard.billable_sync import fetch_and_save_billable_hours
 from timesheet.utils.erp import (
+    ERPSyncError,
     ProjectsNotFound,
     pull_department_from_erp,
     pull_holiday_list,
@@ -56,6 +57,9 @@ class Command(BaseCommand):
             updated_ids = pull_projects_only_from_erp(user, filters='[["status", "=", "Open"]]')
         except ProjectsNotFound:
             self.stdout.write(self.style.WARNING('No open projects returned from ERPNext — skipping PMO sync.'))
+            return
+        except ERPSyncError as e:
+            self.stdout.write(self.style.ERROR(f'ERPNext sync failed: {e}'))
             return
 
         stale = Project.objects.filter(is_active=True).exclude(id__in=updated_ids).update(is_active=False)
@@ -110,14 +114,16 @@ class Command(BaseCommand):
                 continue
 
             self.stdout.write(f'  {user.username}')
+            try:
+                if not department_synced:
+                    pull_department_from_erp(user)
+                    department_synced = True
 
-            if not department_synced:
-                pull_department_from_erp(user)
-                department_synced = True
-
-            pull_leave_data_from_erp(user)
-            pull_holiday_list(user)
-            update_schedule_countdown(user)
-            pull_user_data_from_erp(user)
+                pull_leave_data_from_erp(user)
+                pull_holiday_list(user)
+                update_schedule_countdown(user)
+                pull_user_data_from_erp(user)
+            except ERPSyncError as e:
+                self.stdout.write(self.style.WARNING(f'    skipped: {e}'))
 
         self.stdout.write(self.style.SUCCESS('Per-user sync done'))
