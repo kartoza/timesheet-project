@@ -24,7 +24,7 @@ from schedule.models import Schedule
 from timesheet.enums.doctype import DocType
 from timesheet.models import Timelog, Project, Task, Activity
 from timesheet.models.department import Department
-from pmo_dashboard.models import BusinessUnit
+from pmo_dashboard.models import BusinessUnit, ContractTracker
 from timesheet.models.project_member import ProjectMember
 from timesheet.models.profile import get_country_code_from_timezone
 from timesheet.models.user_project import UserProject
@@ -735,6 +735,45 @@ def get_detailed_report_data_by_employee(employee_id: str, start_date: str, end_
         preferences.TimesheetPreferences.admin_token,
         filters)
     return timesheet_detail
+
+def get_sla_report_data(user=None) -> list:
+    """Fetch 'SLA Report' rows (client, project, dates, sla_type, contact) from ERPNext."""
+    return get_report_data(
+        'SLA%20Report',
+        preferences.TimesheetPreferences.admin_token,
+        user=user,
+    )
+
+
+def pull_contracts_from_erp(user: get_user_model()) -> list:
+    """Upsert Contract Tracker rows from ERPNext's 'SLA Report' into the local ContractTracker model.
+
+    Skips rows whose project name doesn't match an already-synced local Project.
+    Returns list of updated ContractTracker IDs.
+    """
+    rows = get_sla_report_data(user=user)
+    updated_ids = []
+    with transaction.atomic():
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            project_name = row.get('project')
+            if not project_name:
+                continue
+            project = Project.objects.filter(name=project_name).first()
+            if not project:
+                continue
+
+            obj, _ = ContractTracker.objects.update_or_create(
+                project=project,
+                defaults={
+                    'contact_email': row.get('contact_detail') or '',
+                    'sla_type': row.get('sla_type') or '',
+                }
+            )
+            updated_ids.append(obj.id)
+    return updated_ids
+
 
 def get_week_of_month(dt):
     """Calculate the week number within the month for a given date."""

@@ -10,9 +10,18 @@ from rest_framework.views import APIView
 
 from pmo_dashboard.access import can_access_pmo
 from pmo_dashboard.billable_sync import fetch_and_save_billable_hours
+from pmo_dashboard.models import ContractTracker
 from pmo_dashboard.serializers.project import ProjectSerializer
+from pmo_dashboard.serializers.support import ContractTrackerSerializer
 from timesheet.models.project import Project
-from timesheet.utils.erp import ERPSyncError, ProjectsNotFound, pull_project_members_from_erp, pull_projects_only_from_erp, pull_tasks_from_erp
+from timesheet.utils.erp import (
+    ERPSyncError,
+    ProjectsNotFound,
+    pull_contracts_from_erp,
+    pull_project_members_from_erp,
+    pull_projects_only_from_erp,
+    pull_tasks_from_erp,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -165,3 +174,39 @@ class ProjectDetailSyncView(APIView):
         logger.warning('ProjectDetailSyncView total took %.2fs', t4 - t0)
 
         return Response(ProjectSerializer(_single_project_qs(pk)).data)
+
+
+def _contract_qs():
+    return ContractTracker.objects.select_related('project').order_by('project__expected_end_date')
+
+
+@extend_schema(
+    tags=['Support Dashboard'],
+    summary='List Contract Trackers',
+    description='Returns cached SLA/Hosting contract tracker rows. Use POST .../sync/ to refresh from ERPNext.',
+    responses={200: ContractTrackerSerializer(many=True)},
+)
+class ContractTrackerListView(APIView):
+    permission_classes = [IsAuthenticated, IsPMOMemberOrSuperuser]
+
+    def get(self, request):
+        return Response(ContractTrackerSerializer(_contract_qs(), many=True).data)
+
+
+@extend_schema(
+    tags=['Support Dashboard'],
+    summary='Sync Contract Trackers from ERPNext',
+    description="Pulls contract rows from ERPNext's SLA Report, matches them to local Projects, and returns the updated list.",
+    responses={200: ContractTrackerSerializer(many=True)},
+)
+class ContractTrackerSyncView(APIView):
+    permission_classes = [IsAuthenticated, IsPMOMemberOrSuperuser]
+
+    def post(self, request):
+        try:
+            pull_contracts_from_erp(request.user)
+        except ERPSyncError as e:
+            logger.warning('ContractTrackerSyncView: %s', e)
+            return Response({'detail': str(e)}, status=status.HTTP_502_BAD_GATEWAY)
+
+        return Response(ContractTrackerSerializer(_contract_qs(), many=True).data)

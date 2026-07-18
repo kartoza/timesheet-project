@@ -175,3 +175,20 @@ def evaluate_status(project):
 def get_status_label(status_key):
     config = get_effective_status_config()
     return config['labels'].get(status_key, status_key.replace('_', ' ').title())
+
+
+def compute_contract_status(end_date):
+    """Return 'Open', 'Expires in N Month(s)', or 'Closed' based on a contract's end date."""
+    if not end_date:
+        return 'Open'
+
+    days_left = (end_date - timezone.localdate()).days
+    if days_left < 0:
+        return 'Closed'
+    if days_left <= 30:
+        return 'Expires in 1 Month'
+    if days_left <= 60:
+        return 'Expires in 2 Months'
+    if days_left <= 90:
+        return 'Expires in 3 Months'
+    return 'Open'

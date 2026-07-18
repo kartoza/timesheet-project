@@ -1,4 +1,5 @@
 import {
+  ApiContractTracker,
   ApiProject,
   CreateProjectPayload,
   LoginResponse,
@@ -191,6 +192,14 @@ export async function createProject(projectData: CreateProjectPayload): Promise<
     body: JSON.stringify(payload),
   });
   return mapApiProject(created);
+}
+
+export async function fetchContracts(): Promise<ApiContractTracker[]> {
+  return apiFetch<ApiContractTracker[]>('/api/pmo/support/contracts/');
+}
+
+export async function syncContracts(): Promise<ApiContractTracker[]> {
+  return apiFetch<ApiContractTracker[]>('/api/pmo/support/contracts/sync/', { method: 'POST' });
 }
 
 export async function getSession(): Promise<SessionResponse> {

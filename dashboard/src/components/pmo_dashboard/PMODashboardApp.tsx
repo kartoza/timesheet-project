@@ -8,6 +8,7 @@ import {
   Sun,
 } from 'lucide-react';
 import Dashboard from './Dashboard';
+import SupportDashboard from './SupportDashboard';
 import {
   createProject,
   deleteProject,
@@ -25,6 +26,7 @@ const PMODashboardApp: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [user] = useState<SessionUser | null>({ username: 'dev-bypass' });
   const [pmOverloadThreshold] = useState(4);
+  const [activeView, setActiveView] = useState<'portfolio' | 'support'>('portfolio');
 
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('pmo_theme');
@@ -138,6 +140,38 @@ const PMODashboardApp: React.FC = () => {
               </h1>
               <p className='text-sm text-slate-500 dark:text-slate-400 font-medium mt-1'>Real-time Project Insights</p>
             </div>
+
+            <div className='hidden md:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 print:hidden'>
+              <button
+                onClick={() => setActiveView('portfolio')}
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
+                  activeView === 'portfolio'
+                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                }`}
+              >
+                Portfolio Dashboard
+              </button>
+              <button
+                onClick={() => setActiveView('support')}
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
+                  activeView === 'support'
+                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                }`}
+              >
+                Support Dashboard
+              </button>
+            </div>
+
+            <select
+              value={activeView}
+              onChange={(e) => setActiveView(e.target.value as 'portfolio' | 'support')}
+              className='md:hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-200 outline-none print:hidden'
+            >
+              <option value='portfolio'>Portfolio Dashboard</option>
+              <option value='support'>Support Dashboard</option>
+            </select>
           </div>
 
           <div className='flex items-center gap-3 md:gap-4 print:hidden'>
@@ -172,6 +206,10 @@ const PMODashboardApp: React.FC = () => {
       </header>
 
       <main className='max-w-[95%] mx-auto px-6 py-8 relative'>
+        {activeView === 'support' && <SupportDashboard />}
+
+        {activeView === 'portfolio' && (
+        <>
         {hasData && !isLoading && (
           <div className='hidden print:flex flex-col items-center mb-10 border-b-2 border-slate-200 pb-8 text-center pt-8'>
             <img src='/company-logo.png' alt='Company Logo' className='h-16 w-auto object-contain mb-4' onError={(e) => {
@@ -231,6 +269,8 @@ const PMODashboardApp: React.FC = () => {
               onProjectDetailOpen={loadProjectDetail}
             />
           </div>
+        )}
+        </>
         )}
       </main>
     </div>

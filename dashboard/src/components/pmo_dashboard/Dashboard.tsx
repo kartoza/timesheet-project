@@ -163,7 +163,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     manager: (row) => String(row[UI_PROJECT_KEYS.PROJECT_MANAGER] || ''),
   };
 
-  const filterFields: FilterFieldConfig[] = useMemo(() => {
+  const filterFields: FilterFieldConfig<FilterFieldKey>[] = useMemo(() => {
     const applyFiltersExcept = (excludeKey: FilterFieldKey) =>
       data.filter((row) => {
         for (const key of Object.keys(selectedFilters) as FilterFieldKey[]) {
