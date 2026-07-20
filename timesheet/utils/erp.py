@@ -24,7 +24,7 @@ from schedule.models import Schedule
 from timesheet.enums.doctype import DocType
 from timesheet.models import Timelog, Project, Task, Activity
 from timesheet.models.department import Department
-from pmo_dashboard.models import BusinessUnit, ContractTracker
+from pmo_dashboard.models import BusinessUnit, ContractTracker, Issue, SupportContactMapping
 from timesheet.models.project_member import ProjectMember
 from timesheet.models.profile import get_country_code_from_timezone
 from timesheet.models.user_project import UserProject
@@ -769,6 +769,75 @@ def pull_contracts_from_erp(user: get_user_model()) -> list:
                 defaults={
                     'contact_email': row.get('contact_detail') or '',
                     'sla_type': row.get('sla_type') or '',
+                }
+            )
+            updated_ids.append(obj.id)
+    return updated_ids
+
+
+def _resolve_issue_customer(project, raised_by: str) -> tuple:
+    """Resolve (customer, is_internal) for an Issue.
+
+    Resolution order:
+    1. A SupportContactMapping override keyed on the Issue's Project name (for
+       projects whose own `customer` field isn't a reliable bucket, e.g. a
+       shared/internal intake project).
+    2. The Project's own `customer` field, if the Project is set.
+    3. A SupportContactMapping keyed on the raised-by email (exact, then domain).
+    4. Unknown -> internal.
+    """
+    if project:
+        override = SupportContactMapping.objects.filter(project_name=project.name).exclude(project_name='').first()
+        if override:
+            return override.customer, not bool(override.customer)
+
+        customer = project.customer or ''
+        is_internal = project.project_type == 'INTERNAL' or not customer
+        return customer, is_internal
+
+    if raised_by:
+        mapping = SupportContactMapping.objects.filter(email__iexact=raised_by).first()
+        if not mapping and '@' in raised_by:
+            domain = raised_by.split('@')[-1]
+            mapping = SupportContactMapping.objects.filter(email__iexact=f'@{domain}').first()
+        if mapping:
+            return mapping.customer, not bool(mapping.customer)
+
+    return '', True
+
+
+def pull_issues_from_erp(user: get_user_model(), filters: str = '') -> list:
+    """Upsert Issues from ERPNext into the local Issue model.
+
+    Resolves each issue's customer bucket via `_resolve_issue_customer` and marks
+    it internal when no customer can be resolved. Returns list of updated Issue IDs.
+    """
+    issues = get_erp_data(
+        DocType.ISSUE, preferences.TimesheetPreferences.admin_token,
+        filters=filters, user=user,
+    )
+    updated_ids = []
+    with transaction.atomic():
+        for issue in issues:
+            project = None
+            project_name = issue.get('project')
+            if project_name:
+                project = Project.objects.filter(name=project_name).first()
+
+            raised_by = issue.get('raised_by') or ''
+            customer, is_internal = _resolve_issue_customer(project, raised_by)
+
+            obj, _ = Issue.objects.update_or_create(
+                erp_id=issue['name'],
+                defaults={
+                    'subject': issue.get('subject') or '',
+                    'project': project,
+                    'customer': customer,
+                    'raised_by': raised_by,
+                    'status': issue.get('status') or '',
+                    'priority': issue.get('priority') or '',
+                    'opening_date': parse_date(issue['opening_date']) if issue.get('opening_date') else None,
+                    'is_internal': is_internal,
                 }
             )
             updated_ids.append(obj.id)

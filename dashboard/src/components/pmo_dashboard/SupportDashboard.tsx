@@ -1,21 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import ChartCard from './ChartCard';
 import ContractTrackerTable from './ContractTrackerTable';
-import { fetchContracts, syncContracts } from '../../services/pmo_dashboard/api';
-import { ApiContractTracker } from '../../types/pmo_dashboard';
+import IssuePriorityChart from './IssuePriorityChart';
+import IssueSummaryTable from './IssueSummaryTable';
+import { fetchContracts, fetchIssueSummary, syncContracts, syncIssues } from '../../services/pmo_dashboard/api';
+import { ApiContractTracker, IssueSummaryResponse } from '../../types/pmo_dashboard';
+
+const EMPTY_SUMMARY: IssueSummaryResponse = { all_time: [], last_sprint: [] };
 
 const SupportDashboard: React.FC = () => {
   const [contracts, setContracts] = useState<ApiContractTracker[]>([]);
+  const [issueSummary, setIssueSummary] = useState<IssueSummaryResponse>(EMPTY_SUMMARY);
   const [isLoading, setIsLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState('');
+  const [fullscreenChart, setFullscreenChart] = useState<string | null>(null);
 
   const loadData = async () => {
     setIsLoading(true);
     setError('');
     try {
-      const contractsData = await fetchContracts();
+      const [contractsData, summaryData] = await Promise.all([fetchContracts(), fetchIssueSummary()]);
       setContracts(contractsData);
+      setIssueSummary(summaryData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load Support Dashboard data.');
     } finally {
@@ -27,11 +35,44 @@ const SupportDashboard: React.FC = () => {
     loadData();
   }, []);
 
+  const setUrlParam = (key: string, value: string | null) => {
+    const params = new URLSearchParams(window.location.search);
+    if (value) {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
+    const qs = params.toString();
+    history.pushState({}, '', qs ? `?${qs}` : window.location.pathname);
+  };
+
+  const setChartUrl = (id: string | null) => setUrlParam('chart', id);
+
+  const handleChartFullscreen = (id: string, open: boolean) => {
+    const next = open ? id : null;
+    setFullscreenChart(next);
+    setChartUrl(next);
+  };
+
+  useEffect(() => {
+    const chartId = new URLSearchParams(window.location.search).get('chart');
+    if (chartId) setFullscreenChart(chartId);
+  }, []);
+
+  useEffect(() => {
+    const onPopState = () => {
+      setFullscreenChart(new URLSearchParams(window.location.search).get('chart'));
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
   const handleSync = async () => {
     setIsSyncing(true);
     try {
-      const contractsData = await syncContracts();
+      const [contractsData, summaryData] = await Promise.all([syncContracts(), syncIssues()]);
       setContracts(contractsData);
+      setIssueSummary(summaryData);
     } catch (err) {
       console.error('Support Dashboard sync failed', err);
     } finally {
@@ -48,10 +89,10 @@ const SupportDashboard: React.FC = () => {
             onClick={handleSync}
             disabled={isSyncing || isLoading}
             className='flex items-center gap-1.5 text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-200 text-sm font-bold hover:bg-indigo-100 disabled:opacity-60 disabled:cursor-not-allowed transition-colors'
-            title='Sync Contract Tracker from ERPNext'
+            title='Sync Contract Tracker and Issues from ERPNext'
           >
             <RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
-            <span>{isSyncing ? 'Syncing...' : 'Sync Contracts'}</span>
+            <span>{isSyncing ? 'Syncing...' : 'Sync Contracts & Issues'}</span>
           </button>
         </div>
       </div>
@@ -70,6 +111,47 @@ const SupportDashboard: React.FC = () => {
       ) : (
         <div className='space-y-8'>
           <ContractTrackerTable data={contracts} />
+
+          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+            <div className='space-y-6 self-start'>
+              <ChartCard
+                id='support-all-time-chart'
+                title='Support Tickets (All Time)'
+                subtitle='Per-customer breakdown, all time'
+                isFullscreen={fullscreenChart === 'support-all-time-chart'}
+                onFullscreenChange={(open) => handleChartFullscreen('support-all-time-chart', open)}
+              >
+                <IssuePriorityChart
+                  data={issueSummary.all_time}
+                  emptyMessage='No support ticket data yet. Try syncing from ERPNext.'
+                />
+              </ChartCard>
+              <IssueSummaryTable
+                title='Support Tickets (All Time)'
+                data={issueSummary.all_time}
+                emptyMessage='No support ticket data yet. Try syncing from ERPNext.'
+              />
+            </div>
+            <div className='space-y-6 self-start'>
+              <ChartCard
+                id='support-last-sprint-chart'
+                title='Tickets Last Sprint (14 Days)'
+                subtitle='Per-customer breakdown, last completed sprint'
+                isFullscreen={fullscreenChart === 'support-last-sprint-chart'}
+                onFullscreenChange={(open) => handleChartFullscreen('support-last-sprint-chart', open)}
+              >
+                <IssuePriorityChart
+                  data={issueSummary.last_sprint}
+                  emptyMessage='No tickets opened in the last sprint.'
+                />
+              </ChartCard>
+              <IssueSummaryTable
+                title='Tickets Last Sprint (14 Days)'
+                data={issueSummary.last_sprint}
+                emptyMessage='No tickets opened in the last sprint.'
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>

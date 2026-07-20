@@ -1,5 +1,5 @@
 from copy import deepcopy
-from datetime import timedelta
+from datetime import date, timedelta
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -9,7 +9,8 @@ from preferences import preferences
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from pmo_dashboard.models import BusinessUnit
+from pmo_dashboard.models import BusinessUnit, Issue
+from pmo_dashboard.support_stats import get_issue_summary, get_last_sprint_range
 from timesheet.models.preferences import get_default_pmo_status_config
 from timesheet.models import Project, Task
 from timesheet.models.profile import ProfileRole
@@ -392,6 +393,126 @@ class TestProjectListView(TestCase):
         data = {d['id']: d for d in self.client.get(self.url).json()}
         self.assertEqual(data[project.id]['status'], 'warning')
         self.assertEqual(data[project.id]['status_label'], 'Warning')
+
+
+class TestGetIssueSummary(TestCase):
+    def setUp(self):
+        self.today = timezone.localdate()
+
+    def _make_issue(self, customer='Acme Corp', priority='Medium', status='Open', is_internal=False, opening_date=None, erp_id=None):
+        return Issue.objects.create(
+            erp_id=erp_id or f'ISS-{Issue.objects.count() + 1}',
+            customer=customer,
+            priority=priority,
+            status=status,
+            is_internal=is_internal,
+            opening_date=opening_date or self.today,
+        )
+
+    def test_excludes_internal_issues(self):
+        self._make_issue(is_internal=False)
+        self._make_issue(is_internal=True)
+        summary = get_issue_summary(scope='all')
+        self.assertEqual(len(summary), 1)
+        self.assertEqual(summary[0]['total'], 1)
+
+    def test_excludes_issues_without_customer(self):
+        Issue.objects.create(erp_id='ISS-no-customer', customer='', is_internal=True, opening_date=self.today)
+        summary = get_issue_summary(scope='all')
+        self.assertEqual(summary, [])
+
+    def test_different_projects_with_same_customer_merge_into_one_row(self):
+        project_a = Project.objects.create(name='SLA Acme 2024-2025', is_active=True, project_type='EXTERNAL', customer='Acme Corp')
+        project_b = Project.objects.create(name='Hosting Acme 2025-2026', is_active=True, project_type='EXTERNAL', customer='Acme Corp')
+        Issue.objects.create(erp_id='a1', project=project_a, customer='Acme Corp', is_internal=False, opening_date=self.today)
+        Issue.objects.create(erp_id='a2', project=project_b, customer='Acme Corp', is_internal=False, opening_date=self.today)
+
+        summary = get_issue_summary(scope='all')
+        self.assertEqual(len(summary), 1)
+        self.assertEqual(summary[0]['customer'], 'Acme Corp')
+        self.assertEqual(summary[0]['total'], 2)
+
+    def test_priority_and_closed_counts(self):
+        self._make_issue(priority='Low', status='Open')
+        self._make_issue(priority='Medium', status='Closed')
+        self._make_issue(priority='Medium', status='Closed')
+        self._make_issue(priority='High', status='Open')
+
+        summary = get_issue_summary(scope='all')
+        self.assertEqual(len(summary), 1)
+        row = summary[0]
+        self.assertEqual(row['customer'], 'Acme Corp')
+        self.assertEqual(row['total'], 4)
+        self.assertEqual(row['low'], 1)
+        self.assertEqual(row['medium'], 2)
+        self.assertEqual(row['high'], 1)
+        self.assertEqual(row['closed'], 2)
+
+    def test_sprint_scope_filters_by_opening_date(self):
+        # 5 days into the current (unfinished) sprint -> last completed sprint is [today-19, today-5).
+        preferences.TimesheetPreferences.sprint_review_anchor = self.today - timedelta(days=5)
+        preferences.TimesheetPreferences.save()
+
+        self._make_issue(opening_date=self.today - timedelta(days=10), erp_id='within_last_sprint')
+        self._make_issue(opening_date=self.today - timedelta(days=25), erp_id='before_last_sprint')
+
+        all_time = get_issue_summary(scope='all')
+        sprint = get_issue_summary(scope='sprint')
+
+        self.assertEqual(all_time[0]['total'], 2)
+        self.assertEqual(sprint[0]['total'], 1)
+
+    def test_customer_with_no_sprint_issues_is_absent(self):
+        preferences.TimesheetPreferences.sprint_review_anchor = self.today - timedelta(days=5)
+        preferences.TimesheetPreferences.save()
+
+        self._make_issue(opening_date=self.today - timedelta(days=25))
+        sprint = get_issue_summary(scope='sprint')
+        self.assertEqual(sprint, [])
+
+    def test_multiple_customers_ordered_by_total_desc(self):
+        self._make_issue(customer='Acme Corp', erp_id='a1')
+        self._make_issue(customer='Other Corp', erp_id='b1')
+        self._make_issue(customer='Other Corp', erp_id='b2')
+
+        summary = get_issue_summary(scope='all')
+        self.assertEqual(summary[0]['customer'], 'Other Corp')
+        self.assertEqual(summary[0]['total'], 2)
+        self.assertEqual(summary[1]['customer'], 'Acme Corp')
+        self.assertEqual(summary[1]['total'], 1)
+
+
+class TestGetLastSprintRange(TestCase):
+    def setUp(self):
+        self.anchor = date(2026, 7, 24)  # confirmed Friday, matches the production default
+        preferences.TimesheetPreferences.sprint_review_anchor = self.anchor
+        preferences.TimesheetPreferences.save()
+
+    def test_matches_real_world_example(self):
+        # Reported directly: as of 2026-07-20 (mid-sprint; current sprint reviews on
+        # 2026-07-24), the last completed sprint ran 2026-06-29 to 2026-07-10.
+        start, end = get_last_sprint_range(today=date(2026, 7, 20))
+        self.assertEqual(start, date(2026, 6, 29))
+        self.assertEqual(end, date(2026, 7, 10))
+
+    def test_today_exactly_on_anchor(self):
+        start, end = get_last_sprint_range(today=self.anchor)
+        self.assertEqual(end, self.anchor)
+        self.assertEqual(start, self.anchor - timedelta(days=11))
+
+    def test_today_mid_sprint_after_anchor(self):
+        start, end = get_last_sprint_range(today=self.anchor + timedelta(days=5))
+        self.assertEqual(end, self.anchor)
+        self.assertEqual(start, self.anchor - timedelta(days=11))
+
+    def test_today_exactly_one_review_interval_after_anchor(self):
+        start, end = get_last_sprint_range(today=self.anchor + timedelta(days=14))
+        self.assertEqual(end, self.anchor + timedelta(days=14))
+        self.assertEqual(start, self.anchor + timedelta(days=3))
+
+    def test_range_is_always_11_days(self):
+        start, end = get_last_sprint_range(today=date(2026, 8, 1))
+        self.assertEqual((end - start).days, 11)
 
 
 class PMOTestBase(TestCase):
