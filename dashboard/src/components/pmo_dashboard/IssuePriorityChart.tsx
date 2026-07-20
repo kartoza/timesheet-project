@@ -75,7 +75,7 @@ const IssuePriorityChart: React.FC<IssuePriorityChartProps> = ({ data, emptyMess
               textAnchor='end'
               height={60}
             />
-            <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#898781' }} />
+            <YAxis allowDecimals={false} domain={[0, 'dataMax']} tick={{ fontSize: 11, fill: '#898781' }} />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(148, 163, 184, 0.1)' }} />
             <Legend content={renderLegend} />
             {SERIES.map((s) => (
