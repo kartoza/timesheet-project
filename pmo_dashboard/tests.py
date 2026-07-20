@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.test import TestCase
 from django.utils import timezone
 from preferences import preferences
@@ -76,6 +77,32 @@ class TestProjectListView(TestCase):
 
         api_response = client.get(self.url)
         self.assertEqual(api_response.status_code, 200)
+
+    def test_user_in_pmo_allowed_group_can_access_dashboard_and_api(self):
+        group_user = User.objects.create_user(username='group_user', password='pass')
+        allowed_group = Group.objects.create(name='PMO Viewers')
+        group_user.groups.add(allowed_group)
+        preferences.TimesheetPreferences.pmo_allowed_groups.add(allowed_group)
+
+        client = APIClient()
+        client.login(username='group_user', password='pass')
+
+        dashboard_response = client.get(reverse('pmo-dashboard'))
+        self.assertEqual(dashboard_response.status_code, 200)
+
+        api_response = client.get(self.url)
+        self.assertEqual(api_response.status_code, 200)
+
+    def test_user_in_other_group_not_in_pmo_allowed_groups_gets_403(self):
+        other_user = User.objects.create_user(username='other_group_user', password='pass')
+        other_group = Group.objects.create(name='Not PMO')
+        other_user.groups.add(other_group)
+
+        client = APIClient()
+        client.login(username='other_group_user', password='pass')
+
+        dashboard_response = client.get(reverse('pmo-dashboard'))
+        self.assertEqual(dashboard_response.status_code, 403)
 
     def test_superuser_can_access_dashboard_and_api(self):
         superuser = User.objects.create_superuser(
