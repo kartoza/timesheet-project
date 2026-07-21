@@ -476,12 +476,12 @@ class TestGetIssueSummary(TestCase):
         self.assertEqual(row['closed'], 2)
 
     def test_sprint_scope_filters_by_opening_date(self):
-        # 5 days into the current (unfinished) sprint -> last completed sprint is [today-19, today-5).
-        preferences.TimesheetPreferences.sprint_review_anchor = self.today - timedelta(days=5)
+        # Next review is 5 days from now -> current sprint window is [today-8, today+5].
+        preferences.TimesheetPreferences.sprint_review_anchor = self.today + timedelta(days=5)
         preferences.TimesheetPreferences.save()
 
-        self._make_issue(opening_date=self.today - timedelta(days=10), erp_id='within_last_sprint')
-        self._make_issue(opening_date=self.today - timedelta(days=25), erp_id='before_last_sprint')
+        self._make_issue(opening_date=self.today - timedelta(days=3), erp_id='within_current_sprint')
+        self._make_issue(opening_date=self.today - timedelta(days=15), erp_id='within_previous_sprint')
 
         all_time = get_issue_summary(scope='all')
         sprint = get_issue_summary(scope='sprint')
@@ -490,10 +490,10 @@ class TestGetIssueSummary(TestCase):
         self.assertEqual(sprint[0]['total'], 1)
 
     def test_customer_with_no_sprint_issues_is_absent(self):
-        preferences.TimesheetPreferences.sprint_review_anchor = self.today - timedelta(days=5)
+        preferences.TimesheetPreferences.sprint_review_anchor = self.today + timedelta(days=5)
         preferences.TimesheetPreferences.save()
 
-        self._make_issue(opening_date=self.today - timedelta(days=25))
+        self._make_issue(opening_date=self.today - timedelta(days=15))
         sprint = get_issue_summary(scope='sprint')
         self.assertEqual(sprint, [])
 
@@ -516,30 +516,37 @@ class TestGetLastSprintRange(TestCase):
         preferences.TimesheetPreferences.save()
 
     def test_matches_real_world_example(self):
-        # Reported directly: as of 2026-07-20 (mid-sprint; current sprint reviews on
-        # 2026-07-24), the last completed sprint ran 2026-06-29 to 2026-07-10.
-        start, end = get_last_sprint_range(today=date(2026, 7, 20))
-        self.assertEqual(start, date(2026, 6, 29))
-        self.assertEqual(end, date(2026, 7, 10))
+        # Reported directly: as of 2026-07-21 (mid-sprint; current sprint reviews on
+        # 2026-07-24), the current (in-progress) sprint runs 2026-07-11 to 2026-07-24.
+        start, end = get_last_sprint_range(today=date(2026, 7, 21))
+        self.assertEqual(start, date(2026, 7, 11))
+        self.assertEqual(end, date(2026, 7, 24))
 
-    def test_today_exactly_on_anchor(self):
+    def test_today_exactly_on_anchor_ends_that_sprint(self):
+        # A review date is treated as the end of the sprint concluding that day,
+        # not the start of the next one.
         start, end = get_last_sprint_range(today=self.anchor)
         self.assertEqual(end, self.anchor)
-        self.assertEqual(start, self.anchor - timedelta(days=11))
+        self.assertEqual(start, self.anchor - timedelta(days=13))
+
+    def test_today_just_after_anchor_rolls_into_next_sprint(self):
+        start, end = get_last_sprint_range(today=self.anchor + timedelta(days=1))
+        self.assertEqual(end, self.anchor + timedelta(days=14))
+        self.assertEqual(start, self.anchor + timedelta(days=1))
 
     def test_today_mid_sprint_after_anchor(self):
         start, end = get_last_sprint_range(today=self.anchor + timedelta(days=5))
-        self.assertEqual(end, self.anchor)
-        self.assertEqual(start, self.anchor - timedelta(days=11))
+        self.assertEqual(end, self.anchor + timedelta(days=14))
+        self.assertEqual(start, self.anchor + timedelta(days=1))
 
     def test_today_exactly_one_review_interval_after_anchor(self):
         start, end = get_last_sprint_range(today=self.anchor + timedelta(days=14))
         self.assertEqual(end, self.anchor + timedelta(days=14))
-        self.assertEqual(start, self.anchor + timedelta(days=3))
+        self.assertEqual(start, self.anchor + timedelta(days=1))
 
-    def test_range_is_always_11_days(self):
+    def test_range_is_always_13_days(self):
         start, end = get_last_sprint_range(today=date(2026, 8, 1))
-        self.assertEqual((end - start).days, 11)
+        self.assertEqual((end - start).days, 13)
 
 
 class PMOTestBase(TestCase):
