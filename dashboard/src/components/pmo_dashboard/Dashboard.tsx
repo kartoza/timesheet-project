@@ -32,7 +32,7 @@ type DashboardProps = {
   onDeleteDataRow: (id: string) => Promise<void>;
   onAddManualProject: (projectData: CreateProjectPayload) => Promise<void>;
   pmOverloadThreshold: number;
-  onRegisterExport?: (fn: () => Promise<void>) => void;
+  onRegisterExport?: (fn: (() => Promise<void>) | null) => void;
   onProjectDetailOpen?: (id: string) => Promise<UIProjectRow | null>;
 };
 
@@ -155,6 +155,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   React.useEffect(() => {
     onRegisterExport?.(handleExportPDF);
+    return () => onRegisterExport?.(null);
   }, [handleExportPDF, onRegisterExport]);
 
   const fieldAccessors: Record<FilterFieldKey, (row: UIProjectRow) => string> = {

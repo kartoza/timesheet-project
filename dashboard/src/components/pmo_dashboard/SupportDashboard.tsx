@@ -1,14 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import ContractTrackerTable from './ContractTrackerTable';
+import SupportPrintView from './SupportPrintView';
 import { fetchContracts, syncContracts } from '../../services/pmo_dashboard/api';
 import { ApiContractTracker } from '../../types/pmo_dashboard';
+import { exportDashboardToPDF } from '../../utils/exportPDF';
 
-const SupportDashboard: React.FC = () => {
+type SupportDashboardProps = {
+  onRegisterExport?: (fn: (() => Promise<void>) | null) => void;
+};
+
+const SupportDashboard: React.FC<SupportDashboardProps> = ({ onRegisterExport }) => {
   const [contracts, setContracts] = useState<ApiContractTracker[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState('');
+  const [isRenderingPrintView, setIsRenderingPrintView] = useState(false);
+  const printRef = useRef<HTMLDivElement>(null);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -26,6 +34,27 @@ const SupportDashboard: React.FC = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleExportPDF = React.useCallback(async () => {
+    const waitForRender = async () => {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    };
+
+    setIsRenderingPrintView(true);
+    try {
+      await waitForRender();
+      if (!printRef.current) return;
+      await exportDashboardToPDF(printRef.current, 'support-dashboard.pdf');
+    } finally {
+      setIsRenderingPrintView(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    onRegisterExport?.(handleExportPDF);
+    return () => onRegisterExport?.(null);
+  }, [handleExportPDF, onRegisterExport]);
 
   const handleSync = async () => {
     setIsSyncing(true);
@@ -72,6 +101,8 @@ const SupportDashboard: React.FC = () => {
           <ContractTrackerTable data={contracts} />
         </div>
       )}
+
+      {isRenderingPrintView && <SupportPrintView ref={printRef} contracts={contracts} />}
     </div>
   );
 };
