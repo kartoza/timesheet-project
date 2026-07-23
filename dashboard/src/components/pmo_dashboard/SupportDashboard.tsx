@@ -193,7 +193,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({ onRegisterExport })
         </div>
       )}
 
-      {isRenderingPrintView && <SupportPrintView ref={printRef} contracts={contracts} />}
+      {isRenderingPrintView && <SupportPrintView ref={printRef} contracts={contracts} issueSummary={issueSummary} />}
     </div>
   );
 };
