@@ -1,3 +1,5 @@
+from preferences import preferences
+
 from timesheet.models.profile import ProfileRole
 
 
@@ -9,6 +11,10 @@ def can_access_pmo(user) -> bool:
         return True
 
     try:
-        return user.profile.role == ProfileRole.PROJECT_MANAGER
+        if user.profile.role == ProfileRole.PROJECT_MANAGER:
+            return True
     except Exception:
-        return False
+        pass
+
+    allowed_groups = preferences.TimesheetPreferences.pmo_allowed_groups.all()
+    return user.groups.filter(pk__in=allowed_groups).exists()
