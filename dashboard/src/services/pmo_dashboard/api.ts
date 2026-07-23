@@ -157,6 +157,10 @@ export async function syncProjects(): Promise<UIProjectRow[]> {
   return data.map(mapApiProject);
 }
 
+export async function syncProjectsOnly(): Promise<void> {
+  await apiFetch<ApiProject[]>('/api/pmo/projects/sync/?scope=projects', { method: 'POST' });
+}
+
 export async function syncProjectDetail(id: string): Promise<UIProjectRow> {
   const data = await apiFetch<ApiProject>(`/api/pmo/projects/${id}/sync/`, { method: 'POST' });
   return mapApiProject(data);

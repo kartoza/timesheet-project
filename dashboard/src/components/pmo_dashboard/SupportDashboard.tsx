@@ -4,7 +4,13 @@ import ChartCard from './ChartCard';
 import ContractTrackerTable from './ContractTrackerTable';
 import IssuePriorityChart from './IssuePriorityChart';
 import IssueSummaryTable from './IssueSummaryTable';
-import { fetchContracts, fetchIssueSummary, syncContracts, syncIssues } from '../../services/pmo_dashboard/api';
+import {
+  fetchContracts,
+  fetchIssueSummary,
+  syncContracts,
+  syncIssues,
+  syncProjectsOnly,
+} from '../../services/pmo_dashboard/api';
 import { ApiContractTracker, IssueSummaryResponse } from '../../types/pmo_dashboard';
 
 const EMPTY_SUMMARY: IssueSummaryResponse = { all_time: [], last_sprint: [] };
@@ -70,6 +76,9 @@ const SupportDashboard: React.FC = () => {
   const handleSync = async () => {
     setIsSyncing(true);
     try {
+      await syncProjectsOnly().catch((err) => {
+        console.error('Project sync failed, continuing with contracts/issues sync', err);
+      });
       const [contractsData, summaryData] = await Promise.all([syncContracts(), syncIssues()]);
       setContracts(contractsData);
       setIssueSummary(summaryData);

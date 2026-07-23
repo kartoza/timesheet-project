@@ -668,6 +668,16 @@ class TestProjectSyncView(PMOTestBase):
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['name'], 'Sync Project')
 
+    def test_scope_projects_skips_tasks_and_members(self):
+        with patch('pmo_dashboard.api_views.pull_projects_only_from_erp', return_value=[self.project.id]) as mock_p, \
+             patch('pmo_dashboard.api_views.pull_tasks_from_erp') as mock_t, \
+             patch('pmo_dashboard.api_views.pull_project_members_from_erp') as mock_m:
+            response = self.client.post(f'{self.url}?scope=projects')
+            self.assertEqual(response.status_code, 200)
+            mock_p.assert_called_once()
+            mock_t.assert_not_called()
+            mock_m.assert_not_called()
+
 
 class TestProjectDetailSyncView(PMOTestBase):
     def setUp(self):

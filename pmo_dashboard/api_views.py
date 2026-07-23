@@ -68,13 +68,19 @@ class ProjectListView(APIView):
 @extend_schema(
     tags=['PMO Dashboard'],
     summary='Sync all projects from ERPNext',
-    description='Pulls all open projects from ERPNext, deactivates stale ones, and returns the updated list.',
+    description=(
+        'Pulls all open projects from ERPNext, deactivates stale ones, and returns the updated list. '
+        "Pass ?scope=projects to skip the tasks/members pull when callers only need Project rows to exist "
+        '(e.g. before syncing contracts/issues, which link to projects by name).'
+    ),
     responses={200: ProjectSerializer(many=True)},
 )
 class ProjectSyncView(APIView):
     permission_classes = [IsAuthenticated, IsPMOMemberOrSuperuser]
 
     def post(self, request):
+        projects_only = request.query_params.get('scope') == 'projects'
+
         t0 = time.perf_counter()
         try:
             updated_projects = pull_projects_only_from_erp(
@@ -92,6 +98,9 @@ class ProjectSyncView(APIView):
 
         t1 = time.perf_counter()
         logger.warning('ProjectSyncView pull_projects_only_from_erp took %.2fs', t1 - t0)
+
+        if projects_only:
+            return Response(ProjectSerializer(_project_qs(), many=True).data)
 
         active_projects = list(Project.objects.filter(is_active=True))
 
