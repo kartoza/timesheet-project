@@ -112,17 +112,20 @@ function DashboardFilters<K extends string>({
     setExpandedSections((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
-  const totalActive = Object.values<string[]>(selectedFilters).reduce((sum, values) => sum + values.length, 0);
+  const validSelected = (field: FilterFieldConfig<K>) =>
+    selectedFilters[field.key].filter((value) => field.options.includes(value));
+
+  const totalActive = filterFields.reduce((sum, field) => sum + validSelected(field).length, 0);
 
   const activeChips = filterFields.flatMap((field) =>
-    selectedFilters[field.key].map((value) => ({ field: field.key, label: field.label, value }))
+    validSelected(field).map((value) => ({ field: field.key, label: field.label, value }))
   );
 
   const renderMenuContent = () => (
     <>
       <div className='max-h-80 overflow-y-auto space-y-1 custom-scrollbar'>
         {filterFields.map((field) => {
-          const selectedCount = selectedFilters[field.key].length;
+          const selectedCount = validSelected(field).length;
           const isExpanded = expandedSections[field.key];
           const optionCounts = field.optionCounts || {};
 
