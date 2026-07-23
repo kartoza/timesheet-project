@@ -26,22 +26,24 @@ class TestPullProjectsView(TestCase):
         self.client.login(username='user1', password='pass')
         self.url = reverse('pull-projects')
 
+    @patch('timesheet.api_views.project.check_erp_project_access')
     @patch('timesheet.api_views.project.pull_projects_from_erp')
     @patch('timesheet.api_views.project.pull_user_data_from_erp')
-    def test_pull_projects_success(self, mock_user_data, mock_projects):
+    def test_pull_projects_success(self, mock_user_data, mock_projects, mock_access):
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {'success': True})
-        mock_projects.assert_called_once()
+        self.assertEqual(response.json()['success'], True)
+        mock_access.assert_called_once()
 
+    @patch('timesheet.api_views.project.check_erp_project_access')
     @patch('timesheet.api_views.project.pull_projects_from_erp')
     @patch('timesheet.api_views.project.pull_user_data_from_erp')
-    def test_pull_projects_user_data(self, mock_user_data, mock_projects):
+    def test_pull_projects_user_data(self, mock_user_data, mock_projects, mock_access):
         self.user.profile.save()
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {'success': True})
-        mock_projects.assert_called_once()
+        self.assertEqual(response.json()['success'], True)
+        mock_access.assert_called_once()
 
 class TestProjectLinkListApiView(TestCase):
     def setUp(self):

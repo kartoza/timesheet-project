@@ -104,6 +104,26 @@ def retry_operation(func):
     return wrapper
 
 
+def check_erp_project_access(user) -> None:
+    """Probe ERPNext with a minimal request to verify the user can read Projects.
+
+    Raises ERPAuthError, ERPPermissionError, or ERPSyncError on failure.
+    """
+    url = (
+        f'{settings.ERPNEXT_SITE_LOCATION}/api/resource/Project'
+        '?limit_page_length=1&fields=["name"]'
+    )
+    headers = get_auth_headers(user=user)
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+    except requests.exceptions.ConnectionError:
+        raise ERPSyncError('Cannot connect to ERPNext.')
+    except requests.exceptions.Timeout:
+        raise ERPSyncError('ERPNext request timed out.')
+    if response.status_code != 200:
+        raise erp_http_error(response.status_code)
+
+
 def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '', doctype_value: str = '', user=None) -> list:
     """Fetch a list (or single doc) from ERPNext REST API."""
     path = f'resource/{doctype.value}/{doctype_value}'.rstrip('/')
@@ -129,10 +149,17 @@ def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '',
 
 
 def get_erp_project_detail(project_name: str, user=None) -> dict:
-    """Fetch full project doc including child tables (e.g. project_team_members) by name."""
+    """Fetch full project doc including child tables (e.g. project_team_members) by name.
+
+    Raises ERPPermissionError if the user lacks access to this project's detail.
+    Returns {} if the project is not found or another non-permission error occurs.
+    """
     url = f'{settings.ERPNEXT_SITE_LOCATION}/api/resource/Project/{quote(project_name)}?fields=["*"]'
     headers = get_auth_headers(user=user)
     response = requests.get(url, headers=headers)
+    if response.status_code == 403:
+        logger.warning(f'Permission denied fetching project detail for {project_name} - skipping member sync')
+        raise ERPPermissionError(f'Permission denied for project: {project_name}')
     if response.status_code != 200:
         logger.error(f'Failed to fetch project detail for {project_name}: {response.content}')
         return {}
@@ -390,26 +417,36 @@ def pull_project_members_from_erp(user: get_user_model(), project_names: list = 
 
     # Unfortunately, we cannot fetch all project members at once.
     # Fetch each project individually in parallel to get project_team_members
+    _PERMISSION_DENIED = object()
+
     def fetch_members(p_name):
-        detail = get_erp_project_detail(p_name, user=user)
+        try:
+            detail = get_erp_project_detail(p_name, user=user)
+        except ERPPermissionError:
+            return (p_name, _PERMISSION_DENIED)
         return (
             p_name,
-            detail.get('project_team_members', []),
-            detail.get('project_lead', ''),
-            bool(detail),
+            {
+                'members': detail.get('project_team_members', []),
+                'project_lead': detail.get('project_lead', '').lower(),
+                'found': bool(detail),
+            },
         )
 
     with ThreadPoolExecutor(max_workers=10) as executor:
         futures = {executor.submit(fetch_members, p.name): p.name for p in projects}
         for future in as_completed(futures):
-            name, members, project_lead_email, found = future.result()
-            if not found:
+            name, result = future.result()
+            if result is _PERMISSION_DENIED:
+                # User lacks access to this project's detail — leave existing members intact
+                continue
+            if not result['found']:
                 if is_subset:
                     Project.objects.filter(name=name).update(is_active=False)
                 else:
                     stale_project_names.append(name)
                 continue
-            project_members_map[name] = {'members': members, 'project_lead': project_lead_email.lower()}
+            project_members_map[name] = result
 
     if not is_subset and stale_project_names:
         stale_with_unsubmitted = Project.objects.filter(
@@ -434,7 +471,10 @@ def pull_project_members_from_erp(user: get_user_model(), project_names: list = 
     User = get_user_model()
     with transaction.atomic():
         for project in projects:
-            data = project_members_map.get(project.name, {})
+            if project.name not in project_members_map:
+                # Either stale (already handled above) or permission-denied — leave members intact
+                continue
+            data = project_members_map[project.name]
             members = data.get('members', [])
             project_lead_email = data.get('project_lead', '')
             ProjectMember.objects.filter(project=project).delete()
