@@ -69,11 +69,30 @@ def erp_http_error(status_code: int) -> ERPSyncError:
     return ERPServerError(f'ERPNext returned an error (HTTP {status_code}).')
 
 
-def get_auth_headers(user=None, erpnext_token=None):
+def get_admin_token_kwargs() -> dict:
+    """Return get_erp_data token kwargs using the configured ERP admin user.
+
+    Checks preferences.erp_admin_user first, falls back to the first superuser,
+    then falls back to the admin_token API key.
+    """
+    prefs = preferences.TimesheetPreferences
+    admin_user = prefs.erp_admin_user
+    if admin_user is None:
+        admin_user = get_user_model().objects.filter(is_superuser=True).order_by('id').first()
+    if admin_user:
+        oauth = get_valid_oauth_token(admin_user)
+        if oauth:
+            return {'bearer_token': oauth}
+    return {'erpnext_token': prefs.admin_token}
+
+
+def get_auth_headers(user=None, erpnext_token=None, bearer_token=None):
     """Return auth headers for ERPNext API calls.
 
     Prefers OAuth Bearer token if available, falls back to API key token.
     """
+    if bearer_token:
+        return {'Authorization': f'Bearer {bearer_token}'}
     if user:
         oauth_token = get_valid_oauth_token(user)
         if oauth_token:
@@ -124,13 +143,13 @@ def check_erp_project_access(user) -> None:
         raise erp_http_error(response.status_code)
 
 
-def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '', doctype_value: str = '', user=None) -> list:
+def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '', doctype_value: str = '', user=None, bearer_token: str = None) -> list:
     """Fetch a list (or single doc) from ERPNext REST API."""
-    path = f'resource/{doctype.value}/{doctype_value}'.rstrip('/')
+    path = f'resource/{quote(doctype.value)}/{quote(doctype_value)}'.rstrip('/')
     url = f'{settings.ERPNEXT_SITE_LOCATION}/api/{path}?limit_page_length=None&fields=["*"]'
     if filters:
         url += '&filters=' + filters
-    headers = get_auth_headers(user=user, erpnext_token=erpnext_token)
+    headers = get_auth_headers(user=user, erpnext_token=erpnext_token, bearer_token=bearer_token)
     try:
         response = requests.request('GET', url, headers=headers)
     except requests.exceptions.ConnectionError:
@@ -163,6 +182,7 @@ def get_erp_project_detail(project_name: str, user=None) -> dict:
     if response.status_code != 200:
         logger.error(f'Failed to fetch project detail for {project_name}: {response.content}')
         return {}
+    logger.warning(f'Successfully fetched project detail for {project_name}')
     return response.json().get('data', {})
 
 
@@ -191,12 +211,14 @@ def generate_api_secret(user: get_user_model()):
 def pull_holiday_list(user):
     with transaction.atomic():
         public_holidays = []
+        logger.warning(f'pull_holiday_list for {user.username}')
 
         employee_id = getattr(user.profile, 'employee_id', None)
         if not employee_id:
             pull_user_data_from_erp(user)
             employee_id = getattr(user.profile, 'employee_id', None)
         if not employee_id:
+            logger.warning(f'pull_holiday_list: no employee_id for {user.username}, skipping')
             return
 
         employee_docs = get_erp_data(
@@ -221,6 +243,7 @@ def pull_holiday_list(user):
         if not holiday_list_name:
             country_code = get_country_code_from_timezone(user.profile.timezone)
             if not country_code:
+                logger.warning(f'pull_holiday_list: no country code for timezone {user.profile.timezone} ({user.username}), skipping')
                 return
             holiday_list = get_erp_data(
                 DocType.HOLIDAY_LIST,
@@ -248,6 +271,7 @@ def pull_holiday_list(user):
                 else:
                     holiday_list_name = holiday_list[0]['name']
             else:
+                logger.warning(f'pull_holiday_list: no holiday list found for country {country_code} ({user.username}), skipping')
                 return
 
         current_year = datetime.now().year
@@ -271,6 +295,7 @@ def pull_holiday_list(user):
                     public_holidays.append(holiday)
 
         if len(public_holidays) == 0:
+            logger.warning(f'pull_holiday_list: no public holidays found in "{holiday_list_name}" for {user.username}, skipping')
             return
 
         activity, _ = Activity.objects.get_or_create(
@@ -353,13 +378,19 @@ def pull_department_from_erp(user=None):
 def pull_user_data_from_erp(user: get_user_model()):
     """Sync employee name, ID, and department from ERPNext into the user's local profile."""
 
-    # if not user.profile.token:
-    #     generate_api_key(user)
+    user_oauth = get_valid_oauth_token(user)
+    if user_oauth:
+        token_kwargs = {'bearer_token': user_oauth}
+    elif user.profile.token:
+        token_kwargs = {'erpnext_token': user.profile.token}
+    else:
+        token_kwargs = get_admin_token_kwargs()
 
     employee = get_erp_data(
-        DocType.EMPLOYEE, user.profile.token,
-        f'[["company_email", "=", "{user.email}"]]',
-        user=user
+        DocType.EMPLOYEE,
+        filters=f'[["company_email", "=", "{user.email}"]]',
+        user=user,
+        **token_kwargs
     )
     if len(employee) > 0:
         employee_data = employee[0]
@@ -885,9 +916,10 @@ def pull_leave_data_from_erp(user):
                 ["employee_name", "=", f"{user.first_name} {user.last_name}"])
         filters.append(["status", "=", "Approved"])
         leave_data = get_erp_data(
-            DocType.LEAVE, preferences.TimesheetPreferences.admin_token,
-            str(filters).replace('\'', '"'),
-            user=user
+            DocType.LEAVE,
+            filters=str(filters).replace('\'', '"'),
+            user=user,
+            **get_admin_token_kwargs()
         )
         from django.db.models import Q
 
