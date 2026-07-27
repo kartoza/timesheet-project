@@ -33,8 +33,8 @@ from timesheet.models.project import ProjectLink
 def _sync_projects(user):
     if 'None' in user.profile.token:
         pull_user_data_from_erp(user)
-    # pull_projects_from_erp(user)
-    # pull_project_members_from_erp(user)
+    pull_projects_from_erp(user)
+    pull_project_members_from_erp(user)
     users = get_user_model().objects.filter(is_active=True)
     for _user in users:
         if not _user.profile.token and not _user.profile.erpnext_oauth_token:
