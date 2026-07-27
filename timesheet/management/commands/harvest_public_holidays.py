@@ -17,3 +17,4 @@ class Command(BaseCommand):
         users = User.objects.all()
         for user in users:
             pull_leave_data_from_erp(user)
+            pull_holiday_list(user)

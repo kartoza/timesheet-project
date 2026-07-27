@@ -19,6 +19,7 @@ from timesheet.utils.erp import (
     pull_projects_from_erp,
     pull_project_members_from_erp,
     pull_user_data_from_erp,
+    pull_holiday_list,
     ERPAuthError,
     ERPPermissionError,
     ERPSyncError,
@@ -32,8 +33,16 @@ from timesheet.models.project import ProjectLink
 def _sync_projects(user):
     if 'None' in user.profile.token:
         pull_user_data_from_erp(user)
-    pull_projects_from_erp(user)
-    pull_project_members_from_erp(user)
+    # pull_projects_from_erp(user)
+    # pull_project_members_from_erp(user)
+    users = get_user_model().objects.filter(is_active=True)
+    for _user in users:
+        if not _user.profile.token and not _user.profile.erpnext_oauth_token:
+            continue
+        try:
+            pull_holiday_list(_user)
+        except (ERPPermissionError, ERPAuthError):
+            pass
 
 
 @extend_schema(exclude=True)
@@ -200,11 +209,14 @@ class ProjectAutocomplete(APIView):
         if not ignore_user:
             if user_id:
                 user = get_user_model().objects.get(id=user_id)
+                self.queryset = self.queryset.filter(
+                    members__user=user,
+                )
             else:
                 user = self.request.user
-            self.queryset = self.queryset.filter(
-                userproject__user=user,
-            )
+                self.queryset = self.queryset.filter(
+                    userproject__user=user,
+                )
             if user_id:
                 user_project_slots = UserProjectSlot.objects.filter(
                     user=user,

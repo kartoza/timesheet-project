@@ -200,6 +200,15 @@ class TimesheetPreferences(Preferences):
         default=''
     )
 
+    erp_admin_user = models.ForeignKey(
+        'auth.User',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='+',
+        help_text='User whose ERP credentials are used for admin data retrieval. Falls back to the first superuser if not set.',
+    )
+
     map_api_key = models.CharField(
         max_length=200,
         default=''

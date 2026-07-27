@@ -2,6 +2,8 @@ from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django import forms
+from django.db import transaction
+from django.template.response import TemplateResponse
 from django.test import Client
 from django.urls import reverse
 from preferences.admin import PreferencesAdmin
@@ -68,6 +70,65 @@ def pull_leave_data(modeladmin, request, queryset: get_user_model()):
             continue
         pull_leave_data_from_erp(user)
         pull_holiday_list(user)
+
+
+@admin.action(description='Merge users')
+def merge_users(modeladmin, request, queryset):
+    from schedule.models.schedule import Schedule
+    from schedule.models.user_project_slot import UserProjectSlot
+    from microblog.models.post import Like
+
+    if 'primary_user_id' in request.POST:
+        primary_id = int(request.POST['primary_user_id'])
+        primary = get_user_model().objects.get(id=primary_id)
+        sources = queryset.exclude(id=primary_id)
+
+        with transaction.atomic():
+            for source in sources:
+                Timelog.objects.filter(user=source).update(user=primary)
+                Schedule.objects.filter(user=source).update(user=primary)
+
+                for slot in UserProjectSlot.objects.filter(user=source):
+                    if not UserProjectSlot.objects.filter(user=primary, project=slot.project).exists():
+                        slot.user = primary
+                        slot.save()
+                    else:
+                        slot.delete()
+
+                for up in UserProject.objects.filter(user=source):
+                    if not UserProject.objects.filter(user=primary, project=up.project).exists():
+                        up.user = primary
+                        up.save()
+                    else:
+                        up.delete()
+
+                for pm in ProjectMember.objects.filter(user=source):
+                    if not ProjectMember.objects.filter(user=primary, project=pm.project).exists():
+                        pm.user = primary
+                        pm.save()
+                    else:
+                        pm.delete()
+
+                for like in Like.objects.filter(user=source):
+                    if not Like.objects.filter(user=primary, post=like.post).exists():
+                        like.user = primary
+                        like.save()
+                    else:
+                        like.delete()
+
+                username = source.username
+                source.delete()
+                messages.success(request, f'Merged "{username}" into "{primary.username}".')
+
+        return None
+
+    user_ids = list(queryset.values_list('id', flat=True))
+    return TemplateResponse(request, 'admin/merge_users.html', {
+        'users': queryset,
+        'user_ids': user_ids,
+        'opts': modeladmin.model._meta,
+        'title': 'Merge users',
+    })
 
 
 @admin.action(description='Break timesheet')
@@ -187,7 +248,7 @@ class ProfileInLine(admin.StackedInline):
 
 class UserAdmin(DjangoUserAdmin):
     inlines = [ProfileInLine, ]
-    actions = [pull_projects, pull_user_data, pull_leave_data, generate_api_key]
+    actions = [pull_projects, pull_user_data, pull_leave_data, generate_api_key, merge_users]
 
 
 class SavedSummaryAdmin(admin.ModelAdmin):
