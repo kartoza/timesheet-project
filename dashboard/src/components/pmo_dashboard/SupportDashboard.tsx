@@ -175,7 +175,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({ onRegisterExport })
               <ChartCard
                 id='support-last-sprint-chart'
                 title='Tickets Current Sprint'
-                subtitle='Per-customer breakdown, last completed sprint'
+                subtitle='Per-customer breakdown, current sprint'
                 isFullscreen={fullscreenChart === 'support-last-sprint-chart'}
                 onFullscreenChange={(open) => handleChartFullscreen('support-last-sprint-chart', open)}
               >
