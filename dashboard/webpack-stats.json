@@ -1,1988 +1,276 @@
 {
   "status": "done",
   "assets": {
-    "App.js": {
-      "name": "App.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.js",
-      "publicPath": "http://localhost:9000/static/App.js"
-    },
-    "Space.js": {
-      "name": "Space.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.js",
-      "publicPath": "http://localhost:9000/static/Space.js"
-    },
-    "Summary.js": {
-      "name": "Summary.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.js",
-      "publicPath": "http://localhost:9000/static/Summary.js"
-    },
-    "PublicSummary.js": {
-      "name": "PublicSummary.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.js"
-    },
-    "EmployeeInsight.js": {
-      "name": "EmployeeInsight.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.js"
-    },
-    "Planner.js": {
-      "name": "Planner.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.js",
-      "publicPath": "http://localhost:9000/static/Planner.js"
-    },
-    "PMODashboard.js": {
-      "name": "PMODashboard.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.js"
-    },
-    "src_components_Menu_tsx.js": {
-      "name": "src_components_Menu_tsx.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/src_components_Menu_tsx.js",
-      "publicPath": "http://localhost:9000/static/src_components_Menu_tsx.js"
-    },
-    "src_components_ReportButton_tsx.js": {
-      "name": "src_components_ReportButton_tsx.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/src_components_ReportButton_tsx.js",
-      "publicPath": "http://localhost:9000/static/src_components_ReportButton_tsx.js"
-    },
-    "node_modules_mui_material_ListItemIcon_listItemIconClasses_js-node_modules_mui_material_ListI-e2055e.js": {
-      "name": "node_modules_mui_material_ListItemIcon_listItemIconClasses_js-node_modules_mui_material_ListI-e2055e.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_material_ListItemIcon_listItemIconClasses_js-node_modules_mui_material_ListI-e2055e.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_material_ListItemIcon_listItemIconClasses_js-node_modules_mui_material_ListI-e2055e.js"
-    },
-    "src_components_TimeCard_tsx.js": {
-      "name": "src_components_TimeCard_tsx.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/src_components_TimeCard_tsx.js",
-      "publicPath": "http://localhost:9000/static/src_components_TimeCard_tsx.js"
-    },
-    "node_modules_mui_material_ListItemIcon_listItemIconClasses_js-node_modules_mui_material_ListI-a5e2ff.js": {
-      "name": "node_modules_mui_material_ListItemIcon_listItemIconClasses_js-node_modules_mui_material_ListI-a5e2ff.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_material_ListItemIcon_listItemIconClasses_js-node_modules_mui_material_ListI-a5e2ff.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_material_ListItemIcon_listItemIconClasses_js-node_modules_mui_material_ListI-a5e2ff.js"
-    },
-    "src_components_TimeLogTable_tsx.js": {
-      "name": "src_components_TimeLogTable_tsx.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/src_components_TimeLogTable_tsx.js",
-      "publicPath": "http://localhost:9000/static/src_components_TimeLogTable_tsx.js"
-    },
-    "src_components_ScheduleInfo_tsx.js": {
-      "name": "src_components_ScheduleInfo_tsx.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/src_components_ScheduleInfo_tsx.js",
-      "publicPath": "http://localhost:9000/static/src_components_ScheduleInfo_tsx.js"
-    },
-    "vendors-node_modules_react-canvas-confetti_dist_index_js.js": {
-      "name": "vendors-node_modules_react-canvas-confetti_dist_index_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_react-canvas-confetti_dist_index_js.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_react-canvas-confetti_dist_index_js.js"
-    },
-    "src_components_UserActivities_tsx.js": {
-      "name": "src_components_UserActivities_tsx.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/src_components_UserActivities_tsx.js",
-      "publicPath": "http://localhost:9000/static/src_components_UserActivities_tsx.js"
-    },
-    "src_components_MicroblogFeed_tsx.js": {
-      "name": "src_components_MicroblogFeed_tsx.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/src_components_MicroblogFeed_tsx.js",
-      "publicPath": "http://localhost:9000/static/src_components_MicroblogFeed_tsx.js"
-    },
-    "src_components_ProjectLink_tsx.js": {
-      "name": "src_components_ProjectLink_tsx.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/src_components_ProjectLink_tsx.js",
-      "publicPath": "http://localhost:9000/static/src_components_ProjectLink_tsx.js"
-    },
-    "node_modules_mui_material_Button_index_js.js": {
-      "name": "node_modules_mui_material_Button_index_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_material_Button_index_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_material_Button_index_js.js"
-    },
-    "node_modules_mui_icons-material_esm_Settings_js.js": {
-      "name": "node_modules_mui_icons-material_esm_Settings_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_esm_Settings_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_esm_Settings_js.js"
-    },
-    "node_modules_mui_icons-material_esm_Send_js.js": {
-      "name": "node_modules_mui_icons-material_esm_Send_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_esm_Send_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_esm_Send_js.js"
-    },
-    "node_modules_mui_icons-material_esm_LightMode_js.js": {
-      "name": "node_modules_mui_icons-material_esm_LightMode_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_esm_LightMode_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_esm_LightMode_js.js"
-    },
-    "node_modules_mui_icons-material_esm_DarkMode_js.js": {
-      "name": "node_modules_mui_icons-material_esm_DarkMode_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_esm_DarkMode_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_esm_DarkMode_js.js"
-    },
-    "node_modules_mui_icons-material_esm_AutoAwesome_js.js": {
-      "name": "node_modules_mui_icons-material_esm_AutoAwesome_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_esm_AutoAwesome_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_esm_AutoAwesome_js.js"
-    },
-    "node_modules_mui_icons-material_esm_EmojiPeople_js.js": {
-      "name": "node_modules_mui_icons-material_esm_EmojiPeople_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_esm_EmojiPeople_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_esm_EmojiPeople_js.js"
-    },
-    "node_modules_mui_icons-material_esm_ContentCopy_js.js": {
-      "name": "node_modules_mui_icons-material_esm_ContentCopy_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_esm_ContentCopy_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_esm_ContentCopy_js.js"
-    },
-    "node_modules_mui_icons-material_esm_List_js.js": {
-      "name": "node_modules_mui_icons-material_esm_List_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_esm_List_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_esm_List_js.js"
-    },
-    "node_modules_mui_icons-material_esm_PlayCircle_js.js": {
-      "name": "node_modules_mui_icons-material_esm_PlayCircle_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_esm_PlayCircle_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_esm_PlayCircle_js.js"
-    },
-    "node_modules_mui_icons-material_esm_ClearAll_js.js": {
-      "name": "node_modules_mui_icons-material_esm_ClearAll_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_esm_ClearAll_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_esm_ClearAll_js.js"
-    },
-    "node_modules_mui_icons-material_esm_DeleteSweep_js.js": {
-      "name": "node_modules_mui_icons-material_esm_DeleteSweep_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_esm_DeleteSweep_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_esm_DeleteSweep_js.js"
-    },
-    "node_modules_mui_icons-material_esm_MoreVert_js.js": {
-      "name": "node_modules_mui_icons-material_esm_MoreVert_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_esm_MoreVert_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_esm_MoreVert_js.js"
-    },
-    "node_modules_mui_icons-material_esm_Edit_js.js": {
-      "name": "node_modules_mui_icons-material_esm_Edit_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_esm_Edit_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_esm_Edit_js.js"
-    },
-    "node_modules_mui_icons-material_esm_TaskAlt_js.js": {
-      "name": "node_modules_mui_icons-material_esm_TaskAlt_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_esm_TaskAlt_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_esm_TaskAlt_js.js"
-    },
-    "node_modules_mui_icons-material_esm_Assignment_js.js": {
-      "name": "node_modules_mui_icons-material_esm_Assignment_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_esm_Assignment_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_esm_Assignment_js.js"
-    },
-    "node_modules_mui_icons-material_esm_Engineering_js.js": {
-      "name": "node_modules_mui_icons-material_esm_Engineering_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_esm_Engineering_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_esm_Engineering_js.js"
-    },
-    "node_modules_mui_icons-material_esm_Map_js.js": {
-      "name": "node_modules_mui_icons-material_esm_Map_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_esm_Map_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_esm_Map_js.js"
-    },
-    "node_modules_mui_icons-material_esm_Download_js.js": {
-      "name": "node_modules_mui_icons-material_esm_Download_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_esm_Download_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_esm_Download_js.js"
-    },
-    "node_modules_mui_icons-material_esm_Hardware_js.js": {
-      "name": "node_modules_mui_icons-material_esm_Hardware_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_icons-material_esm_Hardware_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_icons-material_esm_Hardware_js.js"
-    },
-    "node_modules_web-vitals_dist_web-vitals_js.js": {
-      "name": "node_modules_web-vitals_dist_web-vitals_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_web-vitals_dist_web-vitals_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_web-vitals_dist_web-vitals_js.js"
-    },
-    "vendors-node_modules_react-clock_dist_esm_index_js.js": {
-      "name": "vendors-node_modules_react-clock_dist_esm_index_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_react-clock_dist_esm_index_js.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_react-clock_dist_esm_index_js.js"
-    },
-    "vendors-node_modules_dompurify_dist_purify_es_mjs.js": {
-      "name": "vendors-node_modules_dompurify_dist_purify_es_mjs.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_dompurify_dist_purify_es_mjs.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_dompurify_dist_purify_es_mjs.js"
-    },
-    "vendors-node_modules_canvg_lib_index_es_js.js": {
-      "name": "vendors-node_modules_canvg_lib_index_es_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_canvg_lib_index_es_js.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_canvg_lib_index_es_js.js"
-    },
-    "node_modules_mui_material_Popover_index_js.js": {
-      "name": "node_modules_mui_material_Popover_index_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/node_modules_mui_material_Popover_index_js.js",
-      "publicPath": "http://localhost:9000/static/node_modules_mui_material_Popover_index_js.js"
-    },
-    "src_components_ReactQuill_tsx.js": {
-      "name": "src_components_ReactQuill_tsx.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/src_components_ReactQuill_tsx.js",
-      "publicPath": "http://localhost:9000/static/src_components_ReactQuill_tsx.js"
-    },
-    "vendors-node_modules_mui_material_MenuItem_MenuItem_js.js": {
-      "name": "vendors-node_modules_mui_material_MenuItem_MenuItem_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_mui_material_MenuItem_MenuItem_js.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_mui_material_MenuItem_MenuItem_js.js"
-    },
-    "vendors-node_modules_mui_icons-material_esm_Filter8_js-node_modules_mui_icons-material_esm_Lo-c4d712.js": {
-      "name": "vendors-node_modules_mui_icons-material_esm_Filter8_js-node_modules_mui_icons-material_esm_Lo-c4d712.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_mui_icons-material_esm_Filter8_js-node_modules_mui_icons-material_esm_Lo-c4d712.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_mui_icons-material_esm_Filter8_js-node_modules_mui_icons-material_esm_Lo-c4d712.js"
-    },
-    "vendors-node_modules_mui_system_esm_styled_styled_js-node_modules_mui_x-date-pickers_AdapterD-7aed8f.js": {
-      "name": "vendors-node_modules_mui_system_esm_styled_styled_js-node_modules_mui_x-date-pickers_AdapterD-7aed8f.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_mui_system_esm_styled_styled_js-node_modules_mui_x-date-pickers_AdapterD-7aed8f.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_mui_system_esm_styled_styled_js-node_modules_mui_x-date-pickers_AdapterD-7aed8f.js"
-    },
-    "vendors-node_modules_mui_x-date-pickers_PickersTextField_PickersTextField_js-node_modules_mui-8aa21a.js": {
-      "name": "vendors-node_modules_mui_x-date-pickers_PickersTextField_PickersTextField_js-node_modules_mui-8aa21a.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_mui_x-date-pickers_PickersTextField_PickersTextField_js-node_modules_mui-8aa21a.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_mui_x-date-pickers_PickersTextField_PickersTextField_js-node_modules_mui-8aa21a.js"
-    },
-    "vendors-node_modules_mui_material_Divider_Divider_js-node_modules_mui_material_Stack_Stack_js.js": {
-      "name": "vendors-node_modules_mui_material_Divider_Divider_js-node_modules_mui_material_Stack_Stack_js.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_mui_material_Divider_Divider_js-node_modules_mui_material_Stack_Stack_js.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_mui_material_Divider_Divider_js-node_modules_mui_material_Stack_Stack_js.js"
-    },
-    "vendors-node_modules_mui_icons-material_esm_PauseCircle_js-node_modules_mui_material_CardCont-d1f7d4.js": {
-      "name": "vendors-node_modules_mui_icons-material_esm_PauseCircle_js-node_modules_mui_material_CardCont-d1f7d4.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_mui_icons-material_esm_PauseCircle_js-node_modules_mui_material_CardCont-d1f7d4.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_mui_icons-material_esm_PauseCircle_js-node_modules_mui_material_CardCont-d1f7d4.js"
-    },
-    "vendors-node_modules_mui_icons-material_esm_Add_js-node_modules_mui_icons-material_esm_AddCir-0bda49.js": {
-      "name": "vendors-node_modules_mui_icons-material_esm_Add_js-node_modules_mui_icons-material_esm_AddCir-0bda49.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_mui_icons-material_esm_Add_js-node_modules_mui_icons-material_esm_AddCir-0bda49.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_mui_icons-material_esm_Add_js-node_modules_mui_icons-material_esm_AddCir-0bda49.js"
-    },
-    "vendors-node_modules_mui_icons-material_esm_CalendarMonth_js-node_modules_mui_icons-material_-892ee9.js": {
-      "name": "vendors-node_modules_mui_icons-material_esm_CalendarMonth_js-node_modules_mui_icons-material_-892ee9.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_mui_icons-material_esm_CalendarMonth_js-node_modules_mui_icons-material_-892ee9.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_mui_icons-material_esm_CalendarMonth_js-node_modules_mui_icons-material_-892ee9.js"
-    },
-    "vendors-node_modules_mui_icons-material_esm_HourglassEmpty_js-node_modules_mui_icons-material-db7a45.js": {
-      "name": "vendors-node_modules_mui_icons-material_esm_HourglassEmpty_js-node_modules_mui_icons-material-db7a45.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_mui_icons-material_esm_HourglassEmpty_js-node_modules_mui_icons-material-db7a45.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_mui_icons-material_esm_HourglassEmpty_js-node_modules_mui_icons-material-db7a45.js"
-    },
-    "vendors-node_modules_mui_icons-material_esm_KeyboardArrowDown_js-node_modules_mui_icons-mater-e48d48.js": {
-      "name": "vendors-node_modules_mui_icons-material_esm_KeyboardArrowDown_js-node_modules_mui_icons-mater-e48d48.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/vendors-node_modules_mui_icons-material_esm_KeyboardArrowDown_js-node_modules_mui_icons-mater-e48d48.js",
-      "publicPath": "http://localhost:9000/static/vendors-node_modules_mui_icons-material_esm_KeyboardArrowDown_js-node_modules_mui_icons-mater-e48d48.js"
-    },
-    "App.334d58ef0841b14eb290.hot-update.js": {
-      "name": "App.334d58ef0841b14eb290.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.334d58ef0841b14eb290.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.334d58ef0841b14eb290.hot-update.js"
-    },
-    "Space.334d58ef0841b14eb290.hot-update.js": {
-      "name": "Space.334d58ef0841b14eb290.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.334d58ef0841b14eb290.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.334d58ef0841b14eb290.hot-update.js"
-    },
-    "Summary.334d58ef0841b14eb290.hot-update.js": {
-      "name": "Summary.334d58ef0841b14eb290.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.334d58ef0841b14eb290.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.334d58ef0841b14eb290.hot-update.js"
-    },
-    "PublicSummary.334d58ef0841b14eb290.hot-update.js": {
-      "name": "PublicSummary.334d58ef0841b14eb290.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.334d58ef0841b14eb290.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.334d58ef0841b14eb290.hot-update.js"
-    },
-    "EmployeeInsight.334d58ef0841b14eb290.hot-update.js": {
-      "name": "EmployeeInsight.334d58ef0841b14eb290.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.334d58ef0841b14eb290.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.334d58ef0841b14eb290.hot-update.js"
-    },
-    "Planner.334d58ef0841b14eb290.hot-update.js": {
-      "name": "Planner.334d58ef0841b14eb290.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.334d58ef0841b14eb290.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.334d58ef0841b14eb290.hot-update.js"
-    },
-    "PMODashboard.334d58ef0841b14eb290.hot-update.js": {
-      "name": "PMODashboard.334d58ef0841b14eb290.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.334d58ef0841b14eb290.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.334d58ef0841b14eb290.hot-update.js"
-    },
-    "App.334d58ef0841b14eb290.hot-update.json": {
-      "name": "App.334d58ef0841b14eb290.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.334d58ef0841b14eb290.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.334d58ef0841b14eb290.hot-update.json"
-    },
-    "Space.334d58ef0841b14eb290.hot-update.json": {
-      "name": "Space.334d58ef0841b14eb290.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.334d58ef0841b14eb290.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.334d58ef0841b14eb290.hot-update.json"
-    },
-    "Summary.334d58ef0841b14eb290.hot-update.json": {
-      "name": "Summary.334d58ef0841b14eb290.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.334d58ef0841b14eb290.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.334d58ef0841b14eb290.hot-update.json"
-    },
-    "PublicSummary.334d58ef0841b14eb290.hot-update.json": {
-      "name": "PublicSummary.334d58ef0841b14eb290.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.334d58ef0841b14eb290.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.334d58ef0841b14eb290.hot-update.json"
-    },
-    "EmployeeInsight.334d58ef0841b14eb290.hot-update.json": {
-      "name": "EmployeeInsight.334d58ef0841b14eb290.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.334d58ef0841b14eb290.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.334d58ef0841b14eb290.hot-update.json"
-    },
-    "Planner.334d58ef0841b14eb290.hot-update.json": {
-      "name": "Planner.334d58ef0841b14eb290.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.334d58ef0841b14eb290.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.334d58ef0841b14eb290.hot-update.json"
-    },
-    "PMODashboard.334d58ef0841b14eb290.hot-update.json": {
-      "name": "PMODashboard.334d58ef0841b14eb290.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.334d58ef0841b14eb290.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.334d58ef0841b14eb290.hot-update.json"
-    },
-    "App.dfcabf41bc305ea3ad2d.hot-update.js": {
-      "name": "App.dfcabf41bc305ea3ad2d.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.dfcabf41bc305ea3ad2d.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.dfcabf41bc305ea3ad2d.hot-update.js"
-    },
-    "Space.dfcabf41bc305ea3ad2d.hot-update.js": {
-      "name": "Space.dfcabf41bc305ea3ad2d.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.dfcabf41bc305ea3ad2d.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.dfcabf41bc305ea3ad2d.hot-update.js"
-    },
-    "Summary.dfcabf41bc305ea3ad2d.hot-update.js": {
-      "name": "Summary.dfcabf41bc305ea3ad2d.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.dfcabf41bc305ea3ad2d.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.dfcabf41bc305ea3ad2d.hot-update.js"
-    },
-    "PublicSummary.dfcabf41bc305ea3ad2d.hot-update.js": {
-      "name": "PublicSummary.dfcabf41bc305ea3ad2d.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.dfcabf41bc305ea3ad2d.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.dfcabf41bc305ea3ad2d.hot-update.js"
-    },
-    "EmployeeInsight.dfcabf41bc305ea3ad2d.hot-update.js": {
-      "name": "EmployeeInsight.dfcabf41bc305ea3ad2d.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.dfcabf41bc305ea3ad2d.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.dfcabf41bc305ea3ad2d.hot-update.js"
-    },
-    "Planner.dfcabf41bc305ea3ad2d.hot-update.js": {
-      "name": "Planner.dfcabf41bc305ea3ad2d.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.dfcabf41bc305ea3ad2d.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.dfcabf41bc305ea3ad2d.hot-update.js"
-    },
-    "PMODashboard.dfcabf41bc305ea3ad2d.hot-update.js": {
-      "name": "PMODashboard.dfcabf41bc305ea3ad2d.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.dfcabf41bc305ea3ad2d.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.dfcabf41bc305ea3ad2d.hot-update.js"
-    },
-    "App.dfcabf41bc305ea3ad2d.hot-update.json": {
-      "name": "App.dfcabf41bc305ea3ad2d.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.dfcabf41bc305ea3ad2d.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.dfcabf41bc305ea3ad2d.hot-update.json"
-    },
-    "Space.dfcabf41bc305ea3ad2d.hot-update.json": {
-      "name": "Space.dfcabf41bc305ea3ad2d.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.dfcabf41bc305ea3ad2d.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.dfcabf41bc305ea3ad2d.hot-update.json"
-    },
-    "Summary.dfcabf41bc305ea3ad2d.hot-update.json": {
-      "name": "Summary.dfcabf41bc305ea3ad2d.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.dfcabf41bc305ea3ad2d.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.dfcabf41bc305ea3ad2d.hot-update.json"
-    },
-    "PublicSummary.dfcabf41bc305ea3ad2d.hot-update.json": {
-      "name": "PublicSummary.dfcabf41bc305ea3ad2d.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.dfcabf41bc305ea3ad2d.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.dfcabf41bc305ea3ad2d.hot-update.json"
-    },
-    "EmployeeInsight.dfcabf41bc305ea3ad2d.hot-update.json": {
-      "name": "EmployeeInsight.dfcabf41bc305ea3ad2d.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.dfcabf41bc305ea3ad2d.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.dfcabf41bc305ea3ad2d.hot-update.json"
-    },
-    "Planner.dfcabf41bc305ea3ad2d.hot-update.json": {
-      "name": "Planner.dfcabf41bc305ea3ad2d.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.dfcabf41bc305ea3ad2d.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.dfcabf41bc305ea3ad2d.hot-update.json"
-    },
-    "PMODashboard.dfcabf41bc305ea3ad2d.hot-update.json": {
-      "name": "PMODashboard.dfcabf41bc305ea3ad2d.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.dfcabf41bc305ea3ad2d.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.dfcabf41bc305ea3ad2d.hot-update.json"
-    },
-    "App.8fdfab2b9972bffe7c87.hot-update.js": {
-      "name": "App.8fdfab2b9972bffe7c87.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.8fdfab2b9972bffe7c87.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.8fdfab2b9972bffe7c87.hot-update.js"
-    },
-    "Space.8fdfab2b9972bffe7c87.hot-update.js": {
-      "name": "Space.8fdfab2b9972bffe7c87.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.8fdfab2b9972bffe7c87.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.8fdfab2b9972bffe7c87.hot-update.js"
-    },
-    "Summary.8fdfab2b9972bffe7c87.hot-update.js": {
-      "name": "Summary.8fdfab2b9972bffe7c87.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.8fdfab2b9972bffe7c87.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.8fdfab2b9972bffe7c87.hot-update.js"
-    },
-    "PublicSummary.8fdfab2b9972bffe7c87.hot-update.js": {
-      "name": "PublicSummary.8fdfab2b9972bffe7c87.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.8fdfab2b9972bffe7c87.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.8fdfab2b9972bffe7c87.hot-update.js"
-    },
-    "EmployeeInsight.8fdfab2b9972bffe7c87.hot-update.js": {
-      "name": "EmployeeInsight.8fdfab2b9972bffe7c87.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.8fdfab2b9972bffe7c87.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.8fdfab2b9972bffe7c87.hot-update.js"
-    },
-    "Planner.8fdfab2b9972bffe7c87.hot-update.js": {
-      "name": "Planner.8fdfab2b9972bffe7c87.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.8fdfab2b9972bffe7c87.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.8fdfab2b9972bffe7c87.hot-update.js"
-    },
-    "PMODashboard.8fdfab2b9972bffe7c87.hot-update.js": {
-      "name": "PMODashboard.8fdfab2b9972bffe7c87.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.8fdfab2b9972bffe7c87.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.8fdfab2b9972bffe7c87.hot-update.js"
-    },
-    "App.8fdfab2b9972bffe7c87.hot-update.json": {
-      "name": "App.8fdfab2b9972bffe7c87.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.8fdfab2b9972bffe7c87.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.8fdfab2b9972bffe7c87.hot-update.json"
-    },
-    "Space.8fdfab2b9972bffe7c87.hot-update.json": {
-      "name": "Space.8fdfab2b9972bffe7c87.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.8fdfab2b9972bffe7c87.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.8fdfab2b9972bffe7c87.hot-update.json"
-    },
-    "Summary.8fdfab2b9972bffe7c87.hot-update.json": {
-      "name": "Summary.8fdfab2b9972bffe7c87.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.8fdfab2b9972bffe7c87.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.8fdfab2b9972bffe7c87.hot-update.json"
-    },
-    "PublicSummary.8fdfab2b9972bffe7c87.hot-update.json": {
-      "name": "PublicSummary.8fdfab2b9972bffe7c87.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.8fdfab2b9972bffe7c87.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.8fdfab2b9972bffe7c87.hot-update.json"
-    },
-    "EmployeeInsight.8fdfab2b9972bffe7c87.hot-update.json": {
-      "name": "EmployeeInsight.8fdfab2b9972bffe7c87.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.8fdfab2b9972bffe7c87.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.8fdfab2b9972bffe7c87.hot-update.json"
-    },
-    "Planner.8fdfab2b9972bffe7c87.hot-update.json": {
-      "name": "Planner.8fdfab2b9972bffe7c87.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.8fdfab2b9972bffe7c87.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.8fdfab2b9972bffe7c87.hot-update.json"
-    },
-    "PMODashboard.8fdfab2b9972bffe7c87.hot-update.json": {
-      "name": "PMODashboard.8fdfab2b9972bffe7c87.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.8fdfab2b9972bffe7c87.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.8fdfab2b9972bffe7c87.hot-update.json"
-    },
-    "App.beb3a655570ab760f959.hot-update.js": {
-      "name": "App.beb3a655570ab760f959.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.beb3a655570ab760f959.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.beb3a655570ab760f959.hot-update.js"
-    },
-    "Space.beb3a655570ab760f959.hot-update.js": {
-      "name": "Space.beb3a655570ab760f959.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.beb3a655570ab760f959.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.beb3a655570ab760f959.hot-update.js"
-    },
-    "Summary.beb3a655570ab760f959.hot-update.js": {
-      "name": "Summary.beb3a655570ab760f959.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.beb3a655570ab760f959.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.beb3a655570ab760f959.hot-update.js"
-    },
-    "PublicSummary.beb3a655570ab760f959.hot-update.js": {
-      "name": "PublicSummary.beb3a655570ab760f959.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.beb3a655570ab760f959.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.beb3a655570ab760f959.hot-update.js"
-    },
-    "EmployeeInsight.beb3a655570ab760f959.hot-update.js": {
-      "name": "EmployeeInsight.beb3a655570ab760f959.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.beb3a655570ab760f959.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.beb3a655570ab760f959.hot-update.js"
-    },
-    "Planner.beb3a655570ab760f959.hot-update.js": {
-      "name": "Planner.beb3a655570ab760f959.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.beb3a655570ab760f959.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.beb3a655570ab760f959.hot-update.js"
-    },
-    "PMODashboard.beb3a655570ab760f959.hot-update.js": {
-      "name": "PMODashboard.beb3a655570ab760f959.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.beb3a655570ab760f959.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.beb3a655570ab760f959.hot-update.js"
-    },
-    "App.beb3a655570ab760f959.hot-update.json": {
-      "name": "App.beb3a655570ab760f959.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.beb3a655570ab760f959.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.beb3a655570ab760f959.hot-update.json"
-    },
-    "Space.beb3a655570ab760f959.hot-update.json": {
-      "name": "Space.beb3a655570ab760f959.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.beb3a655570ab760f959.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.beb3a655570ab760f959.hot-update.json"
-    },
-    "Summary.beb3a655570ab760f959.hot-update.json": {
-      "name": "Summary.beb3a655570ab760f959.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.beb3a655570ab760f959.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.beb3a655570ab760f959.hot-update.json"
-    },
-    "PublicSummary.beb3a655570ab760f959.hot-update.json": {
-      "name": "PublicSummary.beb3a655570ab760f959.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.beb3a655570ab760f959.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.beb3a655570ab760f959.hot-update.json"
-    },
-    "EmployeeInsight.beb3a655570ab760f959.hot-update.json": {
-      "name": "EmployeeInsight.beb3a655570ab760f959.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.beb3a655570ab760f959.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.beb3a655570ab760f959.hot-update.json"
-    },
-    "Planner.beb3a655570ab760f959.hot-update.json": {
-      "name": "Planner.beb3a655570ab760f959.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.beb3a655570ab760f959.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.beb3a655570ab760f959.hot-update.json"
-    },
-    "PMODashboard.beb3a655570ab760f959.hot-update.json": {
-      "name": "PMODashboard.beb3a655570ab760f959.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.beb3a655570ab760f959.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.beb3a655570ab760f959.hot-update.json"
-    },
-    "App.cfb4739edf16b9f718db.hot-update.js": {
-      "name": "App.cfb4739edf16b9f718db.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.cfb4739edf16b9f718db.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.cfb4739edf16b9f718db.hot-update.js"
-    },
-    "Space.cfb4739edf16b9f718db.hot-update.js": {
-      "name": "Space.cfb4739edf16b9f718db.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.cfb4739edf16b9f718db.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.cfb4739edf16b9f718db.hot-update.js"
-    },
-    "Summary.cfb4739edf16b9f718db.hot-update.js": {
-      "name": "Summary.cfb4739edf16b9f718db.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.cfb4739edf16b9f718db.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.cfb4739edf16b9f718db.hot-update.js"
-    },
-    "PublicSummary.cfb4739edf16b9f718db.hot-update.js": {
-      "name": "PublicSummary.cfb4739edf16b9f718db.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.cfb4739edf16b9f718db.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.cfb4739edf16b9f718db.hot-update.js"
-    },
-    "EmployeeInsight.cfb4739edf16b9f718db.hot-update.js": {
-      "name": "EmployeeInsight.cfb4739edf16b9f718db.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.cfb4739edf16b9f718db.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.cfb4739edf16b9f718db.hot-update.js"
-    },
-    "Planner.cfb4739edf16b9f718db.hot-update.js": {
-      "name": "Planner.cfb4739edf16b9f718db.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.cfb4739edf16b9f718db.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.cfb4739edf16b9f718db.hot-update.js"
-    },
-    "PMODashboard.cfb4739edf16b9f718db.hot-update.js": {
-      "name": "PMODashboard.cfb4739edf16b9f718db.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.cfb4739edf16b9f718db.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.cfb4739edf16b9f718db.hot-update.js"
-    },
-    "App.cfb4739edf16b9f718db.hot-update.json": {
-      "name": "App.cfb4739edf16b9f718db.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.cfb4739edf16b9f718db.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.cfb4739edf16b9f718db.hot-update.json"
-    },
-    "Space.cfb4739edf16b9f718db.hot-update.json": {
-      "name": "Space.cfb4739edf16b9f718db.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.cfb4739edf16b9f718db.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.cfb4739edf16b9f718db.hot-update.json"
-    },
-    "Summary.cfb4739edf16b9f718db.hot-update.json": {
-      "name": "Summary.cfb4739edf16b9f718db.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.cfb4739edf16b9f718db.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.cfb4739edf16b9f718db.hot-update.json"
-    },
-    "PublicSummary.cfb4739edf16b9f718db.hot-update.json": {
-      "name": "PublicSummary.cfb4739edf16b9f718db.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.cfb4739edf16b9f718db.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.cfb4739edf16b9f718db.hot-update.json"
-    },
-    "EmployeeInsight.cfb4739edf16b9f718db.hot-update.json": {
-      "name": "EmployeeInsight.cfb4739edf16b9f718db.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.cfb4739edf16b9f718db.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.cfb4739edf16b9f718db.hot-update.json"
-    },
-    "Planner.cfb4739edf16b9f718db.hot-update.json": {
-      "name": "Planner.cfb4739edf16b9f718db.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.cfb4739edf16b9f718db.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.cfb4739edf16b9f718db.hot-update.json"
-    },
-    "PMODashboard.cfb4739edf16b9f718db.hot-update.json": {
-      "name": "PMODashboard.cfb4739edf16b9f718db.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.cfb4739edf16b9f718db.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.cfb4739edf16b9f718db.hot-update.json"
-    },
-    "App.a6de4b71e003bd70c027.hot-update.js": {
-      "name": "App.a6de4b71e003bd70c027.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.a6de4b71e003bd70c027.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.a6de4b71e003bd70c027.hot-update.js"
-    },
-    "Space.a6de4b71e003bd70c027.hot-update.js": {
-      "name": "Space.a6de4b71e003bd70c027.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.a6de4b71e003bd70c027.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.a6de4b71e003bd70c027.hot-update.js"
-    },
-    "Summary.a6de4b71e003bd70c027.hot-update.js": {
-      "name": "Summary.a6de4b71e003bd70c027.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.a6de4b71e003bd70c027.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.a6de4b71e003bd70c027.hot-update.js"
-    },
-    "PublicSummary.a6de4b71e003bd70c027.hot-update.js": {
-      "name": "PublicSummary.a6de4b71e003bd70c027.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.a6de4b71e003bd70c027.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.a6de4b71e003bd70c027.hot-update.js"
-    },
-    "EmployeeInsight.a6de4b71e003bd70c027.hot-update.js": {
-      "name": "EmployeeInsight.a6de4b71e003bd70c027.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.a6de4b71e003bd70c027.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.a6de4b71e003bd70c027.hot-update.js"
-    },
-    "Planner.a6de4b71e003bd70c027.hot-update.js": {
-      "name": "Planner.a6de4b71e003bd70c027.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.a6de4b71e003bd70c027.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.a6de4b71e003bd70c027.hot-update.js"
-    },
-    "PMODashboard.a6de4b71e003bd70c027.hot-update.js": {
-      "name": "PMODashboard.a6de4b71e003bd70c027.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.a6de4b71e003bd70c027.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.a6de4b71e003bd70c027.hot-update.js"
-    },
-    "App.a6de4b71e003bd70c027.hot-update.json": {
-      "name": "App.a6de4b71e003bd70c027.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.a6de4b71e003bd70c027.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.a6de4b71e003bd70c027.hot-update.json"
-    },
-    "Space.a6de4b71e003bd70c027.hot-update.json": {
-      "name": "Space.a6de4b71e003bd70c027.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.a6de4b71e003bd70c027.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.a6de4b71e003bd70c027.hot-update.json"
-    },
-    "Summary.a6de4b71e003bd70c027.hot-update.json": {
-      "name": "Summary.a6de4b71e003bd70c027.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.a6de4b71e003bd70c027.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.a6de4b71e003bd70c027.hot-update.json"
-    },
-    "PublicSummary.a6de4b71e003bd70c027.hot-update.json": {
-      "name": "PublicSummary.a6de4b71e003bd70c027.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.a6de4b71e003bd70c027.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.a6de4b71e003bd70c027.hot-update.json"
-    },
-    "EmployeeInsight.a6de4b71e003bd70c027.hot-update.json": {
-      "name": "EmployeeInsight.a6de4b71e003bd70c027.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.a6de4b71e003bd70c027.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.a6de4b71e003bd70c027.hot-update.json"
-    },
-    "Planner.a6de4b71e003bd70c027.hot-update.json": {
-      "name": "Planner.a6de4b71e003bd70c027.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.a6de4b71e003bd70c027.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.a6de4b71e003bd70c027.hot-update.json"
-    },
-    "PMODashboard.a6de4b71e003bd70c027.hot-update.json": {
-      "name": "PMODashboard.a6de4b71e003bd70c027.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.a6de4b71e003bd70c027.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.a6de4b71e003bd70c027.hot-update.json"
-    },
-    "App.22810866144c6129f667.hot-update.js": {
-      "name": "App.22810866144c6129f667.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.22810866144c6129f667.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.22810866144c6129f667.hot-update.js"
-    },
-    "Space.22810866144c6129f667.hot-update.js": {
-      "name": "Space.22810866144c6129f667.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.22810866144c6129f667.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.22810866144c6129f667.hot-update.js"
-    },
-    "Summary.22810866144c6129f667.hot-update.js": {
-      "name": "Summary.22810866144c6129f667.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.22810866144c6129f667.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.22810866144c6129f667.hot-update.js"
-    },
-    "PublicSummary.22810866144c6129f667.hot-update.js": {
-      "name": "PublicSummary.22810866144c6129f667.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.22810866144c6129f667.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.22810866144c6129f667.hot-update.js"
-    },
-    "EmployeeInsight.22810866144c6129f667.hot-update.js": {
-      "name": "EmployeeInsight.22810866144c6129f667.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.22810866144c6129f667.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.22810866144c6129f667.hot-update.js"
-    },
-    "Planner.22810866144c6129f667.hot-update.js": {
-      "name": "Planner.22810866144c6129f667.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.22810866144c6129f667.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.22810866144c6129f667.hot-update.js"
-    },
-    "PMODashboard.22810866144c6129f667.hot-update.js": {
-      "name": "PMODashboard.22810866144c6129f667.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.22810866144c6129f667.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.22810866144c6129f667.hot-update.js"
-    },
-    "App.22810866144c6129f667.hot-update.json": {
-      "name": "App.22810866144c6129f667.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.22810866144c6129f667.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.22810866144c6129f667.hot-update.json"
-    },
-    "Space.22810866144c6129f667.hot-update.json": {
-      "name": "Space.22810866144c6129f667.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.22810866144c6129f667.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.22810866144c6129f667.hot-update.json"
-    },
-    "Summary.22810866144c6129f667.hot-update.json": {
-      "name": "Summary.22810866144c6129f667.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.22810866144c6129f667.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.22810866144c6129f667.hot-update.json"
-    },
-    "PublicSummary.22810866144c6129f667.hot-update.json": {
-      "name": "PublicSummary.22810866144c6129f667.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.22810866144c6129f667.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.22810866144c6129f667.hot-update.json"
-    },
-    "EmployeeInsight.22810866144c6129f667.hot-update.json": {
-      "name": "EmployeeInsight.22810866144c6129f667.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.22810866144c6129f667.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.22810866144c6129f667.hot-update.json"
-    },
-    "Planner.22810866144c6129f667.hot-update.json": {
-      "name": "Planner.22810866144c6129f667.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.22810866144c6129f667.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.22810866144c6129f667.hot-update.json"
-    },
-    "PMODashboard.22810866144c6129f667.hot-update.json": {
-      "name": "PMODashboard.22810866144c6129f667.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.22810866144c6129f667.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.22810866144c6129f667.hot-update.json"
-    },
-    "App.8bc2c43eff1567dfcd03.hot-update.js": {
-      "name": "App.8bc2c43eff1567dfcd03.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.8bc2c43eff1567dfcd03.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.8bc2c43eff1567dfcd03.hot-update.js"
-    },
-    "Space.8bc2c43eff1567dfcd03.hot-update.js": {
-      "name": "Space.8bc2c43eff1567dfcd03.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.8bc2c43eff1567dfcd03.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.8bc2c43eff1567dfcd03.hot-update.js"
-    },
-    "Summary.8bc2c43eff1567dfcd03.hot-update.js": {
-      "name": "Summary.8bc2c43eff1567dfcd03.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.8bc2c43eff1567dfcd03.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.8bc2c43eff1567dfcd03.hot-update.js"
-    },
-    "PublicSummary.8bc2c43eff1567dfcd03.hot-update.js": {
-      "name": "PublicSummary.8bc2c43eff1567dfcd03.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.8bc2c43eff1567dfcd03.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.8bc2c43eff1567dfcd03.hot-update.js"
-    },
-    "EmployeeInsight.8bc2c43eff1567dfcd03.hot-update.js": {
-      "name": "EmployeeInsight.8bc2c43eff1567dfcd03.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.8bc2c43eff1567dfcd03.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.8bc2c43eff1567dfcd03.hot-update.js"
-    },
-    "Planner.8bc2c43eff1567dfcd03.hot-update.js": {
-      "name": "Planner.8bc2c43eff1567dfcd03.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.8bc2c43eff1567dfcd03.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.8bc2c43eff1567dfcd03.hot-update.js"
-    },
-    "PMODashboard.8bc2c43eff1567dfcd03.hot-update.js": {
-      "name": "PMODashboard.8bc2c43eff1567dfcd03.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.8bc2c43eff1567dfcd03.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.8bc2c43eff1567dfcd03.hot-update.js"
-    },
-    "App.8bc2c43eff1567dfcd03.hot-update.json": {
-      "name": "App.8bc2c43eff1567dfcd03.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.8bc2c43eff1567dfcd03.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.8bc2c43eff1567dfcd03.hot-update.json"
-    },
-    "Space.8bc2c43eff1567dfcd03.hot-update.json": {
-      "name": "Space.8bc2c43eff1567dfcd03.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.8bc2c43eff1567dfcd03.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.8bc2c43eff1567dfcd03.hot-update.json"
-    },
-    "Summary.8bc2c43eff1567dfcd03.hot-update.json": {
-      "name": "Summary.8bc2c43eff1567dfcd03.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.8bc2c43eff1567dfcd03.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.8bc2c43eff1567dfcd03.hot-update.json"
-    },
-    "PublicSummary.8bc2c43eff1567dfcd03.hot-update.json": {
-      "name": "PublicSummary.8bc2c43eff1567dfcd03.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.8bc2c43eff1567dfcd03.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.8bc2c43eff1567dfcd03.hot-update.json"
-    },
-    "EmployeeInsight.8bc2c43eff1567dfcd03.hot-update.json": {
-      "name": "EmployeeInsight.8bc2c43eff1567dfcd03.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.8bc2c43eff1567dfcd03.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.8bc2c43eff1567dfcd03.hot-update.json"
-    },
-    "Planner.8bc2c43eff1567dfcd03.hot-update.json": {
-      "name": "Planner.8bc2c43eff1567dfcd03.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.8bc2c43eff1567dfcd03.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.8bc2c43eff1567dfcd03.hot-update.json"
-    },
-    "PMODashboard.8bc2c43eff1567dfcd03.hot-update.json": {
-      "name": "PMODashboard.8bc2c43eff1567dfcd03.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.8bc2c43eff1567dfcd03.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.8bc2c43eff1567dfcd03.hot-update.json"
-    },
-    "App.187f5f6943b77b4460ee.hot-update.js": {
-      "name": "App.187f5f6943b77b4460ee.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.187f5f6943b77b4460ee.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.187f5f6943b77b4460ee.hot-update.js"
-    },
-    "Space.187f5f6943b77b4460ee.hot-update.js": {
-      "name": "Space.187f5f6943b77b4460ee.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.187f5f6943b77b4460ee.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.187f5f6943b77b4460ee.hot-update.js"
-    },
-    "Summary.187f5f6943b77b4460ee.hot-update.js": {
-      "name": "Summary.187f5f6943b77b4460ee.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.187f5f6943b77b4460ee.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.187f5f6943b77b4460ee.hot-update.js"
-    },
-    "PublicSummary.187f5f6943b77b4460ee.hot-update.js": {
-      "name": "PublicSummary.187f5f6943b77b4460ee.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.187f5f6943b77b4460ee.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.187f5f6943b77b4460ee.hot-update.js"
-    },
-    "EmployeeInsight.187f5f6943b77b4460ee.hot-update.js": {
-      "name": "EmployeeInsight.187f5f6943b77b4460ee.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.187f5f6943b77b4460ee.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.187f5f6943b77b4460ee.hot-update.js"
-    },
-    "Planner.187f5f6943b77b4460ee.hot-update.js": {
-      "name": "Planner.187f5f6943b77b4460ee.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.187f5f6943b77b4460ee.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.187f5f6943b77b4460ee.hot-update.js"
-    },
-    "PMODashboard.187f5f6943b77b4460ee.hot-update.js": {
-      "name": "PMODashboard.187f5f6943b77b4460ee.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.187f5f6943b77b4460ee.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.187f5f6943b77b4460ee.hot-update.js"
-    },
-    "App.187f5f6943b77b4460ee.hot-update.json": {
-      "name": "App.187f5f6943b77b4460ee.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.187f5f6943b77b4460ee.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.187f5f6943b77b4460ee.hot-update.json"
-    },
-    "Space.187f5f6943b77b4460ee.hot-update.json": {
-      "name": "Space.187f5f6943b77b4460ee.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.187f5f6943b77b4460ee.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.187f5f6943b77b4460ee.hot-update.json"
-    },
-    "Summary.187f5f6943b77b4460ee.hot-update.json": {
-      "name": "Summary.187f5f6943b77b4460ee.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.187f5f6943b77b4460ee.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.187f5f6943b77b4460ee.hot-update.json"
-    },
-    "PublicSummary.187f5f6943b77b4460ee.hot-update.json": {
-      "name": "PublicSummary.187f5f6943b77b4460ee.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.187f5f6943b77b4460ee.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.187f5f6943b77b4460ee.hot-update.json"
-    },
-    "EmployeeInsight.187f5f6943b77b4460ee.hot-update.json": {
-      "name": "EmployeeInsight.187f5f6943b77b4460ee.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.187f5f6943b77b4460ee.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.187f5f6943b77b4460ee.hot-update.json"
-    },
-    "Planner.187f5f6943b77b4460ee.hot-update.json": {
-      "name": "Planner.187f5f6943b77b4460ee.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.187f5f6943b77b4460ee.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.187f5f6943b77b4460ee.hot-update.json"
-    },
-    "PMODashboard.187f5f6943b77b4460ee.hot-update.json": {
-      "name": "PMODashboard.187f5f6943b77b4460ee.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.187f5f6943b77b4460ee.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.187f5f6943b77b4460ee.hot-update.json"
-    },
-    "App.16d3e3e68f1f3b3dd80a.hot-update.js": {
-      "name": "App.16d3e3e68f1f3b3dd80a.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.16d3e3e68f1f3b3dd80a.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.16d3e3e68f1f3b3dd80a.hot-update.js"
-    },
-    "Space.16d3e3e68f1f3b3dd80a.hot-update.js": {
-      "name": "Space.16d3e3e68f1f3b3dd80a.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.16d3e3e68f1f3b3dd80a.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.16d3e3e68f1f3b3dd80a.hot-update.js"
-    },
-    "Summary.16d3e3e68f1f3b3dd80a.hot-update.js": {
-      "name": "Summary.16d3e3e68f1f3b3dd80a.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.16d3e3e68f1f3b3dd80a.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.16d3e3e68f1f3b3dd80a.hot-update.js"
-    },
-    "PublicSummary.16d3e3e68f1f3b3dd80a.hot-update.js": {
-      "name": "PublicSummary.16d3e3e68f1f3b3dd80a.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.16d3e3e68f1f3b3dd80a.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.16d3e3e68f1f3b3dd80a.hot-update.js"
-    },
-    "EmployeeInsight.16d3e3e68f1f3b3dd80a.hot-update.js": {
-      "name": "EmployeeInsight.16d3e3e68f1f3b3dd80a.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.16d3e3e68f1f3b3dd80a.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.16d3e3e68f1f3b3dd80a.hot-update.js"
-    },
-    "Planner.16d3e3e68f1f3b3dd80a.hot-update.js": {
-      "name": "Planner.16d3e3e68f1f3b3dd80a.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.16d3e3e68f1f3b3dd80a.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.16d3e3e68f1f3b3dd80a.hot-update.js"
-    },
-    "PMODashboard.16d3e3e68f1f3b3dd80a.hot-update.js": {
-      "name": "PMODashboard.16d3e3e68f1f3b3dd80a.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.16d3e3e68f1f3b3dd80a.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.16d3e3e68f1f3b3dd80a.hot-update.js"
-    },
-    "App.16d3e3e68f1f3b3dd80a.hot-update.json": {
-      "name": "App.16d3e3e68f1f3b3dd80a.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.16d3e3e68f1f3b3dd80a.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.16d3e3e68f1f3b3dd80a.hot-update.json"
-    },
-    "Space.16d3e3e68f1f3b3dd80a.hot-update.json": {
-      "name": "Space.16d3e3e68f1f3b3dd80a.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.16d3e3e68f1f3b3dd80a.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.16d3e3e68f1f3b3dd80a.hot-update.json"
-    },
-    "Summary.16d3e3e68f1f3b3dd80a.hot-update.json": {
-      "name": "Summary.16d3e3e68f1f3b3dd80a.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.16d3e3e68f1f3b3dd80a.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.16d3e3e68f1f3b3dd80a.hot-update.json"
-    },
-    "PublicSummary.16d3e3e68f1f3b3dd80a.hot-update.json": {
-      "name": "PublicSummary.16d3e3e68f1f3b3dd80a.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.16d3e3e68f1f3b3dd80a.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.16d3e3e68f1f3b3dd80a.hot-update.json"
-    },
-    "EmployeeInsight.16d3e3e68f1f3b3dd80a.hot-update.json": {
-      "name": "EmployeeInsight.16d3e3e68f1f3b3dd80a.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.16d3e3e68f1f3b3dd80a.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.16d3e3e68f1f3b3dd80a.hot-update.json"
-    },
-    "Planner.16d3e3e68f1f3b3dd80a.hot-update.json": {
-      "name": "Planner.16d3e3e68f1f3b3dd80a.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.16d3e3e68f1f3b3dd80a.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.16d3e3e68f1f3b3dd80a.hot-update.json"
-    },
-    "PMODashboard.16d3e3e68f1f3b3dd80a.hot-update.json": {
-      "name": "PMODashboard.16d3e3e68f1f3b3dd80a.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.16d3e3e68f1f3b3dd80a.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.16d3e3e68f1f3b3dd80a.hot-update.json"
-    },
-    "App.6521f4a623fff9778e52.hot-update.js": {
-      "name": "App.6521f4a623fff9778e52.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.6521f4a623fff9778e52.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.6521f4a623fff9778e52.hot-update.js"
-    },
-    "Space.6521f4a623fff9778e52.hot-update.js": {
-      "name": "Space.6521f4a623fff9778e52.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.6521f4a623fff9778e52.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.6521f4a623fff9778e52.hot-update.js"
-    },
-    "Summary.6521f4a623fff9778e52.hot-update.js": {
-      "name": "Summary.6521f4a623fff9778e52.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.6521f4a623fff9778e52.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.6521f4a623fff9778e52.hot-update.js"
-    },
-    "PublicSummary.6521f4a623fff9778e52.hot-update.js": {
-      "name": "PublicSummary.6521f4a623fff9778e52.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.6521f4a623fff9778e52.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.6521f4a623fff9778e52.hot-update.js"
-    },
-    "EmployeeInsight.6521f4a623fff9778e52.hot-update.js": {
-      "name": "EmployeeInsight.6521f4a623fff9778e52.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.6521f4a623fff9778e52.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.6521f4a623fff9778e52.hot-update.js"
-    },
-    "Planner.6521f4a623fff9778e52.hot-update.js": {
-      "name": "Planner.6521f4a623fff9778e52.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.6521f4a623fff9778e52.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.6521f4a623fff9778e52.hot-update.js"
-    },
-    "PMODashboard.6521f4a623fff9778e52.hot-update.js": {
-      "name": "PMODashboard.6521f4a623fff9778e52.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.6521f4a623fff9778e52.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.6521f4a623fff9778e52.hot-update.js"
-    },
-    "App.6521f4a623fff9778e52.hot-update.json": {
-      "name": "App.6521f4a623fff9778e52.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.6521f4a623fff9778e52.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.6521f4a623fff9778e52.hot-update.json"
-    },
-    "Space.6521f4a623fff9778e52.hot-update.json": {
-      "name": "Space.6521f4a623fff9778e52.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.6521f4a623fff9778e52.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.6521f4a623fff9778e52.hot-update.json"
-    },
-    "Summary.6521f4a623fff9778e52.hot-update.json": {
-      "name": "Summary.6521f4a623fff9778e52.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.6521f4a623fff9778e52.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.6521f4a623fff9778e52.hot-update.json"
-    },
-    "PublicSummary.6521f4a623fff9778e52.hot-update.json": {
-      "name": "PublicSummary.6521f4a623fff9778e52.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.6521f4a623fff9778e52.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.6521f4a623fff9778e52.hot-update.json"
-    },
-    "EmployeeInsight.6521f4a623fff9778e52.hot-update.json": {
-      "name": "EmployeeInsight.6521f4a623fff9778e52.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.6521f4a623fff9778e52.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.6521f4a623fff9778e52.hot-update.json"
-    },
-    "Planner.6521f4a623fff9778e52.hot-update.json": {
-      "name": "Planner.6521f4a623fff9778e52.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.6521f4a623fff9778e52.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.6521f4a623fff9778e52.hot-update.json"
-    },
-    "PMODashboard.6521f4a623fff9778e52.hot-update.json": {
-      "name": "PMODashboard.6521f4a623fff9778e52.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.6521f4a623fff9778e52.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.6521f4a623fff9778e52.hot-update.json"
-    },
-    "App.b9c5b7ea255fe7c947d2.hot-update.js": {
-      "name": "App.b9c5b7ea255fe7c947d2.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.b9c5b7ea255fe7c947d2.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.b9c5b7ea255fe7c947d2.hot-update.js"
-    },
-    "Space.b9c5b7ea255fe7c947d2.hot-update.js": {
-      "name": "Space.b9c5b7ea255fe7c947d2.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.b9c5b7ea255fe7c947d2.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.b9c5b7ea255fe7c947d2.hot-update.js"
-    },
-    "Summary.b9c5b7ea255fe7c947d2.hot-update.js": {
-      "name": "Summary.b9c5b7ea255fe7c947d2.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.b9c5b7ea255fe7c947d2.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.b9c5b7ea255fe7c947d2.hot-update.js"
-    },
-    "PublicSummary.b9c5b7ea255fe7c947d2.hot-update.js": {
-      "name": "PublicSummary.b9c5b7ea255fe7c947d2.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.b9c5b7ea255fe7c947d2.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.b9c5b7ea255fe7c947d2.hot-update.js"
-    },
-    "EmployeeInsight.b9c5b7ea255fe7c947d2.hot-update.js": {
-      "name": "EmployeeInsight.b9c5b7ea255fe7c947d2.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.b9c5b7ea255fe7c947d2.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.b9c5b7ea255fe7c947d2.hot-update.js"
-    },
-    "Planner.b9c5b7ea255fe7c947d2.hot-update.js": {
-      "name": "Planner.b9c5b7ea255fe7c947d2.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.b9c5b7ea255fe7c947d2.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.b9c5b7ea255fe7c947d2.hot-update.js"
-    },
-    "PMODashboard.b9c5b7ea255fe7c947d2.hot-update.js": {
-      "name": "PMODashboard.b9c5b7ea255fe7c947d2.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.b9c5b7ea255fe7c947d2.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.b9c5b7ea255fe7c947d2.hot-update.js"
-    },
-    "App.b9c5b7ea255fe7c947d2.hot-update.json": {
-      "name": "App.b9c5b7ea255fe7c947d2.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.b9c5b7ea255fe7c947d2.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.b9c5b7ea255fe7c947d2.hot-update.json"
-    },
-    "Space.b9c5b7ea255fe7c947d2.hot-update.json": {
-      "name": "Space.b9c5b7ea255fe7c947d2.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.b9c5b7ea255fe7c947d2.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.b9c5b7ea255fe7c947d2.hot-update.json"
-    },
-    "Summary.b9c5b7ea255fe7c947d2.hot-update.json": {
-      "name": "Summary.b9c5b7ea255fe7c947d2.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.b9c5b7ea255fe7c947d2.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.b9c5b7ea255fe7c947d2.hot-update.json"
-    },
-    "PublicSummary.b9c5b7ea255fe7c947d2.hot-update.json": {
-      "name": "PublicSummary.b9c5b7ea255fe7c947d2.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.b9c5b7ea255fe7c947d2.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.b9c5b7ea255fe7c947d2.hot-update.json"
-    },
-    "EmployeeInsight.b9c5b7ea255fe7c947d2.hot-update.json": {
-      "name": "EmployeeInsight.b9c5b7ea255fe7c947d2.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.b9c5b7ea255fe7c947d2.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.b9c5b7ea255fe7c947d2.hot-update.json"
-    },
-    "Planner.b9c5b7ea255fe7c947d2.hot-update.json": {
-      "name": "Planner.b9c5b7ea255fe7c947d2.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.b9c5b7ea255fe7c947d2.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.b9c5b7ea255fe7c947d2.hot-update.json"
-    },
-    "PMODashboard.b9c5b7ea255fe7c947d2.hot-update.json": {
-      "name": "PMODashboard.b9c5b7ea255fe7c947d2.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.b9c5b7ea255fe7c947d2.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.b9c5b7ea255fe7c947d2.hot-update.json"
-    },
-    "App.10e11d7d782a8c4d3319.hot-update.js": {
-      "name": "App.10e11d7d782a8c4d3319.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.10e11d7d782a8c4d3319.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.10e11d7d782a8c4d3319.hot-update.js"
-    },
-    "Space.10e11d7d782a8c4d3319.hot-update.js": {
-      "name": "Space.10e11d7d782a8c4d3319.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.10e11d7d782a8c4d3319.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.10e11d7d782a8c4d3319.hot-update.js"
-    },
-    "Summary.10e11d7d782a8c4d3319.hot-update.js": {
-      "name": "Summary.10e11d7d782a8c4d3319.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.10e11d7d782a8c4d3319.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.10e11d7d782a8c4d3319.hot-update.js"
-    },
-    "PublicSummary.10e11d7d782a8c4d3319.hot-update.js": {
-      "name": "PublicSummary.10e11d7d782a8c4d3319.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.10e11d7d782a8c4d3319.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.10e11d7d782a8c4d3319.hot-update.js"
-    },
-    "EmployeeInsight.10e11d7d782a8c4d3319.hot-update.js": {
-      "name": "EmployeeInsight.10e11d7d782a8c4d3319.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.10e11d7d782a8c4d3319.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.10e11d7d782a8c4d3319.hot-update.js"
-    },
-    "Planner.10e11d7d782a8c4d3319.hot-update.js": {
-      "name": "Planner.10e11d7d782a8c4d3319.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.10e11d7d782a8c4d3319.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.10e11d7d782a8c4d3319.hot-update.js"
-    },
-    "PMODashboard.10e11d7d782a8c4d3319.hot-update.js": {
-      "name": "PMODashboard.10e11d7d782a8c4d3319.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.10e11d7d782a8c4d3319.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.10e11d7d782a8c4d3319.hot-update.js"
-    },
-    "App.10e11d7d782a8c4d3319.hot-update.json": {
-      "name": "App.10e11d7d782a8c4d3319.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.10e11d7d782a8c4d3319.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.10e11d7d782a8c4d3319.hot-update.json"
-    },
-    "Space.10e11d7d782a8c4d3319.hot-update.json": {
-      "name": "Space.10e11d7d782a8c4d3319.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.10e11d7d782a8c4d3319.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.10e11d7d782a8c4d3319.hot-update.json"
-    },
-    "Summary.10e11d7d782a8c4d3319.hot-update.json": {
-      "name": "Summary.10e11d7d782a8c4d3319.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.10e11d7d782a8c4d3319.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.10e11d7d782a8c4d3319.hot-update.json"
-    },
-    "PublicSummary.10e11d7d782a8c4d3319.hot-update.json": {
-      "name": "PublicSummary.10e11d7d782a8c4d3319.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.10e11d7d782a8c4d3319.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.10e11d7d782a8c4d3319.hot-update.json"
-    },
-    "EmployeeInsight.10e11d7d782a8c4d3319.hot-update.json": {
-      "name": "EmployeeInsight.10e11d7d782a8c4d3319.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.10e11d7d782a8c4d3319.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.10e11d7d782a8c4d3319.hot-update.json"
-    },
-    "Planner.10e11d7d782a8c4d3319.hot-update.json": {
-      "name": "Planner.10e11d7d782a8c4d3319.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.10e11d7d782a8c4d3319.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.10e11d7d782a8c4d3319.hot-update.json"
-    },
-    "PMODashboard.10e11d7d782a8c4d3319.hot-update.json": {
-      "name": "PMODashboard.10e11d7d782a8c4d3319.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.10e11d7d782a8c4d3319.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.10e11d7d782a8c4d3319.hot-update.json"
-    },
-    "App.b4177aab199c4f0ea97e.hot-update.js": {
-      "name": "App.b4177aab199c4f0ea97e.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.b4177aab199c4f0ea97e.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.b4177aab199c4f0ea97e.hot-update.js"
-    },
-    "Space.b4177aab199c4f0ea97e.hot-update.js": {
-      "name": "Space.b4177aab199c4f0ea97e.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.b4177aab199c4f0ea97e.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.b4177aab199c4f0ea97e.hot-update.js"
-    },
-    "Summary.b4177aab199c4f0ea97e.hot-update.js": {
-      "name": "Summary.b4177aab199c4f0ea97e.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.b4177aab199c4f0ea97e.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.b4177aab199c4f0ea97e.hot-update.js"
-    },
-    "PublicSummary.b4177aab199c4f0ea97e.hot-update.js": {
-      "name": "PublicSummary.b4177aab199c4f0ea97e.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.b4177aab199c4f0ea97e.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.b4177aab199c4f0ea97e.hot-update.js"
-    },
-    "EmployeeInsight.b4177aab199c4f0ea97e.hot-update.js": {
-      "name": "EmployeeInsight.b4177aab199c4f0ea97e.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.b4177aab199c4f0ea97e.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.b4177aab199c4f0ea97e.hot-update.js"
-    },
-    "Planner.b4177aab199c4f0ea97e.hot-update.js": {
-      "name": "Planner.b4177aab199c4f0ea97e.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.b4177aab199c4f0ea97e.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.b4177aab199c4f0ea97e.hot-update.js"
-    },
-    "PMODashboard.b4177aab199c4f0ea97e.hot-update.js": {
-      "name": "PMODashboard.b4177aab199c4f0ea97e.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.b4177aab199c4f0ea97e.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.b4177aab199c4f0ea97e.hot-update.js"
-    },
-    "App.b4177aab199c4f0ea97e.hot-update.json": {
-      "name": "App.b4177aab199c4f0ea97e.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.b4177aab199c4f0ea97e.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.b4177aab199c4f0ea97e.hot-update.json"
-    },
-    "Space.b4177aab199c4f0ea97e.hot-update.json": {
-      "name": "Space.b4177aab199c4f0ea97e.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.b4177aab199c4f0ea97e.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.b4177aab199c4f0ea97e.hot-update.json"
-    },
-    "Summary.b4177aab199c4f0ea97e.hot-update.json": {
-      "name": "Summary.b4177aab199c4f0ea97e.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.b4177aab199c4f0ea97e.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.b4177aab199c4f0ea97e.hot-update.json"
-    },
-    "PublicSummary.b4177aab199c4f0ea97e.hot-update.json": {
-      "name": "PublicSummary.b4177aab199c4f0ea97e.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.b4177aab199c4f0ea97e.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.b4177aab199c4f0ea97e.hot-update.json"
-    },
-    "EmployeeInsight.b4177aab199c4f0ea97e.hot-update.json": {
-      "name": "EmployeeInsight.b4177aab199c4f0ea97e.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.b4177aab199c4f0ea97e.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.b4177aab199c4f0ea97e.hot-update.json"
-    },
-    "Planner.b4177aab199c4f0ea97e.hot-update.json": {
-      "name": "Planner.b4177aab199c4f0ea97e.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.b4177aab199c4f0ea97e.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.b4177aab199c4f0ea97e.hot-update.json"
-    },
-    "PMODashboard.b4177aab199c4f0ea97e.hot-update.json": {
-      "name": "PMODashboard.b4177aab199c4f0ea97e.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.b4177aab199c4f0ea97e.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.b4177aab199c4f0ea97e.hot-update.json"
-    },
-    "App.217b5ea058be6a5f88f4.hot-update.js": {
-      "name": "App.217b5ea058be6a5f88f4.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.217b5ea058be6a5f88f4.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.217b5ea058be6a5f88f4.hot-update.js"
-    },
-    "Space.217b5ea058be6a5f88f4.hot-update.js": {
-      "name": "Space.217b5ea058be6a5f88f4.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.217b5ea058be6a5f88f4.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.217b5ea058be6a5f88f4.hot-update.js"
-    },
-    "Summary.217b5ea058be6a5f88f4.hot-update.js": {
-      "name": "Summary.217b5ea058be6a5f88f4.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.217b5ea058be6a5f88f4.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.217b5ea058be6a5f88f4.hot-update.js"
-    },
-    "PublicSummary.217b5ea058be6a5f88f4.hot-update.js": {
-      "name": "PublicSummary.217b5ea058be6a5f88f4.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.217b5ea058be6a5f88f4.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.217b5ea058be6a5f88f4.hot-update.js"
-    },
-    "EmployeeInsight.217b5ea058be6a5f88f4.hot-update.js": {
-      "name": "EmployeeInsight.217b5ea058be6a5f88f4.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.217b5ea058be6a5f88f4.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.217b5ea058be6a5f88f4.hot-update.js"
-    },
-    "Planner.217b5ea058be6a5f88f4.hot-update.js": {
-      "name": "Planner.217b5ea058be6a5f88f4.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.217b5ea058be6a5f88f4.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.217b5ea058be6a5f88f4.hot-update.js"
-    },
-    "PMODashboard.217b5ea058be6a5f88f4.hot-update.js": {
-      "name": "PMODashboard.217b5ea058be6a5f88f4.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.217b5ea058be6a5f88f4.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.217b5ea058be6a5f88f4.hot-update.js"
-    },
-    "App.217b5ea058be6a5f88f4.hot-update.json": {
-      "name": "App.217b5ea058be6a5f88f4.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.217b5ea058be6a5f88f4.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.217b5ea058be6a5f88f4.hot-update.json"
-    },
-    "Space.217b5ea058be6a5f88f4.hot-update.json": {
-      "name": "Space.217b5ea058be6a5f88f4.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.217b5ea058be6a5f88f4.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.217b5ea058be6a5f88f4.hot-update.json"
-    },
-    "Summary.217b5ea058be6a5f88f4.hot-update.json": {
-      "name": "Summary.217b5ea058be6a5f88f4.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.217b5ea058be6a5f88f4.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.217b5ea058be6a5f88f4.hot-update.json"
-    },
-    "PublicSummary.217b5ea058be6a5f88f4.hot-update.json": {
-      "name": "PublicSummary.217b5ea058be6a5f88f4.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.217b5ea058be6a5f88f4.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.217b5ea058be6a5f88f4.hot-update.json"
-    },
-    "EmployeeInsight.217b5ea058be6a5f88f4.hot-update.json": {
-      "name": "EmployeeInsight.217b5ea058be6a5f88f4.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.217b5ea058be6a5f88f4.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.217b5ea058be6a5f88f4.hot-update.json"
-    },
-    "Planner.217b5ea058be6a5f88f4.hot-update.json": {
-      "name": "Planner.217b5ea058be6a5f88f4.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.217b5ea058be6a5f88f4.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.217b5ea058be6a5f88f4.hot-update.json"
-    },
-    "PMODashboard.217b5ea058be6a5f88f4.hot-update.json": {
-      "name": "PMODashboard.217b5ea058be6a5f88f4.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.217b5ea058be6a5f88f4.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.217b5ea058be6a5f88f4.hot-update.json"
-    },
-    "App.0b242abc9d3646aebf2e.hot-update.js": {
-      "name": "App.0b242abc9d3646aebf2e.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.0b242abc9d3646aebf2e.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.0b242abc9d3646aebf2e.hot-update.js"
-    },
-    "Space.0b242abc9d3646aebf2e.hot-update.js": {
-      "name": "Space.0b242abc9d3646aebf2e.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.0b242abc9d3646aebf2e.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.0b242abc9d3646aebf2e.hot-update.js"
-    },
-    "Summary.0b242abc9d3646aebf2e.hot-update.js": {
-      "name": "Summary.0b242abc9d3646aebf2e.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.0b242abc9d3646aebf2e.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.0b242abc9d3646aebf2e.hot-update.js"
-    },
-    "PublicSummary.0b242abc9d3646aebf2e.hot-update.js": {
-      "name": "PublicSummary.0b242abc9d3646aebf2e.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.0b242abc9d3646aebf2e.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.0b242abc9d3646aebf2e.hot-update.js"
-    },
-    "EmployeeInsight.0b242abc9d3646aebf2e.hot-update.js": {
-      "name": "EmployeeInsight.0b242abc9d3646aebf2e.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.0b242abc9d3646aebf2e.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.0b242abc9d3646aebf2e.hot-update.js"
-    },
-    "Planner.0b242abc9d3646aebf2e.hot-update.js": {
-      "name": "Planner.0b242abc9d3646aebf2e.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.0b242abc9d3646aebf2e.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.0b242abc9d3646aebf2e.hot-update.js"
-    },
-    "PMODashboard.0b242abc9d3646aebf2e.hot-update.js": {
-      "name": "PMODashboard.0b242abc9d3646aebf2e.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.0b242abc9d3646aebf2e.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.0b242abc9d3646aebf2e.hot-update.js"
-    },
-    "App.0b242abc9d3646aebf2e.hot-update.json": {
-      "name": "App.0b242abc9d3646aebf2e.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.0b242abc9d3646aebf2e.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.0b242abc9d3646aebf2e.hot-update.json"
-    },
-    "Space.0b242abc9d3646aebf2e.hot-update.json": {
-      "name": "Space.0b242abc9d3646aebf2e.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.0b242abc9d3646aebf2e.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.0b242abc9d3646aebf2e.hot-update.json"
-    },
-    "Summary.0b242abc9d3646aebf2e.hot-update.json": {
-      "name": "Summary.0b242abc9d3646aebf2e.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.0b242abc9d3646aebf2e.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.0b242abc9d3646aebf2e.hot-update.json"
-    },
-    "PublicSummary.0b242abc9d3646aebf2e.hot-update.json": {
-      "name": "PublicSummary.0b242abc9d3646aebf2e.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.0b242abc9d3646aebf2e.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.0b242abc9d3646aebf2e.hot-update.json"
-    },
-    "EmployeeInsight.0b242abc9d3646aebf2e.hot-update.json": {
-      "name": "EmployeeInsight.0b242abc9d3646aebf2e.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.0b242abc9d3646aebf2e.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.0b242abc9d3646aebf2e.hot-update.json"
-    },
-    "Planner.0b242abc9d3646aebf2e.hot-update.json": {
-      "name": "Planner.0b242abc9d3646aebf2e.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.0b242abc9d3646aebf2e.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.0b242abc9d3646aebf2e.hot-update.json"
-    },
-    "PMODashboard.0b242abc9d3646aebf2e.hot-update.json": {
-      "name": "PMODashboard.0b242abc9d3646aebf2e.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.0b242abc9d3646aebf2e.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.0b242abc9d3646aebf2e.hot-update.json"
-    },
-    "App.a0df33e688826253baa0.hot-update.js": {
-      "name": "App.a0df33e688826253baa0.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.a0df33e688826253baa0.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.a0df33e688826253baa0.hot-update.js"
-    },
-    "Space.a0df33e688826253baa0.hot-update.js": {
-      "name": "Space.a0df33e688826253baa0.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.a0df33e688826253baa0.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.a0df33e688826253baa0.hot-update.js"
-    },
-    "Summary.a0df33e688826253baa0.hot-update.js": {
-      "name": "Summary.a0df33e688826253baa0.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.a0df33e688826253baa0.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.a0df33e688826253baa0.hot-update.js"
-    },
-    "PublicSummary.a0df33e688826253baa0.hot-update.js": {
-      "name": "PublicSummary.a0df33e688826253baa0.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.a0df33e688826253baa0.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.a0df33e688826253baa0.hot-update.js"
-    },
-    "EmployeeInsight.a0df33e688826253baa0.hot-update.js": {
-      "name": "EmployeeInsight.a0df33e688826253baa0.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.a0df33e688826253baa0.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.a0df33e688826253baa0.hot-update.js"
-    },
-    "Planner.a0df33e688826253baa0.hot-update.js": {
-      "name": "Planner.a0df33e688826253baa0.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.a0df33e688826253baa0.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.a0df33e688826253baa0.hot-update.js"
-    },
-    "PMODashboard.a0df33e688826253baa0.hot-update.js": {
-      "name": "PMODashboard.a0df33e688826253baa0.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.a0df33e688826253baa0.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.a0df33e688826253baa0.hot-update.js"
-    },
-    "App.a0df33e688826253baa0.hot-update.json": {
-      "name": "App.a0df33e688826253baa0.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.a0df33e688826253baa0.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.a0df33e688826253baa0.hot-update.json"
-    },
-    "Space.a0df33e688826253baa0.hot-update.json": {
-      "name": "Space.a0df33e688826253baa0.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.a0df33e688826253baa0.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.a0df33e688826253baa0.hot-update.json"
-    },
-    "Summary.a0df33e688826253baa0.hot-update.json": {
-      "name": "Summary.a0df33e688826253baa0.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.a0df33e688826253baa0.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.a0df33e688826253baa0.hot-update.json"
-    },
-    "PublicSummary.a0df33e688826253baa0.hot-update.json": {
-      "name": "PublicSummary.a0df33e688826253baa0.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.a0df33e688826253baa0.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.a0df33e688826253baa0.hot-update.json"
-    },
-    "EmployeeInsight.a0df33e688826253baa0.hot-update.json": {
-      "name": "EmployeeInsight.a0df33e688826253baa0.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.a0df33e688826253baa0.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.a0df33e688826253baa0.hot-update.json"
-    },
-    "Planner.a0df33e688826253baa0.hot-update.json": {
-      "name": "Planner.a0df33e688826253baa0.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.a0df33e688826253baa0.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.a0df33e688826253baa0.hot-update.json"
-    },
-    "PMODashboard.a0df33e688826253baa0.hot-update.json": {
-      "name": "PMODashboard.a0df33e688826253baa0.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.a0df33e688826253baa0.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.a0df33e688826253baa0.hot-update.json"
-    },
-    "App.f6afd87918314f189c7f.hot-update.js": {
-      "name": "App.f6afd87918314f189c7f.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.f6afd87918314f189c7f.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.f6afd87918314f189c7f.hot-update.js"
-    },
-    "Space.f6afd87918314f189c7f.hot-update.js": {
-      "name": "Space.f6afd87918314f189c7f.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.f6afd87918314f189c7f.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.f6afd87918314f189c7f.hot-update.js"
-    },
-    "Summary.f6afd87918314f189c7f.hot-update.js": {
-      "name": "Summary.f6afd87918314f189c7f.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.f6afd87918314f189c7f.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.f6afd87918314f189c7f.hot-update.js"
-    },
-    "PublicSummary.f6afd87918314f189c7f.hot-update.js": {
-      "name": "PublicSummary.f6afd87918314f189c7f.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.f6afd87918314f189c7f.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.f6afd87918314f189c7f.hot-update.js"
-    },
-    "EmployeeInsight.f6afd87918314f189c7f.hot-update.js": {
-      "name": "EmployeeInsight.f6afd87918314f189c7f.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.f6afd87918314f189c7f.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.f6afd87918314f189c7f.hot-update.js"
-    },
-    "Planner.f6afd87918314f189c7f.hot-update.js": {
-      "name": "Planner.f6afd87918314f189c7f.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.f6afd87918314f189c7f.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.f6afd87918314f189c7f.hot-update.js"
-    },
-    "PMODashboard.f6afd87918314f189c7f.hot-update.js": {
-      "name": "PMODashboard.f6afd87918314f189c7f.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.f6afd87918314f189c7f.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.f6afd87918314f189c7f.hot-update.js"
-    },
-    "App.f6afd87918314f189c7f.hot-update.json": {
-      "name": "App.f6afd87918314f189c7f.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.f6afd87918314f189c7f.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.f6afd87918314f189c7f.hot-update.json"
-    },
-    "Space.f6afd87918314f189c7f.hot-update.json": {
-      "name": "Space.f6afd87918314f189c7f.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.f6afd87918314f189c7f.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.f6afd87918314f189c7f.hot-update.json"
-    },
-    "Summary.f6afd87918314f189c7f.hot-update.json": {
-      "name": "Summary.f6afd87918314f189c7f.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.f6afd87918314f189c7f.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.f6afd87918314f189c7f.hot-update.json"
-    },
-    "PublicSummary.f6afd87918314f189c7f.hot-update.json": {
-      "name": "PublicSummary.f6afd87918314f189c7f.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.f6afd87918314f189c7f.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.f6afd87918314f189c7f.hot-update.json"
-    },
-    "EmployeeInsight.f6afd87918314f189c7f.hot-update.json": {
-      "name": "EmployeeInsight.f6afd87918314f189c7f.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.f6afd87918314f189c7f.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.f6afd87918314f189c7f.hot-update.json"
-    },
-    "Planner.f6afd87918314f189c7f.hot-update.json": {
-      "name": "Planner.f6afd87918314f189c7f.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.f6afd87918314f189c7f.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.f6afd87918314f189c7f.hot-update.json"
-    },
-    "PMODashboard.f6afd87918314f189c7f.hot-update.json": {
-      "name": "PMODashboard.f6afd87918314f189c7f.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.f6afd87918314f189c7f.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.f6afd87918314f189c7f.hot-update.json"
-    },
-    "App.17f5f15b501fbbe8a100.hot-update.js": {
-      "name": "App.17f5f15b501fbbe8a100.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.17f5f15b501fbbe8a100.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.17f5f15b501fbbe8a100.hot-update.js"
-    },
-    "Space.17f5f15b501fbbe8a100.hot-update.js": {
-      "name": "Space.17f5f15b501fbbe8a100.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.17f5f15b501fbbe8a100.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.17f5f15b501fbbe8a100.hot-update.js"
-    },
-    "Summary.17f5f15b501fbbe8a100.hot-update.js": {
-      "name": "Summary.17f5f15b501fbbe8a100.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.17f5f15b501fbbe8a100.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.17f5f15b501fbbe8a100.hot-update.js"
-    },
-    "PublicSummary.17f5f15b501fbbe8a100.hot-update.js": {
-      "name": "PublicSummary.17f5f15b501fbbe8a100.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.17f5f15b501fbbe8a100.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.17f5f15b501fbbe8a100.hot-update.js"
-    },
-    "EmployeeInsight.17f5f15b501fbbe8a100.hot-update.js": {
-      "name": "EmployeeInsight.17f5f15b501fbbe8a100.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.17f5f15b501fbbe8a100.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.17f5f15b501fbbe8a100.hot-update.js"
-    },
-    "Planner.17f5f15b501fbbe8a100.hot-update.js": {
-      "name": "Planner.17f5f15b501fbbe8a100.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.17f5f15b501fbbe8a100.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.17f5f15b501fbbe8a100.hot-update.js"
-    },
-    "PMODashboard.17f5f15b501fbbe8a100.hot-update.js": {
-      "name": "PMODashboard.17f5f15b501fbbe8a100.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.17f5f15b501fbbe8a100.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.17f5f15b501fbbe8a100.hot-update.js"
-    },
-    "App.17f5f15b501fbbe8a100.hot-update.json": {
-      "name": "App.17f5f15b501fbbe8a100.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.17f5f15b501fbbe8a100.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.17f5f15b501fbbe8a100.hot-update.json"
-    },
-    "Space.17f5f15b501fbbe8a100.hot-update.json": {
-      "name": "Space.17f5f15b501fbbe8a100.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.17f5f15b501fbbe8a100.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.17f5f15b501fbbe8a100.hot-update.json"
-    },
-    "Summary.17f5f15b501fbbe8a100.hot-update.json": {
-      "name": "Summary.17f5f15b501fbbe8a100.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.17f5f15b501fbbe8a100.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.17f5f15b501fbbe8a100.hot-update.json"
-    },
-    "PublicSummary.17f5f15b501fbbe8a100.hot-update.json": {
-      "name": "PublicSummary.17f5f15b501fbbe8a100.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.17f5f15b501fbbe8a100.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.17f5f15b501fbbe8a100.hot-update.json"
-    },
-    "EmployeeInsight.17f5f15b501fbbe8a100.hot-update.json": {
-      "name": "EmployeeInsight.17f5f15b501fbbe8a100.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.17f5f15b501fbbe8a100.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.17f5f15b501fbbe8a100.hot-update.json"
-    },
-    "Planner.17f5f15b501fbbe8a100.hot-update.json": {
-      "name": "Planner.17f5f15b501fbbe8a100.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.17f5f15b501fbbe8a100.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.17f5f15b501fbbe8a100.hot-update.json"
-    },
-    "PMODashboard.17f5f15b501fbbe8a100.hot-update.json": {
-      "name": "PMODashboard.17f5f15b501fbbe8a100.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.17f5f15b501fbbe8a100.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.17f5f15b501fbbe8a100.hot-update.json"
-    },
-    "App.a300ba1ccbddc1176971.hot-update.js": {
-      "name": "App.a300ba1ccbddc1176971.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.a300ba1ccbddc1176971.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.a300ba1ccbddc1176971.hot-update.js"
-    },
-    "Space.a300ba1ccbddc1176971.hot-update.js": {
-      "name": "Space.a300ba1ccbddc1176971.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.a300ba1ccbddc1176971.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.a300ba1ccbddc1176971.hot-update.js"
-    },
-    "Summary.a300ba1ccbddc1176971.hot-update.js": {
-      "name": "Summary.a300ba1ccbddc1176971.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.a300ba1ccbddc1176971.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.a300ba1ccbddc1176971.hot-update.js"
-    },
-    "PublicSummary.a300ba1ccbddc1176971.hot-update.js": {
-      "name": "PublicSummary.a300ba1ccbddc1176971.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.a300ba1ccbddc1176971.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.a300ba1ccbddc1176971.hot-update.js"
-    },
-    "EmployeeInsight.a300ba1ccbddc1176971.hot-update.js": {
-      "name": "EmployeeInsight.a300ba1ccbddc1176971.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.a300ba1ccbddc1176971.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.a300ba1ccbddc1176971.hot-update.js"
-    },
-    "Planner.a300ba1ccbddc1176971.hot-update.js": {
-      "name": "Planner.a300ba1ccbddc1176971.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.a300ba1ccbddc1176971.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.a300ba1ccbddc1176971.hot-update.js"
-    },
-    "PMODashboard.a300ba1ccbddc1176971.hot-update.js": {
-      "name": "PMODashboard.a300ba1ccbddc1176971.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.a300ba1ccbddc1176971.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.a300ba1ccbddc1176971.hot-update.js"
-    },
-    "App.a300ba1ccbddc1176971.hot-update.json": {
-      "name": "App.a300ba1ccbddc1176971.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.a300ba1ccbddc1176971.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.a300ba1ccbddc1176971.hot-update.json"
-    },
-    "Space.a300ba1ccbddc1176971.hot-update.json": {
-      "name": "Space.a300ba1ccbddc1176971.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.a300ba1ccbddc1176971.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.a300ba1ccbddc1176971.hot-update.json"
-    },
-    "Summary.a300ba1ccbddc1176971.hot-update.json": {
-      "name": "Summary.a300ba1ccbddc1176971.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.a300ba1ccbddc1176971.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.a300ba1ccbddc1176971.hot-update.json"
-    },
-    "PublicSummary.a300ba1ccbddc1176971.hot-update.json": {
-      "name": "PublicSummary.a300ba1ccbddc1176971.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.a300ba1ccbddc1176971.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.a300ba1ccbddc1176971.hot-update.json"
-    },
-    "EmployeeInsight.a300ba1ccbddc1176971.hot-update.json": {
-      "name": "EmployeeInsight.a300ba1ccbddc1176971.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.a300ba1ccbddc1176971.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.a300ba1ccbddc1176971.hot-update.json"
-    },
-    "Planner.a300ba1ccbddc1176971.hot-update.json": {
-      "name": "Planner.a300ba1ccbddc1176971.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.a300ba1ccbddc1176971.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.a300ba1ccbddc1176971.hot-update.json"
-    },
-    "PMODashboard.a300ba1ccbddc1176971.hot-update.json": {
-      "name": "PMODashboard.a300ba1ccbddc1176971.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.a300ba1ccbddc1176971.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.a300ba1ccbddc1176971.hot-update.json"
-    },
-    "App.422f4b36225067bb840c.hot-update.js": {
-      "name": "App.422f4b36225067bb840c.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.422f4b36225067bb840c.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.422f4b36225067bb840c.hot-update.js"
-    },
-    "Space.422f4b36225067bb840c.hot-update.js": {
-      "name": "Space.422f4b36225067bb840c.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.422f4b36225067bb840c.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.422f4b36225067bb840c.hot-update.js"
-    },
-    "Summary.422f4b36225067bb840c.hot-update.js": {
-      "name": "Summary.422f4b36225067bb840c.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.422f4b36225067bb840c.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.422f4b36225067bb840c.hot-update.js"
-    },
-    "PublicSummary.422f4b36225067bb840c.hot-update.js": {
-      "name": "PublicSummary.422f4b36225067bb840c.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.422f4b36225067bb840c.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.422f4b36225067bb840c.hot-update.js"
-    },
-    "EmployeeInsight.422f4b36225067bb840c.hot-update.js": {
-      "name": "EmployeeInsight.422f4b36225067bb840c.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.422f4b36225067bb840c.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.422f4b36225067bb840c.hot-update.js"
-    },
-    "Planner.422f4b36225067bb840c.hot-update.js": {
-      "name": "Planner.422f4b36225067bb840c.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.422f4b36225067bb840c.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.422f4b36225067bb840c.hot-update.js"
-    },
-    "PMODashboard.422f4b36225067bb840c.hot-update.js": {
-      "name": "PMODashboard.422f4b36225067bb840c.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.422f4b36225067bb840c.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.422f4b36225067bb840c.hot-update.js"
-    },
-    "App.422f4b36225067bb840c.hot-update.json": {
-      "name": "App.422f4b36225067bb840c.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.422f4b36225067bb840c.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.422f4b36225067bb840c.hot-update.json"
-    },
-    "Space.422f4b36225067bb840c.hot-update.json": {
-      "name": "Space.422f4b36225067bb840c.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.422f4b36225067bb840c.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.422f4b36225067bb840c.hot-update.json"
-    },
-    "Summary.422f4b36225067bb840c.hot-update.json": {
-      "name": "Summary.422f4b36225067bb840c.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.422f4b36225067bb840c.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.422f4b36225067bb840c.hot-update.json"
-    },
-    "PublicSummary.422f4b36225067bb840c.hot-update.json": {
-      "name": "PublicSummary.422f4b36225067bb840c.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.422f4b36225067bb840c.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.422f4b36225067bb840c.hot-update.json"
-    },
-    "EmployeeInsight.422f4b36225067bb840c.hot-update.json": {
-      "name": "EmployeeInsight.422f4b36225067bb840c.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.422f4b36225067bb840c.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.422f4b36225067bb840c.hot-update.json"
-    },
-    "Planner.422f4b36225067bb840c.hot-update.json": {
-      "name": "Planner.422f4b36225067bb840c.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.422f4b36225067bb840c.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.422f4b36225067bb840c.hot-update.json"
-    },
-    "PMODashboard.422f4b36225067bb840c.hot-update.json": {
-      "name": "PMODashboard.422f4b36225067bb840c.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.422f4b36225067bb840c.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.422f4b36225067bb840c.hot-update.json"
-    },
-    "App.ad6c3aa3b70f5411c151.hot-update.js": {
-      "name": "App.ad6c3aa3b70f5411c151.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.ad6c3aa3b70f5411c151.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.ad6c3aa3b70f5411c151.hot-update.js"
-    },
-    "Space.ad6c3aa3b70f5411c151.hot-update.js": {
-      "name": "Space.ad6c3aa3b70f5411c151.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.ad6c3aa3b70f5411c151.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.ad6c3aa3b70f5411c151.hot-update.js"
-    },
-    "Summary.ad6c3aa3b70f5411c151.hot-update.js": {
-      "name": "Summary.ad6c3aa3b70f5411c151.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.ad6c3aa3b70f5411c151.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.ad6c3aa3b70f5411c151.hot-update.js"
-    },
-    "PublicSummary.ad6c3aa3b70f5411c151.hot-update.js": {
-      "name": "PublicSummary.ad6c3aa3b70f5411c151.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.ad6c3aa3b70f5411c151.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.ad6c3aa3b70f5411c151.hot-update.js"
-    },
-    "EmployeeInsight.ad6c3aa3b70f5411c151.hot-update.js": {
-      "name": "EmployeeInsight.ad6c3aa3b70f5411c151.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.ad6c3aa3b70f5411c151.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.ad6c3aa3b70f5411c151.hot-update.js"
-    },
-    "Planner.ad6c3aa3b70f5411c151.hot-update.js": {
-      "name": "Planner.ad6c3aa3b70f5411c151.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.ad6c3aa3b70f5411c151.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.ad6c3aa3b70f5411c151.hot-update.js"
-    },
-    "PMODashboard.ad6c3aa3b70f5411c151.hot-update.js": {
-      "name": "PMODashboard.ad6c3aa3b70f5411c151.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.ad6c3aa3b70f5411c151.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.ad6c3aa3b70f5411c151.hot-update.js"
-    },
-    "App.ad6c3aa3b70f5411c151.hot-update.json": {
-      "name": "App.ad6c3aa3b70f5411c151.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.ad6c3aa3b70f5411c151.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.ad6c3aa3b70f5411c151.hot-update.json"
-    },
-    "Space.ad6c3aa3b70f5411c151.hot-update.json": {
-      "name": "Space.ad6c3aa3b70f5411c151.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.ad6c3aa3b70f5411c151.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.ad6c3aa3b70f5411c151.hot-update.json"
-    },
-    "Summary.ad6c3aa3b70f5411c151.hot-update.json": {
-      "name": "Summary.ad6c3aa3b70f5411c151.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.ad6c3aa3b70f5411c151.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.ad6c3aa3b70f5411c151.hot-update.json"
-    },
-    "PublicSummary.ad6c3aa3b70f5411c151.hot-update.json": {
-      "name": "PublicSummary.ad6c3aa3b70f5411c151.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.ad6c3aa3b70f5411c151.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.ad6c3aa3b70f5411c151.hot-update.json"
-    },
-    "EmployeeInsight.ad6c3aa3b70f5411c151.hot-update.json": {
-      "name": "EmployeeInsight.ad6c3aa3b70f5411c151.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.ad6c3aa3b70f5411c151.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.ad6c3aa3b70f5411c151.hot-update.json"
-    },
-    "Planner.ad6c3aa3b70f5411c151.hot-update.json": {
-      "name": "Planner.ad6c3aa3b70f5411c151.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.ad6c3aa3b70f5411c151.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.ad6c3aa3b70f5411c151.hot-update.json"
-    },
-    "PMODashboard.ad6c3aa3b70f5411c151.hot-update.json": {
-      "name": "PMODashboard.ad6c3aa3b70f5411c151.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.ad6c3aa3b70f5411c151.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.ad6c3aa3b70f5411c151.hot-update.json"
-    },
-    "App.8625e7893278b0750d0d.hot-update.js": {
-      "name": "App.8625e7893278b0750d0d.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.8625e7893278b0750d0d.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.8625e7893278b0750d0d.hot-update.js"
-    },
-    "Space.8625e7893278b0750d0d.hot-update.js": {
-      "name": "Space.8625e7893278b0750d0d.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.8625e7893278b0750d0d.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.8625e7893278b0750d0d.hot-update.js"
-    },
-    "Summary.8625e7893278b0750d0d.hot-update.js": {
-      "name": "Summary.8625e7893278b0750d0d.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.8625e7893278b0750d0d.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.8625e7893278b0750d0d.hot-update.js"
-    },
-    "PublicSummary.8625e7893278b0750d0d.hot-update.js": {
-      "name": "PublicSummary.8625e7893278b0750d0d.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.8625e7893278b0750d0d.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.8625e7893278b0750d0d.hot-update.js"
-    },
-    "EmployeeInsight.8625e7893278b0750d0d.hot-update.js": {
-      "name": "EmployeeInsight.8625e7893278b0750d0d.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.8625e7893278b0750d0d.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.8625e7893278b0750d0d.hot-update.js"
-    },
-    "Planner.8625e7893278b0750d0d.hot-update.js": {
-      "name": "Planner.8625e7893278b0750d0d.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.8625e7893278b0750d0d.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.8625e7893278b0750d0d.hot-update.js"
-    },
-    "PMODashboard.8625e7893278b0750d0d.hot-update.js": {
-      "name": "PMODashboard.8625e7893278b0750d0d.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.8625e7893278b0750d0d.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.8625e7893278b0750d0d.hot-update.js"
-    },
-    "App.8625e7893278b0750d0d.hot-update.json": {
-      "name": "App.8625e7893278b0750d0d.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.8625e7893278b0750d0d.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.8625e7893278b0750d0d.hot-update.json"
-    },
-    "Space.8625e7893278b0750d0d.hot-update.json": {
-      "name": "Space.8625e7893278b0750d0d.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.8625e7893278b0750d0d.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.8625e7893278b0750d0d.hot-update.json"
-    },
-    "Summary.8625e7893278b0750d0d.hot-update.json": {
-      "name": "Summary.8625e7893278b0750d0d.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.8625e7893278b0750d0d.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.8625e7893278b0750d0d.hot-update.json"
-    },
-    "PublicSummary.8625e7893278b0750d0d.hot-update.json": {
-      "name": "PublicSummary.8625e7893278b0750d0d.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.8625e7893278b0750d0d.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.8625e7893278b0750d0d.hot-update.json"
-    },
-    "EmployeeInsight.8625e7893278b0750d0d.hot-update.json": {
-      "name": "EmployeeInsight.8625e7893278b0750d0d.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.8625e7893278b0750d0d.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.8625e7893278b0750d0d.hot-update.json"
-    },
-    "Planner.8625e7893278b0750d0d.hot-update.json": {
-      "name": "Planner.8625e7893278b0750d0d.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.8625e7893278b0750d0d.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.8625e7893278b0750d0d.hot-update.json"
-    },
-    "PMODashboard.8625e7893278b0750d0d.hot-update.json": {
-      "name": "PMODashboard.8625e7893278b0750d0d.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.8625e7893278b0750d0d.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.8625e7893278b0750d0d.hot-update.json"
-    },
-    "App.1f219b4b3d2bfb8b4ea1.hot-update.js": {
-      "name": "App.1f219b4b3d2bfb8b4ea1.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.1f219b4b3d2bfb8b4ea1.hot-update.js",
-      "publicPath": "http://localhost:9000/static/App.1f219b4b3d2bfb8b4ea1.hot-update.js"
-    },
-    "Space.1f219b4b3d2bfb8b4ea1.hot-update.js": {
-      "name": "Space.1f219b4b3d2bfb8b4ea1.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.1f219b4b3d2bfb8b4ea1.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Space.1f219b4b3d2bfb8b4ea1.hot-update.js"
-    },
-    "Summary.1f219b4b3d2bfb8b4ea1.hot-update.js": {
-      "name": "Summary.1f219b4b3d2bfb8b4ea1.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.1f219b4b3d2bfb8b4ea1.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Summary.1f219b4b3d2bfb8b4ea1.hot-update.js"
-    },
-    "PublicSummary.1f219b4b3d2bfb8b4ea1.hot-update.js": {
-      "name": "PublicSummary.1f219b4b3d2bfb8b4ea1.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.1f219b4b3d2bfb8b4ea1.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PublicSummary.1f219b4b3d2bfb8b4ea1.hot-update.js"
-    },
-    "EmployeeInsight.1f219b4b3d2bfb8b4ea1.hot-update.js": {
-      "name": "EmployeeInsight.1f219b4b3d2bfb8b4ea1.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.1f219b4b3d2bfb8b4ea1.hot-update.js",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.1f219b4b3d2bfb8b4ea1.hot-update.js"
-    },
-    "Planner.1f219b4b3d2bfb8b4ea1.hot-update.js": {
-      "name": "Planner.1f219b4b3d2bfb8b4ea1.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.1f219b4b3d2bfb8b4ea1.hot-update.js",
-      "publicPath": "http://localhost:9000/static/Planner.1f219b4b3d2bfb8b4ea1.hot-update.js"
-    },
-    "PMODashboard.1f219b4b3d2bfb8b4ea1.hot-update.js": {
-      "name": "PMODashboard.1f219b4b3d2bfb8b4ea1.hot-update.js",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.1f219b4b3d2bfb8b4ea1.hot-update.js",
-      "publicPath": "http://localhost:9000/static/PMODashboard.1f219b4b3d2bfb8b4ea1.hot-update.js"
-    },
-    "App.1f219b4b3d2bfb8b4ea1.hot-update.json": {
-      "name": "App.1f219b4b3d2bfb8b4ea1.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/App.1f219b4b3d2bfb8b4ea1.hot-update.json",
-      "publicPath": "http://localhost:9000/static/App.1f219b4b3d2bfb8b4ea1.hot-update.json"
-    },
-    "Space.1f219b4b3d2bfb8b4ea1.hot-update.json": {
-      "name": "Space.1f219b4b3d2bfb8b4ea1.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Space.1f219b4b3d2bfb8b4ea1.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Space.1f219b4b3d2bfb8b4ea1.hot-update.json"
-    },
-    "Summary.1f219b4b3d2bfb8b4ea1.hot-update.json": {
-      "name": "Summary.1f219b4b3d2bfb8b4ea1.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Summary.1f219b4b3d2bfb8b4ea1.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Summary.1f219b4b3d2bfb8b4ea1.hot-update.json"
-    },
-    "PublicSummary.1f219b4b3d2bfb8b4ea1.hot-update.json": {
-      "name": "PublicSummary.1f219b4b3d2bfb8b4ea1.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.1f219b4b3d2bfb8b4ea1.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PublicSummary.1f219b4b3d2bfb8b4ea1.hot-update.json"
-    },
-    "EmployeeInsight.1f219b4b3d2bfb8b4ea1.hot-update.json": {
-      "name": "EmployeeInsight.1f219b4b3d2bfb8b4ea1.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.1f219b4b3d2bfb8b4ea1.hot-update.json",
-      "publicPath": "http://localhost:9000/static/EmployeeInsight.1f219b4b3d2bfb8b4ea1.hot-update.json"
-    },
-    "Planner.1f219b4b3d2bfb8b4ea1.hot-update.json": {
-      "name": "Planner.1f219b4b3d2bfb8b4ea1.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/Planner.1f219b4b3d2bfb8b4ea1.hot-update.json",
-      "publicPath": "http://localhost:9000/static/Planner.1f219b4b3d2bfb8b4ea1.hot-update.json"
-    },
-    "PMODashboard.1f219b4b3d2bfb8b4ea1.hot-update.json": {
-      "name": "PMODashboard.1f219b4b3d2bfb8b4ea1.hot-update.json",
-      "path": "/home/zamuzakki/PycharmProjects/Kartoza/PMO-Dashboard/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.1f219b4b3d2bfb8b4ea1.hot-update.json",
-      "publicPath": "http://localhost:9000/static/PMODashboard.1f219b4b3d2bfb8b4ea1.hot-update.json"
+    "App.99308197d1608ec09274.js": {
+      "name": "App.99308197d1608ec09274.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.99308197d1608ec09274.js"
+    },
+    "Space.fe8c975a350773c1d44e.js": {
+      "name": "Space.fe8c975a350773c1d44e.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.fe8c975a350773c1d44e.js"
+    },
+    "Summary.f1abfb5c6d6205c8911e.js": {
+      "name": "Summary.f1abfb5c6d6205c8911e.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.f1abfb5c6d6205c8911e.js"
+    },
+    "PublicSummary.94fb21bcd90602b67ae9.js": {
+      "name": "PublicSummary.94fb21bcd90602b67ae9.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.94fb21bcd90602b67ae9.js"
+    },
+    "EmployeeInsight.ce02a4715c2774232f6c.js": {
+      "name": "EmployeeInsight.ce02a4715c2774232f6c.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.ce02a4715c2774232f6c.js"
+    },
+    "Planner.168cf88ea33826795b53.js": {
+      "name": "Planner.168cf88ea33826795b53.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.168cf88ea33826795b53.js"
+    },
+    "PMODashboard.f67fe46f469c10db6a7d.js": {
+      "name": "PMODashboard.f67fe46f469c10db6a7d.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.f67fe46f469c10db6a7d.js"
+    },
+    "998.62166b4e12f6edd31683.js": {
+      "name": "998.62166b4e12f6edd31683.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/998.62166b4e12f6edd31683.js"
+    },
+    "8853.9e032711d7901ede4c11.js": {
+      "name": "8853.9e032711d7901ede4c11.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/8853.9e032711d7901ede4c11.js"
+    },
+    "3582.d65416300aaaba105757.js": {
+      "name": "3582.d65416300aaaba105757.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/3582.d65416300aaaba105757.js"
+    },
+    "350.467683fd41ba5200cb52.js": {
+      "name": "350.467683fd41ba5200cb52.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/350.467683fd41ba5200cb52.js"
+    },
+    "4475.b9c55f3dccbc36562f57.js": {
+      "name": "4475.b9c55f3dccbc36562f57.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/4475.b9c55f3dccbc36562f57.js"
+    },
+    "2488.0f7079fc4cf26a07ef9f.js": {
+      "name": "2488.0f7079fc4cf26a07ef9f.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/2488.0f7079fc4cf26a07ef9f.js"
+    },
+    "1724.c6bcd1b1b65609290fe4.js": {
+      "name": "1724.c6bcd1b1b65609290fe4.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/1724.c6bcd1b1b65609290fe4.js"
+    },
+    "1359.ee71abb867d4c6e10e40.js": {
+      "name": "1359.ee71abb867d4c6e10e40.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/1359.ee71abb867d4c6e10e40.js"
+    },
+    "2188.472c8db97cf2352220f5.js": {
+      "name": "2188.472c8db97cf2352220f5.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/2188.472c8db97cf2352220f5.js"
+    },
+    "8751.42141ee4ccc9e2e67e15.js": {
+      "name": "8751.42141ee4ccc9e2e67e15.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/8751.42141ee4ccc9e2e67e15.js"
+    },
+    "5992.2c1883248db5f7d5e06c.js": {
+      "name": "5992.2c1883248db5f7d5e06c.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/5992.2c1883248db5f7d5e06c.js"
+    },
+    "8729.65fd4aba10945358509e.js": {
+      "name": "8729.65fd4aba10945358509e.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/8729.65fd4aba10945358509e.js"
+    },
+    "5764.3b2395806877fc429437.js": {
+      "name": "5764.3b2395806877fc429437.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/5764.3b2395806877fc429437.js"
+    },
+    "2751.d96089c466757e066ec9.js": {
+      "name": "2751.d96089c466757e066ec9.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/2751.d96089c466757e066ec9.js"
+    },
+    "1414.44b26be7ca8c5cf9acdd.js": {
+      "name": "1414.44b26be7ca8c5cf9acdd.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/1414.44b26be7ca8c5cf9acdd.js"
+    },
+    "5222.3fb38a3b9e50e49aaefd.js": {
+      "name": "5222.3fb38a3b9e50e49aaefd.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/5222.3fb38a3b9e50e49aaefd.js"
+    },
+    "3707.0ea366365a9f19813e71.js": {
+      "name": "3707.0ea366365a9f19813e71.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/3707.0ea366365a9f19813e71.js"
+    },
+    "9796.a9cb9cd157dd4b1a3fcd.js": {
+      "name": "9796.a9cb9cd157dd4b1a3fcd.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/9796.a9cb9cd157dd4b1a3fcd.js"
+    },
+    "5629.b91b2b8449eaf96492cc.js": {
+      "name": "5629.b91b2b8449eaf96492cc.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/5629.b91b2b8449eaf96492cc.js"
+    },
+    "977.ec739a3d737117cac273.js": {
+      "name": "977.ec739a3d737117cac273.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/977.ec739a3d737117cac273.js"
+    },
+    "4335.98bb3b800309242ca851.js": {
+      "name": "4335.98bb3b800309242ca851.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/4335.98bb3b800309242ca851.js"
+    },
+    "9681.95f4245e8bb2f626f1d8.js": {
+      "name": "9681.95f4245e8bb2f626f1d8.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/9681.95f4245e8bb2f626f1d8.js"
+    },
+    "7128.5b50dd413f22ab48a888.js": {
+      "name": "7128.5b50dd413f22ab48a888.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/7128.5b50dd413f22ab48a888.js"
+    },
+    "6255.cf9dd35b306fbda689a2.js": {
+      "name": "6255.cf9dd35b306fbda689a2.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/6255.cf9dd35b306fbda689a2.js"
+    },
+    "2297.d3b0bb15506f62a7fe63.js": {
+      "name": "2297.d3b0bb15506f62a7fe63.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/2297.d3b0bb15506f62a7fe63.js"
+    },
+    "5741.f3420b0cb2cc9f0cc4e0.js": {
+      "name": "5741.f3420b0cb2cc9f0cc4e0.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/5741.f3420b0cb2cc9f0cc4e0.js"
+    },
+    "7332.462f5cfd44911494a274.js": {
+      "name": "7332.462f5cfd44911494a274.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/7332.462f5cfd44911494a274.js"
+    },
+    "4258.5a4db99297fe43237fcd.js": {
+      "name": "4258.5a4db99297fe43237fcd.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/4258.5a4db99297fe43237fcd.js"
+    },
+    "203.be12681d34d8fde5b466.js": {
+      "name": "203.be12681d34d8fde5b466.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/203.be12681d34d8fde5b466.js"
+    },
+    "8821.613e32586e4e9611132a.js": {
+      "name": "8821.613e32586e4e9611132a.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/8821.613e32586e4e9611132a.js"
+    },
+    "4865.b3851d39b46b0a691dbf.js": {
+      "name": "4865.b3851d39b46b0a691dbf.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/4865.b3851d39b46b0a691dbf.js"
+    },
+    "364.779cfa93ec89ea75061b.js": {
+      "name": "364.779cfa93ec89ea75061b.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/364.779cfa93ec89ea75061b.js"
+    },
+    "729.648962052b68cf7d0d5d.js": {
+      "name": "729.648962052b68cf7d0d5d.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/729.648962052b68cf7d0d5d.js"
+    },
+    "9418.db4490aff47601de29bf.js": {
+      "name": "9418.db4490aff47601de29bf.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/9418.db4490aff47601de29bf.js"
+    },
+    "661.0a827c23053f874f305c.js": {
+      "name": "661.0a827c23053f874f305c.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/661.0a827c23053f874f305c.js"
+    },
+    "6294.007fd65035c7d7c0f147.js": {
+      "name": "6294.007fd65035c7d7c0f147.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/6294.007fd65035c7d7c0f147.js"
+    },
+    "4553.0b40e9688605d94169f4.js": {
+      "name": "4553.0b40e9688605d94169f4.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/4553.0b40e9688605d94169f4.js"
+    },
+    "9189.3705ef6c99627b4db331.js": {
+      "name": "9189.3705ef6c99627b4db331.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/9189.3705ef6c99627b4db331.js"
+    },
+    "1029.a9638d9b027a10005ba0.js": {
+      "name": "1029.a9638d9b027a10005ba0.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/1029.a9638d9b027a10005ba0.js"
+    },
+    "8334.a5dd253cff5fb2997b8e.js": {
+      "name": "8334.a5dd253cff5fb2997b8e.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/8334.a5dd253cff5fb2997b8e.js"
+    },
+    "3996.349c94a0f06672837cd0.js": {
+      "name": "3996.349c94a0f06672837cd0.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/3996.349c94a0f06672837cd0.js"
+    },
+    "6655.e6b4a3c967aa3441ae5b.js": {
+      "name": "6655.e6b4a3c967aa3441ae5b.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/6655.e6b4a3c967aa3441ae5b.js"
+    },
+    "4133.866046581baad0bfbdfc.js": {
+      "name": "4133.866046581baad0bfbdfc.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/4133.866046581baad0bfbdfc.js"
+    },
+    "3321.38a1a230480c36437a5b.js": {
+      "name": "3321.38a1a230480c36437a5b.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/3321.38a1a230480c36437a5b.js"
+    },
+    "3640.111d032c676f71a81553.js": {
+      "name": "3640.111d032c676f71a81553.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/3640.111d032c676f71a81553.js"
+    },
+    "2600.664dfc3675fabc74a807.js": {
+      "name": "2600.664dfc3675fabc74a807.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/2600.664dfc3675fabc74a807.js"
+    },
+    "1029.a9638d9b027a10005ba0.js.LICENSE.txt": {
+      "name": "1029.a9638d9b027a10005ba0.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/1029.a9638d9b027a10005ba0.js.LICENSE.txt"
+    },
+    "9418.db4490aff47601de29bf.js.LICENSE.txt": {
+      "name": "9418.db4490aff47601de29bf.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/9418.db4490aff47601de29bf.js.LICENSE.txt"
+    },
+    "App.99308197d1608ec09274.js.LICENSE.txt": {
+      "name": "App.99308197d1608ec09274.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.99308197d1608ec09274.js.LICENSE.txt"
+    },
+    "EmployeeInsight.ce02a4715c2774232f6c.js.LICENSE.txt": {
+      "name": "EmployeeInsight.ce02a4715c2774232f6c.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/EmployeeInsight.ce02a4715c2774232f6c.js.LICENSE.txt"
+    },
+    "PMODashboard.f67fe46f469c10db6a7d.js.LICENSE.txt": {
+      "name": "PMODashboard.f67fe46f469c10db6a7d.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PMODashboard.f67fe46f469c10db6a7d.js.LICENSE.txt"
+    },
+    "Planner.168cf88ea33826795b53.js.LICENSE.txt": {
+      "name": "Planner.168cf88ea33826795b53.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.168cf88ea33826795b53.js.LICENSE.txt"
+    },
+    "PublicSummary.94fb21bcd90602b67ae9.js.LICENSE.txt": {
+      "name": "PublicSummary.94fb21bcd90602b67ae9.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.94fb21bcd90602b67ae9.js.LICENSE.txt"
+    },
+    "Space.fe8c975a350773c1d44e.js.LICENSE.txt": {
+      "name": "Space.fe8c975a350773c1d44e.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.fe8c975a350773c1d44e.js.LICENSE.txt"
+    },
+    "Summary.f1abfb5c6d6205c8911e.js.LICENSE.txt": {
+      "name": "Summary.f1abfb5c6d6205c8911e.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.f1abfb5c6d6205c8911e.js.LICENSE.txt"
     }
   },
   "chunks": {
     "App": [
-      "App.js",
-      "App.1f219b4b3d2bfb8b4ea1.hot-update.js"
+      "App.99308197d1608ec09274.js"
     ],
     "Space": [
-      "Space.js",
-      "Space.1f219b4b3d2bfb8b4ea1.hot-update.js"
+      "Space.fe8c975a350773c1d44e.js"
     ],
     "Summary": [
-      "Summary.js",
-      "Summary.1f219b4b3d2bfb8b4ea1.hot-update.js"
+      "Summary.f1abfb5c6d6205c8911e.js"
     ],
     "PublicSummary": [
-      "PublicSummary.js",
-      "PublicSummary.1f219b4b3d2bfb8b4ea1.hot-update.js"
+      "PublicSummary.94fb21bcd90602b67ae9.js"
     ],
     "EmployeeInsight": [
-      "EmployeeInsight.js",
-      "EmployeeInsight.1f219b4b3d2bfb8b4ea1.hot-update.js"
+      "EmployeeInsight.ce02a4715c2774232f6c.js"
     ],
     "Planner": [
-      "Planner.js",
-      "Planner.1f219b4b3d2bfb8b4ea1.hot-update.js"
+      "Planner.168cf88ea33826795b53.js"
     ],
     "PMODashboard": [
-      "PMODashboard.js",
-      "PMODashboard.1f219b4b3d2bfb8b4ea1.hot-update.js"
+      "PMODashboard.f67fe46f469c10db6a7d.js"
     ]
-  },
-  "publicPath": "http://localhost:9000/static/",
-  "error": "ModuleParseError",
-  "message": "Module parse failed: Unexpected token (258:0)\nFile was processed with these loaders:\n * ./node_modules/@pmmmwh/react-refresh-webpack-plugin/loader/index.js\n * ./node_modules/ts-loader/index.js\nYou may need an additional loader to handle the result of these loaders.\n| };\n| main >\n> ;\n| div >\n| ;"
+  }
 }
