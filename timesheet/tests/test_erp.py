@@ -19,8 +19,9 @@ from timesheet.utils.erp import (
     pull_department_from_erp,
     pull_user_data_from_erp,
     ProjectsNotFound,
+    _resolve_issue_customer,
 )
-from pmo_dashboard.models import BusinessUnit
+from pmo_dashboard.models import BusinessUnit, SupportContactMapping
 
 # Mocking the settings.ERPNEXT_SITE_LOCATION
 mocked_erp_site = PropertyMock(return_value="https://erp_example.com")
@@ -397,3 +398,63 @@ class TestPullUserDataFromErp(TestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.first_name, 'Jane')
         self.assertEqual(self.user.last_name, 'Doe')
+
+
+class TestResolveIssueCustomer(TestCase):
+    def test_project_customer_used_when_no_override(self):
+        project = Project.objects.create(name='SLA Acme', customer='Acme Corp', project_type='EXTERNAL')
+        customer, is_internal = _resolve_issue_customer(project, 'someone@acme.com')
+        self.assertEqual(customer, 'Acme Corp')
+        self.assertFalse(is_internal)
+
+    def test_internal_project_type_is_internal_even_with_customer(self):
+        project = Project.objects.create(name='Internal Tooling', customer='Kartoza', project_type='INTERNAL')
+        customer, is_internal = _resolve_issue_customer(project, 'dev@kartoza.com')
+        self.assertTrue(is_internal)
+
+    def test_project_with_blank_customer_is_internal(self):
+        project = Project.objects.create(name='No Customer Set', customer='', project_type='EXTERNAL')
+        customer, is_internal = _resolve_issue_customer(project, 'someone@example.com')
+        self.assertEqual(customer, '')
+        self.assertTrue(is_internal)
+
+    def test_project_name_override_takes_priority_over_project_customer(self):
+        project = Project.objects.create(name='GSH Support', customer='Kartoza', project_type='EXTERNAL')
+        SupportContactMapping.objects.create(project_name='GSH Support', customer='GSH')
+        customer, is_internal = _resolve_issue_customer(project, 'someone@geonode-client.com')
+        self.assertEqual(customer, 'GSH')
+        self.assertFalse(is_internal)
+
+    def test_email_exact_match_used_when_no_project(self):
+        SupportContactMapping.objects.create(email='jane.doe@example.com', customer='Example Client Inc')
+        customer, is_internal = _resolve_issue_customer(None, 'jane.doe@example.com')
+        self.assertEqual(customer, 'Example Client Inc')
+        self.assertFalse(is_internal)
+
+    def test_email_match_is_case_insensitive(self):
+        SupportContactMapping.objects.create(email='jane.doe@example.com', customer='Example Client Inc')
+        customer, is_internal = _resolve_issue_customer(None, 'Jane.Doe@EXAMPLE.com')
+        self.assertEqual(customer, 'Example Client Inc')
+        self.assertFalse(is_internal)
+
+    def test_domain_wildcard_used_when_no_exact_email_match(self):
+        SupportContactMapping.objects.create(email='@kartoza.com', customer='')
+        customer, is_internal = _resolve_issue_customer(None, 'newhire@kartoza.com')
+        self.assertEqual(customer, '')
+        self.assertTrue(is_internal)
+
+    def test_mapping_with_blank_customer_is_internal(self):
+        SupportContactMapping.objects.create(email='some.contact@example.com', customer='')
+        customer, is_internal = _resolve_issue_customer(None, 'some.contact@example.com')
+        self.assertEqual(customer, '')
+        self.assertTrue(is_internal)
+
+    def test_unknown_email_and_no_project_is_internal(self):
+        customer, is_internal = _resolve_issue_customer(None, 'nobody-knows-this@example.com')
+        self.assertEqual(customer, '')
+        self.assertTrue(is_internal)
+
+    def test_no_project_no_email_is_internal(self):
+        customer, is_internal = _resolve_issue_customer(None, '')
+        self.assertEqual(customer, '')
+        self.assertTrue(is_internal)

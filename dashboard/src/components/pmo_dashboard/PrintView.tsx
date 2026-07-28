@@ -318,6 +318,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
                   data={statusData} dataKey='count' nameKey='label'
                   cx='50%' cy='44%' innerRadius={52} outerRadius={92}
                   paddingAngle={2}
+                  isAnimationActive={false}
                   label={renderPieLabel}
                   labelLine={{ stroke: '#cbd5e1', strokeWidth: 1 }}
                 >
@@ -337,10 +338,10 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
                 <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='#e2e8f0' />
                 <XAxis dataKey='name' tick={{ fill: '#64748b', fontSize: 7 }} interval={0} angle={-35} textAnchor='end' height={56} />
                 <YAxis tick={{ fill: '#94a3b8', fontSize: 7 }} tickFormatter={v => fmtK(Number(v))} width={40} />
-                <Bar dataKey='Sales' fill='#818cf8' radius={[2, 2, 0, 0]} maxBarSize={20}>
+                <Bar dataKey='Sales' fill='#818cf8' radius={[2, 2, 0, 0]} maxBarSize={20} isAnimationActive={false}>
                   <LabelList dataKey='Sales' content={makeVerticalLabel(fmtK)} />
                 </Bar>
-                <Bar dataKey='Cost' fill='#fb7185' radius={[2, 2, 0, 0]} maxBarSize={20}>
+                <Bar dataKey='Cost' fill='#fb7185' radius={[2, 2, 0, 0]} maxBarSize={20} isAnimationActive={false}>
                   <LabelList dataKey='Cost' content={makeVerticalLabel(fmtK)} />
                 </Bar>
                 <Legend content={renderPrintLegend} />
@@ -357,7 +358,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
                 <CartesianGrid strokeDasharray='3 3' horizontal={false} stroke='#e2e8f0' />
                 <XAxis type='number' tick={{ fill: '#94a3b8', fontSize: 7 }} tickFormatter={v => fmtK(Number(v))} />
                 <YAxis type='category' dataKey='name' tick={{ fill: '#64748b', fontSize: 8 }} width={85} interval={0} />
-                <Bar dataKey='value' name='Revenue' fill='#6366f1' radius={[0, 2, 2, 0]} maxBarSize={16}>
+                <Bar dataKey='value' name='Revenue' fill='#6366f1' radius={[0, 2, 2, 0]} maxBarSize={16} isAnimationActive={false}>
                   <LabelList dataKey='value' position='right' formatter={(v: any) => fmtK(Number(v))} style={{ ...lblStyle, fontSize: 7 }} />
                 </Bar>
               </BarChart>
@@ -381,13 +382,13 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
                 <XAxis dataKey='name' tick={{ fill: '#64748b', fontSize: 7 }} interval={0} angle={-35} textAnchor='end' height={56} />
                 <YAxis yAxisId='left' tick={{ fill: '#94a3b8', fontSize: 7 }} width={32} />
                 <YAxis yAxisId='right' orientation='right' tick={{ fill: '#14B8A6', fontSize: 7 }} tickFormatter={v => `${v}%`} width={28} />
-                <Bar yAxisId='left' dataKey='Budget (hrs)' fill='#94a3b8' radius={[2, 2, 0, 0]} maxBarSize={16}>
+                <Bar yAxisId='left' dataKey='Budget (hrs)' fill='#94a3b8' radius={[2, 2, 0, 0]} maxBarSize={16} isAnimationActive={false}>
                   <LabelList dataKey='Budget (hrs)' position='top' formatter={(v: any) => fmtHrs(Number(v))} style={lblStyle} />
                 </Bar>
-                <Bar yAxisId='left' dataKey='Consumed (hrs)' fill='#f59e0b' radius={[2, 2, 0, 0]} maxBarSize={16}>
+                <Bar yAxisId='left' dataKey='Consumed (hrs)' fill='#f59e0b' radius={[2, 2, 0, 0]} maxBarSize={16} isAnimationActive={false}>
                   <LabelList dataKey='Consumed (hrs)' position='top' formatter={(v: any) => fmtHrs(Number(v))} style={lblStyle} />
                 </Bar>
-                <Line yAxisId='right' type='monotone' dataKey='Progress (%)' stroke='#14B8A6' strokeWidth={2} dot={{ r: 2, fill: '#fff', strokeWidth: 2 }}>
+                <Line yAxisId='right' type='monotone' dataKey='Progress (%)' stroke='#14B8A6' strokeWidth={2} dot={{ r: 2, fill: '#fff', strokeWidth: 2 }} isAnimationActive={false}>
                   <LabelList dataKey='Progress (%)' position='top' formatter={(v: any) => `${Math.round(v)}%`} style={{ ...lblStyle, fill: '#14B8A6' }} />
                 </Line>
                 <Legend content={renderPrintLegend} />
@@ -397,7 +398,7 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
         </div>
 
         <div style={cardStyle}>
-          <div style={sectionTitleStyle}>PM Workload Distribution <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(top 15 by project count)</span></div>
+          <div style={sectionTitleStyle}>Project Manager Workload Distribution <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(top 15 by project count)</span></div>
           <div style={{ height: CHART_H }}>
             <ResponsiveContainer width='100%' height='100%'>
               <BarChart data={workloadData} margin={{ top: 16, right: 36, left: 0, bottom: 4 }}>
@@ -405,10 +406,10 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
                 <XAxis dataKey='name' tick={{ fill: '#64748b', fontSize: 7 }} interval={0} angle={-20} textAnchor='end' height={38} />
                 <YAxis yAxisId='l' tick={{ fill: '#94a3b8', fontSize: 7 }} allowDecimals={false} width={22} />
                 <YAxis yAxisId='r' orientation='right' tick={{ fill: '#94a3b8', fontSize: 7 }} width={32} />
-                <Bar yAxisId='l' dataKey='projects' name='Projects' fill='#6366f1' radius={[2, 2, 0, 0]} maxBarSize={20}>
+                <Bar yAxisId='l' dataKey='projects' name='Projects' fill='#6366f1' radius={[2, 2, 0, 0]} maxBarSize={20} isAnimationActive={false}>
                   <LabelList dataKey='projects' position='top' style={lblStyle} />
                 </Bar>
-                <Bar yAxisId='r' dataKey='hours' name='Budget Hrs' fill='#f59e0b' radius={[2, 2, 0, 0]} maxBarSize={20}>
+                <Bar yAxisId='r' dataKey='hours' name='Budget Hrs' fill='#f59e0b' radius={[2, 2, 0, 0]} maxBarSize={20} isAnimationActive={false}>
                   <LabelList dataKey='hours' position='top' formatter={(v: any) => fmtHrs(Number(v))} style={lblStyle} />
                 </Bar>
                 <Legend content={renderPrintLegend} />
@@ -425,8 +426,8 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
                 <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='#e2e8f0' />
                 <XAxis dataKey='name' tick={{ fill: '#64748b', fontSize: 7 }} interval={0} angle={-35} textAnchor='end' height={56} />
                 <YAxis tick={{ fill: '#94a3b8', fontSize: 7 }} width={32} />
-                <Bar dataKey='billable' name='Billable' stackId='a' fill='#10b981' maxBarSize={20} />
-                <Bar dataKey='nonBillable' name='Non-Billable' stackId='a' fill='#f43f5e' radius={[2, 2, 0, 0]} maxBarSize={20}>
+                <Bar dataKey='billable' name='Billable' stackId='a' fill='#10b981' maxBarSize={20} isAnimationActive={false} />
+                <Bar dataKey='nonBillable' name='Non-Billable' stackId='a' fill='#f43f5e' radius={[2, 2, 0, 0]} maxBarSize={20} isAnimationActive={false}>
                   <LabelList dataKey='billableLabel' position='top' offset={18} style={{ fontSize: 6, fill: '#047857', fontWeight: 700 }} />
                   <LabelList dataKey='nonBillableLabel' position='top' offset={8} style={{ fontSize: 6, fill: '#be123c', fontWeight: 700 }} />
                 </Bar>

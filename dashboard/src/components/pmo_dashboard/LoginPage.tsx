@@ -38,7 +38,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       <div className='w-full max-w-md animate-entrance'>
         <div className='text-center mb-8'>
           <div className='inline-flex items-center justify-center w-24 h-24 bg-white rounded-3xl shadow-xl shadow-indigo-100 border border-indigo-50 mb-6 group hover:scale-105 transition-transform duration-500 overflow-hidden p-4'>
-            <img src='/kartoza-logo.png' alt='Kartoza Logo' className='w-full h-full object-contain group-hover:scale-110 transition-transform duration-500' />
+            <img src='/static/kartoza-logo.png' alt='Kartoza Logo' className='w-full h-full object-contain group-hover:scale-110 transition-transform duration-500' />
           </div>
           <h1 className='text-3xl font-extrabold text-slate-800 tracking-tight'>Kartoza Executive Gateway</h1>
           <p className='text-slate-500 font-medium mt-2'>Secure access to PMO Portfolio Dashboard</p>

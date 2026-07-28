@@ -53,7 +53,7 @@ const StatusChart: React.FC<StatusChartProps> = ({ data, onStatusClick }) => {
   };
 
   return (
-    <div className='w-full h-[350px] flex flex-col'>
+    <div className='w-full h-full min-h-[350px] flex flex-col'>
       <div className='flex-1 min-h-0'>
         <ResponsiveContainer width='100%' height='100%'>
           <PieChart>
@@ -61,8 +61,8 @@ const StatusChart: React.FC<StatusChartProps> = ({ data, onStatusClick }) => {
               data={chartData}
               cx='50%'
               cy='50%'
-              innerRadius={80}
-              outerRadius={120}
+              innerRadius='38%'
+              outerRadius='58%'
               paddingAngle={3}
               dataKey='value'
               onClick={(entry: any) => onStatusClick && onStatusClick(entry.name)}

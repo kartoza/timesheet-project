@@ -1,0 +1,11 @@
+[
+  {"project_name": "GSH Support", "email": "", "customer": "GSH", "note": "project_name overrides take priority over that Project's own customer field"},
+
+  {"email": "jane.doe@example-client.com", "customer": "Example Client Inc"},
+  {"email": "john.smith@example-client.com", "customer": "Example Client Inc"},
+
+  {"email": "some.contact@another-client.org", "customer": ""},
+
+  {"email": "@kartoza.com", "customer": "", "note": "Domain wildcard: internal Kartoza staff"},
+  {"email": "@test.com", "customer": "", "note": "Domain wildcard: test accounts"}
+]

@@ -1,4 +1,5 @@
 import ast
+import threading
 
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.auth.models import User
@@ -14,8 +15,14 @@ from drf_spectacular.types import OpenApiTypes
 from timesheet.models import Project
 from timesheet.serializers.timesheet import ProjectLinkSerializer
 from timesheet.utils.erp import (
+    check_erp_project_access,
     pull_projects_from_erp,
-    pull_user_data_from_erp
+    pull_project_members_from_erp,
+    pull_user_data_from_erp,
+    pull_holiday_list,
+    ERPAuthError,
+    ERPPermissionError,
+    ERPSyncError,
 )
 from schedule.models.user_project_slot import (
     UserProjectSlot
@@ -23,15 +30,50 @@ from schedule.models.user_project_slot import (
 from timesheet.models.project import ProjectLink
 
 
+def _sync_projects(user):
+    if 'None' in user.profile.token:
+        pull_user_data_from_erp(user)
+    pull_projects_from_erp(user)
+    pull_project_members_from_erp(user)
+    users = get_user_model().objects.filter(is_active=True)
+    for _user in users:
+        if not _user.profile.token and not _user.profile.erpnext_oauth_token:
+            continue
+        try:
+            pull_holiday_list(_user)
+        except (ERPPermissionError, ERPAuthError):
+            pass
+
+
 @extend_schema(exclude=True)
 class PullProjects(APIView):
 
     def post(self, request, *args):
-        if 'None' in request.user.profile.token:
-            pull_user_data_from_erp(request.user)
-        pull_projects_from_erp(request.user)
+        try:
+            check_erp_project_access(request.user)
+        except ERPPermissionError:
+            return Response(
+                {'success': False, 'message': 'You do not have permission to access projects in ERPNext. Please contact your administrator.'},
+                status=403,
+            )
+        except ERPAuthError:
+            return Response(
+                {'success': False, 'message': 'Your ERPNext credentials are invalid or expired. Please reconnect your account.'},
+                status=401,
+            )
+        except ERPSyncError as e:
+            return Response(
+                {'success': False, 'message': str(e)},
+                status=502,
+            )
 
-        return Response({'success': True})
+        thread = threading.Thread(
+            target=_sync_projects,
+            args=(request.user,),
+            daemon=True,
+        )
+        thread.start()
+        return Response({'success': True, 'message': 'Sync started in background. This may take a few minutes.'})
 
 
 class ProjectLinkListApiView(APIView):
@@ -167,11 +209,14 @@ class ProjectAutocomplete(APIView):
         if not ignore_user:
             if user_id:
                 user = get_user_model().objects.get(id=user_id)
+                self.queryset = self.queryset.filter(
+                    members__user=user,
+                )
             else:
                 user = self.request.user
-            self.queryset = self.queryset.filter(
-                userproject__user=user,
-            )
+                self.queryset = self.queryset.filter(
+                    userproject__user=user,
+                )
             if user_id:
                 user_project_slots = UserProjectSlot.objects.filter(
                     user=user,

@@ -8,7 +8,7 @@ from django.test import TestCase
 from timesheet.models.project import Project
 from timesheet.models.project_member import ProjectMember
 from timesheet.models.user_project import UserProject
-from timesheet.utils.erp import ProjectsNotFound
+from timesheet.utils.erp import ERPSyncError, ProjectsNotFound
 
 User = get_user_model()
 
@@ -16,6 +16,8 @@ MODULE = 'timesheet.management.commands.update_erp_data'
 
 PATCHED = {
     'pull_projects_only': f'{MODULE}.pull_projects_only_from_erp',
+    'pull_contracts':     f'{MODULE}.pull_contracts_from_erp',
+    'pull_issues':        f'{MODULE}.pull_issues_from_erp',
     'pull_tasks':         f'{MODULE}.pull_tasks_from_erp',
     'pull_members':       f'{MODULE}.pull_project_members_from_erp',
     'pull_leave':         f'{MODULE}.pull_leave_data_from_erp',
@@ -52,6 +54,8 @@ class TestPMOSync(TestCase):
     def _run(self, **kwargs):
         """Run command with all ERP calls mocked; return the mock objects."""
         with patch(PATCHED['pull_projects_only'], return_value=[]) as mp, \
+             patch(PATCHED['pull_contracts'], return_value=[]), \
+             patch(PATCHED['pull_issues'], return_value=[]), \
              patch(PATCHED['pull_tasks']) as mt, \
              patch(PATCHED['pull_members']) as mm, \
              patch(PATCHED['pull_leave']), \
@@ -90,6 +94,8 @@ class TestPMOSync(TestCase):
         kept = Project.objects.create(name='Kept', is_active=True)
         stale = Project.objects.create(name='Stale', is_active=True)
         with patch(PATCHED['pull_projects_only'], return_value=[kept.id]), \
+             patch(PATCHED['pull_contracts'], return_value=[]), \
+             patch(PATCHED['pull_issues'], return_value=[]), \
              patch(PATCHED['pull_tasks']), patch(PATCHED['pull_members']), \
              patch(PATCHED['pull_leave']), patch(PATCHED['pull_holiday']), \
              patch(PATCHED['update_schedule']), patch(PATCHED['pull_department']), \
@@ -103,6 +109,8 @@ class TestPMOSync(TestCase):
     def test_tasks_and_members_called_with_active_projects(self):
         project = Project.objects.create(name='Active', is_active=True)
         with patch(PATCHED['pull_projects_only'], return_value=[project.id]) as mp, \
+             patch(PATCHED['pull_contracts'], return_value=[]), \
+             patch(PATCHED['pull_issues'], return_value=[]), \
              patch(PATCHED['pull_tasks']) as mt, \
              patch(PATCHED['pull_members']) as mm, \
              patch(PATCHED['pull_leave']), patch(PATCHED['pull_holiday']), \
@@ -114,6 +122,20 @@ class TestPMOSync(TestCase):
         _, mt_kwargs = mt.call_args
         passed_projects = mt.call_args[0][1]
         self.assertIn(project, passed_projects)
+
+    def test_contract_and_issue_sync_failure_does_not_break_command(self):
+        project = Project.objects.create(name='Active', is_active=True)
+        with patch(PATCHED['pull_projects_only'], return_value=[project.id]), \
+             patch(PATCHED['pull_contracts'], side_effect=ERPSyncError('down')), \
+             patch(PATCHED['pull_issues'], side_effect=ERPSyncError('down')), \
+             patch(PATCHED['pull_tasks']) as mt, \
+             patch(PATCHED['pull_members']) as mm, \
+             patch(PATCHED['pull_leave']), patch(PATCHED['pull_holiday']), \
+             patch(PATCHED['update_schedule']), patch(PATCHED['pull_department']), \
+             patch(PATCHED['pull_user_data']):
+            call_command('update_erp_data')
+        mt.assert_called_once()
+        mm.assert_called_once()
 
 
 # ── UserProject sync from members ─────────────────────────────────────────────

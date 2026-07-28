@@ -10,9 +10,20 @@ from rest_framework.views import APIView
 
 from pmo_dashboard.access import can_access_pmo
 from pmo_dashboard.billable_sync import fetch_and_save_billable_hours
+from pmo_dashboard.models import ContractTracker
 from pmo_dashboard.serializers.project import ProjectSerializer
+from pmo_dashboard.serializers.support import ContractTrackerSerializer
+from pmo_dashboard.support_stats import get_issue_summary
 from timesheet.models.project import Project
-from timesheet.utils.erp import ProjectsNotFound, pull_project_members_from_erp, pull_projects_only_from_erp, pull_tasks_from_erp
+from timesheet.utils.erp import (
+    ERPSyncError,
+    ProjectsNotFound,
+    pull_contracts_from_erp,
+    pull_issues_from_erp,
+    pull_project_members_from_erp,
+    pull_projects_only_from_erp,
+    pull_tasks_from_erp,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -57,13 +68,19 @@ class ProjectListView(APIView):
 @extend_schema(
     tags=['PMO Dashboard'],
     summary='Sync all projects from ERPNext',
-    description='Pulls all open projects from ERPNext, deactivates stale ones, and returns the updated list.',
+    description=(
+        'Pulls all open projects from ERPNext, deactivates stale ones, and returns the updated list. '
+        "Pass ?scope=projects to skip the tasks/members pull when callers only need Project rows to exist "
+        '(e.g. before syncing contracts/issues, which link to projects by name).'
+    ),
     responses={200: ProjectSerializer(many=True)},
 )
 class ProjectSyncView(APIView):
     permission_classes = [IsAuthenticated, IsPMOMemberOrSuperuser]
 
     def post(self, request):
+        projects_only = request.query_params.get('scope') == 'projects'
+
         t0 = time.perf_counter()
         try:
             updated_projects = pull_projects_only_from_erp(
@@ -72,12 +89,18 @@ class ProjectSyncView(APIView):
             )
             Project.objects.filter(is_active=True).exclude(id__in=updated_projects).update(is_active=False)
             Project.objects.filter(id__in=updated_projects).update(last_synced_at=timezone.now())
-        except Exception:
-            logger.warning('ProjectSyncView: ERP sync failed')
-            return Response({'detail': 'ERP sync failed.'}, status=status.HTTP_502_BAD_GATEWAY)
+        except ProjectsNotFound:
+            logger.warning('ProjectSyncView: no open projects returned from ERPNext')
+            return Response({'detail': 'No open projects found in ERPNext.'}, status=status.HTTP_502_BAD_GATEWAY)
+        except ERPSyncError as e:
+            logger.warning('ProjectSyncView: %s', e)
+            return Response({'detail': str(e)}, status=status.HTTP_502_BAD_GATEWAY)
 
         t1 = time.perf_counter()
         logger.warning('ProjectSyncView pull_projects_only_from_erp took %.2fs', t1 - t0)
+
+        if projects_only:
+            return Response(ProjectSerializer(_project_qs(), many=True).data)
 
         active_projects = list(Project.objects.filter(is_active=True))
 
@@ -133,25 +156,104 @@ class ProjectDetailSyncView(APIView):
         except ProjectsNotFound:
             Project.objects.filter(pk=pk).update(is_active=False)
             return Response({'detail': 'Project no longer exists in ERPNext.'}, status=status.HTTP_404_NOT_FOUND)
+        except ERPSyncError as e:
+            logger.warning('ProjectDetailSyncView pull_projects_only_from_erp: %s', e)
+            return Response({'detail': str(e)}, status=status.HTTP_502_BAD_GATEWAY)
         t1 = time.perf_counter()
         logger.warning('ProjectDetailSyncView pull_projects_only_from_erp took %.2fs', t1 - t0)
 
-        pull_tasks_from_erp(request.user, [project], filters=f'[["project", "=", "{name}"]]')
-        t2 = time.perf_counter()
-        logger.warning('ProjectDetailSyncView pull_tasks_from_erp took %.2fs', t2 - t1)
-
         try:
-            fetch_and_save_billable_hours(name)
-        except Exception:
-            logger.warning('ProjectDetailSyncView billable sync failed for %s', name, exc_info=True)
-        t3 = time.perf_counter()
-        logger.warning('ProjectDetailSyncView fetch_and_save_billable_hours took %.2fs', t3 - t2)
+            pull_tasks_from_erp(request.user, [project], filters=f'[["project", "=", "{name}"]]')
+            t2 = time.perf_counter()
+            logger.warning('ProjectDetailSyncView pull_tasks_from_erp took %.2fs', t2 - t1)
 
-        pull_project_members_from_erp(request.user, project_names=[name])
-        t4 = time.perf_counter()
-        logger.warning('ProjectDetailSyncView pull_project_members_from_erp took %.2fs', t4 - t3)
+            try:
+                fetch_and_save_billable_hours(name)
+            except Exception:
+                logger.warning('ProjectDetailSyncView billable sync failed for %s', name, exc_info=True)
+            t3 = time.perf_counter()
+            logger.warning('ProjectDetailSyncView fetch_and_save_billable_hours took %.2fs', t3 - t2)
+
+            pull_project_members_from_erp(request.user, project_names=[name])
+            t4 = time.perf_counter()
+            logger.warning('ProjectDetailSyncView pull_project_members_from_erp took %.2fs', t4 - t3)
+        except ERPSyncError as e:
+            logger.warning('ProjectDetailSyncView sync: %s', e)
+            return Response({'detail': str(e)}, status=status.HTTP_502_BAD_GATEWAY)
 
         Project.objects.filter(pk=pk).update(last_synced_at=timezone.now())
         logger.warning('ProjectDetailSyncView total took %.2fs', t4 - t0)
 
         return Response(ProjectSerializer(_single_project_qs(pk)).data)
+
+
+def _contract_qs():
+    return ContractTracker.objects.select_related('project').order_by('project__expected_end_date')
+
+
+@extend_schema(
+    tags=['Support Dashboard'],
+    summary='List Contract Trackers',
+    description='Returns cached SLA/Hosting contract tracker rows. Use POST .../sync/ to refresh from ERPNext.',
+    responses={200: ContractTrackerSerializer(many=True)},
+)
+class ContractTrackerListView(APIView):
+    permission_classes = [IsAuthenticated, IsPMOMemberOrSuperuser]
+
+    def get(self, request):
+        return Response(ContractTrackerSerializer(_contract_qs(), many=True).data)
+
+
+@extend_schema(
+    tags=['Support Dashboard'],
+    summary='Sync Contract Trackers from ERPNext',
+    description="Pulls contract rows from ERPNext's SLA Report, matches them to local Projects, and returns the updated list.",
+    responses={200: ContractTrackerSerializer(many=True)},
+)
+class ContractTrackerSyncView(APIView):
+    permission_classes = [IsAuthenticated, IsPMOMemberOrSuperuser]
+
+    def post(self, request):
+        try:
+            pull_contracts_from_erp(request.user)
+        except ERPSyncError as e:
+            logger.warning('ContractTrackerSyncView: %s', e)
+            return Response({'detail': str(e)}, status=status.HTTP_502_BAD_GATEWAY)
+
+        return Response(ContractTrackerSerializer(_contract_qs(), many=True).data)
+
+
+@extend_schema(
+    tags=['Support Dashboard'],
+    summary='List support issue counts per project',
+    description='Returns cached per-project issue counts (all-time and last-sprint), excluding internal issues.',
+)
+class IssueSummaryView(APIView):
+    permission_classes = [IsAuthenticated, IsPMOMemberOrSuperuser]
+
+    def get(self, request):
+        return Response({
+            'all_time': get_issue_summary(scope='all'),
+            'last_sprint': get_issue_summary(scope='sprint'),
+        })
+
+
+@extend_schema(
+    tags=['Support Dashboard'],
+    summary='Sync Issues from ERPNext',
+    description='Pulls Issues from ERPNext, then returns refreshed per-project issue counts.',
+)
+class IssueSyncView(APIView):
+    permission_classes = [IsAuthenticated, IsPMOMemberOrSuperuser]
+
+    def post(self, request):
+        try:
+            pull_issues_from_erp(request.user)
+        except ERPSyncError as e:
+            logger.warning('IssueSyncView: %s', e)
+            return Response({'detail': str(e)}, status=status.HTTP_502_BAD_GATEWAY)
+
+        return Response({
+            'all_time': get_issue_summary(scope='all'),
+            'last_sprint': get_issue_summary(scope='sprint'),
+        })

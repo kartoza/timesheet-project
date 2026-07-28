@@ -1,0 +1,45 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Merge Users</h1>
+<p>Select which user to keep. All data from the other user(s) will be reassigned to the chosen user, and the duplicates will be deleted.</p>
+
+<form method="post">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="merge_users">
+  {% for uid in user_ids %}
+    <input type="hidden" name="_selected_action" value="{{ uid }}">
+  {% endfor %}
+
+  <table>
+    <thead>
+      <tr>
+        <th>Keep</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Full name</th>
+        <th>Last login</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td>
+          <input type="radio" name="primary_user_id" value="{{ user.id }}"
+            {% if forloop.first %}checked{% endif %}>
+        </td>
+        <td>{{ user.username }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.get_full_name }}</td>
+        <td>{{ user.last_login|default:"never" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p style="margin-top: 1em;">
+    <input type="submit" value="Merge" class="button">
+    &nbsp;
+    <a href="../" class="button cancel-link">Cancel</a>
+  </p>
+</form>
+{% endblock %}

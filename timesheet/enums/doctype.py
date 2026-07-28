@@ -14,4 +14,5 @@ class DocType(Enum):
     ROLE = 'Role'
     BUSINESS_UNIT = 'Business Unit'
     DEPARTMENT = 'Department'
+    ISSUE = 'Issue'
 

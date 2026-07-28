@@ -24,7 +24,7 @@ from schedule.models import Schedule
 from timesheet.enums.doctype import DocType
 from timesheet.models import Timelog, Project, Task, Activity
 from timesheet.models.department import Department
-from pmo_dashboard.models import BusinessUnit
+from pmo_dashboard.models import BusinessUnit, ContractTracker, Issue, SupportContactMapping
 from timesheet.models.project_member import ProjectMember
 from timesheet.models.profile import get_country_code_from_timezone
 from timesheet.models.user_project import UserProject
@@ -34,11 +34,65 @@ from timesheet.utils.erpnext_oauth import get_valid_oauth_token
 logger = logging.getLogger(__name__)
 
 
-def get_auth_headers(user=None, erpnext_token=None):
+class ProjectsNotFound(Exception):
+    "Raised when projects are not found in erpnext"
+    pass
+
+
+class ERPSyncError(Exception):
+    """Raised when an ERPNext API call returns an HTTP error."""
+    pass
+
+
+class ERPAuthError(ERPSyncError):
+    """401 - credentials invalid or expired."""
+    pass
+
+
+class ERPPermissionError(ERPSyncError):
+    """403 - permission denied."""
+    pass
+
+
+class ERPServerError(ERPSyncError):
+    """5xx - ERPNext server error."""
+    pass
+
+
+def erp_http_error(status_code: int) -> ERPSyncError:
+    if status_code == 401:
+        return ERPAuthError('ERPNext credentials are invalid or expired.')
+    if status_code == 403:
+        return ERPPermissionError('Permission denied in ERPNext. Check user permissions.')
+    if status_code == 404:
+        return ERPSyncError('Resource not found in ERPNext.')
+    return ERPServerError(f'ERPNext returned an error (HTTP {status_code}).')
+
+
+def get_admin_token_kwargs() -> dict:
+    """Return get_erp_data token kwargs using the configured ERP admin user.
+
+    Checks preferences.erp_admin_user first, falls back to the first superuser,
+    then falls back to the admin_token API key.
+    """
+    prefs = preferences.TimesheetPreferences
+    admin_user = prefs.erp_admin_user
+    if admin_user is None:
+        admin_user = get_user_model().objects.filter(is_superuser=True).order_by('id').first()
+    if admin_user:
+        oauth = get_valid_oauth_token(admin_user)
+        if oauth:
+            return {'bearer_token': oauth}
+    return {'erpnext_token': prefs.admin_token}
+
+
+def get_auth_headers(user=None, erpnext_token=None, bearer_token=None):
     """Return auth headers for ERPNext API calls.
 
     Prefers OAuth Bearer token if available, falls back to API key token.
     """
+    if bearer_token:
+        return {'Authorization': f'Bearer {bearer_token}'}
     if user:
         oauth_token = get_valid_oauth_token(user)
         if oauth_token:
@@ -69,26 +123,42 @@ def retry_operation(func):
     return wrapper
 
 
-class ProjectsNotFound(Exception):
-    "Raised when projects are not found in erpnext"
-    pass
+def check_erp_project_access(user) -> None:
+    """Probe ERPNext with a minimal request to verify the user can read Projects.
+
+    Raises ERPAuthError, ERPPermissionError, or ERPSyncError on failure.
+    """
+    url = (
+        f'{settings.ERPNEXT_SITE_LOCATION}/api/resource/Project'
+        '?limit_page_length=1&fields=["name"]'
+    )
+    headers = get_auth_headers(user=user)
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+    except requests.exceptions.ConnectionError:
+        raise ERPSyncError('Cannot connect to ERPNext.')
+    except requests.exceptions.Timeout:
+        raise ERPSyncError('ERPNext request timed out.')
+    if response.status_code != 200:
+        raise erp_http_error(response.status_code)
 
 
-def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '', doctype_value: str = '', user=None) -> list:
-    """Fetch a list (or single doc) from ERPNext REST API. Returns empty list on failure."""
-    path = f'resource/{doctype.value}/{doctype_value}'.rstrip('/')
+def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '', doctype_value: str = '', user=None, bearer_token: str = None) -> list:
+    """Fetch a list (or single doc) from ERPNext REST API."""
+    path = f'resource/{quote(doctype.value)}/{quote(doctype_value)}'.rstrip('/')
     url = f'{settings.ERPNEXT_SITE_LOCATION}/api/{path}?limit_page_length=None&fields=["*"]'
     if filters:
         url += '&filters=' + filters
-    headers = get_auth_headers(user=user, erpnext_token=erpnext_token)
-    response = requests.request(
-        'GET',
-        url,
-        headers=headers
-    )
-    if not response.status_code == 200:
+    headers = get_auth_headers(user=user, erpnext_token=erpnext_token, bearer_token=bearer_token)
+    try:
+        response = requests.request('GET', url, headers=headers)
+    except requests.exceptions.ConnectionError:
+        raise ERPSyncError('Cannot connect to ERPNext.')
+    except requests.exceptions.Timeout:
+        raise ERPSyncError('ERPNext request timed out.')
+    if response.status_code != 200:
         logger.error(response.content)
-        return []
+        raise erp_http_error(response.status_code)
 
     response_data = response.json()
     if 'data' not in response_data:
@@ -98,13 +168,21 @@ def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '',
 
 
 def get_erp_project_detail(project_name: str, user=None) -> dict:
-    """Fetch full project doc including child tables (e.g. project_team_members) by name."""
+    """Fetch full project doc including child tables (e.g. project_team_members) by name.
+
+    Raises ERPPermissionError if the user lacks access to this project's detail.
+    Returns {} if the project is not found or another non-permission error occurs.
+    """
     url = f'{settings.ERPNEXT_SITE_LOCATION}/api/resource/Project/{quote(project_name)}?fields=["*"]'
     headers = get_auth_headers(user=user)
     response = requests.get(url, headers=headers)
+    if response.status_code == 403:
+        logger.warning(f'Permission denied fetching project detail for {project_name} - skipping member sync')
+        raise ERPPermissionError(f'Permission denied for project: {project_name}')
     if response.status_code != 200:
         logger.error(f'Failed to fetch project detail for {project_name}: {response.content}')
         return {}
+    logger.warning(f'Successfully fetched project detail for {project_name}')
     return response.json().get('data', {})
 
 
@@ -133,12 +211,14 @@ def generate_api_secret(user: get_user_model()):
 def pull_holiday_list(user):
     with transaction.atomic():
         public_holidays = []
+        logger.warning(f'pull_holiday_list for {user.username}')
 
         employee_id = getattr(user.profile, 'employee_id', None)
         if not employee_id:
             pull_user_data_from_erp(user)
             employee_id = getattr(user.profile, 'employee_id', None)
         if not employee_id:
+            logger.warning(f'pull_holiday_list: no employee_id for {user.username}, skipping')
             return
 
         employee_docs = get_erp_data(
@@ -163,6 +243,7 @@ def pull_holiday_list(user):
         if not holiday_list_name:
             country_code = get_country_code_from_timezone(user.profile.timezone)
             if not country_code:
+                logger.warning(f'pull_holiday_list: no country code for timezone {user.profile.timezone} ({user.username}), skipping')
                 return
             holiday_list = get_erp_data(
                 DocType.HOLIDAY_LIST,
@@ -190,6 +271,7 @@ def pull_holiday_list(user):
                 else:
                     holiday_list_name = holiday_list[0]['name']
             else:
+                logger.warning(f'pull_holiday_list: no holiday list found for country {country_code} ({user.username}), skipping')
                 return
 
         current_year = datetime.now().year
@@ -213,6 +295,7 @@ def pull_holiday_list(user):
                     public_holidays.append(holiday)
 
         if len(public_holidays) == 0:
+            logger.warning(f'pull_holiday_list: no public holidays found in "{holiday_list_name}" for {user.username}, skipping')
             return
 
         activity, _ = Activity.objects.get_or_create(
@@ -295,13 +378,19 @@ def pull_department_from_erp(user=None):
 def pull_user_data_from_erp(user: get_user_model()):
     """Sync employee name, ID, and department from ERPNext into the user's local profile."""
 
-    # if not user.profile.token:
-    #     generate_api_key(user)
+    user_oauth = get_valid_oauth_token(user)
+    if user_oauth:
+        token_kwargs = {'bearer_token': user_oauth}
+    elif user.profile.token:
+        token_kwargs = {'erpnext_token': user.profile.token}
+    else:
+        token_kwargs = get_admin_token_kwargs()
 
     employee = get_erp_data(
-        DocType.EMPLOYEE, user.profile.token,
-        f'[["company_email", "=", "{user.email}"]]',
-        user=user
+        DocType.EMPLOYEE,
+        filters=f'[["company_email", "=", "{user.email}"]]',
+        user=user,
+        **token_kwargs
     )
     if len(employee) > 0:
         employee_data = employee[0]
@@ -359,26 +448,36 @@ def pull_project_members_from_erp(user: get_user_model(), project_names: list = 
 
     # Unfortunately, we cannot fetch all project members at once.
     # Fetch each project individually in parallel to get project_team_members
+    _PERMISSION_DENIED = object()
+
     def fetch_members(p_name):
-        detail = get_erp_project_detail(p_name, user=user)
+        try:
+            detail = get_erp_project_detail(p_name, user=user)
+        except ERPPermissionError:
+            return (p_name, _PERMISSION_DENIED)
         return (
             p_name,
-            detail.get('project_team_members', []),
-            detail.get('project_lead', ''),
-            bool(detail),
+            {
+                'members': detail.get('project_team_members', []),
+                'project_lead': detail.get('project_lead', '').lower(),
+                'found': bool(detail),
+            },
         )
 
     with ThreadPoolExecutor(max_workers=10) as executor:
         futures = {executor.submit(fetch_members, p.name): p.name for p in projects}
         for future in as_completed(futures):
-            name, members, project_lead_email, found = future.result()
-            if not found:
+            name, result = future.result()
+            if result is _PERMISSION_DENIED:
+                # User lacks access to this project's detail — leave existing members intact
+                continue
+            if not result['found']:
                 if is_subset:
                     Project.objects.filter(name=name).update(is_active=False)
                 else:
                     stale_project_names.append(name)
                 continue
-            project_members_map[name] = {'members': members, 'project_lead': project_lead_email.lower()}
+            project_members_map[name] = result
 
     if not is_subset and stale_project_names:
         stale_with_unsubmitted = Project.objects.filter(
@@ -403,7 +502,10 @@ def pull_project_members_from_erp(user: get_user_model(), project_names: list = 
     User = get_user_model()
     with transaction.atomic():
         for project in projects:
-            data = project_members_map.get(project.name, {})
+            if project.name not in project_members_map:
+                # Either stale (already handled above) or permission-denied — leave members intact
+                continue
+            data = project_members_map[project.name]
             members = data.get('members', [])
             project_lead_email = data.get('project_lead', '')
             ProjectMember.objects.filter(project=project).delete()
@@ -664,14 +766,15 @@ def get_report_data(report_name: str, erpnext_token: str = None, filters: str = 
     if filters:
         url += '&filters=' + filters
     headers = get_auth_headers(user=user, erpnext_token=erpnext_token)
-    response = requests.request(
-        'GET',
-        url,
-        headers=headers
-    )
-    if not response.status_code == 200:
+    try:
+        response = requests.request('GET', url, headers=headers)
+    except requests.exceptions.ConnectionError:
+        raise ERPSyncError('Cannot connect to ERPNext.')
+    except requests.exceptions.Timeout:
+        raise ERPSyncError('ERPNext request timed out.')
+    if response.status_code != 200:
         logger.error(response.content)
-        return []
+        raise erp_http_error(response.status_code)
 
     response_data = response.json()
     if 'message' not in response_data:
@@ -703,6 +806,114 @@ def get_detailed_report_data_by_employee(employee_id: str, start_date: str, end_
         preferences.TimesheetPreferences.admin_token,
         filters)
     return timesheet_detail
+
+def get_sla_report_data(user=None) -> list:
+    """Fetch 'SLA Report' rows (client, project, dates, sla_type, contact) from ERPNext."""
+    return get_report_data(
+        'SLA%20Report',
+        preferences.TimesheetPreferences.admin_token,
+        user=user,
+    )
+
+
+def pull_contracts_from_erp(user: get_user_model()) -> list:
+    """Upsert Contract Tracker rows from ERPNext's 'SLA Report' into the local ContractTracker model.
+
+    Skips rows whose project name doesn't match an already-synced local Project.
+    Returns list of updated ContractTracker IDs.
+    """
+    rows = get_sla_report_data(user=user)
+    updated_ids = []
+    with transaction.atomic():
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            project_name = row.get('project')
+            if not project_name:
+                continue
+            project = Project.objects.filter(name=project_name).first()
+            if not project:
+                continue
+
+            obj, _ = ContractTracker.objects.update_or_create(
+                project=project,
+                defaults={
+                    'contact_email': row.get('contact_detail') or '',
+                    'sla_type': row.get('sla_type') or '',
+                }
+            )
+            updated_ids.append(obj.id)
+    return updated_ids
+
+
+def _resolve_issue_customer(project, raised_by: str) -> tuple:
+    """Resolve (customer, is_internal) for an Issue.
+
+    Resolution order:
+    1. A SupportContactMapping override keyed on the Issue's Project name (for
+       projects whose own `customer` field isn't a reliable bucket, e.g. a
+       shared/internal intake project).
+    2. The Project's own `customer` field, if the Project is set.
+    3. A SupportContactMapping keyed on the raised-by email (exact, then domain).
+    4. Unknown -> internal.
+    """
+    if project:
+        override = SupportContactMapping.objects.filter(project_name=project.name).exclude(project_name='').first()
+        if override:
+            return override.customer, not bool(override.customer)
+
+        customer = project.customer or ''
+        is_internal = project.project_type == 'INTERNAL' or not customer
+        return customer, is_internal
+
+    if raised_by:
+        mapping = SupportContactMapping.objects.filter(email__iexact=raised_by).first()
+        if not mapping and '@' in raised_by:
+            domain = raised_by.split('@')[-1]
+            mapping = SupportContactMapping.objects.filter(email__iexact=f'@{domain}').first()
+        if mapping:
+            return mapping.customer, not bool(mapping.customer)
+
+    return '', True
+
+
+def pull_issues_from_erp(user: get_user_model(), filters: str = '') -> list:
+    """Upsert Issues from ERPNext into the local Issue model.
+
+    Resolves each issue's customer bucket via `_resolve_issue_customer` and marks
+    it internal when no customer can be resolved. Returns list of updated Issue IDs.
+    """
+    issues = get_erp_data(
+        DocType.ISSUE, preferences.TimesheetPreferences.admin_token,
+        filters=filters, user=user,
+    )
+    updated_ids = []
+    with transaction.atomic():
+        for issue in issues:
+            project = None
+            project_name = issue.get('project')
+            if project_name:
+                project = Project.objects.filter(name=project_name).first()
+
+            raised_by = issue.get('raised_by') or ''
+            customer, is_internal = _resolve_issue_customer(project, raised_by)
+
+            obj, _ = Issue.objects.update_or_create(
+                erp_id=issue['name'],
+                defaults={
+                    'subject': issue.get('subject') or '',
+                    'project': project,
+                    'customer': customer,
+                    'raised_by': raised_by,
+                    'status': issue.get('status') or '',
+                    'priority': issue.get('priority') or '',
+                    'opening_date': parse_date(issue['opening_date']) if issue.get('opening_date') else None,
+                    'is_internal': is_internal,
+                }
+            )
+            updated_ids.append(obj.id)
+    return updated_ids
+
 
 def get_week_of_month(dt):
     """Calculate the week number within the month for a given date."""
@@ -774,9 +985,10 @@ def pull_leave_data_from_erp(user):
                 ["employee_name", "=", f"{user.first_name} {user.last_name}"])
         filters.append(["status", "=", "Approved"])
         leave_data = get_erp_data(
-            DocType.LEAVE, preferences.TimesheetPreferences.admin_token,
-            str(filters).replace('\'', '"'),
-            user=user
+            DocType.LEAVE,
+            filters=str(filters).replace('\'', '"'),
+            user=user,
+            **get_admin_token_kwargs()
         )
         from django.db.models import Q
 

@@ -20,6 +20,7 @@ import {generateColor, getColorFromTaskLabel, getTaskColor, isColorLight, theme}
 import {
     TimeLog, useBreakTimesheetMutation, useDeleteTimeLogMutation,
     useDeleteAllTimeLogsMutation,
+    useAddTimesheetMutation,
     useGetTimeLogsQuery,
     useSubmitTimesheetMutation,
     useGetMicroblogPostsQuery,
@@ -46,7 +47,7 @@ import {
     editTimeLogSignal,
     resumeTimeLogSignal
 } from "./utils/sharedSignals";
-import {isTodayInDates} from "./utils/time";
+import {formatTime, isTodayInDates} from "./utils/time";
 
 const CircularMenu = React.lazy(() => import('./components/Menu'));
 const ReportButton = React.lazy(() => import('./components/ReportButton'));
@@ -300,6 +301,7 @@ function AppContent() {
     const [compliment, setCompliment] = useState(randomCompliments[0])
     const [submitTimesheet, { isLoading: isUpdating, isSuccess, isError }] = useSubmitTimesheetMutation();
     const [updateTimesheet] = useUpdateTimesheetMutation();
+    const [addTimesheet] = useAddTimesheetMutation();
     const [deleteTimeLog, { isLoading: isDeleteLoading, isSuccess: isDeleteSuccess, isError: isDeleteError }] = useDeleteTimeLogMutation();
     const [deleteAllTimeLogs] = useDeleteAllTimeLogsMutation();
     const [breakTimesheet, { isLoading, error }] = useBreakTimesheetMutation();
@@ -825,10 +827,9 @@ function AppContent() {
         }
     }
 
-    resumeTimeLogSignal.value = (data: TimeLog) => {
+    resumeTimeLogSignal.value = async (data: TimeLog) => {
         if (isTimerRunning) {
-            alert('Please stop the running timer first.');
-            return;
+            await saveDescription(false);
         }
         setPausedTimeLog(null)
         if (editingTimeLog) {
@@ -849,7 +850,24 @@ function AppContent() {
             setInitialAccumulatedTimeMs(0);
         }
 
-        updateSelectedTimeLog(newData, true, true);
+        updateSelectedTimeLog(newData, false, false);
+
+        const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        try {
+            const startedTimeLog = await addTimesheet({
+                start_time: formatTime(new Date()),
+                task: { id: data.task_id || '-' },
+                activity: { id: data.activity_id },
+                project: { id: data.project_id || '' },
+                description: data.description,
+                timezone: currentTimeZone,
+                parent: data.submitted ? '' : data.id,
+            }).unwrap();
+            toggleTimer(true, startedTimeLog);
+        } catch (err) {
+            console.error('Failed to start resumed timelog:', err);
+            alert('Failed to start timesheet, please try again later.');
+        }
     }
 
     const toggleTimer = (running: boolean, timeLog: TimeLog | null = null) => {

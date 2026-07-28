@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Building2, Calendar, CheckCircle2, Clock, ListChecks, Loader, RefreshCw, User, Users, X } from 'lucide-react';
+import { Building2, CheckCircle2, Clock, ListChecks, Loader, RefreshCw, User, Users, X } from 'lucide-react';
 import { UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { UIProjectRow } from '../../types/pmo_dashboard';
 import { formatManagerName } from '../../utils/pmo_dashboard';
@@ -10,9 +10,10 @@ type ProjectDetailsModalProps = {
   onClose: () => void;
   detailSyncStatus?: 'loading' | 'live' | null;
   onRefresh?: () => void;
+  syncError?: string | null;
 };
 
-const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onClose, detailSyncStatus, onRefresh }) => {
+const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onClose, detailSyncStatus, onRefresh, syncError }) => {
   if (!project) return null;
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('en-ZA', {
@@ -78,14 +79,19 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onCl
           </div>
           <div className='flex items-center gap-2 shrink-0'>
             {onRefresh && (
-              <button
-                onClick={onRefresh}
-                disabled={detailSyncStatus === 'loading'}
-                className='p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-                title='Refresh from ERPNext'
-              >
-                <RefreshCw size={18} className={detailSyncStatus === 'loading' ? 'animate-spin' : ''} />
-              </button>
+              <div className='flex flex-col items-end gap-1'>
+                <button
+                  onClick={onRefresh}
+                  disabled={detailSyncStatus === 'loading'}
+                  className='p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                  title='Refresh from ERPNext'
+                >
+                  <RefreshCw size={18} className={detailSyncStatus === 'loading' ? 'animate-spin' : ''} />
+                </button>
+                {syncError && (
+                  <span className='text-xs text-red-500 font-medium max-w-[200px] text-right leading-tight'>{syncError}</span>
+                )}
+              </div>
             )}
             <button
               onClick={onClose}
@@ -100,23 +106,23 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onCl
         <div className='flex-1 overflow-y-auto p-6 space-y-8'>
           <div className='grid grid-cols-2 md:grid-cols-5 gap-4'>
             <div className='p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50 shadow-sm'>
-              <div className='text-slate-500 dark:text-slate-400 text-xs font-bold uppercase mb-1 flex items-center gap-1.5'><Calendar size={14} /> Start Date</div>
+              <div className='text-slate-500 dark:text-slate-400 text-xs font-bold uppercase mb-1 min-h-[2rem] flex items-start gap-1.5'>Start Date</div>
               <div className='font-extrabold text-slate-800 dark:text-white'>{project[UI_PROJECT_KEYS.START_DATE] || 'N/A'}</div>
             </div>
             <div className='p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50 shadow-sm'>
-              <div className='text-slate-500 dark:text-slate-400 text-xs font-bold uppercase mb-1 flex items-center gap-1.5'><Calendar size={14} /> Expected End</div>
+              <div className='text-slate-500 dark:text-slate-400 text-xs font-bold uppercase mb-1 min-h-[2rem] flex items-start gap-1.5'>Expected End</div>
               <div className='font-extrabold text-slate-800 dark:text-white'>{project[UI_PROJECT_KEYS.DUE_DATE] || 'N/A'}</div>
             </div>
             <div className='p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800/50 shadow-sm'>
-              <div className='text-emerald-700 dark:text-emerald-400 text-xs font-bold uppercase mb-1'>Total Sales</div>
+              <div className='text-emerald-700 dark:text-emerald-400 text-xs font-bold uppercase mb-1 min-h-[2rem]'>Total Sales</div>
               <div className='font-extrabold text-emerald-900 dark:text-emerald-100'>{formatCurrency(project[UI_PROJECT_KEYS.TOTAL_SALES_AMOUNT])}</div>
             </div>
             <div className='p-4 bg-rose-50 dark:bg-rose-900/20 rounded-xl border border-rose-100 dark:border-rose-800/50 shadow-sm'>
-              <div className='text-rose-700 dark:text-rose-400 text-xs font-bold uppercase mb-1'>Total Costing</div>
+              <div className='text-rose-700 dark:text-rose-400 text-xs font-bold uppercase mb-1 min-h-[2rem]'>Total Costing</div>
               <div className='font-extrabold text-rose-900 dark:text-rose-100'>{formatCurrency(project[UI_PROJECT_KEYS.TOTAL_COSTING])}</div>
             </div>
             <div className='p-4 bg-violet-50 dark:bg-violet-900/20 rounded-xl border border-violet-100 dark:border-violet-800/50 shadow-sm'>
-              <div className='text-violet-700 dark:text-violet-400 text-xs font-bold uppercase mb-1'>Total Billed</div>
+              <div className='text-violet-700 dark:text-violet-400 text-xs font-bold uppercase mb-1 min-h-[2rem]'>Total Billed</div>
               <div className='font-extrabold text-violet-900 dark:text-violet-100'>{formatCurrency(project[UI_PROJECT_KEYS.TOTAL_BILLED_AMOUNT])}</div>
             </div>
           </div>
