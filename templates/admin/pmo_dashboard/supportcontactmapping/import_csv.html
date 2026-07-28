@@ -1,0 +1,20 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<h1>Import Support Contact Mapping</h1>
+<p>
+  CSV must have a header row with columns: <code>project_name,email,customer,note</code>
+  (each row needs at least one of <code>email</code> or <code>project_name</code>).
+  See <code>pmo_dashboard/support_contact_mapping_seed.example.json</code> for what the data means.
+</p>
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <p style="margin-top: 1em;">
+    <input type="submit" value="Import" class="button">
+    &nbsp;
+    <a href="../" class="button cancel-link">Cancel</a>
+  </p>
+</form>
+{% endblock %}
