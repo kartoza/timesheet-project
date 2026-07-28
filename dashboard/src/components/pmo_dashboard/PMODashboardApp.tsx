@@ -107,6 +107,7 @@ const PMODashboardApp: React.FC = () => {
   };
 
   const exportFnRef = useRef<(() => Promise<void>) | null>(null);
+  const registerExportFn = (fn: (() => Promise<void>) | null) => { exportFnRef.current = fn; };
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExportPDF = async () => {
@@ -123,6 +124,7 @@ const PMODashboardApp: React.FC = () => {
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
   const hasData = data.length > 0;
+  const showExportButton = activeView === 'support' || hasData;
 
   return (
     <div className='min-h-screen transition-colors duration-300 bg-slate-50 dark:bg-slate-950'>
@@ -175,7 +177,7 @@ const PMODashboardApp: React.FC = () => {
           </div>
 
           <div className='flex items-center gap-3 md:gap-4 print:hidden'>
-            {hasData && (
+            {showExportButton && (
               <button
                 onClick={handleExportPDF}
                 disabled={isExporting}
@@ -206,7 +208,7 @@ const PMODashboardApp: React.FC = () => {
       </header>
 
       <main className='max-w-[95%] mx-auto px-6 py-8 relative'>
-        {activeView === 'support' && <SupportDashboard />}
+        {activeView === 'support' && <SupportDashboard onRegisterExport={registerExportFn} />}
 
         {activeView === 'portfolio' && (
         <>
@@ -265,7 +267,7 @@ const PMODashboardApp: React.FC = () => {
               onDeleteDataRow={deleteDataRow}
               onAddManualProject={addManualProject}
               pmOverloadThreshold={pmOverloadThreshold}
-              onRegisterExport={(fn) => { exportFnRef.current = fn; }}
+              onRegisterExport={registerExportFn}
               onProjectDetailOpen={loadProjectDetail}
             />
           </div>

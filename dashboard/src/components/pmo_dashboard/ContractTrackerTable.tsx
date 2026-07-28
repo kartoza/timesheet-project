@@ -1,10 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react';
 import { ApiContractTracker, ContractStatus } from '../../types/pmo_dashboard';
 import DashboardFilters, { FilterFieldConfig } from './DashboardFilters';
 
 type ContractTrackerTableProps = {
   data: ApiContractTracker[];
+  onFilteredDataChange?: (rows: ApiContractTracker[]) => void;
 };
 
 type SortKey = 'client' | 'project' | 'contract_type' | 'start_date' | 'end_date' | 'status';
@@ -20,7 +21,6 @@ const STATUS_BADGE: Record<ContractStatus, { bg: string; text: string; dot: stri
 };
 
 const STATUS_ORDER: ContractStatus[] = ['Open', 'Expires in 3 Months', 'Expires in 2 Months', 'Expires in 1 Month', 'Closed'];
-const DEFAULT_STATUS_FILTER: string[] = STATUS_ORDER.filter((s) => s !== 'Closed');
 
 const fieldAccessors: Record<ContractFilterKey, (row: ApiContractTracker) => string> = {
   client: (row) => row.client ?? '',
@@ -28,11 +28,11 @@ const fieldAccessors: Record<ContractFilterKey, (row: ApiContractTracker) => str
   contractType: (row) => row.contract_type ?? '',
 };
 
-const ContractTrackerTable: React.FC<ContractTrackerTableProps> = ({ data }) => {
+const ContractTrackerTable: React.FC<ContractTrackerTableProps> = ({ data, onFilteredDataChange }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilters, setSelectedFilters] = useState<Record<ContractFilterKey, string[]>>({
     client: [],
-    status: DEFAULT_STATUS_FILTER,
+    status: STATUS_ORDER.filter((s) => s !== 'Closed' && data.some((row) => row.status === s)),
     contractType: [],
   });
   const [sortKey, setSortKey] = useState<SortKey>('end_date');
@@ -79,19 +79,6 @@ const ContractTrackerTable: React.FC<ContractTrackerTableProps> = ({ data }) => 
     }
   };
 
-  const filtered = data.filter((row) => {
-    for (const key of Object.keys(selectedFilters) as ContractFilterKey[]) {
-      const values = selectedFilters[key];
-      if (values.length === 0) continue;
-      if (!values.includes(fieldAccessors[key](row))) return false;
-    }
-    if (searchTerm) {
-      const haystack = `${row.client ?? ''} ${row.project} ${row.contact}`.toLowerCase();
-      if (!haystack.includes(searchTerm.toLowerCase())) return false;
-    }
-    return true;
-  });
-
   const getSortValue = (row: ApiContractTracker, key: SortKey): string => {
     switch (key) {
       case 'client': return (row.client ?? '').toLowerCase();
@@ -103,10 +90,29 @@ const ContractTrackerTable: React.FC<ContractTrackerTableProps> = ({ data }) => 
     }
   };
 
-  const sorted = [...filtered].sort((a, b) => {
-    const cmp = getSortValue(a, sortKey).localeCompare(getSortValue(b, sortKey));
-    return sortDir === 'asc' ? cmp : -cmp;
-  });
+  const sorted = useMemo(() => {
+    const filtered = data.filter((row) => {
+      for (const key of Object.keys(selectedFilters) as ContractFilterKey[]) {
+        const values = selectedFilters[key];
+        if (values.length === 0) continue;
+        if (!values.includes(fieldAccessors[key](row))) return false;
+      }
+      if (searchTerm) {
+        const haystack = `${row.client ?? ''} ${row.project} ${row.contact}`.toLowerCase();
+        if (!haystack.includes(searchTerm.toLowerCase())) return false;
+      }
+      return true;
+    });
+
+    return [...filtered].sort((a, b) => {
+      const cmp = getSortValue(a, sortKey).localeCompare(getSortValue(b, sortKey));
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  }, [data, selectedFilters, searchTerm, sortKey, sortDir]);
+
+  useEffect(() => {
+    onFilteredDataChange?.(sorted);
+  }, [sorted, onFilteredDataChange]);
 
   const SortIcon = ({ col }: { col: SortKey }) => {
     if (sortKey !== col) return <ChevronsUpDown size={12} className='opacity-40' />;

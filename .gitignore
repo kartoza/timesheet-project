@@ -7,6 +7,9 @@ db.sqlite3
 media
 cache/
 
+# Real client contact data - never commit, see support_contact_mapping_seed.example.json
+pmo_dashboard/support_contact_mapping_seed.json
+
 # Backup files # 
 *.bak 
 

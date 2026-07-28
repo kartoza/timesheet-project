@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -245,6 +247,15 @@ class TimesheetPreferences(Preferences):
     is_updating = models.BooleanField(
         default=False,
         help_text='When enabled, all non-admin users see a maintenance page instead of the app.',
+    )
+
+    sprint_review_anchor = models.DateField(
+        default=date(2026, 7, 24),
+        help_text=(
+            'A known sprint-review Friday. Reviews happen every 14 days on this '
+            'weekday; used to compute "last sprint" boundaries for the Support '
+            'Dashboard. Update if the sprint schedule ever shifts.'
+        ),
     )
 
     def clean(self):

@@ -12,8 +12,10 @@ from pmo_dashboard.billable_sync import fetch_and_save_billable_hours
 from timesheet.utils.erp import (
     ERPSyncError,
     ProjectsNotFound,
+    pull_contracts_from_erp,
     pull_department_from_erp,
     pull_holiday_list,
+    pull_issues_from_erp,
     pull_leave_data_from_erp,
     pull_project_members_from_erp,
     pull_projects_only_from_erp,
@@ -69,27 +71,43 @@ class Command(BaseCommand):
 
         active_projects = list(Project.objects.filter(is_active=True))
 
+        try:
+            contract_ids = pull_contracts_from_erp(user)
+            t2 = time.perf_counter()
+            self.stdout.write(f'  contracts  {len(contract_ids)} synced  ({t2 - t1:.2f}s)')
+        except ERPSyncError as e:
+            self.stdout.write(self.style.WARNING(f'  contracts  sync failed: {e}'))
+            t2 = time.perf_counter()
+
+        try:
+            issue_ids = pull_issues_from_erp(user)
+            t3 = time.perf_counter()
+            self.stdout.write(f'  issues     {len(issue_ids)} synced  ({t3 - t2:.2f}s)')
+        except ERPSyncError as e:
+            self.stdout.write(self.style.WARNING(f'  issues     sync failed: {e}'))
+            t3 = time.perf_counter()
+
         pull_tasks_from_erp(user, active_projects)
-        t2 = time.perf_counter()
-        self.stdout.write(f'  tasks      {t2 - t1:.2f}s')
+        t4 = time.perf_counter()
+        self.stdout.write(f'  tasks      {t4 - t3:.2f}s')
 
         for project in active_projects:
             try:
                 fetch_and_save_billable_hours(project.name)
             except Exception:
                 logger.warning('billable sync failed for %s', project.name, exc_info=True)
-        t3 = time.perf_counter()
-        self.stdout.write(f'  billable   {t3 - t2:.2f}s')
+        t5 = time.perf_counter()
+        self.stdout.write(f'  billable   {t5 - t4:.2f}s')
 
         pull_project_members_from_erp(user, project_names=[p.name for p in active_projects])
-        t4 = time.perf_counter()
-        self.stdout.write(f'  members    {t4 - t3:.2f}s')
+        t6 = time.perf_counter()
+        self.stdout.write(f'  members    {t6 - t5:.2f}s')
 
         self._sync_user_projects_from_members()
-        t5 = time.perf_counter()
-        self.stdout.write(f'  user_projects  {t5 - t4:.2f}s')
+        t7 = time.perf_counter()
+        self.stdout.write(f'  user_projects  {t7 - t6:.2f}s')
 
-        self.stdout.write(self.style.SUCCESS(f'PMO sync done in {t5 - t0:.2f}s'))
+        self.stdout.write(self.style.SUCCESS(f'PMO sync done in {t7 - t0:.2f}s'))
 
     def _sync_user_projects_from_members(self):
         """Create UserProject records to mirror ProjectMember assignments."""
