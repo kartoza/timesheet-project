@@ -21,6 +21,21 @@ def convert_time_to_user_timezone(dt: datetime, timelog_timezone: str):
     return dt.astimezone(user_tz).replace(tzinfo=timezone.utc)
 
 
+def convert_erp_time_to_local(dt: datetime, timezone_str: str) -> datetime:
+    """
+    Inverse of localize_and_convert_to_erp_timezone.
+
+    :param dt: A naive datetime object, as returned by ERPNext.
+    :param timezone_str: The timezone the resulting wall clock should be in.
+    :return: A UTC-labelled datetime holding the user's local wall clock.
+    """
+    erp_timezone_str = preferences.TimesheetPreferences.erp_timezone
+    erp_timezone = tz.gettz(erp_timezone_str) if erp_timezone_str else tz.UTC
+    user_timezone = tz.gettz(timezone_str) if timezone_str else tz.UTC
+    in_erp_timezone = dt.replace(tzinfo=erp_timezone)
+    return in_erp_timezone.astimezone(user_timezone).replace(tzinfo=timezone.utc)
+
+
 def localize_and_convert_to_erp_timezone(
         dt: datetime, timezone_str: str
 ) -> datetime:

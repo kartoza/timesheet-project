@@ -8,6 +8,7 @@ from timesheet.api_views.timesheet import (
     TimeLogDeleteAPIView,
     TimeLogDeleteAllAPIView,
     SubmitTimeLogsAPIView,
+    PullTimeLogsAPIView,
     ClearSubmittedTimesheetsAPIView,
     BreakTimesheet,
     PauseTimesheetAPIView
@@ -85,6 +86,9 @@ urlpatterns = [
     path('api/submit-timesheet/',
          SubmitTimeLogsAPIView.as_view(),
          name='submit-timesheet'),
+    path('api/pull-timesheet/',
+         PullTimeLogsAPIView.as_view(),
+         name='pull-timesheet'),
     path('api/clear-submitted-timesheets/',
          ClearSubmittedTimesheetsAPIView.as_view(),
          name='clear-submitted-timesheets'),

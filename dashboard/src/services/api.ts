@@ -53,6 +53,19 @@ type TimeLogResult = {
   paused: TimeLog | null;
 };
 
+/** Inclusive YYYY-MM-DD bounds; omit to get the most recent logs. */
+export type TimeLogDateRange = {
+  start: string;
+  end: string;
+};
+
+export type PullTimesheetResult = {
+  created: number;
+  skipped: number;
+  existing: number;
+  detail: string;
+};
+
 const baseQueryWithInterceptor = async (
   args: any,
   api: any,
@@ -108,8 +121,11 @@ export const timesheetApi = createApi({
   baseQuery: baseQueryWithInterceptor,
   tagTypes: ["TimeLog", "MicroblogPost", "ScheduledPostConfig"],
   endpoints: (build) => ({
-    getTimeLogs: build.query<TimeLogResult, void>({
-      query: () => "api/timelog/",
+    getTimeLogs: build.query<TimeLogResult, TimeLogDateRange | void>({
+      query: (range) =>
+        range
+          ? `api/timelog/?start=${range.start}&end=${range.end}`
+          : "api/timelog/",
       transformResponse: (response: TimeLogResponse) => {
         let timeLogs: TimeLogResult = {
           running: null,
@@ -153,6 +169,15 @@ export const timesheetApi = createApi({
     deleteAllTimeLogs: build.mutation({
       query: (body) => ({
         url: "/api/delete-all-time-logs/",
+        method: "POST",
+        headers: apiHeaders,
+        body,
+      }),
+      invalidatesTags: ["TimeLog"],
+    }),
+    pullTimesheet: build.mutation<PullTimesheetResult, TimeLogDateRange>({
+      query: (body) => ({
+        url: "/api/pull-timesheet/",
         method: "POST",
         headers: apiHeaders,
         body,
@@ -297,6 +322,7 @@ export const {
   useDeleteTimeLogMutation,
   useDeleteAllTimeLogsMutation,
   useSubmitTimesheetMutation,
+  usePullTimesheetMutation,
   useClearSubmittedTimesheetsMutation,
   useBreakTimesheetMutation,
   usePauseTimesheetMutation,

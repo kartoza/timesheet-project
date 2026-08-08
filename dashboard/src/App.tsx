@@ -23,6 +23,7 @@ import {
     useAddTimesheetMutation,
     useGetTimeLogsQuery,
     useSubmitTimesheetMutation,
+    usePullTimesheetMutation,
     useGetMicroblogPostsQuery,
     useUpdateTimesheetMutation,
 } from "./services/api";
@@ -48,6 +49,7 @@ import {
     resumeTimeLogSignal
 } from "./utils/sharedSignals";
 import {formatTime, isTodayInDates} from "./utils/time";
+import {DateRange, formatDateRange, splitIntoChunks, thisWeekRange, toDateKey} from "./utils/dateRange";
 
 const CircularMenu = React.lazy(() => import('./components/Menu'));
 const ReportButton = React.lazy(() => import('./components/ReportButton'));
@@ -60,6 +62,7 @@ const ReactCanvasConfetti = React.lazy(() => import('react-canvas-confetti'));
 const UserActivities = React.lazy(() => import('./components/UserActivities'));
 const MicroblogFeed = React.lazy(() => import('./components/MicroblogFeed'));
 const ProjectLinks = React.lazy(() => import('./components/ProjectLink'));
+const DateRangeFilter = React.lazy(() => import('./components/DateRangeFilter'));
 const unavailableDates = (window as any).unavailableDates;
 const randomCompliments = [
     'Nice!',
@@ -119,24 +122,89 @@ const confettiStyle: CSSProperties = {
 
 
 const TimeLogs = (props: any) => {
-    const { resumeTimeLog, deleteTimeLog, timerRunning } = props;
+    const { resumeTimeLog, deleteTimeLog, timerRunning, dateRange, setDateRange } = props;
 
-    const { data: timesheetData, isLoading, isSuccess } = useGetTimeLogsQuery()
+    const startKey = toDateKey(dateRange.start)
+    const endKey = toDateKey(dateRange.end)
+    // Same arguments as the query in AppContent, so both share one request.
+    // A range that has not been fetched before starts out empty, so the date
+    // filter is kept mounted instead of returning early while it loads.
+    const { data: timesheetData, isLoading, isSuccess } = useGetTimeLogsQuery({
+        start: startKey, end: endKey
+    })
+    const [pullTimesheet] = usePullTimesheetMutation()
+    const [pullMessage, setPullMessage] = useState('')
+    const [isPulling, setIsPulling] = useState(false)
+
+    // The message reports on the range it was pulled for, so it is dropped as
+    // soon as a different range is selected.
+    useEffect(() => {
+        setPullMessage('')
+    }, [startKey, endKey])
+
     let totalDraftHours = 0
     let totalBillableHours = 0
     let totalUnbillableHours = 0
     const totalPerProject: any = {}
 
-    if (isLoading) {
-        return <div>Loading</div>
+    /**
+     * Entries already sent to ERPNext are not kept locally, so a range that
+     * predates this app looks empty. Pulling them back fills it in.
+     *
+     * The server makes one ERPNext call per timesheet document, so a month in a
+     * single request can run long enough to hit a request timeout. The range is
+     * imported a week at a time instead. Importing is idempotent, so a failure
+     * part way through loses nothing and pulling again carries on.
+     */
+    const pullFromErpClicked = async () => {
+        const chunks = splitIntoChunks(dateRange, 7)
+        const totals = { created: 0, skipped: 0, existing: 0 }
+        setPullMessage('')
+        setIsPulling(true)
+        try {
+            for (let i = 0; i < chunks.length; i++) {
+                if (chunks.length > 1) {
+                    setPullMessage(`Pulling week ${i + 1} of ${chunks.length}…`)
+                }
+                try {
+                    const result = await pullTimesheet({
+                        start: toDateKey(chunks[i].start),
+                        end: toDateKey(chunks[i].end),
+                    }).unwrap()
+                    totals.created += result.created
+                    totals.skipped += result.skipped
+                    totals.existing += result.existing
+                } catch (err: any) {
+                    const reason = err?.data?.detail ||
+                        'Could not pull the timesheet from ERPNext.'
+                    setPullMessage(totals.created
+                        ? `${reason} ${totals.created} time log(s) were imported before it stopped — pulling again continues from there.`
+                        : reason)
+                    return
+                }
+            }
+            const summary = [`Imported ${totals.created} time log(s) from ERPNext.`]
+            if (totals.existing) {
+                summary.push(`${totals.existing} already imported.`)
+            }
+            if (totals.skipped) {
+                summary.push(`${totals.skipped} skipped because their task is unknown here.`)
+            }
+            setPullMessage(summary.join(' '))
+        } finally {
+            setIsPulling(false)
+        }
     }
 
-    if (!timesheetData) {
-        return <div>No data</div>
-    }
+    // Logs are grouped by their YYYY-MM-DD date. The response also carries the
+    // running and paused logs regardless of the range, so they are filtered out here.
+    const visibleDates = timesheetData ? Object.keys(timesheetData.logs).filter(
+        (key: string) => key >= startKey && key <= endKey
+    ) : []
+    const isEmptyRange = visibleDates.length === 0
 
-    if (isSuccess) {
-        Object.keys(timesheetData.logs).map((key: any) => {
+    if (isSuccess && timesheetData) {
+        visibleDates.map((key: any) => {
             // @ts-ignore
             for (let timeLogData of timesheetData.logs[key]) {
                 totalDraftHours += timeLogData['hours']
@@ -187,13 +255,16 @@ const TimeLogs = (props: any) => {
             <Grid container>
                 <Grid item xs={12} md={2}></Grid>
                 <Grid item xs={12} md={8} style={{ paddingLeft: 5, paddingRight: 5 }}>
+                    <Suspense>
+                        <DateRangeFilter value={dateRange} onChange={setDateRange}/>
+                    </Suspense>
                     {
-                        Object.keys(timesheetData.logs).map((key: any) =>
+                        visibleDates.map((key: any) =>
                             <div key={key} style={{ marginBottom: 10 }}>
                                 <Suspense>
                                     <TimeLogTable
                                         key={key}
-                                        data={timesheetData.logs[key]}
+                                        data={timesheetData?.logs[key]}
                                         date={key}
                                         resumeTimeLog={resumeTimeLog}
                                         deleteTimeLog={deleteTimeLog}
@@ -201,6 +272,55 @@ const TimeLogs = (props: any) => {
                                 </Suspense>
                             </div>
                         )
+                    }
+                    {isEmptyRange && isLoading &&
+                        <Typography variant="body2" color="text.secondary"
+                                    sx={{ textAlign: 'center', padding: 3 }}>
+                            Loading…
+                        </Typography>
+                    }
+                    {!isLoading && (isEmptyRange || isPulling || pullMessage) &&
+                        <Box sx={{ textAlign: 'center', padding: 3 }}>
+                            {isEmptyRange &&
+                                <Typography variant="body2" color="text.secondary">
+                                    No time logs for {formatDateRange(dateRange)}.
+                                </Typography>
+                            }
+                            {(isEmptyRange || isPulling) &&
+                                <Box sx={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    gap: 0.75,
+                                    marginTop: 1.5,
+                                    flexDirection: 'column'
+                                }}>
+                                    <TButton
+                                        variant="outlined"
+                                        size="small"
+                                        disabled={isPulling}
+                                        onClick={pullFromErpClicked}>
+                                        {isPulling ? 'Pulling…' : 'Pull from ERPNext'}
+                                    </TButton>
+                                    <Chip
+                                        label="experimental"
+                                        size="small"
+                                        variant="outlined"
+                                        sx={{
+                                            height: 16,
+                                            fontSize: '0.6rem',
+                                            '& .MuiChip-label': { paddingX: 0.6 }
+                                        }}
+                                    />
+                                </Box>
+                            }
+                            {pullMessage &&
+                                <Typography variant="caption" color="text.secondary"
+                                            sx={{ display: 'block', marginTop: 1 }}>
+                                    {pullMessage}
+                                </Typography>
+                            }
+                        </Box>
                     }
                 </Grid>
                 <Grid item xs={12} md={2}></Grid>
@@ -256,7 +376,12 @@ const TimeLogs = (props: any) => {
 }
 
 function AppContent() {
-    const { data: timesheetData, isLoading: isFetchingTimelogs, isSuccess: isSuccessFetching } = useGetTimeLogsQuery()
+    // Owned here so the time log list and this component request the same
+    // range, which keeps them on a single cache entry.
+    const [dateRange, setDateRange] = useState<DateRange>(thisWeekRange)
+    const { data: timesheetData, isLoading: isFetchingTimelogs, isSuccess: isSuccessFetching } = useGetTimeLogsQuery({
+        start: toDateKey(dateRange.start), end: toDateKey(dateRange.end)
+    })
     const [microblogPage, setMicroblogPage] = useState(1);
     const [allMicroblogPosts, setAllMicroblogPosts] = useState<import('./services/api').PaginatedMicroblogResponse['results']>([]);
     const { currentData: microblogPageData } = useGetMicroblogPostsQuery(microblogPage, { pollingInterval: microblogPage === 1 ? 30000 : 0 });
@@ -321,23 +446,45 @@ function AppContent() {
 
     const timeCardRef = useRef(null);
 
-    const refreshAtMidnight = () => {
-        const now = new Date();
-        const night = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate() + 1,
-          0, 0, 0
-        );
-        const msToMidnight = night.getTime() - now.getTime();
-
-        setTimeout(() => {
-            window.location.reload();
-        }, msToMidnight);
-    };
-
+    const loadedOnDayRef = useRef(toDateKey(new Date()));
+    // A reload while one of these is open would throw the user's work away.
+    const isBusyEditingRef = useRef(false);
     useEffect(() => {
-        refreshAtMidnight();
+        isBusyEditingRef.current = editingTimeLog !== null || timeLogChildList.length > 0;
+    });
+
+    /**
+     * Today's date is baked into the page at load time (the schedule, the
+     * unavailable dates and the default week of the time log filter), so a tab
+     * left open overnight shows stale data. A timer set to fire at midnight is
+     * unreliable — browsers throttle background tabs and a sleeping machine
+     * misses it entirely — so the day is re-checked whenever the page is opened
+     * again, and periodically while it stays open.
+     */
+    useEffect(() => {
+        const reloadIfDayChanged = () => {
+            if (document.visibilityState !== 'visible') {
+                return;
+            }
+            if (toDateKey(new Date()) === loadedOnDayRef.current) {
+                return;
+            }
+            if (isBusyEditingRef.current || descriptionEditedRef.current) {
+                // Try again on the next check, once the edit has settled.
+                return;
+            }
+            window.location.reload();
+        };
+
+        document.addEventListener('visibilitychange', reloadIfDayChanged);
+        window.addEventListener('focus', reloadIfDayChanged);
+        const interval = setInterval(reloadIfDayChanged, 60 * 1000);
+
+        return () => {
+            document.removeEventListener('visibilitychange', reloadIfDayChanged);
+            window.removeEventListener('focus', reloadIfDayChanged);
+            clearInterval(interval);
+        };
     }, []);
 
     useEffect(() => {
@@ -1191,7 +1338,8 @@ function AppContent() {
                 }}
                 onDeleteAll={onDeleteAllTimelogs}
                 onClose={() => setTimeLogChildList([])}/>
-            <TimeLogs selectProject={selectProject} selectTask={selectTask} timerRunning={isTimerRunning}/>
+            <TimeLogs selectProject={selectProject} selectTask={selectTask} timerRunning={isTimerRunning}
+                      dateRange={dateRange} setDateRange={setDateRange}/>
             { isEmpty() ? <div><CircularProgress style={{ marginTop: '50px' }} /></div> : null }
             { timesheetData && Object.keys(timesheetData.logs).length > 0 ?
             <Grid container>
