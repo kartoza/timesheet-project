@@ -425,6 +425,9 @@ class TestProjectListView(TestCase):
 class TestGetIssueSummary(TestCase):
     def setUp(self):
         self.today = timezone.localdate()
+        # Each `preferences.TimesheetPreferences` lookup builds a new instance, so
+        # the one being edited has to be kept around for the save to land on it.
+        self.prefs = preferences.TimesheetPreferences
 
     def _make_issue(self, customer='Acme Corp', priority='Medium', status='Open', is_internal=False, opening_date=None, erp_id=None):
         return Issue.objects.create(
@@ -477,8 +480,8 @@ class TestGetIssueSummary(TestCase):
 
     def test_sprint_scope_filters_by_opening_date(self):
         # Next review is 5 days from now -> current sprint window is [today-8, today+5].
-        preferences.TimesheetPreferences.sprint_review_anchor = self.today + timedelta(days=5)
-        preferences.TimesheetPreferences.save()
+        self.prefs.sprint_review_anchor = self.today + timedelta(days=5)
+        self.prefs.save()
 
         self._make_issue(opening_date=self.today - timedelta(days=3), erp_id='within_current_sprint')
         self._make_issue(opening_date=self.today - timedelta(days=15), erp_id='within_previous_sprint')
@@ -490,8 +493,8 @@ class TestGetIssueSummary(TestCase):
         self.assertEqual(sprint[0]['total'], 1)
 
     def test_customer_with_no_sprint_issues_is_absent(self):
-        preferences.TimesheetPreferences.sprint_review_anchor = self.today + timedelta(days=5)
-        preferences.TimesheetPreferences.save()
+        self.prefs.sprint_review_anchor = self.today + timedelta(days=5)
+        self.prefs.save()
 
         self._make_issue(opening_date=self.today - timedelta(days=15))
         sprint = get_issue_summary(scope='sprint')
@@ -512,8 +515,9 @@ class TestGetIssueSummary(TestCase):
 class TestGetLastSprintRange(TestCase):
     def setUp(self):
         self.anchor = date(2026, 7, 24)  # confirmed Friday, matches the production default
-        preferences.TimesheetPreferences.sprint_review_anchor = self.anchor
-        preferences.TimesheetPreferences.save()
+        prefs = preferences.TimesheetPreferences
+        prefs.sprint_review_anchor = self.anchor
+        prefs.save()
 
     def test_matches_real_world_example(self):
         # Reported directly: as of 2026-07-21 (mid-sprint; current sprint reviews on
