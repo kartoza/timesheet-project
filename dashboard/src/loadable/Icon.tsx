@@ -20,6 +20,7 @@ const MuiEngineeringIcon = React.lazy(() => import('@mui/icons-material/Engineer
 const MuiMapIcon = React.lazy(() => import('@mui/icons-material/Map'))
 const MuiDownloadIcon = React.lazy(() => import('@mui/icons-material/Download'))
 const MuiBreakIcon = React.lazy(() => import('@mui/icons-material/Hardware'))
+const MuiCalendarIcon = React.lazy(() => import('@mui/icons-material/CalendarMonth'))
 
 
 function IconLoader(props: any) {
@@ -118,6 +119,14 @@ export function BreakIcon(props: any) {
     return (
         <Suspense fallback={<IconLoader {...props}/>}>
             <MuiBreakIcon {...props} />
+        </Suspense>
+    )
+}
+
+export function CalendarIcon(props: any) {
+    return (
+        <Suspense fallback={<IconLoader {...props}/>}>
+            <MuiCalendarIcon {...props} />
         </Suspense>
     )
 }

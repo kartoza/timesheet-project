@@ -4,6 +4,7 @@ import pytz
 from bs4 import BeautifulSoup
 
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -18,7 +19,13 @@ from drf_spectacular.types import OpenApiTypes
 
 from timesheet.models import Timelog, Task, Activity, Project
 from timesheet.serializers.timesheet import TimelogSerializer
-from timesheet.utils.erp import push_timesheet_to_erp
+from timesheet.utils.erp import (
+    push_timesheet_to_erp,
+    pull_timesheets_from_erp,
+    ERPAuthError,
+    ERPPermissionError,
+    ERPSyncError,
+)
 from timesheet.utils.time import convert_time_to_user_timezone
 from timesheet.utils.timelogs import split_timelog_by_description
 
@@ -383,6 +390,20 @@ When you create a timesheet without `end_time`, it starts a running timer that c
 
 
 MAX_TIMELOGS = 100
+MAX_RANGE_DAYS = 31
+
+
+def parse_date_param(value, field_name):
+    """
+    Parses a YYYY-MM-DD query parameter, the same format the time logs are
+    grouped by on the dashboard.
+    """
+    try:
+        return datetime.strptime(value, '%Y-%m-%d').date()
+    except ValueError:
+        raise serializers.ValidationError({
+            field_name: 'Expected a date in the YYYY-MM-DD format.'
+        })
 
 
 @extend_schema(tags=['Timesheet'])
@@ -394,19 +415,60 @@ class TimesheetViewSet(viewsets.ViewSet):
 
     @extend_schema(
         summary="List time logs",
-        description="Retrieves a list of time logs for the authenticated user, limited to the most recent 100 entries.",
+        description=(
+            "Retrieves a list of time logs for the authenticated user. Without a "
+            "date range the most recent 100 entries are returned. When `start` and "
+            "`end` are given, every log started within that range is returned, plus "
+            "any running or paused log so that the timer stays available while an "
+            "older range is being viewed."
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='start',
+                type=OpenApiTypes.DATE,
+                description='First day to include (YYYY-MM-DD). Must be given together with `end`.'
+            ),
+            OpenApiParameter(
+                name='end',
+                type=OpenApiTypes.DATE,
+                description='Last day to include (YYYY-MM-DD). Must be given together with `start`.'
+            ),
+        ],
         responses={200: TimelogSerializer(many=True)}
     )
     def list(self, request):
-        today = convert_time_to_user_timezone(
-            timezone.now(), request.user.profile.timezone)
-        start_of_week = today - timedelta(days=today.weekday())
-        start_of_last_week = start_of_week - timedelta(days=7)
-
         queryset = Timelog.objects.filter(
             user=self.request.user,
         ).order_by('-start_time')
-        serializer = TimelogSerializer(queryset[:MAX_TIMELOGS], many=True)
+
+        start = request.query_params.get('start', '')
+        end = request.query_params.get('end', '')
+
+        if not start and not end:
+            queryset = queryset[:MAX_TIMELOGS]
+        else:
+            if not start or not end:
+                raise serializers.ValidationError(
+                    '`start` and `end` must be provided together.'
+                )
+            start_date = parse_date_param(start, 'start')
+            end_date = parse_date_param(end, 'end')
+            if start_date > end_date:
+                raise serializers.ValidationError(
+                    '`start` must not be after `end`.'
+                )
+            if (end_date - start_date).days > MAX_RANGE_DAYS:
+                raise serializers.ValidationError(
+                    f'The date range must not span more than {MAX_RANGE_DAYS} days.'
+                )
+            queryset = queryset.filter(
+                Q(start_time__date__gte=start_date,
+                  start_time__date__lte=end_date) |
+                Q(end_time__isnull=True) |
+                Q(is_paused=True)
+            )
+
+        serializer = TimelogSerializer(queryset, many=True)
         return Response(serializer.data)
 
 
@@ -525,6 +587,83 @@ class BreakTimesheet(APIView):
             },
             status=status.HTTP_200_OK
         )
+
+
+@extend_schema(tags=['Timesheet'])
+class PullTimeLogsAPIView(APIView):
+    """
+    API endpoint for importing already submitted time logs back from ERPNext.
+    """
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        summary="Pull time logs from ERP",
+        description=(
+            "Imports the authenticated user's submitted ERPNext timesheet "
+            "entries for the given date range as local, submitted time logs. "
+            "Entries that were imported before are left untouched."
+        ),
+        request={
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'start': {'type': 'string', 'description': 'First day to import (YYYY-MM-DD)'},
+                    'end': {'type': 'string', 'description': 'Last day to import (YYYY-MM-DD)'},
+                },
+                'required': ['start', 'end']
+            }
+        },
+        responses={
+            200: OpenApiResponse(description='Import finished'),
+            400: OpenApiResponse(description='Invalid date range'),
+            401: OpenApiResponse(description='ERPNext credentials invalid or expired'),
+            403: OpenApiResponse(description='No permission to read timesheets in ERPNext'),
+            502: OpenApiResponse(description='ERPNext could not be reached'),
+        }
+    )
+    def post(self, request):
+        start = request.data.get('start', '')
+        end = request.data.get('end', '')
+        if not start or not end:
+            raise serializers.ValidationError(
+                '`start` and `end` must be provided together.'
+            )
+        start_date = parse_date_param(start, 'start')
+        end_date = parse_date_param(end, 'end')
+        if start_date > end_date:
+            raise serializers.ValidationError('`start` must not be after `end`.')
+        if (end_date - start_date).days > MAX_RANGE_DAYS:
+            raise serializers.ValidationError(
+                f'The date range must not span more than {MAX_RANGE_DAYS} days.'
+            )
+
+        try:
+            result = pull_timesheets_from_erp(
+                request.user,
+                start_date.strftime('%Y-%m-%d'),
+                end_date.strftime('%Y-%m-%d'),
+            )
+        except ERPPermissionError:
+            return Response(
+                {'detail': 'You do not have permission to read timesheets in ERPNext.'},
+                status=403,
+            )
+        except ERPAuthError:
+            return Response(
+                {'detail': 'Your ERPNext credentials are invalid or expired. Please reconnect your account.'},
+                status=401,
+            )
+        except ERPSyncError as e:
+            return Response({'detail': str(e)}, status=502)
+
+        messages = [f'Imported {result["created"]} time log(s) from ERPNext.']
+        if result['existing']:
+            messages.append(f'{result["existing"]} already imported.')
+        if result['skipped']:
+            messages.append(
+                f'{result["skipped"]} skipped because their task is unknown here.'
+            )
+        return Response({**result, 'detail': ' '.join(messages)})
 
 
 class SubmitTimeLogsAPIView(APIView):

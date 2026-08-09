@@ -61,6 +61,17 @@ class Timelog(models.Model):
         default=False
     )
 
+    erp_id = models.CharField(
+        help_text=(
+            'Name of the Timesheet Detail row this log was imported from. '
+            'Empty for logs tracked in this app.'
+        ),
+        max_length=255,
+        default='',
+        blank=True,
+        db_index=True
+    )
+
     is_paused = models.BooleanField(
         help_text='Timesheet is paused',
         default=False

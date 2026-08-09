@@ -30,8 +30,14 @@ from timesheet.models.profile import get_country_code_from_timezone
 from timesheet.models.user_project import UserProject
 from timesheet.serializers.timesheet import TimelogSerializerERP
 from timesheet.utils.erpnext_oauth import get_valid_oauth_token
+from timesheet.utils.time import convert_erp_time_to_local
+from timesheet.utils.timelogs import format_erp_description
 
 logger = logging.getLogger(__name__)
+
+# (connect, read) seconds. Without this a stalled ERPNext connection holds the
+# worker open indefinitely rather than failing and freeing it.
+ERP_TIMEOUT = (5, 30)
 
 
 class ProjectsNotFound(Exception):
@@ -151,7 +157,8 @@ def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '',
         url += '&filters=' + filters
     headers = get_auth_headers(user=user, erpnext_token=erpnext_token, bearer_token=bearer_token)
     try:
-        response = requests.request('GET', url, headers=headers)
+        response = requests.request(
+            'GET', url, headers=headers, timeout=ERP_TIMEOUT)
     except requests.exceptions.ConnectionError:
         raise ERPSyncError('Cannot connect to ERPNext.')
     except requests.exceptions.Timeout:
@@ -757,6 +764,195 @@ def push_timesheet_to_erp(queryset: Timelog.objects, user: get_user_model()):
             logger.error(response.text)
 
 
+def get_erp_timesheet_detail(timesheet_name: str, user=None) -> dict:
+    """Fetch a full Timesheet doc by name, including its time_logs child rows.
+
+    Returns {} when the document cannot be read; a single unreadable timesheet
+    should not abort the whole import.
+    """
+    url = (
+        f'{settings.ERPNEXT_SITE_LOCATION}/api/resource/Timesheet/'
+        f'{quote(timesheet_name)}?fields=["*"]'
+    )
+    headers = get_auth_headers(user=user)
+    try:
+        response = requests.get(url, headers=headers, timeout=ERP_TIMEOUT)
+    except requests.exceptions.ConnectionError:
+        raise ERPSyncError('Cannot connect to ERPNext.')
+    except requests.exceptions.Timeout:
+        raise ERPSyncError('ERPNext request timed out.')
+    if response.status_code != 200:
+        logger.error(
+            'Failed to fetch timesheet %s: %s',
+            timesheet_name, response.content
+        )
+        return {}
+    return response.json().get('data', {})
+
+
+def pull_timesheets_from_erp(
+        user: get_user_model(), start_date: str, end_date: str) -> dict:
+    """Import the user's submitted ERPNext timesheet entries into local Timelogs.
+
+    Imported logs are marked as submitted, since they are already in ERPNext.
+    Rows whose task or project is unknown locally are skipped and counted, and
+    a row that was imported before is left untouched, so pulling the same range
+    twice is a no-op.
+
+    :return: counts of created, skipped and already present entries.
+    """
+    employee_id = user.profile.employee_id
+    if not employee_id:
+        raise ERPSyncError(
+            'Your account has no ERPNext employee ID. '
+            'Please sync your user data first.'
+        )
+
+    filters = json.dumps([
+        ['employee', '=', employee_id],
+        ['start_date', '<=', end_date],
+        ['end_date', '>=', start_date],
+        ['docstatus', '=', 1],
+    ])
+    timesheets = get_erp_data(
+        DocType.TIMESHEET,
+        preferences.TimesheetPreferences.admin_token,
+        filters=quote(filters),
+        user=user,
+    )
+
+    result = {'created': 0, 'skipped': 0, 'existing': 0}
+    user_timezone = user.profile.timezone
+    imported_dates = set()
+
+    for timesheet in timesheets:
+        if 'name' not in timesheet:
+            continue
+        detail = get_erp_timesheet_detail(timesheet['name'], user=user)
+        for row in detail.get('time_logs', []):
+            _import_timesheet_row(
+                row, user, user_timezone, start_date, end_date,
+                result, imported_dates)
+
+    if imported_dates:
+        group_imported_timelogs(user, imported_dates)
+
+    return result
+
+
+def group_imported_timelogs(user: get_user_model(), dates) -> int:
+    """Join imported entries that belong together into parent/child chains.
+
+    ERPNext stores every stretch of work as its own row, so a task worked on
+    before and after a break arrives as several entries. Resuming a timelog in
+    the app instead keeps one root with the rest as its children, which is what
+    the dashboard renders as a single line with the combined hours.
+
+    Entries are grouped when they share a day, project, task, activity and
+    description. Activity is part of the key because editing a log copies its
+    activity onto the whole chain, so grouping entries that differ by activity
+    would quietly lose it.
+
+    Chains are kept flat and never span days, matching TimesheetSerializer.
+    Only imported logs are touched, so anything tracked in the app is untouched.
+
+    :return: the number of entries that were attached to a root.
+    """
+    grouped = 0
+    for date in dates:
+        logs = Timelog.objects.filter(
+            user=user,
+            start_time__date=date,
+        ).exclude(erp_id='').order_by('start_time')
+
+        groups = {}
+        for log in logs:
+            key = (
+                log.task_id, log.project_id, log.activity_id, log.description
+            )
+            groups.setdefault(key, []).append(log)
+
+        for group in groups.values():
+            if len(group) < 2:
+                continue
+            root, children = group[0], group[1:]
+            if root.parent_id is not None:
+                root.parent = None
+                root.save(update_fields=['parent'])
+            for child in children:
+                if child.parent_id != root.id:
+                    child.parent = root
+                    child.save(update_fields=['parent'])
+                    grouped += 1
+
+    return grouped
+
+
+def _import_timesheet_row(
+        row: dict, user, user_timezone: str,
+        start_date: str, end_date: str, result: dict, imported_dates: set) -> bool:
+    """Create a single Timelog from an ERPNext time_logs row. Updates result counts."""
+    erp_id = row.get('name', '')
+    from_time = row.get('from_time')
+    to_time = row.get('to_time')
+    if not erp_id or not from_time or not to_time:
+        result['skipped'] += 1
+        return False
+
+    if Timelog.objects.filter(user=user, erp_id=erp_id).exists():
+        result['existing'] += 1
+        return False
+
+    try:
+        start_time = convert_erp_time_to_local(
+            datetime.strptime(from_time, '%Y-%m-%d %H:%M:%S.%f')
+            if '.' in from_time
+            else datetime.strptime(from_time, '%Y-%m-%d %H:%M:%S'),
+            user_timezone
+        )
+        end_time = convert_erp_time_to_local(
+            datetime.strptime(to_time, '%Y-%m-%d %H:%M:%S.%f')
+            if '.' in to_time
+            else datetime.strptime(to_time, '%Y-%m-%d %H:%M:%S'),
+            user_timezone
+        )
+    except ValueError:
+        logger.error('Unparseable time on timesheet row %s', erp_id)
+        result['skipped'] += 1
+        return False
+
+    # The ERP range is inclusive of whole timesheets, which can reach past the
+    # requested days, so entries outside the range are dropped here.
+    if not (start_date <= start_time.strftime('%Y-%m-%d') <= end_date):
+        return False
+
+    task = Task.objects.filter(erp_id=row.get('task', '')).first()
+    project = (
+        task.project if task
+        else Project.objects.filter(name=row.get('project', '')).first()
+    )
+    if not task and not project:
+        result['skipped'] += 1
+        return False
+
+    Timelog.objects.create(
+        user=user,
+        task=task,
+        project=project,
+        activity=Activity.objects.filter(
+            name=row.get('activity_type', '')).first(),
+        description=format_erp_description(row.get('description', '')),
+        start_time=start_time,
+        end_time=end_time,
+        timezone=user_timezone,
+        submitted=True,
+        erp_id=erp_id,
+    )
+    result['created'] += 1
+    imported_dates.add(start_time.date())
+    return True
+
+
 def get_report_data(report_name: str, erpnext_token: str = None, filters: str = '', user=None) -> list:
     """Run a named ERPNext report and return its result rows."""
     url = (
@@ -767,7 +963,8 @@ def get_report_data(report_name: str, erpnext_token: str = None, filters: str = 
         url += '&filters=' + filters
     headers = get_auth_headers(user=user, erpnext_token=erpnext_token)
     try:
-        response = requests.request('GET', url, headers=headers)
+        response = requests.request(
+            'GET', url, headers=headers, timeout=ERP_TIMEOUT)
     except requests.exceptions.ConnectionError:
         raise ERPSyncError('Cannot connect to ERPNext.')
     except requests.exceptions.Timeout:
