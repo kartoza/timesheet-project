@@ -462,11 +462,11 @@ class TestGetIssueSummary(TestCase):
         self.assertEqual(summary[0]['customer'], 'Acme Corp')
         self.assertEqual(summary[0]['total'], 2)
 
-    def test_priority_and_closed_counts(self):
+    def test_priority_resolved_and_closed_counts(self):
         self._make_issue(priority='Low', status='Open')
         self._make_issue(priority='Medium', status='Closed')
         self._make_issue(priority='Medium', status='Closed')
-        self._make_issue(priority='High', status='Open')
+        self._make_issue(priority='High', status='Resolved')
 
         summary = get_issue_summary(scope='all')
         self.assertEqual(len(summary), 1)
@@ -476,6 +476,7 @@ class TestGetIssueSummary(TestCase):
         self.assertEqual(row['low'], 1)
         self.assertEqual(row['medium'], 2)
         self.assertEqual(row['high'], 1)
+        self.assertEqual(row['resolved'], 1)
         self.assertEqual(row['closed'], 2)
 
     def test_sprint_scope_filters_by_opening_date(self):

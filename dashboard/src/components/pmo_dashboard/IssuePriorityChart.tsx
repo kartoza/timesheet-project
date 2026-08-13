@@ -14,6 +14,7 @@ const SERIES = [
   { key: 'low', label: 'Low', color: '#008300' },
   { key: 'medium', label: 'Medium', color: '#e87ba4' },
   { key: 'high', label: 'High', color: '#eda100' },
+  { key: 'resolved', label: 'Resolved', color: '#4a3aa7' },
   { key: 'closed', label: 'Closed', color: '#1baf7a' },
 ] as const;
 
