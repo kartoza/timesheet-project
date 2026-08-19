@@ -597,24 +597,45 @@ def get_exchange_rate(date: str, from_currency: str, to_currency: str = 'ZAR') -
     return rate
 
 
-def compute_sales_totals_by_project(user: get_user_model() = None) -> dict:
-    """Compute net (VAT-excluded) total sales per project name, in ZAR, from submitted Sales Orders.
+def compute_sales_totals_by_project(user: get_user_model(), project_names: list) -> dict:
+    """Compute net (VAT-excluded) total sales, in ZAR, from submitted Sales Orders,
+    scoped to exactly the given project names.
 
     Links via Sales Order Item.custom_project primarily; falls back to the parent
     Sales Order.project field only for orders with no project-linked items at all.
     Project.sales_order is intentionally not used - see kartoza/timesheet-project#332.
     """
+    if not project_names:
+        return {}
+
     companies = get_erp_data(DocType.COMPANY, user=user)
     company_currency = {c['name']: c.get('default_currency') or 'ZAR' for c in companies}
 
-    orders = get_erp_data(DocType.SALES_ORDER, user=user, filters=json.dumps([['docstatus', '=', 1]]))
-    orders_by_name = {o['name']: o for o in orders}
-
     items = get_erp_data(
         DocType.SALES_ORDER_ITEM, user=user, parent=DocType.SALES_ORDER,
-        filters=json.dumps([['custom_project', 'is', 'set']]),
+        filters=json.dumps([['custom_project', 'in', project_names]]),
     )
-    linked_order_names = {item['parent'] for item in items}
+    fallback_candidates = get_erp_data(
+        DocType.SALES_ORDER, user=user,
+        filters=json.dumps([['docstatus', '=', 1], ['project', 'in', project_names]]),
+    )
+
+    item_parent_names = {item['parent'] for item in items}
+    candidate_names = {order['name'] for order in fallback_candidates}
+
+    orders_by_name = {}
+    order_names_needed = list(item_parent_names | candidate_names)
+    if order_names_needed:
+        orders = get_erp_data(DocType.SALES_ORDER, user=user, filters=json.dumps([['name', 'in', order_names_needed]]))
+        orders_by_name = {o['name']: o for o in orders}
+
+    linked_order_names = set()
+    if candidate_names:
+        linked_items = get_erp_data(
+            DocType.SALES_ORDER_ITEM, user=user, parent=DocType.SALES_ORDER,
+            filters=json.dumps([['parent', 'in', list(candidate_names)], ['custom_project', 'is', 'set']]),
+        )
+        linked_order_names = {row['parent'] for row in linked_items}
 
     rate_cache = {}
 
@@ -630,19 +651,18 @@ def compute_sales_totals_by_project(user: get_user_model() = None) -> dict:
 
     for item in items:
         order = orders_by_name.get(item['parent'])
-        if not order:
+        if not order or order.get('docstatus') != 1:
             continue
         currency = company_currency.get(order.get('company'), 'ZAR')
         date = item.get('delivery_date') or order.get('delivery_date') or order.get('transaction_date')
         totals[item['custom_project']] += to_zar(item.get('base_net_amount'), currency, date)
 
-    for order in orders:
-        project = order.get('project')
-        if not project or order['name'] in linked_order_names:
+    for order in fallback_candidates:
+        if order['name'] in linked_order_names:
             continue
-        currency = company_currency.get(order.get('company'), 'ZAR')
         date = order.get('delivery_date') or order.get('transaction_date')
-        totals[project] += to_zar(order.get('base_net_total'), currency, date)
+        currency = company_currency.get(order.get('company'), 'ZAR')
+        totals[order['project']] += to_zar(order.get('base_net_total'), currency, date)
 
     return dict(totals)
 
@@ -658,6 +678,12 @@ def pull_projects_only_from_erp(user: get_user_model(), filters: str = '') -> li
     if len(projects) == 0:
         raise ProjectsNotFound
 
+    try:
+        sales_totals = compute_sales_totals_by_project(user, [p['name'] for p in projects])
+    except ERPSyncError:
+        logger.warning('compute_sales_totals_by_project failed - leaving total_sales_amount unchanged', exc_info=True)
+        sales_totals = None
+
     with transaction.atomic():
         updated = timezone.now()
         updated_projects = []
@@ -668,30 +694,34 @@ def pull_projects_only_from_erp(user: get_user_model(), filters: str = '') -> li
             if business_unit_name:
                 business_unit, _ = BusinessUnit.objects.get_or_create(name=business_unit_name)
 
+            defaults = {
+                'is_active': project.get('status', '') == 'Open',
+                'updated': updated,
+                'project_type': project_type.upper() if project_type else '',
+                'business_unit': business_unit,
+                'expected_start_date': project.get('expected_start_date') or None,
+                'expected_end_date': project.get('expected_end_date') or None,
+                'project_lead': _user_by_email(project.get('project_lead', '')),
+                'relations_manager': _user_by_email(project.get('custom_project_relations_manager', '')),
+                'customer': project.get('customer') or '',
+                'rag': project.get('rag') or '',
+                'expected_time': project.get('expected_time'),
+                'actual_time': project.get('actual_time'),
+                'progress_in_hours': project.get('progress_in_hours'),
+                'percent_complete': project.get('percent_complete'),
+                'estimated_costing': project.get('estimated_costing'),
+                'total_costing_amount': project.get('total_costing_amount'),
+                'total_billable_amount': project.get('total_billable_amount'),
+                'total_billed_amount': project.get('total_billed_amount'),
+                'gross_margin': project.get('gross_margin'),
+                'per_gross_margin': project.get('per_gross_margin'),
+            }
+            if sales_totals is not None:
+                defaults['total_sales_amount'] = sales_totals.get(project['name'], 0)
+
             _project, _ = Project.objects.update_or_create(
                 name=project['name'],
-                defaults={
-                    'is_active': project.get('status', '') == 'Open',
-                    'updated': updated,
-                    'project_type': project_type.upper() if project_type else '',
-                    'business_unit': business_unit,
-                    'expected_start_date': project.get('expected_start_date') or None,
-                    'expected_end_date': project.get('expected_end_date') or None,
-                    'project_lead': _user_by_email(project.get('project_lead', '')),
-                    'relations_manager': _user_by_email(project.get('custom_project_relations_manager', '')),
-                    'customer': project.get('customer') or '',
-                    'rag': project.get('rag') or '',
-                    'expected_time': project.get('expected_time'),
-                    'actual_time': project.get('actual_time'),
-                    'progress_in_hours': project.get('progress_in_hours'),
-                    'percent_complete': project.get('percent_complete'),
-                    'estimated_costing': project.get('estimated_costing'),
-                    'total_costing_amount': project.get('total_costing_amount'),
-                    'total_billable_amount': project.get('total_billable_amount'),
-                    'total_billed_amount': project.get('total_billed_amount'),
-                    'gross_margin': project.get('gross_margin'),
-                    'per_gross_margin': project.get('per_gross_margin'),
-                }
+                defaults=defaults,
             )
             if user:
                 UserProject.objects.get_or_create(

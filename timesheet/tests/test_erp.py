@@ -111,8 +111,11 @@ class TestPullProjectsFromErp(TestCase):
         self.user.profile.save()
 
     def _mock_erp(self, mock, projects):
-        # pull_projects_from_erp calls get_erp_data three times: projects, tasks, activities.
-        mock.side_effect = [projects, [], []]
+        # pull_projects_from_erp -> pull_projects_only_from_erp calls get_erp_data for:
+        # projects, then inside compute_sales_totals_by_project (companies, items,
+        # fallback_candidates - the further order/linked_items lookups are skipped when
+        # there's nothing found to look up), then tasks, then activities.
+        mock.side_effect = [projects, [], [], [], [], []]
 
     def test_raises_when_no_projects(self, mock_get_erp_data):
         self._mock_erp(mock_get_erp_data, [])
@@ -193,59 +196,79 @@ COMPANIES = [
 @patch('requests.get')
 @patch('timesheet.utils.erp.get_erp_data')
 class TestComputeSalesTotalsByProject(TestCase):
-    def _mock(self, mock_get_erp_data, orders, items, companies=COMPANIES):
-        mock_get_erp_data.side_effect = [companies, orders, items]
+    """compute_sales_totals_by_project(user, project_names) call sequence:
+
+    1. companies
+    2. items            (Sales Order Item, custom_project in project_names)
+    3. fallback_candidates (Sales Order, docstatus=1 and project in project_names)
+    4. orders           (Sales Order, name in [item parents] | [candidate names]) -
+                         only called if that union is non-empty
+    5. linked_items     (Sales Order Item, parent in candidate names, custom_project is set) -
+                         only called if there are fallback candidates
+    """
+
+    def test_empty_project_names_returns_empty_without_any_calls(self, mock_get_erp_data, mock_requests_get):
+        totals = compute_sales_totals_by_project(None, [])
+
+        self.assertEqual(totals, {})
+        mock_get_erp_data.assert_not_called()
 
     def test_item_level_link_sums_base_net_amount(self, mock_get_erp_data, mock_requests_get):
-        orders = [{
-            'name': 'SO-A', 'company': 'Kartoza (Pty) Ltd', 'project': 'Should Not Be Used',
-            'base_net_total': 999999, 'delivery_date': '2026-01-01',
-        }]
-        items = [
-            {'parent': 'SO-A', 'custom_project': 'Project X', 'base_net_amount': 600.0, 'delivery_date': '2026-01-01'},
-            {'parent': 'SO-A', 'custom_project': 'Project Y', 'base_net_amount': 400.0, 'delivery_date': '2026-01-03'},
-        ]
-        self._mock(mock_get_erp_data, orders, items)
+        items = [{'parent': 'SO-A', 'custom_project': 'Project X', 'base_net_amount': 600.0, 'delivery_date': '2026-01-01'}]
+        fallback_candidates = []
+        orders = [{'name': 'SO-A', 'company': 'Kartoza (Pty) Ltd', 'docstatus': 1, 'delivery_date': '2026-01-01'}]
+        mock_get_erp_data.side_effect = [COMPANIES, items, fallback_candidates, orders]
 
-        totals = compute_sales_totals_by_project()
+        totals = compute_sales_totals_by_project(None, ['Project X'])
 
-        self.assertEqual(totals, {'Project X': 600.0, 'Project Y': 400.0})
-        self.assertNotIn('Should Not Be Used', totals)
+        self.assertEqual(totals, {'Project X': 600.0})
         mock_requests_get.assert_not_called()
 
     def test_fallback_to_order_project_when_no_items_linked(self, mock_get_erp_data, mock_requests_get):
-        orders = [{
-            'name': 'SO-B', 'company': 'Kartoza (Pty) Ltd', 'project': 'Fallback Project',
-            'base_net_total': 500.0, 'delivery_date': '2026-01-02',
+        items = []
+        fallback_candidates = [{
+            'name': 'SO-B', 'project': 'Fallback Project', 'company': 'Kartoza (Pty) Ltd',
+            'docstatus': 1, 'base_net_total': 500.0, 'delivery_date': '2026-01-02',
         }]
-        self._mock(mock_get_erp_data, orders, [])
+        orders = fallback_candidates
+        linked_items = []
+        mock_get_erp_data.side_effect = [COMPANIES, items, fallback_candidates, orders, linked_items]
 
-        totals = compute_sales_totals_by_project()
+        totals = compute_sales_totals_by_project(None, ['Fallback Project'])
 
         self.assertEqual(totals, {'Fallback Project': 500.0})
 
-    def test_order_with_no_project_and_no_items_contributes_nothing(self, mock_get_erp_data, mock_requests_get):
-        orders = [{
-            'name': 'SO-C', 'company': 'Kartoza (Pty) Ltd', 'project': '',
-            'base_net_total': 500.0, 'delivery_date': '2026-01-02',
+    def test_fallback_excluded_when_order_has_any_item_level_link(self, mock_get_erp_data, mock_requests_get):
+        # SO-C is a candidate (project=Target Project) but has an item linked to some OTHER
+        # project - per Juanique's rule, that makes it item-linked data, not eligible for
+        # the parent-field fallback, even though none of its items point at *our* target.
+        items = []
+        fallback_candidates = [{
+            'name': 'SO-C', 'project': 'Target Project', 'company': 'Kartoza (Pty) Ltd',
+            'docstatus': 1, 'base_net_total': 500.0, 'delivery_date': '2026-01-02',
         }]
-        self._mock(mock_get_erp_data, orders, [])
+        orders = fallback_candidates
+        linked_items = [{'parent': 'SO-C', 'custom_project': 'Some Other Project'}]
+        mock_get_erp_data.side_effect = [COMPANIES, items, fallback_candidates, orders, linked_items]
 
-        totals = compute_sales_totals_by_project()
+        totals = compute_sales_totals_by_project(None, ['Target Project'])
 
         self.assertEqual(totals, {})
 
     def test_non_zar_company_converted_using_delivery_date_rate(self, mock_get_erp_data, mock_requests_get):
-        orders = [{
-            'name': 'SO-D', 'company': 'Kartoza Lda', 'project': 'EUR Project',
-            'base_net_total': 500.0, 'delivery_date': '2026-01-02',
+        items = []
+        fallback_candidates = [{
+            'name': 'SO-D', 'project': 'EUR Project', 'company': 'Kartoza Lda',
+            'docstatus': 1, 'base_net_total': 500.0, 'delivery_date': '2026-01-02',
         }]
+        orders = fallback_candidates
+        linked_items = []
+        mock_get_erp_data.side_effect = [COMPANIES, items, fallback_candidates, orders, linked_items]
         mock_response = mock_requests_get.return_value
         mock_response.status_code = 200
         mock_response.json.return_value = {'rates': {'ZAR': 20.0}}
-        self._mock(mock_get_erp_data, orders, [])
 
-        totals = compute_sales_totals_by_project()
+        totals = compute_sales_totals_by_project(None, ['EUR Project'])
 
         self.assertEqual(totals, {'EUR Project': 10000.0})
         called_url = mock_requests_get.call_args.args[0]
