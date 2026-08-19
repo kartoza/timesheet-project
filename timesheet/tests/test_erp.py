@@ -18,6 +18,8 @@ from timesheet.utils.erp import (
     pull_project_members_from_erp,
     pull_department_from_erp,
     pull_user_data_from_erp,
+    compute_sales_totals_by_project,
+    get_exchange_rate,
     ProjectsNotFound,
     _resolve_issue_customer,
 )
@@ -180,6 +182,115 @@ class TestPullProjectsFromErp(TestCase):
         self._mock_erp(mock_get_erp_data, [dict(ERP_PROJECT_DATA, project_lead='')])
         pull_projects_from_erp(self.user)
         self.assertIsNone(Project.objects.get(name='ERP Project Alpha').project_lead)
+
+
+COMPANIES = [
+    {'name': 'Kartoza (Pty) Ltd', 'default_currency': 'ZAR'},
+    {'name': 'Kartoza Lda', 'default_currency': 'EUR'},
+]
+
+
+@patch('requests.get')
+@patch('timesheet.utils.erp.get_erp_data')
+class TestComputeSalesTotalsByProject(TestCase):
+    def _mock(self, mock_get_erp_data, orders, items, companies=COMPANIES):
+        mock_get_erp_data.side_effect = [companies, orders, items]
+
+    def test_item_level_link_sums_base_net_amount(self, mock_get_erp_data, mock_requests_get):
+        orders = [{
+            'name': 'SO-A', 'company': 'Kartoza (Pty) Ltd', 'project': 'Should Not Be Used',
+            'base_net_total': 999999, 'delivery_date': '2026-01-01',
+        }]
+        items = [
+            {'parent': 'SO-A', 'custom_project': 'Project X', 'base_net_amount': 600.0, 'delivery_date': '2026-01-01'},
+            {'parent': 'SO-A', 'custom_project': 'Project Y', 'base_net_amount': 400.0, 'delivery_date': '2026-01-03'},
+        ]
+        self._mock(mock_get_erp_data, orders, items)
+
+        totals = compute_sales_totals_by_project()
+
+        self.assertEqual(totals, {'Project X': 600.0, 'Project Y': 400.0})
+        self.assertNotIn('Should Not Be Used', totals)
+        mock_requests_get.assert_not_called()
+
+    def test_fallback_to_order_project_when_no_items_linked(self, mock_get_erp_data, mock_requests_get):
+        orders = [{
+            'name': 'SO-B', 'company': 'Kartoza (Pty) Ltd', 'project': 'Fallback Project',
+            'base_net_total': 500.0, 'delivery_date': '2026-01-02',
+        }]
+        self._mock(mock_get_erp_data, orders, [])
+
+        totals = compute_sales_totals_by_project()
+
+        self.assertEqual(totals, {'Fallback Project': 500.0})
+
+    def test_order_with_no_project_and_no_items_contributes_nothing(self, mock_get_erp_data, mock_requests_get):
+        orders = [{
+            'name': 'SO-C', 'company': 'Kartoza (Pty) Ltd', 'project': '',
+            'base_net_total': 500.0, 'delivery_date': '2026-01-02',
+        }]
+        self._mock(mock_get_erp_data, orders, [])
+
+        totals = compute_sales_totals_by_project()
+
+        self.assertEqual(totals, {})
+
+    def test_non_zar_company_converted_using_delivery_date_rate(self, mock_get_erp_data, mock_requests_get):
+        orders = [{
+            'name': 'SO-D', 'company': 'Kartoza Lda', 'project': 'EUR Project',
+            'base_net_total': 500.0, 'delivery_date': '2026-01-02',
+        }]
+        mock_response = mock_requests_get.return_value
+        mock_response.status_code = 200
+        mock_response.json.return_value = {'rates': {'ZAR': 20.0}}
+        self._mock(mock_get_erp_data, orders, [])
+
+        totals = compute_sales_totals_by_project()
+
+        self.assertEqual(totals, {'EUR Project': 10000.0})
+        called_url = mock_requests_get.call_args.args[0]
+        self.assertIn('2026-01-02', called_url)
+        self.assertIn('base=EUR', called_url)
+
+
+@patch('requests.get')
+class TestGetExchangeRate(TestCase):
+    def _mock_ok(self, mock_requests_get, rate=20.0):
+        mock_response = mock_requests_get.return_value
+        mock_response.status_code = 200
+        mock_response.json.return_value = {'rates': {'ZAR': rate}}
+
+    def test_same_currency_skips_request(self, mock_requests_get):
+        rate = get_exchange_rate('2026-01-01', 'ZAR', 'ZAR')
+        self.assertEqual(rate, 1.0)
+        mock_requests_get.assert_not_called()
+
+    def test_past_date_uses_historical_endpoint(self, mock_requests_get):
+        self._mock_ok(mock_requests_get)
+        get_exchange_rate('2026-01-01', 'EUR')
+        called_url = mock_requests_get.call_args.args[0]
+        self.assertIn('/v1/2026-01-01', called_url)
+
+    def test_future_date_falls_back_to_latest(self, mock_requests_get):
+        # frankfurter.dev 404s for dates that haven't happened yet - common for
+        # Sales Order Items with a future delivery_date milestone.
+        self._mock_ok(mock_requests_get)
+        get_exchange_rate('2099-01-01', 'EUR')
+        called_url = mock_requests_get.call_args.args[0]
+        self.assertIn('/v1/latest', called_url)
+        self.assertNotIn('2099-01-01', called_url)
+
+    def test_missing_date_falls_back_to_latest(self, mock_requests_get):
+        self._mock_ok(mock_requests_get)
+        get_exchange_rate(None, 'EUR')
+        called_url = mock_requests_get.call_args.args[0]
+        self.assertIn('/v1/latest', called_url)
+
+    def test_malformed_date_falls_back_to_latest(self, mock_requests_get):
+        self._mock_ok(mock_requests_get)
+        get_exchange_rate('not-a-date', 'EUR')
+        called_url = mock_requests_get.call_args.args[0]
+        self.assertIn('/v1/latest', called_url)
 
 
 @patch('timesheet.utils.erp.get_erp_project_detail')

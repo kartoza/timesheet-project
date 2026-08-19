@@ -2,7 +2,7 @@ import json
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from urllib.parse import quote
 import requests
 from django.utils.dateparse import parse_date
@@ -149,12 +149,18 @@ def check_erp_project_access(user) -> None:
         raise erp_http_error(response.status_code)
 
 
-def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '', doctype_value: str = '', user=None, bearer_token: str = None) -> list:
-    """Fetch a list (or single doc) from ERPNext REST API."""
+def get_erp_data(doctype: DocType, erpnext_token: str = None, filters: str = '', doctype_value: str = '', user=None, bearer_token: str = None, parent: DocType = None) -> list:
+    """Fetch a list (or single doc) from ERPNext REST API.
+
+    Pass `parent` when `doctype` is a child-table doctype (e.g. Sales Order Item) -
+    Frappe requires the owning parent doctype to check permissions on child records.
+    """
     path = f'resource/{quote(doctype.value)}/{quote(doctype_value)}'.rstrip('/')
     url = f'{settings.ERPNEXT_SITE_LOCATION}/api/{path}?limit_page_length=None&fields=["*"]'
     if filters:
         url += '&filters=' + filters
+    if parent:
+        url += '&parent=' + quote(parent.value)
     headers = get_auth_headers(user=user, erpnext_token=erpnext_token, bearer_token=bearer_token)
     try:
         response = requests.request(
@@ -557,6 +563,90 @@ def pull_project_members_from_erp(user: get_user_model(), project_names: list = 
             ])
 
 
+FX_API_URL = 'https://api.frankfurter.dev/v1'
+
+
+def get_exchange_rate(date: str, from_currency: str, to_currency: str = 'ZAR') -> float:
+    """Historical FX rate for `date` (YYYY-MM-DD) from frankfurter.dev.
+
+    Falls back to the latest available rate if `date` is missing, malformed, or in
+    the future - frankfurter.dev has no rate for a date that hasn't happened yet,
+    which is common for Sales Order Items with a future delivery_date milestone.
+    """
+    if from_currency == to_currency:
+        return 1.0
+    endpoint = 'latest'
+    if date:
+        try:
+            if datetime.strptime(date, '%Y-%m-%d').date() <= datetime.now().date():
+                endpoint = date
+        except ValueError:
+            pass
+    url = f'{FX_API_URL}/{endpoint}?base={from_currency}&symbols={to_currency}'
+    try:
+        response = requests.get(url, timeout=ERP_TIMEOUT)
+    except requests.exceptions.ConnectionError:
+        raise ERPSyncError('Cannot connect to exchange rate service.')
+    except requests.exceptions.Timeout:
+        raise ERPSyncError('Exchange rate service request timed out.')
+    if response.status_code != 200:
+        raise ERPSyncError(f'Exchange rate service returned {response.status_code}.')
+    rate = response.json().get('rates', {}).get(to_currency)
+    if rate is None:
+        raise ERPSyncError(f'No {from_currency}->{to_currency} rate available for {endpoint}.')
+    return rate
+
+
+def compute_sales_totals_by_project(user: get_user_model() = None) -> dict:
+    """Compute net (VAT-excluded) total sales per project name, in ZAR, from submitted Sales Orders.
+
+    Links via Sales Order Item.custom_project primarily; falls back to the parent
+    Sales Order.project field only for orders with no project-linked items at all.
+    Project.sales_order is intentionally not used - see kartoza/timesheet-project#332.
+    """
+    companies = get_erp_data(DocType.COMPANY, user=user)
+    company_currency = {c['name']: c.get('default_currency') or 'ZAR' for c in companies}
+
+    orders = get_erp_data(DocType.SALES_ORDER, user=user, filters=json.dumps([['docstatus', '=', 1]]))
+    orders_by_name = {o['name']: o for o in orders}
+
+    items = get_erp_data(
+        DocType.SALES_ORDER_ITEM, user=user, parent=DocType.SALES_ORDER,
+        filters=json.dumps([['custom_project', 'is', 'set']]),
+    )
+    linked_order_names = {item['parent'] for item in items}
+
+    rate_cache = {}
+
+    def to_zar(amount, currency, date):
+        if not amount or currency == 'ZAR':
+            return amount or 0
+        key = (currency, date)
+        if key not in rate_cache:
+            rate_cache[key] = get_exchange_rate(date, currency)
+        return amount * rate_cache[key]
+
+    totals = defaultdict(float)
+
+    for item in items:
+        order = orders_by_name.get(item['parent'])
+        if not order:
+            continue
+        currency = company_currency.get(order.get('company'), 'ZAR')
+        date = item.get('delivery_date') or order.get('delivery_date') or order.get('transaction_date')
+        totals[item['custom_project']] += to_zar(item.get('base_net_amount'), currency, date)
+
+    for order in orders:
+        project = order.get('project')
+        if not project or order['name'] in linked_order_names:
+            continue
+        currency = company_currency.get(order.get('company'), 'ZAR')
+        date = order.get('delivery_date') or order.get('transaction_date')
+        totals[project] += to_zar(order.get('base_net_total'), currency, date)
+
+    return dict(totals)
+
+
 def pull_projects_only_from_erp(user: get_user_model(), filters: str = '') -> list:
     """Upsert projects from ERPNext into the local DB. Returns list of updated project IDs.
 
@@ -596,7 +686,6 @@ def pull_projects_only_from_erp(user: get_user_model(), filters: str = '') -> li
                     'progress_in_hours': project.get('progress_in_hours'),
                     'percent_complete': project.get('percent_complete'),
                     'estimated_costing': project.get('estimated_costing'),
-                    'total_sales_amount': project.get('total_sales_amount'),
                     'total_costing_amount': project.get('total_costing_amount'),
                     'total_billable_amount': project.get('total_billable_amount'),
                     'total_billed_amount': project.get('total_billed_amount'),

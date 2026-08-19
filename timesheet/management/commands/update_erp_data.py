@@ -12,6 +12,7 @@ from pmo_dashboard.billable_sync import fetch_and_save_billable_hours
 from timesheet.utils.erp import (
     ERPSyncError,
     ProjectsNotFound,
+    compute_sales_totals_by_project,
     pull_contracts_from_erp,
     pull_department_from_erp,
     pull_holiday_list,
@@ -72,9 +73,20 @@ class Command(BaseCommand):
         active_projects = list(Project.objects.filter(is_active=True))
 
         try:
+            sales_totals = compute_sales_totals_by_project(user)
+            for project in active_projects:
+                project.total_sales_amount = sales_totals.get(project.name, 0)
+            Project.objects.bulk_update(active_projects, ['total_sales_amount'])
+            t1b = time.perf_counter()
+            self.stdout.write(f'  sales      {len(sales_totals)} projects computed  ({t1b - t1:.2f}s)')
+        except ERPSyncError as e:
+            self.stdout.write(self.style.WARNING(f'  sales      sync failed: {e}'))
+            t1b = time.perf_counter()
+
+        try:
             contract_ids = pull_contracts_from_erp(user)
             t2 = time.perf_counter()
-            self.stdout.write(f'  contracts  {len(contract_ids)} synced  ({t2 - t1:.2f}s)')
+            self.stdout.write(f'  contracts  {len(contract_ids)} synced  ({t2 - t1b:.2f}s)')
         except ERPSyncError as e:
             self.stdout.write(self.style.WARNING(f'  contracts  sync failed: {e}'))
             t2 = time.perf_counter()
