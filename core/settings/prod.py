@@ -9,7 +9,7 @@ MEDIA_URL = '/media/'
 
 MEDIA_ROOT = '/home/web/media'
 STATIC_ROOT = '/home/web/static'
-ALLOWED_HOSTS = ['timesheets.kartoza.com']
+ALLOWED_HOSTS = ['timesheets.kartoza.com', 'pmo-dashboard.kartoza.com']
 
 STATICFILES_STORAGE = 'core.storage.BigBlindManifestStaticFilesStorage'
 
