@@ -15,4 +15,5 @@ STATICFILES_STORAGE = 'core.storage.BigBlindManifestStaticFilesStorage'
 
 SPECTACULAR_SETTINGS['SERVERS'] = [
     {'url': 'https://timesheets.kartoza.com', 'description': 'Production server'},
+    {'url': 'https://pmo-dashboard.kartoza.com', 'description': 'PMO Dashboard server'}
 ]
