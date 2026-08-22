@@ -17,6 +17,7 @@ import Tooltip from '@mui/material/Tooltip';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import {generateColor, getColorFromTaskLabel, getTaskColor, isColorLight, theme} from "./utils/Theme";
+import { useAppDispatch } from "./app/hooks";
 import {
     TimeLog, useBreakTimesheetMutation, useDeleteTimeLogMutation,
     useDeleteAllTimeLogsMutation,
@@ -26,6 +27,7 @@ import {
     usePullTimesheetMutation,
     useGetMicroblogPostsQuery,
     useUpdateTimesheetMutation,
+    timesheetApi,
 } from "./services/api";
 import {
     ThemeProvider,
@@ -376,12 +378,12 @@ const TimeLogs = (props: any) => {
 }
 
 function AppContent() {
+    const dispatch = useAppDispatch();
     // Owned here so the time log list and this component request the same
     // range, which keeps them on a single cache entry.
     const [dateRange, setDateRange] = useState<DateRange>(thisWeekRange)
-    const { data: timesheetData, isLoading: isFetchingTimelogs, isSuccess: isSuccessFetching } = useGetTimeLogsQuery({
-        start: toDateKey(dateRange.start), end: toDateKey(dateRange.end)
-    })
+    const timeLogsQueryArg = { start: toDateKey(dateRange.start), end: toDateKey(dateRange.end) };
+    const { data: timesheetData, isLoading: isFetchingTimelogs, isSuccess: isSuccessFetching } = useGetTimeLogsQuery(timeLogsQueryArg)
     const [microblogPage, setMicroblogPage] = useState(1);
     const [allMicroblogPosts, setAllMicroblogPosts] = useState<import('./services/api').PaginatedMicroblogResponse['results']>([]);
     const { currentData: microblogPageData } = useGetMicroblogPostsQuery(microblogPage, { pollingInterval: microblogPage === 1 ? 30000 : 0 });
@@ -442,7 +444,7 @@ function AppContent() {
     const descriptionSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const descriptionEditedRef = useRef(false);
     const descriptionSavedMessagePendingRef = useRef(false);
-    const lastAutoSavedDescriptionRef = useRef<{ id: string, description: string } | null>(null);
+    const lastAutoSavedDescriptionRef = useRef<{ id: string, description: string, activityId?: string, taskId?: string, projectId?: string } | null>(null);
 
     const timeCardRef = useRef(null);
 
@@ -575,6 +577,50 @@ function AppContent() {
         }
     }, [isSuccessFetching])
 
+    // Editing the root of a pause/resume chain (e.g. from the timelog list)
+    // cascades description/activity/project/task to its running descendant in
+    // the backend. Pick that up here so the running-timer form reflects it too
+    // - but never while the user has an unsaved local edit in this form, or
+    // the refetch below would clobber what they're typing.
+    useEffect(() => {
+        const running = timesheetData?.running;
+        if (!running || !runningTimeLog || running.id !== runningTimeLog.id) {
+            return;
+        }
+        if (descriptionEditedRef.current) {
+            return;
+        }
+
+        const normalizedIncoming = running.description === '<p><br></p>' ? '' : (running.description || '');
+        if (normalizedIncoming !== description) {
+            setDescription(normalizedIncoming);
+        }
+        if ((running.activity_id || '') !== (selectedActivity?.id || '')) {
+            setSelectedActivity(running.activity_id ? { id: running.activity_id, label: running.activity_type } : null);
+        }
+        if ((running.project_id || '') !== (selectedProject?.id || '')) {
+            if (running.project_id && running.project_name !== 'Kartoza') {
+                const project = { id: running.project_id, label: running.project_name, running: true };
+                setProjects([project]);
+                setSelectedProject(project);
+            } else {
+                setSelectedProject(null);
+            }
+        }
+        if ((running.task_id || '') !== (selectedTask?.id || '')) {
+            if (running.task_id) {
+                const task = { id: running.task_id, label: running.task_name, running: true };
+                setTasks([task]);
+                setSelectedTask(task);
+            } else {
+                setSelectedTask(null);
+            }
+        }
+        if (running !== runningTimeLog) {
+            setRunningTimeLog(running);
+        }
+    }, [timesheetData?.running]);
+
     const saveDescription = useCallback((showFeedback = false) => {
         const activeTimeLog = runningTimeLog;
         if (!isTimerRunning || !activeTimeLog || !descriptionEditedRef.current) {
@@ -582,13 +628,23 @@ function AppContent() {
         }
 
         const normalizedDescription = description === '<p><br></p>' ? '' : description;
-        if (
-            activeTimeLog.description === normalizedDescription ||
-            (
-                lastAutoSavedDescriptionRef.current?.id === activeTimeLog.id &&
-                lastAutoSavedDescriptionRef.current?.description === normalizedDescription
-            )
-        ) {
+        const activityId = selectedActivity?.id || activeTimeLog.activity_id;
+        const taskId = selectedTask?.id || activeTimeLog.task_id || '-';
+        const projectId = selectedProject?.id || activeTimeLog.project_id || '';
+
+        const unchanged =
+            activeTimeLog.description === normalizedDescription &&
+            (activeTimeLog.activity_id || '') === (activityId || '') &&
+            (activeTimeLog.task_id || '-') === taskId &&
+            (activeTimeLog.project_id || '') === projectId;
+        const matchesLastSave =
+            lastAutoSavedDescriptionRef.current?.id === activeTimeLog.id &&
+            lastAutoSavedDescriptionRef.current?.description === normalizedDescription &&
+            lastAutoSavedDescriptionRef.current?.activityId === activityId &&
+            lastAutoSavedDescriptionRef.current?.taskId === taskId &&
+            lastAutoSavedDescriptionRef.current?.projectId === projectId;
+
+        if (unchanged || matchesLastSave) {
             if (showFeedback && isTimerRunning && descriptionSavedMessagePendingRef.current) {
                 setDescriptionSavedOpen(true);
                 descriptionSavedMessagePendingRef.current = false;
@@ -597,16 +653,37 @@ function AppContent() {
             return Promise.resolve(false);
         }
 
-        const activityId = selectedActivity?.id || activeTimeLog.activity_id;
         if (!activityId) {
             return Promise.resolve(false);
         }
 
+        // The list shows the root ancestor of a pause/resume chain, not the
+        // currently running child - patch it locally so the row updates
+        // immediately instead of waiting on the invalidation refetch.
+        const rootId = activeTimeLog.parent || activeTimeLog.id;
+        dispatch(
+            timesheetApi.util.updateQueryData('getTimeLogs', timeLogsQueryArg, (draft: any) => {
+                for (const dateKey of Object.keys(draft.logs)) {
+                    const row = draft.logs[dateKey].find((log: TimeLog) => log.id === rootId);
+                    if (row) {
+                        row.description = normalizedDescription;
+                        row.activity_id = activityId;
+                        row.task_id = taskId;
+                        row.project_id = projectId;
+                        if (selectedActivity?.label) row.activity_type = selectedActivity.label;
+                        if (selectedTask?.label) row.task_name = selectedTask.label;
+                        if (selectedProject?.label) row.project_name = selectedProject.label;
+                        break;
+                    }
+                }
+            })
+        );
+
         return updateTimesheet({
             id: activeTimeLog.id,
-            task: { id: selectedTask?.id || activeTimeLog.task_id || '-' },
+            task: { id: taskId },
             activity: { id: activityId },
-            project: { id: selectedProject?.id || activeTimeLog.project_id || '' },
+            project: { id: projectId },
             description: normalizedDescription,
             start_time: activeTimeLog.from_time,
             end_time: activeTimeLog.to_time || null,
@@ -616,6 +693,9 @@ function AppContent() {
             lastAutoSavedDescriptionRef.current = {
                 id: activeTimeLog.id,
                 description: normalizedDescription,
+                activityId,
+                taskId,
+                projectId,
             };
             if (showFeedback && isTimerRunning) {
                 setDescriptionSavedOpen(true);
@@ -637,6 +717,9 @@ function AppContent() {
         selectedTask,
         selectedProject,
         updateTimesheet,
+        dispatch,
+        timeLogsQueryArg.start,
+        timeLogsQueryArg.end,
     ]);
 
     useEffect(() => {
@@ -657,7 +740,7 @@ function AppContent() {
                 clearTimeout(descriptionSaveTimeoutRef.current);
             }
         }
-    }, [description, isTimerRunning, saveDescription]);
+    }, [description, selectedActivity, selectedTask, selectedProject, isTimerRunning, saveDescription]);
 
     const updateSelectedTimeLog = (data: TimeLog, checkParent = true, forceTimer = false) => {
         setDescription(data.description)
@@ -1121,6 +1204,9 @@ function AppContent() {
                                     getOptionLabel={ (options: any) => (options['label'])}
                                     isOptionEqualToValue={(option: any, value: any) => option['id'] == value['id']}
                                     onChange={(event: any, value: any) => {
+                                        if (isTimerRunning) {
+                                            descriptionEditedRef.current = true;
+                                        }
                                         if (value) {
                                             setSelectedActivity(value)
                                         } else {
@@ -1159,6 +1245,9 @@ function AppContent() {
                                     getOptionLabel={ (options: any) => (options['label'])}
                                     isOptionEqualToValue={(option: any, value: any) => option['id'] == value['id']}
                                     onChange={(event: any, value: any) => {
+                                        if (isTimerRunning) {
+                                            descriptionEditedRef.current = true;
+                                        }
                                         if (value) {
                                             setSelectedProject(value)
                                         } else {
@@ -1204,6 +1293,9 @@ function AppContent() {
                                     getOptionLabel={ (options: any) => (options['label'])}
                                     isOptionEqualToValue={(option: any, value: any) => option['id'] == value['id']}
                                     onChange={(event: any, value: any) => {
+                                        if (isTimerRunning) {
+                                            descriptionEditedRef.current = true;
+                                        }
                                         if (value) {
                                             setSelectedTask(value)
                                         } else {
