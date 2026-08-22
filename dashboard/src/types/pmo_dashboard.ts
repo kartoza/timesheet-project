@@ -119,6 +119,7 @@ export type IssueSummaryRow = {
   low: number;
   medium: number;
   high: number;
+  resolved: number;
   closed: number;
 };
 

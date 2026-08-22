@@ -69,6 +69,20 @@ class SupportContactMapping(models.Model):
 
 
 class Issue(models.Model):
+    STATUS_OPEN = 'Open'
+    STATUS_REPLIED = 'Replied'
+    STATUS_ON_HOLD = 'On Hold'
+    STATUS_RESOLVED = 'Resolved'
+    STATUS_CLOSED = 'Closed'
+
+    STATUS_CHOICES = (
+        (STATUS_OPEN, 'Open'),
+        (STATUS_REPLIED, 'Replied'),
+        (STATUS_ON_HOLD, 'On Hold'),
+        (STATUS_RESOLVED, 'Resolved'),
+        (STATUS_CLOSED, 'Closed'),
+    )
+
     erp_id = models.CharField(max_length=64, unique=True)
     subject = models.CharField(max_length=512, blank=True, default='')
     project = models.ForeignKey(
@@ -83,7 +97,7 @@ class Issue(models.Model):
         help_text='Resolved customer bucket, used for Support Dashboard grouping.',
     )
     raised_by = models.EmailField(blank=True, default='')
-    status = models.CharField(max_length=32, blank=True, default='')
+    status = models.CharField(max_length=32, blank=True, default='', choices=STATUS_CHOICES)
     priority = models.CharField(max_length=32, blank=True, default='')
     opening_date = models.DateField(null=True, blank=True)
     is_internal = models.BooleanField(

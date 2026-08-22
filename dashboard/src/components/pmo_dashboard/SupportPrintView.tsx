@@ -10,12 +10,13 @@ const STATUS_COLORS: Record<ContractStatus, string> = {
   'Closed': '#94A3B8',
 };
 
-// Same colors/order as IssuePriorityChart (dataviz skill palette.md, slots 1-5).
+// Same colors/order as IssuePriorityChart (dataviz skill palette.md, slots 1-5 + 7).
 const ISSUE_SERIES = [
   { key: 'total', label: 'Total', color: '#2a78d6' },
   { key: 'low', label: 'Low', color: '#008300' },
   { key: 'medium', label: 'Medium', color: '#e87ba4' },
   { key: 'high', label: 'High', color: '#eda100' },
+  { key: 'resolved', label: 'Resolved', color: '#4a3aa7' },
   { key: 'closed', label: 'Closed', color: '#1baf7a' },
 ] as const;
 
@@ -65,7 +66,7 @@ const renderPrintLegend = (props: any) => {
 const issueTableHead = (
   <thead>
     <tr style={{ background: '#f1f5f9', borderBottom: '2px solid #e2e8f0' }}>
-      {['Project', 'Tickets Total', 'Low', 'Medium', 'High', 'Closed'].map((h) => (
+      {['Project', 'Tickets Total', 'Low', 'Medium', 'High', 'Resolved', 'Closed'].map((h) => (
         <th key={h} style={{ padding: '6px 8px', textAlign: h === 'Project' ? 'left' : 'right', fontWeight: 700, color: '#475569', fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</th>
       ))}
     </tr>
@@ -79,6 +80,7 @@ const renderIssueRow = (row: IssueSummaryRow, i: number) => (
     <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569', verticalAlign: 'middle' }}>{row.low}</td>
     <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569', verticalAlign: 'middle' }}>{row.medium}</td>
     <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569', verticalAlign: 'middle' }}>{row.high}</td>
+    <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569', verticalAlign: 'middle' }}>{row.resolved}</td>
     <td style={{ padding: '5px 8px', textAlign: 'right', color: '#475569', verticalAlign: 'middle' }}>{row.closed}</td>
   </tr>
 );

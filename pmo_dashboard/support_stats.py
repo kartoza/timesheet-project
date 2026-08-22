@@ -56,7 +56,8 @@ def get_issue_summary(scope: str = 'all') -> list:
         low=Count('id', filter=Q(priority__iexact='Low')),
         medium=Count('id', filter=Q(priority__iexact='Medium')),
         high=Count('id', filter=Q(priority__iexact='High')),
-        closed=Count('id', filter=Q(status__iexact='Closed')),
+        resolved=Count('id', filter=Q(status__iexact=Issue.STATUS_RESOLVED)),
+        closed=Count('id', filter=Q(status__iexact=Issue.STATUS_CLOSED)),
     ).order_by('-total')
 
     return [
@@ -66,6 +67,7 @@ def get_issue_summary(scope: str = 'all') -> list:
             'low': row['low'],
             'medium': row['medium'],
             'high': row['high'],
+            'resolved': row['resolved'],
             'closed': row['closed'],
         }
         for row in rows

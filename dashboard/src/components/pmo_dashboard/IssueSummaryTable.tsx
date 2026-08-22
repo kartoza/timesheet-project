@@ -27,6 +27,7 @@ const IssueSummaryTable: React.FC<IssueSummaryTableProps> = ({ title, data, empt
               <th className='px-4 py-3 text-right'>Low</th>
               <th className='px-4 py-3 text-right'>Medium</th>
               <th className='px-4 py-3 text-right'>High</th>
+              <th className='px-4 py-3 text-right'>Resolved</th>
               <th className='px-4 py-3 text-right'>Closed</th>
             </tr>
           </thead>
@@ -38,6 +39,7 @@ const IssueSummaryTable: React.FC<IssueSummaryTableProps> = ({ title, data, empt
                 <td className='px-4 py-3 text-right text-slate-600 dark:text-slate-400 text-sm'>{row.low}</td>
                 <td className='px-4 py-3 text-right text-slate-600 dark:text-slate-400 text-sm'>{row.medium}</td>
                 <td className='px-4 py-3 text-right text-slate-600 dark:text-slate-400 text-sm'>{row.high}</td>
+                <td className='px-4 py-3 text-right text-slate-600 dark:text-slate-400 text-sm'>{row.resolved}</td>
                 <td className='px-4 py-3 text-right text-slate-600 dark:text-slate-400 text-sm'>{row.closed}</td>
               </tr>
             ))}
