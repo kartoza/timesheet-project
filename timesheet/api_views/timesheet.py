@@ -144,17 +144,22 @@ class TimesheetSerializer(serializers.ModelSerializer):
             root = parent.get_root_ancestor()
             related.append(root.id)
             related += [d.id for d in root.get_all_descendants()]
+        elif instance.parent:
+            root = instance.get_root_ancestor()
+            related.append(root.id)
+            related += [d.id for d in root.get_all_descendants()]
         if instance.children.count() > 0:
             related += [d.id for d in instance.get_all_descendants()]
         # Exclude self from the update set
-        related = [rid for rid in related if rid != instance.id]
+        related = [rid for rid in set(related) if rid != instance.id]
         if len(related) > 0:
             Timelog.objects.filter(
                 id__in=related
             ).update(
                 description=instance.description,
                 task=instance.task,
-                activity=instance.activity
+                activity=instance.activity,
+                project=instance.project
             )
 
         return instance

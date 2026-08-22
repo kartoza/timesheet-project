@@ -353,6 +353,22 @@ export function TimeLogItem(prop : TimeLogItemProps)    {
 
     useEffect(() => {
         fetch('/api/activity-list/').then(r => r.json()).then(setActivities);
+    }, []);
+
+    // The description shown below reads straight from props, so it always
+    // stays current. These selections are copied into local state for the
+    // Autocomplete widgets, so they need to be re-synced whenever the
+    // underlying timelog (e.g. the currently running one) changes them.
+    useEffect(() => {
+        setSelectedActivity(prop.activity_id ? { id: prop.activity_id, label: prop.activity_type } : null);
+    }, [prop.activity_id, prop.activity_type]);
+
+    useEffect(() => {
+        setSelectedProject(prop.project_id ? { id: prop.project_id, label: prop.project_name } : null);
+    }, [prop.project_id, prop.project_name]);
+
+    useEffect(() => {
+        setSelectedTask(prop.task_id ? { id: prop.task_id, label: prop.task_name } : null);
         if (prop.project_id) {
             fetch(`/api/task-list/${prop.project_id}/`).then(r => r.json()).then(json => {
                 const coloredTasks = json.map((d: any) => ({ ...d, color: getColorFromTaskLabel(d.label) }));
@@ -362,8 +378,10 @@ export function TimeLogItem(prop : TimeLogItemProps)    {
                     if (matched) setSelectedTask(matched);
                 }
             });
+        } else {
+            setTasks([]);
         }
-    }, []);
+    }, [prop.project_id, prop.task_id, prop.task_name]);
 
     useEffect(() => {
         if (projectInput.length <= 1) return;
