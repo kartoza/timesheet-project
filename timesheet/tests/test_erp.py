@@ -18,6 +18,8 @@ from timesheet.utils.erp import (
     pull_project_members_from_erp,
     pull_department_from_erp,
     pull_user_data_from_erp,
+    compute_sales_totals_by_project,
+    get_exchange_rate,
     ProjectsNotFound,
     _resolve_issue_customer,
 )
@@ -109,8 +111,11 @@ class TestPullProjectsFromErp(TestCase):
         self.user.profile.save()
 
     def _mock_erp(self, mock, projects):
-        # pull_projects_from_erp calls get_erp_data three times: projects, tasks, activities.
-        mock.side_effect = [projects, [], []]
+        # pull_projects_from_erp -> pull_projects_only_from_erp calls get_erp_data for:
+        # projects, then inside compute_sales_totals_by_project (companies, items,
+        # fallback_candidates - the further order/linked_items lookups are skipped when
+        # there's nothing found to look up), then tasks, then activities.
+        mock.side_effect = [projects, [], [], [], [], []]
 
     def test_raises_when_no_projects(self, mock_get_erp_data):
         self._mock_erp(mock_get_erp_data, [])
@@ -180,6 +185,135 @@ class TestPullProjectsFromErp(TestCase):
         self._mock_erp(mock_get_erp_data, [dict(ERP_PROJECT_DATA, project_lead='')])
         pull_projects_from_erp(self.user)
         self.assertIsNone(Project.objects.get(name='ERP Project Alpha').project_lead)
+
+
+COMPANIES = [
+    {'name': 'Kartoza (Pty) Ltd', 'default_currency': 'ZAR'},
+    {'name': 'Kartoza Lda', 'default_currency': 'EUR'},
+]
+
+
+@patch('requests.get')
+@patch('timesheet.utils.erp.get_erp_data')
+class TestComputeSalesTotalsByProject(TestCase):
+    """compute_sales_totals_by_project(user, project_names) call sequence:
+
+    1. companies
+    2. items            (Sales Order Item, custom_project in project_names)
+    3. fallback_candidates (Sales Order, docstatus=1 and project in project_names)
+    4. orders           (Sales Order, name in [item parents] | [candidate names]) -
+                         only called if that union is non-empty
+    5. linked_items     (Sales Order Item, parent in candidate names, custom_project is set) -
+                         only called if there are fallback candidates
+    """
+
+    def test_empty_project_names_returns_empty_without_any_calls(self, mock_get_erp_data, mock_requests_get):
+        totals = compute_sales_totals_by_project(None, [])
+
+        self.assertEqual(totals, {})
+        mock_get_erp_data.assert_not_called()
+
+    def test_item_level_link_sums_base_net_amount(self, mock_get_erp_data, mock_requests_get):
+        items = [{'parent': 'SO-A', 'custom_project': 'Project X', 'base_net_amount': 600.0, 'delivery_date': '2026-01-01'}]
+        fallback_candidates = []
+        orders = [{'name': 'SO-A', 'company': 'Kartoza (Pty) Ltd', 'docstatus': 1, 'delivery_date': '2026-01-01'}]
+        mock_get_erp_data.side_effect = [COMPANIES, items, fallback_candidates, orders]
+
+        totals = compute_sales_totals_by_project(None, ['Project X'])
+
+        self.assertEqual(totals, {'Project X': 600.0})
+        mock_requests_get.assert_not_called()
+
+    def test_fallback_to_order_project_when_no_items_linked(self, mock_get_erp_data, mock_requests_get):
+        items = []
+        fallback_candidates = [{
+            'name': 'SO-B', 'project': 'Fallback Project', 'company': 'Kartoza (Pty) Ltd',
+            'docstatus': 1, 'base_net_total': 500.0, 'delivery_date': '2026-01-02',
+        }]
+        orders = fallback_candidates
+        linked_items = []
+        mock_get_erp_data.side_effect = [COMPANIES, items, fallback_candidates, orders, linked_items]
+
+        totals = compute_sales_totals_by_project(None, ['Fallback Project'])
+
+        self.assertEqual(totals, {'Fallback Project': 500.0})
+
+    def test_fallback_excluded_when_order_has_any_item_level_link(self, mock_get_erp_data, mock_requests_get):
+        # SO-C is a candidate (project=Target Project) but has an item linked to some OTHER
+        # project - per Juanique's rule, that makes it item-linked data, not eligible for
+        # the parent-field fallback, even though none of its items point at *our* target.
+        items = []
+        fallback_candidates = [{
+            'name': 'SO-C', 'project': 'Target Project', 'company': 'Kartoza (Pty) Ltd',
+            'docstatus': 1, 'base_net_total': 500.0, 'delivery_date': '2026-01-02',
+        }]
+        orders = fallback_candidates
+        linked_items = [{'parent': 'SO-C', 'custom_project': 'Some Other Project'}]
+        mock_get_erp_data.side_effect = [COMPANIES, items, fallback_candidates, orders, linked_items]
+
+        totals = compute_sales_totals_by_project(None, ['Target Project'])
+
+        self.assertEqual(totals, {})
+
+    def test_non_zar_company_converted_using_delivery_date_rate(self, mock_get_erp_data, mock_requests_get):
+        items = []
+        fallback_candidates = [{
+            'name': 'SO-D', 'project': 'EUR Project', 'company': 'Kartoza Lda',
+            'docstatus': 1, 'base_net_total': 500.0, 'delivery_date': '2026-01-02',
+        }]
+        orders = fallback_candidates
+        linked_items = []
+        mock_get_erp_data.side_effect = [COMPANIES, items, fallback_candidates, orders, linked_items]
+        mock_response = mock_requests_get.return_value
+        mock_response.status_code = 200
+        mock_response.json.return_value = {'rates': {'ZAR': 20.0}}
+
+        totals = compute_sales_totals_by_project(None, ['EUR Project'])
+
+        self.assertEqual(totals, {'EUR Project': 10000.0})
+        called_url = mock_requests_get.call_args.args[0]
+        self.assertIn('2026-01-02', called_url)
+        self.assertIn('base=EUR', called_url)
+
+
+@patch('requests.get')
+class TestGetExchangeRate(TestCase):
+    def _mock_ok(self, mock_requests_get, rate=20.0):
+        mock_response = mock_requests_get.return_value
+        mock_response.status_code = 200
+        mock_response.json.return_value = {'rates': {'ZAR': rate}}
+
+    def test_same_currency_skips_request(self, mock_requests_get):
+        rate = get_exchange_rate('2026-01-01', 'ZAR', 'ZAR')
+        self.assertEqual(rate, 1.0)
+        mock_requests_get.assert_not_called()
+
+    def test_past_date_uses_historical_endpoint(self, mock_requests_get):
+        self._mock_ok(mock_requests_get)
+        get_exchange_rate('2026-01-01', 'EUR')
+        called_url = mock_requests_get.call_args.args[0]
+        self.assertIn('/v1/2026-01-01', called_url)
+
+    def test_future_date_falls_back_to_latest(self, mock_requests_get):
+        # frankfurter.dev 404s for dates that haven't happened yet - common for
+        # Sales Order Items with a future delivery_date milestone.
+        self._mock_ok(mock_requests_get)
+        get_exchange_rate('2099-01-01', 'EUR')
+        called_url = mock_requests_get.call_args.args[0]
+        self.assertIn('/v1/latest', called_url)
+        self.assertNotIn('2099-01-01', called_url)
+
+    def test_missing_date_falls_back_to_latest(self, mock_requests_get):
+        self._mock_ok(mock_requests_get)
+        get_exchange_rate(None, 'EUR')
+        called_url = mock_requests_get.call_args.args[0]
+        self.assertIn('/v1/latest', called_url)
+
+    def test_malformed_date_falls_back_to_latest(self, mock_requests_get):
+        self._mock_ok(mock_requests_get)
+        get_exchange_rate('not-a-date', 'EUR')
+        called_url = mock_requests_get.call_args.args[0]
+        self.assertIn('/v1/latest', called_url)
 
 
 @patch('timesheet.utils.erp.get_erp_project_detail')
