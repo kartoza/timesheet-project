@@ -26,8 +26,8 @@ import {
     clampToToday,
     exceedsMaxRange,
     formatDateRange,
+    maxSelectableDate,
     thisWeekRange,
-    today,
     weekOptions
 } from "../utils/dateRange";
 
@@ -168,7 +168,7 @@ function DateRangeFilter({value, onChange}: DateRangeFilterProps) {
                             <DateCalendar
                                 value={pendingStart ?? value.start}
                                 onChange={dayClicked}
-                                maxDate={today()}
+                                maxDate={maxSelectableDate()}
                                 slots={{day: renderDay}}
                             />
                         </LocalizationProvider>
