@@ -1,5 +1,6 @@
 import {
     addDays,
+    addWeeks,
     differenceInCalendarDays,
     endOfWeek,
     format,
@@ -26,8 +27,12 @@ export const exceedsMaxRange = (start: Date, end: Date) =>
 // Weeks start on Monday, matching how the timesheet week is reported.
 export const weekOptions = {weekStartsOn: 1 as const};
 
-/** Today with the time stripped: the latest day that can be selected. */
+/** Today with the time stripped. */
 export const today = () => startOfDay(new Date());
+
+/** Friday of next week — the latest day that can be selected in the picker. */
+export const maxSelectableDate = () =>
+    addDays(startOfWeek(addWeeks(new Date(), 1), weekOptions), 4);
 
 /** Trim a range so that it never reaches into the future. */
 export const clampToToday = ({start, end}: DateRange): DateRange => {
