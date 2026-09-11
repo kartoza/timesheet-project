@@ -246,6 +246,10 @@ export function TimeLogItem(prop : TimeLogItemProps)    {
     const [editingDescription, setEditingDescription] = useState(false);
     const [descriptionValue, setDescriptionValue] = useState('');
     const descriptionEditorRef = useRef<HTMLDivElement>(null);
+    const descriptionValueRef = useRef('');
+    const propRef = useRef(prop);
+    useEffect(() => { descriptionValueRef.current = descriptionValue; }, [descriptionValue]);
+    useEffect(() => { propRef.current = prop; }, [prop]);
 
     useEffect(() => {
         if (!editingDescription) return;
@@ -265,8 +269,23 @@ export function TimeLogItem(prop : TimeLogItemProps)    {
 
         const handleMouseDown = (e: MouseEvent) => {
             if (descriptionEditorRef.current && !descriptionEditorRef.current.contains(e.target as Node)) {
+                const p = propRef.current;
+                const currentValue = descriptionValueRef.current;
                 setEditingDescription(false);
                 setDescriptionValue('');
+                const normalized = currentValue === '<p><br></p>' ? '' : currentValue;
+                if (normalized === (p.description || '')) return;
+                updateTimesheet({
+                    id: p.id,
+                    task: { id: p.task_id || '-' },
+                    activity: { id: p.activity_id },
+                    project: { id: p.project_id || '' },
+                    description: normalized,
+                    start_time: p.from_time,
+                    end_time: p.to_time || null,
+                    is_paused: p.is_paused,
+                    editing: !!p.to_time,
+                }).catch((e: any) => console.error('Failed to auto-save description', e));
             }
         };
         document.addEventListener('mousedown', handleMouseDown);

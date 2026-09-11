@@ -4,7 +4,6 @@ import { Provider } from 'react-redux';
 import './index.scss';
 import reportWebVitals from './reportWebVitals';
 import { store } from './app/store';
-import Map from './components/Map';
 
 
 const root = ReactDOM.createRoot(
@@ -12,7 +11,6 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <Provider store={store}>
-    <Map/>
   </Provider>
 );
 
