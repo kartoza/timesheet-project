@@ -1377,7 +1377,17 @@ function AppContent() {
                                                 if (descriptionSaveTimeoutRef.current) {
                                                     clearTimeout(descriptionSaveTimeoutRef.current);
                                                 }
-                                                saveDescription(true);
+                                                // Delay so focus can settle — if it moved into the Quill
+                                                // toolbar or link tooltip, don't save yet. The link
+                                                // insertion will fire onChange and the 800ms auto-save
+                                                // will pick it up with the link included.
+                                                descriptionSaveTimeoutRef.current = setTimeout(() => {
+                                                    const active = document.activeElement;
+                                                    if (active?.closest('.ql-toolbar') || active?.closest('.ql-tooltip')) {
+                                                        return;
+                                                    }
+                                                    saveDescription(true);
+                                                }, 100);
                                             }}
                                             style={{minHeight: '150px'}}
                                         />
