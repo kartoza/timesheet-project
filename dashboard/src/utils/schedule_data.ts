@@ -1,5 +1,6 @@
 import randomColor from 'randomcolor'
 import {getColorFromTaskLabel} from "./Theme";
+import {classifyItem} from "./scheduleItem";
 
 const publicTimelineId = (window as any).publicTimelineId;
 
@@ -58,6 +59,34 @@ export function buildScheduleInfo(
   return infoParts.join(' : ')
 }
 
+const ITEM_SELECTED_COLOR = '#c19e16'
+
+/** Turn a schedule returned by the API into an item for the planner timeline */
+export function mapScheduleToItem(schedule: any) {
+  const {isLeave, isHoliday, isKartozaSpecial, showsAsNote} = classifyItem(
+    Object.assign({}, schedule, {desc: schedule.title})
+  )
+  const isEditable = !!(window as any).isStaff && schedule.task_label !== '-' &&
+    !isKartozaSpecial && !isHoliday
+  const canInteract = !isLeave && (isEditable || showsAsNote)
+  return Object.assign({}, schedule, {
+    title: isLeave ? schedule.task_name : (isHoliday || isKartozaSpecial ? schedule.title : (showsAsNote ? schedule.notes || 'Note' : schedule.task_name)),
+    info: buildScheduleInfo(schedule.project_name, schedule.task_label, schedule.user, schedule.notes),
+    desc: schedule.title,
+    start: resetTimeInDate(schedule.start_time),
+    end: resetTimeInDate(schedule.end_time, 1),
+    project_id: schedule.project_id === undefined || schedule.project_id === null ? '' : schedule.project_id + '',
+    color: '#FFF',
+    bgColor: isLeave ? '#5a5a5a' : (isHoliday ? '#42BF8B' : (isKartozaSpecial ? '#626262' : (showsAsNote ? '#9370DB' : getColorFromTaskLabel(schedule.task_label)))),
+    selectedBgColor: ITEM_SELECTED_COLOR,
+    canSelect: canInteract,
+    canChangeGroup: false,
+    canMove: canInteract,
+    canResize: canInteract,
+    hoursPerDay: schedule.hours_per_day
+  })
+}
+
 export function deleteSchedule(scheduleId: string) {
   const formData = new FormData()
   formData.append('schedule_id', scheduleId)
@@ -73,33 +102,9 @@ export function deleteSchedule(scheduleId: string) {
     .then(response => response.json())
     .then((result: any) => {
       const items: any = {}
-      for (let i = 0; i < result['updated'].length; i++) {
-          let item = result['updated'][i];
-          const _isPublicHoliday = item.task_name === 'Public holiday' ||
-                                   (item.title && item.title.toLowerCase().includes('holiday'));
-          const isKartozaProject = item.project_name && item.project_name.includes('Kartoza');
-          const hasHtmlContent = (item.title && (item.title.includes('<div') || item.title.includes('<p>'))) ||
-                                (item.notes && (item.notes.includes('<div') || item.notes.includes('<p>')));
-          const isKartozaSpecial = !_isPublicHoliday && isKartozaProject && hasHtmlContent && item.task_label === '-';
-          const isNoteOnly = !_isPublicHoliday && !isKartozaSpecial && (!item.task_id || item.task_id === null || item.task_id === '');
-          items[item.id] = {
-            id: item.id,
-            start: resetTimeInDate(item.start_time),
-            end: resetTimeInDate(item.end_time, 1),
-            title: _isPublicHoliday || isKartozaSpecial ? item.title : (isNoteOnly ? item.notes || 'Note' : item.task_name),
-            info: buildScheduleInfo(item.project_name, item.task_label, item.user, item.notes),
-            group: item.group,
-            desc: item.title,
-            first_day: item.first_day,
-            last_day: item.last_day,
-            notes: item.notes,
-            task_id: item.task_id,
-            project_id: item.project_id + '',
-            task_label: item.task_label,
-            bgColor: _isPublicHoliday ? '#42BF8B' : (isKartozaSpecial ? '#626262' : (isNoteOnly ? '#9370DB' : getColorFromTaskLabel(item.task_label))),
-            hoursPerDay: item.hours_per_day
-          }
-        }
+      for (const item of result['updated']) {
+        items[item.id] = mapScheduleToItem(item)
+      }
       return {
         'removed': result['removed'],
         'updated': items
@@ -138,32 +143,8 @@ export function updateSchedule(scheduleId: number, startTime: number, endTime: n
     .then((results: any) => {
       if (results) {
         const items: any = {}
-        for (let i = 0; i < results.length; i++) {
-          let result = results[i];
-          const _isPublicHoliday = result.task_name === 'Public holiday' ||
-                                   (result.title && result.title.toLowerCase().includes('holiday'));
-          const isKartozaProject = result.project_name && result.project_name.includes('Kartoza');
-          const hasHtmlContent = (result.title && (result.title.includes('<div') || result.title.includes('<p>'))) ||
-                                (result.notes && (result.notes.includes('<div') || result.notes.includes('<p>')));
-          const isKartozaSpecial = !_isPublicHoliday && isKartozaProject && hasHtmlContent && result.task_label === '-';
-          const isNoteOnly = !_isPublicHoliday && !isKartozaSpecial && (!result.task_id || result.task_id === null || result.task_id === '');
-          items[result.id] = {
-            id: result.id,
-            start: resetTimeInDate(result.start_time),
-            end: resetTimeInDate(result.end_time, 1),
-            title: _isPublicHoliday || isKartozaSpecial ? result.title : (isNoteOnly ? result.notes || 'Note' : result.task_name),
-            desc: result.title,
-            info: buildScheduleInfo(result.project_name, result.task_label, result.user, result.notes),
-            group: result.group,
-            first_day: result.first_day,
-            last_day: result.last_day,
-            notes: result.notes,
-            task_id: result.task_id,
-            task_label: result.task_label,
-            project_id: result.project_id + '',
-            bgColor: _isPublicHoliday ? '#42BF8B' : (isKartozaSpecial ? '#626262' : (isNoteOnly ? '#9370DB' : getColorFromTaskLabel(result.task_label))),
-            hoursPerDay: result.hours_per_day
-          }
+        for (const result of results) {
+          items[result.id] = mapScheduleToItem(result)
         }
         return  items;
       }

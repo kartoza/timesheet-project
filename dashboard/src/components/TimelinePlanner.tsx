@@ -1,5 +1,5 @@
 import React, {
-  useEffect, useState, useCallback, useRef, forwardRef, useImperativeHandle
+  useEffect, useState, useCallback, useRef, useMemo, forwardRef, useImperativeHandle
 } from "react";
 import moment from "moment";
 
@@ -12,25 +12,31 @@ import {
   fetchSchedules,
   fetchSlottedProjects,
   updateSchedule,
-  buildScheduleInfo
+  mapScheduleToItem
 } from "../utils/schedule_data";
-import {getColorFromTaskLabel, getTaskColor} from "../utils/Theme";
+import {classifyItem} from "../utils/scheduleItem";
+import {computeUtilisation, Utilisation} from "../utils/utilisation";
+import {
+  OpenCloseStatus, PlannerFilters, FilterOption, DEFAULT_FILTERS, STORAGE_KEY,
+  currentUserId, hasActiveFilters, itemPassesFilters, loadStoredState
+} from "../utils/plannerFilters";
+import {getTaskColor} from "../utils/Theme";
 import '../styles/Planner.scss';
 import ItemForm, {ItemTaskInterface} from "./TimelineItemForm";
+import {SIDEBAR_WIDTH, TimelineNavigation, TimelineSearchInput} from "./PlannerControls";
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import ClearIcon from '@mui/icons-material/Clear';
+import CloseIcon from '@mui/icons-material/Close';
+import EditIcon from '@mui/icons-material/Edit';
 import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
-import {Button, TextField, InputAdornment, Backdrop, CircularProgress, Typography, Popover} from "@mui/material";
+import {
+  Alert, Button, Backdrop, CircularProgress, Dialog, DialogActions, DialogContent,
+  DialogContentText, DialogTitle, Popover, Snackbar
+} from "@mui/material";
 import TimelineProjectForm from "./TimelineProjectForm";
-import SearchIcon from '@mui/icons-material/Search';
 const CircularMenu = React.lazy(() => import('./Menu'));
 
 export const canEdit = (window as any).isStaff
-
-enum OpenCloseStatus {
-    OPEN = "OPEN",
-    CLOSE = "CLOSE"
-}
 
 let keys = {
   groupIdKey: "id",
@@ -49,11 +55,13 @@ interface ItemInterface {
   id: string,
   start: number,
   end: number,
-  group?: number,
-  originalGroup?: number,
+  group?: number | string,
+  // Set on the rows shown on a collapsed person, which mirror a real item
+  originalGroup?: number | string,
   originalId?: string,
   project_id?: string,
   title?: string,
+  task_name?: string,
   info?: string,
   color?: string,
   bgColor?: string,
@@ -77,106 +85,174 @@ export interface GroupInterface {
 }
 
 interface TimelinePlannerInterface {
-  searchValue?: string
+  searchValue?: string,
+  filters?: PlannerFilters,
+  onRangeChange?: (start: number, end: number) => void,
+  onGroupsLoaded?: (groups: GroupInterface[]) => void
+}
+
+interface ConfirmState {
+  title: string,
+  message: string,
+  confirmLabel: string,
+  onConfirm: () => void
+}
+
+interface ToastState {
+  message: string,
+  severity: 'error' | 'success' | 'info'
 }
 
 export default function TimelineDashboard() {
-  const timelinePlanner = useRef(null);
-  const [searchText, setSearchText] = useState<string | undefined>(undefined)
-  const toggleAllGroups = (newStatus: OpenCloseStatus) => {
-    if (timelinePlanner.current) {
-      (timelinePlanner.current as any).toggleAllGroups(newStatus);
+  const timelinePlanner = useRef<any>(null);
+  const [stored] = useState(loadStoredState)
+  const [searchText, setSearchText] = useState<string | undefined>(stored.searchText)
+  const [filters, setFilters] = useState<PlannerFilters>(stored.filters || DEFAULT_FILTERS)
+  const [range, setRange] = useState<{start: number, end: number} | null>(null)
+  const [options, setOptions] = useState<{projects: FilterOption[], people: FilterOption[]}>(
+    {projects: [], people: []}
+  )
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({searchText, filters}))
+    } catch (e) {
+      // storage can be unavailable (private mode), the planner still works
     }
-  }
+  }, [searchText, filters])
+
+  const handleGroupsLoaded = useCallback((groups: GroupInterface[]) => {
+    const projects = new Map<string, string>()
+    const people = new Map<string, string>()
+    for (const group of groups) {
+      if (group.root) {
+        if (group.userId) people.set(String(group.userId), group.rightTitle || group.title)
+      } else if (group.projectId) {
+        projects.set(String(group.projectId), group.rightTitle || group.title)
+      }
+    }
+    const toOptions = (map: Map<string, string>) => Array.from(map.entries())
+      .map(([id, label]) => ({id, label}))
+      .sort((a, b) => a.label.localeCompare(b.label))
+    setOptions({projects: toOptions(projects), people: toOptions(people)})
+  }, [])
+
+  const handleRangeChange = useCallback((start: number, end: number) => setRange({start, end}), [])
 
   return (
-    <div>
+    <div className={'planner-page'}>
       <CircularMenu/>
-      <TimelineSearchInput searchValue={searchText} onChange={(value) => setSearchText(value)} toggleAllGroups={toggleAllGroups} />
-      <TimelinePlanner searchValue={searchText} ref={timelinePlanner}/>
+      <TimelineSearchInput searchValue={searchText}
+                           onChange={(value) => setSearchText(value)}
+                           toggleAllGroups={(newStatus) => timelinePlanner.current?.toggleAllGroups(newStatus)}/>
+      <TimelineNavigation planner={timelinePlanner} range={range}
+                          filters={filters} onFiltersChange={setFilters} options={options}/>
+      <TimelinePlanner searchValue={searchText} filters={filters} ref={timelinePlanner}
+                       onRangeChange={handleRangeChange} onGroupsLoaded={handleGroupsLoaded}/>
     </div>
   )
 }
 
 const ItemSelectedColor = '#c19e16'
 
-function TimelineSearchInput({searchValue, onChange, toggleAllGroups}) {
-  const [searchText, setSearchText] = useState<string>('')
-  const [focus, setFocus] = useState<boolean>(true)
-  const [currentToggle, setCurrentToggle] = (
-      useState<OpenCloseStatus>(OpenCloseStatus.OPEN)
-  )
-
-  useEffect(() => {
-    setSearchText(searchValue);
-  }, [searchValue]);
-
-  useEffect(() => {
-    setFocus(true)
-  }, [searchText])
-
-  const Icon = (
-      currentToggle === OpenCloseStatus.OPEN ? IndeterminateCheckBoxIcon : AddBoxIcon
-  )
-
-  return (<TextField id="timeline-filter"
-                 style={{
-                   width: '225px', zIndex: 999,
-                   position: 'fixed', backgroundColor: '#FFF'
-                 }}
-                 hiddenLabel
-                 variant="filled"
-                 size={'small'}
-                 value={searchText}
-                 focused={focus}
-                 className={'timeline-filter'}
-                 onChange={(e) => {
-                   const caretStart = e.target.selectionStart;
-                   const caretEnd = e.target.selectionEnd;
-                   const value = e.target.value;
-                   setSearchText(value);
-                   onChange(value);
-                   e.target.setSelectionRange(caretStart, caretEnd);
-                 }}
-                 InputProps={{
-                   startAdornment: (<InputAdornment position="start">
-                     <SearchIcon/>
-                   </InputAdornment>),
-                   endAdornment: (<InputAdornment position="end">
-                     <Icon style={{ cursor: 'pointer', color: searchText ? 'gray' : 'black' }}
-                                                onClick={() => {
-                                                  if (searchText) {
-                                                    return;
-                                                  }
-                                                  if (currentToggle === OpenCloseStatus.CLOSE) {
-                                                    toggleAllGroups(OpenCloseStatus.OPEN)
-                                                    setCurrentToggle(OpenCloseStatus.OPEN)
-                                                  } else {
-                                                    toggleAllGroups(OpenCloseStatus.CLOSE);
-                                                    setCurrentToggle(OpenCloseStatus.CLOSE);
-                                                  }
-                                                  return;
-                                                }}/>
-                   </InputAdornment>)
-                 }}
-  />)
-}
-
+// The visible window is fixed to 30 days (minZoom === maxZoom on the timeline)
+const VISIBLE_RANGE = 60 * 60 * 1000 * 24 * 30
+const WEEK = 60 * 60 * 1000 * 24 * 7
 const DEFAULT_TIME_START = moment()
       .startOf("week")
       .valueOf()
-const DEFAULT_TIME_END = moment()
-      .startOf("week")
-      .add(3, "week")
-      .valueOf()
+const DEFAULT_TIME_END = DEFAULT_TIME_START + VISIBLE_RANGE
+
+const stripHtml = (text: string) => {
+  if (text && text.includes('<')) {
+    return new DOMParser().parseFromString(text, 'text/html').body.textContent || text;
+  }
+  return text;
+}
+
+const formatItemDate = (time: number) => moment(time).format('ddd, D MMM YYYY')
+
+const getBaseScheduleId = (item: ItemInterface | null | undefined) => {
+  if (!item) return null;
+  return item.originalId ? item.originalId : item.id;
+}
+
+const mergeUpdatedSchedules = (currentItems: ItemInterface[], updatedSchedules: any) => {
+  return currentItems.map((currentItem) => {
+    const updated = updatedSchedules ? updatedSchedules[currentItem.id] : null;
+    return updated ? Object.assign({}, currentItem, updated) : currentItem;
+  })
+}
+
+/**
+ * The row shown on a collapsed person for an item that lives on one of their
+ * (hidden) project rows. It is derived, never stored.
+ */
+const toCollapsedItem = (item: ItemInterface, projectGroup: GroupInterface): ItemInterface => (
+  Object.assign({}, item, {
+    id: `collapsed-${item.id}`,
+    originalId: item.id + '',
+    originalGroup: item.group,
+    color: '#FFF',
+    selectedBgColor: ItemSelectedColor,
+    canMove: false,
+    canResize: false,
+    group: projectGroup.parent,
+    title: projectGroup.title
+  })
+)
+
+/** Keep the groups matching the search text, a person matches through their projects and the other way round */
+const searchGroups = (groups: GroupInterface[], searchText: string) => {
+  const searchValue = searchText.toLowerCase()
+  const matches = (group: GroupInterface) => (
+    (group.rightTitle ? group.rightTitle.toLowerCase() : '').includes(searchValue)
+  )
+  return groups.filter(group => {
+    if (matches(group)) return true
+    if (group.root) {
+      return groups.some(child => !child.root && String(child.parent) === String(group.id) && matches(child))
+    }
+    const parent = groups.find(root => String(root.id) === String(group.parent))
+    return !!parent && matches(parent)
+  })
+}
+
+const filterGroupsByPerson = (groupList: GroupInterface[], allGroups: GroupInterface[], filters?: PlannerFilters) => {
+  if (!filters) return groupList
+  const personId = filters.onlyMe ? currentUserId : filters.personId
+  if (!personId && !filters.projectId) return groupList
+  return groupList.filter(group => {
+    if (group.root) {
+      if (personId && String(group.userId) !== String(personId)) return false
+      if (filters.projectId) {
+        return groupList.some(child => !child.root && String(child.parent) === String(group.id) &&
+          String(child.projectId) === String(filters.projectId))
+      }
+      return true
+    }
+    const parent = allGroups.find(root => root.root && String(root.id) === String(group.parent))
+    if (personId && (!parent || String(parent.userId) !== String(personId))) return false
+    if (filters.projectId && String(group.projectId) !== String(filters.projectId)) return false
+    return true
+  })
+}
+
+const UtilisationBadge = ({utilisation, week}: {utilisation?: Utilisation, week: number}) => {
+  if (!utilisation || utilisation.capacity === 0 && utilisation.booked === 0) return null
+  const level = utilisation.percent > 100 || utilisation.overbookedDays > 0 ? 'over' :
+    (utilisation.percent >= 80 ? 'ok' : 'under')
+  const title = `${utilisation.booked} of ${utilisation.capacity} available hours booked in the week of ${moment(week).format('D MMM')}` +
+    (utilisation.overbookedDays > 0 ? `, overbooked on ${utilisation.overbookedDays} day(s)` : '')
+  return <span className={`utilisation-badge utilisation-${level}`} title={title}>{utilisation.percent}%</span>
+}
 
 const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
   const [groups, setGroups] = useState<GroupInterface[]>([])
-  const [renderedGroups, setRenderedGroups] = useState<GroupInterface[]>([])
   const [items, setItems] = useState<ItemInterface[]>([])
-  const [renderedItems, setRenderedItems] = useState<ItemInterface[]>([]);
+  // People whose project rows are folded away, everyone else is expanded
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({})
   const [selectedItem, setSelectedItem] = useState<ItemInterface | null>(null)
-  const [openGroups, setOpenGroups] = useState<any>({})
   const [openForm, setOpenForm] = useState<boolean>(false)
   const [openProjectForm, setOpenProjectForm] = useState<boolean>(false)
   const [selectedGroup, setSelectedGroup] = useState<GroupInterface | null>(null)
@@ -186,38 +262,44 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
   const [isUserRowNote, setIsUserRowNote] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
-  const [popoverText, setPopoverText] = useState<string>('')
+  const [popoverContent, setPopoverContent] = useState<React.ReactNode>(null)
+  const [pendingSaves, setPendingSaves] = useState<number>(0)
+  const [toast, setToast] = useState<ToastState | null>(null)
+  const [confirmState, setConfirmState] = useState<ConfirmState | null>(null)
+  const [visibleTime, setVisibleTime] = useState({start: DEFAULT_TIME_START, end: DEFAULT_TIME_END})
 
-  const getBaseScheduleId = (item: ItemInterface | null | undefined) => {
-    if (!item) return null;
-    return item.originalId ? item.originalId : item.id;
-  }
+  useEffect(() => {
+    if (props.onRangeChange) props.onRangeChange(visibleTime.start, visibleTime.end)
+  }, [visibleTime])
 
-  const mergeUpdatedSchedules = (currentItems: ItemInterface[], updatedSchedules: any) => {
-    return currentItems.map((currentItem) => {
-      const baseId = getBaseScheduleId(currentItem);
-      const updated = baseId ? updatedSchedules[baseId] : null;
-      if (!updated) return currentItem;
-      const merged = Object.assign({}, currentItem, updated);
-      if (currentItem.originalId) {
-        merged.id = currentItem.id;
-        merged.group = currentItem.group;
-        merged.originalId = currentItem.originalId;
-        merged.originalGroup = currentItem.originalGroup;
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const groupsData: GroupInterface[] = await fetchSlottedProjects()
+        if (groupsData.length > 0) {
+          setGroups(groupsData)
+          if (props.onGroupsLoaded) props.onGroupsLoaded(groupsData)
+          const schedules: any[] = await fetchSchedules()
+          setItems(schedules.map(mapScheduleToItem))
+        }
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setLoading(false)
       }
-      return merged;
-    })
-  }
-
-  const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>, text: string) => {
-    let updatedText: any = text;
-    if (text && (text.includes('<div') || text.includes('<p>') || text.includes('<'))) {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(text, 'text/html');
-      // Extract text content from body, which strips all HTML tags
-      updatedText = doc.body.textContent || text;
     }
-    setPopoverText(updatedText)
+    load()
+  }, [])
+
+  const trackSave = useCallback(<T,>(promise: Promise<T>): Promise<T> => {
+    setPendingSaves(count => count + 1)
+    const done = () => setPendingSaves(count => count - 1)
+    promise.then(done, done)
+    return promise
+  }, [])
+
+  const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>, content: React.ReactNode) => {
+    setPopoverContent(content)
     setAnchorEl(event.currentTarget);
   };
 
@@ -227,374 +309,223 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
 
   const popoverOpen = Boolean(anchorEl);
 
+  // Derived rows ---------------------------------------------------------
+  const rootsWithChildren = useMemo(() => (
+    new Set(groups.filter(group => !group.root).map(group => String(group.parent)))
+  ), [groups])
+
+  const isRootOpen = useCallback((rootId) => (
+    rootsWithChildren.has(String(rootId)) && !collapsedGroups[String(rootId)]
+  ), [rootsWithChildren, collapsedGroups])
+
+  const timelineItems = useMemo(() => {
+    const projectGroups = new Map<string, GroupInterface>()
+    groups.forEach(group => {
+      if (!group.root) projectGroups.set(String(group.id), group)
+    })
+    const collapsedItems: ItemInterface[] = []
+    for (const item of items) {
+      const projectGroup = projectGroups.get(String(item.group))
+      if (projectGroup && !isRootOpen(projectGroup.parent)) {
+        collapsedItems.push(toCollapsedItem(item, projectGroup))
+      }
+    }
+    return collapsedItems.length > 0 ? [...items, ...collapsedItems] : items
+  }, [items, groups, isRootOpen])
+
+  const renderedItems = useMemo(() => {
+    const searchValue = (props.searchValue || '').toLowerCase()
+    return timelineItems.filter(item => {
+      if (!itemPassesFilters(item, props.filters)) return false
+      if (!searchValue) return true
+      return item.info ? item.info.toLowerCase().includes(searchValue) : false
+    })
+  }, [timelineItems, props.searchValue, props.filters])
+
+  const toggleGroup = useCallback((id) => {
+    if (props.searchValue) return
+    setCollapsedGroups(current => ({...current, [String(id)]: !current[String(id)]}))
+  }, [props.searchValue])
+
+  const toggleAll = (newStatus = OpenCloseStatus.CLOSE) => {
+    if (props.searchValue) return
+    const collapsed: Record<string, boolean> = {}
+    if (newStatus === OpenCloseStatus.CLOSE) {
+      rootsWithChildren.forEach(id => { collapsed[id] = true })
+    }
+    setCollapsedGroups(collapsed)
+  }
+
   useImperativeHandle(ref, () => ({
     toggleAllGroups(newStatus = OpenCloseStatus.CLOSE) {
       toggleAll(newStatus)
     },
+    goToToday() {
+      const start = moment().startOf("week").valueOf()
+      setVisibleTime({start, end: start + VISIBLE_RANGE})
+    },
+    goToDate(time: number) {
+      const start = moment(time).startOf("week").valueOf()
+      setVisibleTime({start, end: start + VISIBLE_RANGE})
+    },
+    shiftRange(direction: number) {
+      setVisibleTime(current => ({
+        start: current.start + direction * WEEK,
+        end: current.end + direction * WEEK
+      }))
+    },
   }));
 
-  useEffect(() => {
-    setRenderedItems(items);
-  }, [items]);
-
-  const toggleAll = (newStatus = OpenCloseStatus.CLOSE) => {
-    if (typeof props.searchValue !== 'undefined' && props.searchValue !== "") {
-      return
-    }
-    const openedGroups: any[] = [];
-    for (const openGroupId of Object.keys(openGroups)) {
-      if (openGroupId !== 'undefined') {
-        if (openGroups[parseInt(openGroupId)] === (newStatus === OpenCloseStatus.CLOSE)) {
-          openedGroups.push(parseInt(openGroupId))
-        }
-      }
-    }
-    if (newStatus === OpenCloseStatus.CLOSE) {
-      const childrenGroups = groups
-        .filter(group => openedGroups.includes(group.parent))
-        .map(group => '' + group.id);
-
-      const groupItems = items
-          .filter(item => {
-            if (!item.group || !childrenGroups.includes('' + item.group)) return false;
-            if (item.task_label === '-') {
-              return !item.task_id || item.task_id === null || item.task_id === '';
-            }
-            return true;
-          })
-          .map(item => {
-              const group = item.group ? groups.find(
-                  group => parseInt(group.id, 10) === item.group
-              ) : null;
-              const baseId = item.id;
-              return Object.assign({}, item, {
-                id: `collapsed-${baseId}`,
-                originalId: baseId + '',
-                originalGroup: item.group,
-                color: '#FFF',
-                selectedBgColor: ItemSelectedColor,
-                canMove: false,
-                canResize: false,
-                group: group ? group.parent : 0,
-                title: group ? group.title : item.title
-              })
-          });
-      setItems((oldItems) => [...oldItems, ...groupItems])
-    } else {
-      const groupItems = items.filter(item => {
-        if (!item.group || !openedGroups.includes(item.group)) return false;
-        if (item.task_label === '-') {
-          const hasHtmlContent = (item.desc && (item.desc.includes('<div') || item.desc.includes('<p>'))) ||
-                                (item.notes && (item.notes.includes('<div') || item.notes.includes('<p>')));
-          return !hasHtmlContent && (!item.task_id || item.task_id === null || item.task_id === '') && item.project_id !== "";
-        }
-        return true;
-      }).map(item => item.id)
-      if (groupItems.length > 0) {
-        setItems(items.filter(item => !groupItems.includes(item.id)))
-      }
-    }
-    setOpenGroups(prevOpenGroups => {
-      let newOpenGroups = {...prevOpenGroups};
-      for (let key of Object.keys(newOpenGroups)) {
-        newOpenGroups[key] = newStatus === OpenCloseStatus.OPEN;
-      }
-      return newOpenGroups;
-    });
-  }
-
-  const removeProjectFromUser = (userId?: string, projectId?: string, groupId?: string) => {
+  const removeProjectFromUser = useCallback((userId?: string, projectId?: string, groupId?: string) => {
     if (!userId || !projectId || !groupId) return;
-    let confirmation = confirm('Are you sure?')
-    if (confirmation) {
-      setLoading(true);
-      const url = '/api/remove-user-project-slot/';
-      const formData = new FormData();
-      formData.append('user_id', userId);
-      formData.append('project_id', projectId);
-      fetch(url, {
-        credentials: 'include',
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Accept': 'application/json',
-          'X-CSRFToken': (window as any).csrftoken
-        },
-      })
-        .then(response => response.json())
-        .then((result: any) => {
-          setLoading(false);
-          if (result['detail'] === 'Not found.') {
-            alert('Could not delete the project, try again later.')
-          } else {
-            setGroups(groups.filter(group => group.id !== groupId));
-            updateGroups(renderedGroups.filter(g => g.id !== groupId));
-            setSelectedGroup(null);
-          }
+    setConfirmState({
+      title: 'Remove project',
+      message: 'Remove this project from the person\'s planning? Their scheduled items for it will no longer be shown.',
+      confirmLabel: 'Remove',
+      onConfirm: () => {
+        const url = '/api/remove-user-project-slot/';
+        const formData = new FormData();
+        formData.append('user_id', userId);
+        formData.append('project_id', projectId);
+        trackSave(fetch(url, {
+          credentials: 'include',
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Accept': 'application/json',
+            'X-CSRFToken': (window as any).csrftoken
+          },
         })
-    }
-  }
-
-  const updateGroups = (groupsData: GroupInterface[]) => {
-    let _openGroups = openGroups;
-    if (renderedGroups.length === 0) {
-      for (const group of groupsData) {
-        if (group.root) {
-          if (!(group.parent in _openGroups)) {
-            _openGroups[group.parent] = false
-          }
-        }
-        if (group.parent) {
-          _openGroups[group.parent] = true
-        }
+          .then(response => response.json())
+          .then((result: any) => {
+            if (result['detail'] === 'Not found.') {
+              setToast({message: 'Could not remove the project, try again later.', severity: 'error'})
+            } else {
+              setGroups(current => current.filter(group => group.id !== groupId));
+              setSelectedGroup(null);
+            }
+          })
+          .catch(() => setToast({message: 'Could not remove the project, try again later.', severity: 'error'})))
       }
-      setOpenGroups(_openGroups)
-    }
-    setRenderedGroups(groupsData
-      .filter(g => g.root || _openGroups[g.parent])
-      .map(group => {
-        return Object.assign({}, group, {
-          stackItems: true,
-          title: group.root ? (
-            <div className={"root-parent"} onClick={() => toggleGroup(parseInt(group.id))}>
-              {_openGroups[parseInt(group.id)] ?
-                <IndeterminateCheckBoxIcon style={{ color: props.searchValue ? 'gray' : 'black' }}/> :
-                  <AddBoxIcon style={{ color: props.searchValue ? 'gray' : 'black' }}/>} {group.rightTitle}
-                  <div className={'add-project-container'}>
-                      { canEdit ? <Button onClick={(event) => {
-                        event.stopPropagation()
-                        handleProjectAdd(group.id)
-                      }} sx={{ m: 0, p: 0 }} variant={'contained'} size={'small'} style={{ fontSize: 10, minWidth: 35 }}>Add</Button> : null }
-                  </div>
-            </div>
-          ) : (
-            <div className='project-name-container'>
-              { canEdit ?
-              <ClearIcon className='delete-project-button'
-                         onClick={() => removeProjectFromUser(group.userId, group.projectId, group.id)}/> :
-                  <div style={{ paddingLeft: 20 }}/>
-              }
-              <div>{group.rightTitle}</div>
-            </div>
-          )
-        });
-      })
-    )
-  }
-
-  const updateRenderedItems = (searchValue: string) => {
-    if (!searchValue) {
-      setRenderedItems(items)
-    } else {
-      setRenderedItems(items.filter(schedule => schedule.info ? schedule.info.toLowerCase().includes(searchValue) : false))
-    }
-  }
-
-  const filterGroups = (searchText: string) => {
-    const searchValue = searchText.toLowerCase()
-    updateRenderedItems(searchValue);
-    const updatedGroups = groups.filter((group) => {
-      const groupTitle = group.rightTitle ? group.rightTitle.toLowerCase() : ''
-      if (group.root && !groupTitle.includes(searchValue)) {
-        const children = groups.filter(
-            childGroup => childGroup.parent === group.id
-        )
-        if (children.length > 0) {
-          return children.filter(
-              child => child.rightTitle ?
-                  child.rightTitle.toLowerCase().includes(searchValue) : false).length > 0
-        }
-      }
-      if (!group.root && !groupTitle.includes(searchValue)) {
-        const parent = groups.find(_group => _group.id === group.parent)
-        if (parent) {
-          return parent.rightTitle ? parent.rightTitle.toLowerCase().includes(searchValue) : false
-        }
-      }
-      return groupTitle.includes(searchValue)
     })
-    updateGroups(updatedGroups)
-  }
+  }, [trackSave])
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const schedules: any = await fetchSchedules();
-      setItems(schedules.map(schedule => {
-        // Check for public holiday first
-        const _isPublicHoliday = schedule.task_name === 'Public holiday' ||
-                                 (schedule.title && schedule.title.toLowerCase().includes('holiday'));
-        const _isLeave = (schedule.title && schedule.title.toLowerCase().includes('leave')) ||
-                         (schedule.task_name && schedule.task_name.toLowerCase().includes('leave')) ||
-                         (schedule.task_name && schedule.task_name.toLowerCase().includes('time in lieu'));
-        const isKartozaProject = schedule.project_name && schedule.project_name.includes('Kartoza');
-        const hasHtmlContent = (schedule.title && (schedule.title.includes('<div') || schedule.title.includes('<p>'))) ||
-                               (schedule.notes && (schedule.notes.includes('<div') || schedule.notes.includes('<p>')));
-        const isKartozaSpecial = !_isPublicHoliday && isKartozaProject && hasHtmlContent && schedule.task_label === '-';
-        const isNoteOnly = !_isPublicHoliday && !isKartozaSpecial && ((!schedule.task_id || false || schedule.task_id === '') || isKartozaProject);
-        const _canEdit = canEdit && schedule.task_label !== '-' && !isKartozaSpecial && !_isPublicHoliday;
-        let startTimeStr = schedule.start_time.split('T')[0].split('-');
-        let year = parseInt(startTimeStr[0], 10);
-        let month = parseInt(startTimeStr[1], 10) - 1;
-        let day = parseInt(startTimeStr[2], 10);
-        let startTime = new Date(year, month, day);
-        startTime.setHours(0, 0, 0, 0);
-
-        let endTimeStr = schedule.end_time.split('T')[0].split('-');
-        year = parseInt(endTimeStr[0], 10);
-        month = parseInt(endTimeStr[1], 10) - 1;
-        day = parseInt(endTimeStr[2], 10);
-        let endTime = new Date(year, month, day);
-        endTime.setHours(0, 0, 0, 0);
-
-        endTime.setDate(endTime.getDate() + 1)
-        const info = buildScheduleInfo(schedule.project_name, schedule.task_label, schedule.user, schedule.notes)
-        return Object.assign({}, schedule, {
-          title: _isLeave ? schedule.task_name : (_isPublicHoliday || isKartozaSpecial ? schedule.title : (isNoteOnly ? schedule.notes || 'Note' : schedule.task_name)),
-          info: info,
-          desc: schedule.title,
-          start: startTime.getTime(),
-          end: endTime.getTime(),
-          color: '#FFF',
-          bgColor: _isLeave ? '#5a5a5a' : (_isPublicHoliday ? '#42BF8B' : (isKartozaSpecial ? '#626262' : (isNoteOnly ? '#9370DB' : getColorFromTaskLabel(schedule.task_label)))),
-          selectedBgColor: ItemSelectedColor,
-          canSelect: _isLeave ? false : (_canEdit || isNoteOnly),
-          canChangeGroup: false,
-          canMove: _isLeave ? false : (_canEdit || isNoteOnly),
-          canResize: _isLeave ? false : (_canEdit || isNoteOnly),
-          hoursPerDay: schedule.hours_per_day
-        })
-      }))
-      setLoading(false)
-    }
-    if (groups.length > 0) {
-      updateGroups(groups)
-      if (items.length === 0) {
-        fetchData().catch(console.error);
-      }
-    }
-  }, [groups])
-
-  useEffect(() => {
-    if (items.length > 0) {
-      const searchText = props.searchValue;
-      if (searchText !== null && typeof searchText !== 'undefined') {
-        filterGroups(searchText)
-      } else {
-        updateGroups(groups)
-      }
-    }
-  }, [items])
-
-  useEffect(() => {
-    if (groups.length > 0 && Object.keys(openGroups).length > 0) {
-      updateGroups(groups)
-    }
-  }, [openGroups])
-
-  useEffect(() => {
-    let searchText = ''
-    if (typeof props.searchValue === 'undefined') {
-      return
-    } else {
-      searchText = props.searchValue
-    }
-    if (searchText !== null) {
-      filterGroups(searchText)
-    }
-  }, [props])
-
-  useEffect(() => {
-    if (groups.length === 0) {
-      fetchSlottedProjects().then((groupsData: GroupInterface[]) => {
-        if (groupsData.length > 0) {
-          setGroups(groupsData)
-        }
-      });
-    }
-  }, [])
-
-  const handleProjectAdd = (groupId) => {
+  const handleProjectAdd = useCallback((groupId) => {
     const group = groups.find(group => group.id === groupId)
     if (group) {
       setSelectedGroup(group)
       setOpenProjectForm(true)
     }
-  }
+  }, [groups])
 
-  const toggleGroup = useCallback((id) => {
-    if (typeof props.searchValue !== 'undefined' && props.searchValue !== "") {
-      return
-    }
-    if (openGroups[id]) {
-      const childrenGroups = groups.filter(group => group.parent === id).map(group => '' + group.id)
-      const groupItems = items.filter(item => {
-        if (!item.group || !childrenGroups.includes('' + item.group)) return false;
-        return item.task_label !== '-';
-      }).map(item => {
-          const group = item.group ? groups.filter(group => parseInt(group.id) === item.group)[0] : null;
-          const baseId = item.id;
-          return Object.assign({}, item, {
-            id: `collapsed-${baseId}`,
-            originalId: baseId + '',
-            originalGroup: item.group,
-            color: '#FFF',
-            selectedBgColor: ItemSelectedColor,
-            canMove: false,
-            canResize: false,
-            group: id,
-            title: group ? group.title : item.title
-          })
-        }
-      )
-      setItems((oldItems) => [...oldItems, ...groupItems])
-    } else {
-      const groupItems = items.filter(
-          item => item.group ? item.group === id && item.task_label !== '-' : false
-      ).map(item => item.id)
-      if (groupItems.length > 0) {
-        setItems(items.filter(item => !groupItems.includes(item.id)))
-      }
-    }
-    setOpenGroups({
-        ...openGroups,
-        [id]: !openGroups[id]
-      });
-  }, [items, groups, openGroups, props]);
+  // The week at the left edge of the timeline; snapped so panning the timeline does not recompute (and re-layout) every frame
+  const utilisationStart = moment(visibleTime.start).startOf("week").valueOf()
+  const utilisation = useMemo(() => {
+    const rootIds = new Map<string, string>()
+    groups.forEach(group => rootIds.set(String(group.id), String(group.root ? group.id : group.parent)))
+    return computeUtilisation(
+      items,
+      item => rootIds.get(String(item.group)) ?? null,
+      utilisationStart,
+      utilisationStart + WEEK
+    )
+  }, [items, groups, utilisationStart])
 
-  const deleteItem = useCallback((itemId: string) => {
-    const item = items.find(item => item.id === itemId)
-    if (item) {
-      const baseId = getBaseScheduleId(item);
-      if (window.confirm('Are you sure you want to delete this record?')) {
-        setLoading(true)
-        deleteSchedule(
-          baseId as string
-        ).then(result => {
-          setLoading(false)
-          if (result['removed']) {
-            const updatedSchedules = result.updated
-            setItems(
-              mergeUpdatedSchedules(
-                items.filter((currentItem) => {
-                  const currentBaseId = getBaseScheduleId(currentItem);
-                  return currentItem.id !== itemId && currentBaseId !== baseId;
-                }),
-                updatedSchedules
-              )
-            )
+  const renderedGroups = useMemo(() => {
+    const visibleGroups = filterGroupsByPerson(
+      searchGroups(groups, props.searchValue || ''), groups, props.filters
+    ).filter(group => group.root || isRootOpen(group.parent))
+    const toggleColor = props.searchValue ? 'gray' : 'black'
+    return visibleGroups.map(group => (
+      Object.assign({}, group, {
+        stackItems: true,
+        title: group.root ? (
+          <div className={"root-parent"} onClick={() => toggleGroup(group.id)}>
+            {isRootOpen(group.id) ?
+              <IndeterminateCheckBoxIcon style={{ color: toggleColor }}/> :
+              <AddBoxIcon style={{ color: toggleColor }}/>} {group.rightTitle}
+            <UtilisationBadge week={utilisationStart} utilisation={utilisation.get(String(group.id))}/>
+            <div className={'add-project-container'}>
+              { canEdit ? <Button onClick={(event) => {
+                event.stopPropagation()
+                handleProjectAdd(group.id)
+              }} sx={{ m: 0, p: 0 }} variant={'contained'} size={'small'} style={{ fontSize: 10, minWidth: 35 }}>Add</Button> : null }
+            </div>
+          </div>
+        ) : (
+          <div className='project-name-container'>
+            { canEdit ?
+              <ClearIcon className='delete-project-button'
+                         onClick={() => removeProjectFromUser(group.userId, group.projectId, group.id)}/> :
+              <div style={{ paddingLeft: 20 }}/>
+            }
+            <div>{group.rightTitle}</div>
+          </div>
+        )
+      })
+    ))
+  }, [groups, props.searchValue, props.filters, isRootOpen, toggleGroup, handleProjectAdd, removeProjectFromUser, utilisation, utilisationStart])
+
+  // Item actions ---------------------------------------------------------
+  const findItem = (itemId: string) => timelineItems.find(item => item.id === itemId)
+
+  const deleteItem = (itemId: string) => {
+    const item = findItem(itemId)
+    if (!item) return
+    const baseId = getBaseScheduleId(item);
+    setConfirmState({
+      title: 'Delete item',
+      message: 'Are you sure you want to delete this record?',
+      confirmLabel: 'Delete',
+      onConfirm: () => {
+        trackSave(deleteSchedule(baseId as string)).then(result => {
+          if (result && result['removed']) {
+            setItems(currentItems => mergeUpdatedSchedules(
+              currentItems.filter(currentItem => String(currentItem.id) !== String(baseId)),
+              result.updated
+            ))
+          } else {
+            setToast({message: 'Could not delete the item, try again later.', severity: 'error'})
           }
         })
       }
-    }
-  }, [items])
+    })
+  }
+
+  // Apply the new dates right away and roll back if the server rejects them
+  const saveItemDates = (item: ItemInterface, newStart: number, newEnd: number) => {
+    const baseId = getBaseScheduleId(item);
+    const isSameSchedule = (other: ItemInterface) => String(other.id) === String(baseId)
+    const originals = items.filter(isSameSchedule)
+    setItems(currentItems => currentItems.map(
+      other => isSameSchedule(other) ? Object.assign({}, other, {start: newStart, end: newEnd}) : other
+    ))
+    trackSave(updateSchedule(
+      Number(baseId),
+      newStart,
+      newEnd,
+      item.notes || '',
+      item.task_id || null,
+      item.hoursPerDay || null
+    )).then((updatedSchedules: any) => {
+      if (updatedSchedules) {
+        setItems(currentItems => mergeUpdatedSchedules(currentItems, updatedSchedules))
+      } else {
+        setItems(currentItems => currentItems.map(
+          other => originals.find(original => original.id === other.id) || other
+        ))
+        setToast({message: 'Could not save the change, it has been reverted.', severity: 'error'})
+      }
+    })
+  }
 
   const handleItemMove = (itemId, dragTime, newGroupOrder) => {
     const group = renderedGroups[newGroupOrder];
-    const item = items.find(item => item.id === itemId);
+    const item = findItem(itemId);
     if (!item) {
       return false;
     }
-    const isNoteOnly = !item.task_id || item.task_id === null || item.task_id === '';
+    const isNoteOnly = !item.task_id;
     const targetGroupId = group ? Number(group.id) : null;
     const itemGroupId = item.originalGroup !== undefined && item.originalGroup !== null ? Number(item.originalGroup) :
       (item.group !== undefined && item.group !== null ? Number(item.group) : null);
@@ -603,42 +534,13 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
       return false;
     }
 
-    setLoading(true);
-    const baseId = getBaseScheduleId(item);
-    updateSchedule(
-      baseId ? Number(baseId) : itemId,
-      dragTime,
-      dragTime + (item.end - item.start),
-      item.notes || '',
-      item.task_id || null,
-      item.hoursPerDay || null
-    ).then((updatedSchedules: any) => {
-      setLoading(false)
-      if (updatedSchedules) {
-        setItems(mergeUpdatedSchedules(items, updatedSchedules))
-      }
-    })
+    saveItemDates(item, dragTime, dragTime + (item.end - item.start))
   };
 
   const handleItemResize = (itemId, time, edge) => {
-    const item = items.find(item => item.id === itemId)
-    setLoading(true)
-    if (item) {
-      const baseId = getBaseScheduleId(item);
-      updateSchedule(
-        baseId ? Number(baseId) : itemId,
-        edge === "left" ? time : item.start,
-        edge === "left" ? item.end : time,
-        item.notes || '',
-        item.task_id || null,
-        item.hoursPerDay || null
-      ).then((updatedSchedules: any) => {
-        setLoading(false)
-        if (updatedSchedules) {
-          setItems(mergeUpdatedSchedules(items, updatedSchedules))
-        }
-      })
-    }
+    const item = findItem(itemId)
+    if (!item) return
+    saveItemDates(item, edge === "left" ? time : item.start, edge === "left" ? item.end : time)
   };
 
   const handleCanvasClick = (groupId, time, event) => {
@@ -659,30 +561,27 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
     return item !== null && typeof item === 'number';
   }
 
-  const isPublicHoliday = (item: any) => {
-    return item.task_name === 'Public holiday';
-  }
-
-  const isLeave = (item: any) => {
-    const title = item.title ? item.title.toLowerCase() : '';
-    const taskName = item.task_name ? item.task_name.toLowerCase() : '';
-    return title.includes('leave') || taskName.includes('leave') || taskName.includes('time in lieu');
-  }
-
-  const isKartozaSpecialItem = (item: any) => {
-    if (isPublicHoliday(item)) return false;
-    if (isLeave(item)) return false;
-    const isKartozaProject = item.info && item.info.includes('Kartoza');
-    const hasHtmlContent = (item.desc && (item.desc.includes('<div') || item.desc.includes('<p>'))) ||
-                          (item.notes && (item.notes.includes('<div') || item.notes.includes('<p>')));
-    const isSpecialLabel = item.task_label === '-';
-    return isKartozaProject && hasHtmlContent && isSpecialLabel;
+  const renderItemTooltip = (item: ItemInterface, isNoteOnly: boolean, usedHour: number, totalHour: number) => {
+    const lastDay = item.end - 24 * 60 * 60 * 1000
+    const notes = item.notes ? stripHtml(item.notes) : ''
+    return (
+      <div className={'item-tooltip'}>
+        <div className={'item-tooltip-title'}>{isNoteOnly ? 'Note' : item.title}</div>
+        {item.info && !isNoteOnly ? <div>{item.info}</div> : null}
+        <div>
+          {formatItemDate(item.start)}{lastDay > item.start ? ` – ${formatItemDate(lastDay)}` : ''}
+        </div>
+        {item.hoursPerDay ? <div>{item.hoursPerDay} h/day</div> : null}
+        {!isNoteOnly && !isNaN(usedHour) && !isNaN(totalHour) ? <div>{usedHour} / {totalHour} hours used</div> : null}
+        {notes ? <div className={'item-tooltip-notes'}>{notes}</div> : null}
+      </div>
+    )
   }
 
   const itemRenderer = ({ item, timelineContext, itemContext, getItemProps, getResizeProps }) => {
     const { left: leftResizeProps, right: rightResizeProps } = getResizeProps();
-    const leaveItem = isLeave(item);
-    if (leaveItem) {
+    const classification = classifyItem(item);
+    if (classification.isLeave) {
       return (
         <div
           {...getItemProps({
@@ -698,6 +597,8 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
               cursor: 'default'
             }
           })}
+          onMouseEnter={(e: any) => handlePopoverOpen(e, item.task_name)}
+          onMouseLeave={handlePopoverClose}
         >
           <div
             style={{
@@ -714,8 +615,7 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
       );
     }
 
-    const isKartozaSpecial = isKartozaSpecialItem(item);
-    const isNoteOnly = !isKartozaSpecial && (!item.task_id || item.task_id === null || item.task_id === '');
+    const {isHoliday, isKartozaSpecial, isNoteOnly} = classification;
     const backgroundColor = itemContext.selected ? (itemContext.dragging ? "red" : item.selectedBgColor) : item.bgColor;
     const taskTimeInfo = item.info.replace( /(^.*\(|\).*$)/g, '' )
     const usedHour = parseFloat(taskTimeInfo.split('/')[0])
@@ -744,7 +644,8 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
     }
     const firstColor = getTaskColor((totalDays - countdown[0]) / totalDays)
     const lastColor = getTaskColor((totalDays - countdown[countdown.length - 1]) / totalDays)
-    const background = isPublicHoliday(item) ? '#42BF8B' : (isKartozaSpecial ? '#626262' : (isNoteOnly ? '#9370DB' : (item.task_label !== '-' ? `linear-gradient(90deg, ${firstColor} 0%, ${lastColor} 100%)` : '#626262')));
+    const showActions = canEdit && !isKartozaSpecial && !isHoliday && (item.task_label !== '-' || isNoteOnly)
+    const background = isHoliday ? '#42BF8B' : (isKartozaSpecial ? '#626262' : (isNoteOnly ? '#9370DB' : (item.task_label !== '-' ? `linear-gradient(90deg, ${firstColor} 0%, ${lastColor} 100%)` : '#626262')));
     return (
       <div
         {...getItemProps({
@@ -763,14 +664,14 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
           }
         })}
         onMouseEnter={(e: any) => {
-          if (isPublicHoliday(item)) {
-            handlePopoverOpen(e, item.desc)
-          } else if (isLeave(item)) {
-            const leaveTitle = item.task_name;
-            handlePopoverOpen(e, leaveTitle)
+          if (itemContext.dragging || itemContext.resizing) return
+          if (isHoliday) {
+            handlePopoverOpen(e, stripHtml(item.desc))
+          } else {
+            handlePopoverOpen(e, renderItemTooltip(item, isNoteOnly, usedHour, totalHour))
           }
         }}
-        onMouseLeave={(e: any) => {isPublicHoliday(item) || isLeave(item) ? handlePopoverClose() : null}}
+        onMouseLeave={handlePopoverClose}
       >
         {itemContext.useResizeHandle ? <div {...leftResizeProps} /> : null}
         <div
@@ -786,43 +687,48 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
           } : {}}
         >
           <div className={'timeline-item-title'}>{
-            isPublicHoliday(item) || isKartozaSpecial ? <div dangerouslySetInnerHTML={{ __html: item.desc }}></div> : itemContext.title
+            isHoliday || isKartozaSpecial ? <div dangerouslySetInnerHTML={{ __html: item.desc }}></div> : itemContext.title
           }</div>
           <div className={'timeline-item-sub'}>
-            {isPublicHoliday(item) ? '🏖️' :
+            {isHoliday ? '🏖️' :
               isKartozaSpecial ? null :
               isNoteOnly ? <div style={{ padding: '5px', fontSize: '0.8em' }}>{item.notes}</div> :
               countdown.map(day => <div className={'timeline-item-countdown'} style={countDownStyle}>
                 <div className={'timeline-item-sub-text'}>{!isNaN(day) ? day : ''}</div> </div>)
             }
           </div>
-          { canEdit && !isKartozaSpecial && !isPublicHoliday(item) && (item.task_label !== '-' || isNoteOnly) ? <div className={'remove-item'} onClick={(e) => {
-            e.stopPropagation()
-            e.preventDefault()
-            deleteItem(item.id)
-          }}>✕</div> : null }
-          { canEdit && !isKartozaSpecial && !isPublicHoliday(item) && (item.task_label !== '-' || isNoteOnly) ?
-          <div className={'edit-item'} onClick={(e) => {
-            e.stopPropagation()
-            e.preventDefault()
-            const targetGroupId = item.originalGroup ? item.originalGroup : item.group;
-            const group = groups.find(group => group.id === targetGroupId)
-            if (group) {
-              setSelectedGroup(group)
-            }
-            const task: ItemTaskInterface | null = isNoteOnly ? null : {
-              id: item.task_id,
-              label: item.task_label
-            }
-            setIsUserRowNote(!!(group && group.root && (!item.project_id || item.project_id === '')))
-            setSelectedItem(Object.assign({}, item, {
-              group: targetGroupId
-            }))
-            setSelectedTime(item.start)
-            setSelectedTask(task)
-            setScheduleEndTime(item.end)
-            setOpenForm(true)
-          }}>✎</div> : null }
+          { showActions ? <div className={'item-actions'}>
+            <button type="button" className={'item-action'} title="Edit" aria-label="Edit item"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      e.preventDefault()
+                      handlePopoverClose()
+                      const targetGroupId = item.originalGroup ? item.originalGroup : item.group;
+                      const group = groups.find(group => group.id === targetGroupId)
+                      if (group) {
+                        setSelectedGroup(group)
+                      }
+                      const task: ItemTaskInterface | null = isNoteOnly ? null : {
+                        id: item.task_id,
+                        label: item.task_label
+                      }
+                      setIsUserRowNote(!!(group && group.root && (!item.project_id || item.project_id === '')))
+                      setSelectedItem(Object.assign({}, item, {
+                        group: targetGroupId
+                      }))
+                      setSelectedTime(item.start)
+                      setSelectedTask(task)
+                      setScheduleEndTime(item.end)
+                      setOpenForm(true)
+                    }}><EditIcon sx={{ fontSize: 14 }}/></button>
+            <button type="button" className={'item-action'} title="Delete" aria-label="Delete item"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      e.preventDefault()
+                      handlePopoverClose()
+                      deleteItem(item.id)
+                    }}><CloseIcon sx={{ fontSize: 14 }}/></button>
+          </div> : null }
         </div>
 
         {itemContext.useResizeHandle ? <div {...rightResizeProps} /> : null}
@@ -843,6 +749,7 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
           pointerEvents: 'none',
         }}
         open={popoverOpen}
+        disableScrollLock
         anchorEl={anchorEl}
         anchorOrigin={{
           vertical: 'bottom',
@@ -855,8 +762,34 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
         onClose={handlePopoverClose}
         disableRestoreFocus
       >
-        <Typography sx={{ p: 1 }}>{popoverText}</Typography>
+        <div className={'item-tooltip-container'}>{popoverContent}</div>
       </Popover>
+
+      <Dialog open={confirmState !== null} onClose={() => setConfirmState(null)}>
+        <DialogTitle>{confirmState?.title}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{confirmState?.message}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmState(null)}>Cancel</Button>
+          <Button color="error" variant="contained" autoFocus onClick={() => {
+            const onConfirm = confirmState?.onConfirm
+            setConfirmState(null)
+            if (onConfirm) onConfirm()
+          }}>{confirmState?.confirmLabel}</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar open={toast !== null} autoHideDuration={5000} onClose={() => setToast(null)}
+                anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}>
+        <Alert severity={toast?.severity || 'info'} variant="filled" onClose={() => setToast(null)}>
+          {toast?.message}
+        </Alert>
+      </Snackbar>
+
+      {pendingSaves > 0 ? <div className={'saving-indicator'}>
+        <CircularProgress size={14} color="inherit"/> Saving…
+      </div> : null}
 
       <ItemForm open={openForm}
                 selectedGroup={selectedGroup}
@@ -869,15 +802,15 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
                 isUserRowNote={isUserRowNote}
                 onUpdate={(startTime: Date, notes: string, selectedTask: ItemTaskInterface | null, duration: number, hoursPerDay: number) => {
                   if (selectedItem) {
-                    setLoading(true)
                     const endTime = new Date(startTime.getTime())
                     const end = new Date(endTime.setDate(endTime.getDate() + duration));
                     const baseId = getBaseScheduleId(selectedItem);
-                    updateSchedule(
-                      baseId ? Number(baseId) : parseInt(selectedItem.id), startTime.getTime(), end.getTime(), notes, selectedTask ? selectedTask.id : null, hoursPerDay).then((updatedSchedules: any) => {
-                      setLoading(false)
+                    trackSave(updateSchedule(
+                      baseId ? Number(baseId) : parseInt(selectedItem.id), startTime.getTime(), end.getTime(), notes, selectedTask ? selectedTask.id : null, hoursPerDay)).then((updatedSchedules: any) => {
                       if (updatedSchedules) {
-                        setItems(mergeUpdatedSchedules(items, updatedSchedules))
+                        setItems(currentItems => mergeUpdatedSchedules(currentItems, updatedSchedules))
+                      } else {
+                        setToast({message: 'Could not save the change, try again later.', severity: 'error'})
                       }
                     })
                   }
@@ -933,7 +866,7 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
       {renderedGroups.length > 0 ?
         <Timeline
           horizontalLineClassNamesForGroup={(group) => group.root ? ["row-root"] : []}
-          sidebarWidth={225}
+          sidebarWidth={SIDEBAR_WIDTH}
           groups={renderedGroups}
           items={renderedItems}
           keys={keys}
@@ -950,8 +883,12 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
             day: 1,
             hour: 1
           }}
-          defaultTimeStart={DEFAULT_TIME_START}
-          defaultTimeEnd={DEFAULT_TIME_END}
+          visibleTimeStart={visibleTime.start}
+          visibleTimeEnd={visibleTime.end}
+          onTimeChange={(start, end, updateScrollCanvas) => {
+            setVisibleTime({start, end})
+            updateScrollCanvas(start, end)
+          }}
           onItemMove={handleItemMove}
           onItemResize={handleItemResize}
           itemRenderer={itemRenderer}
@@ -962,7 +899,7 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
             <SidebarHeader>
               {({ getRootProps }) => {
                 return (
-                  <div {...getRootProps()} style={{ width: '225px'}}>
+                  <div {...getRootProps()} style={{ width: `${SIDEBAR_WIDTH}px`}}>
                   </div>
                 )
               }}
@@ -979,9 +916,11 @@ const TimelinePlanner = forwardRef((props: TimelinePlannerInterface, ref) => {
             <DateHeader />
           </TimelineHeaders>
           <TimelineMarkers>
-            <TodayMarker />
+            <TodayMarker>
+              {({styles}) => <div className={'today-marker'} style={{...styles, width: 2}}/>}
+            </TodayMarker>
           </TimelineMarkers>
-        </Timeline> : <div style={{ marginLeft: '235px', paddingTop: '20px' }}>No Data</div>}
+        </Timeline> : <div className={'planner-empty'}>{props.searchValue ? `No results for "${props.searchValue}"` : (props.filters && hasActiveFilters(props.filters) ? 'Nothing matches the current filters' : 'No Data')}</div>}
     </div>
     );
 })
