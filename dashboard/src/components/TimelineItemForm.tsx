@@ -6,9 +6,8 @@ import {DatePicker, LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDateFns} from "@mui/x-date-pickers/AdapterDateFns";
 import TButton from "../loadable/Button";
 import {GroupInterface} from "./TimelinePlanner";
-import {getColorFromTaskLabel} from "../utils/Theme";
 import TaskAutocomplete from "./TaskAutocomplete";
-import {buildScheduleInfo, resetTimeInDate} from "../utils/schedule_data";
+import {mapScheduleToItem} from "../utils/schedule_data";
 
 
 const style = {
@@ -137,43 +136,13 @@ export default function ItemForm(props: ItemFormInterface) {
         setIsLoading(false)
         if (result['new']) {
           let item = result['new'];
-          let _startTime = resetTimeInDate(item.start_time)
-          let _endTime = resetTimeInDate(item.end_time, 1)
-          const isNoteOnly = !selectedTask;
-          const newSchedule = {
-            id: item.id,
-            start: _startTime,
-            end: _endTime,
-            title: isNoteOnly ? item.notes || 'Note' : item.task_name,
-            info: buildScheduleInfo(item.project_name, item.task_label, item.user, item.notes),
-            first_day: item.first_day,
-            last_day: item.last_day,
-            group: item.group ? item.group : (props.selectedGroup ? props.selectedGroup.id : null),
-            bgColor: isNoteOnly ? '#9370DB' : getColorFromTaskLabel(selectedTask.label),
-            task_id: item.task_id,
-            task_label: item.task_label,
-            notes: item.notes,
-            hoursPerDay: item.hours_per_day
-          }
+          const newSchedule = Object.assign(mapScheduleToItem(item), {
+            group: item.group ? item.group : (props.selectedGroup ? props.selectedGroup.id : null)
+          })
           const updated: any = {}
           if (result['updated']) {
-            for (let i = 0; i < result['updated'].length; i++) {
-              let item = result['updated'][ i ];
-              updated[item.id] = {
-                id: item.id,
-                start: resetTimeInDate(item.start_time),
-                end: resetTimeInDate(item.end_time, 1),
-                title: item.task_name,
-                info: buildScheduleInfo(item.project_name, item.task_label, item.user, item.notes),
-                group: item.group,
-                first_day: item.first_day,
-                last_day: item.last_day,
-                task_id: item.task_id,
-                task_label: item.task_label,
-                notes: item.notes,
-                bgColor: getColorFromTaskLabel(item.task_label),
-                hoursPerDay: item.hours_per_day
-              }
+            for (const updatedItem of result['updated']) {
+              updated[updatedItem.id] = mapScheduleToItem(updatedItem)
             }
           }
           props.onAdd(newSchedule, updated)
