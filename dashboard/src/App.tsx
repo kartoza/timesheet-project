@@ -56,6 +56,7 @@ import {DateRange, formatDateRange, splitIntoChunks, thisWeekRange, toDateKey} f
 const CircularMenu = React.lazy(() => import('./components/Menu'));
 const ReportButton = React.lazy(() => import('./components/ReportButton'));
 const Standup = React.lazy(() => import('./components/Standup'));
+const Wordle = React.lazy(() => import('./components/Wordle'));
 const TimeCard = React.lazy(() => import('./components/TimeCard'));
 const TReactQuill = React.lazy(() => import('./components/ReactQuill'));
 const TimeLogTable = React.lazy(() => import("./components/TimeLogTable"));
@@ -1171,6 +1172,7 @@ function AppContent() {
                     </Grid>
                     <Grid item xs={12} md={4} style={{ display: 'flex', justifyContent: 'end', alignContent: 'center'}}>
                         <Suspense fallback={<div></div>}>
+                            <Wordle/>
                             <Standup  data={timesheetData}/>
                         </Suspense>
                         <HeaderToggles

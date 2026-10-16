@@ -1,0 +1,173 @@
+.Wordle {
+    padding-right: 10px;
+    display: flex;
+    .WordleButton {
+        height: 52px;
+    }
+}
+
+.WordleModal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 640px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 2px solid #000;
+    background-color: var(--mui-palette-header-main);
+    padding: 20px;
+    border-radius: 2px;
+
+    .WordleRow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        margin-bottom: 4px;
+    }
+
+    .WordleName {
+        width: 90px;
+        font-size: 11px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: right;
+        margin-right: 6px;
+    }
+
+    .WordleTile {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 18px;
+        border: 2px solid #888;
+        color: #fff;
+        text-transform: uppercase;
+
+        &.correct { background: #538d4e; border-color: #538d4e; }
+        &.present { background: #b59f3b; border-color: #b59f3b; }
+        &.absent { background: #3a3a3c; border-color: #3a3a3c; }
+        &.empty { color: inherit; }
+    }
+
+    .WordleKeyboard {
+        margin-bottom: 10px;
+    }
+
+    .WordleKeyRow {
+        display: flex;
+        justify-content: center;
+        gap: 4px;
+        margin-bottom: 4px;
+    }
+
+    .WordleKey {
+        min-width: 30px;
+        height: 40px;
+        padding: 0 6px;
+        border: none;
+        border-radius: 4px;
+        background: #818384;
+        color: #fff;
+        font-weight: bold;
+        cursor: pointer;
+
+        &.wide { min-width: 56px; font-size: 11px; }
+        &.correct { background: #538d4e; }
+        &.present { background: #b59f3b; }
+        &.absent { background: #3a3a3c; opacity: 0.6; }
+        &:disabled { opacity: 0.4; cursor: default; }
+    }
+
+    .WordleInput .WordleTile {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        text-align: center;
+        background: transparent;
+        outline: none;
+
+        &:focus { border-color: #1976d2; }
+    }
+
+    .WordleWinBanner {
+        margin-bottom: 12px;
+        padding: 10px 16px;
+        border-radius: 2px;
+        background: #538d4e;
+        color: #fff;
+        font-size: 20px;
+        font-weight: bold;
+        text-align: center;
+        animation: wordle-pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+    }
+
+    .WordleRow.winner .WordleTile {
+        animation: wordle-bounce 0.7s ease-in-out 3;
+        @for $n from 1 through 8 {
+            &:nth-child(#{$n + 1}) { animation-delay: #{$n * 0.08}s; }
+        }
+    }
+}
+
+.WordleCelebration {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 10;
+
+    .WordleConfetti {
+        position: absolute;
+        top: -20px;
+        width: 8px;
+        height: 14px;
+        opacity: 0;
+        animation-name: wordle-confetti-fall;
+        animation-timing-function: linear;
+        animation-fill-mode: forwards;
+    }
+}
+
+// The win animation must play even when the user disabled animations
+// (`.animations-disabled *` uses !important, so these need it as well).
+.animations-disabled .WordleCelebration .WordleConfetti,
+.WordleCelebration .WordleConfetti {
+    animation-name: wordle-confetti-fall !important;
+    animation-timing-function: linear !important;
+    animation-fill-mode: forwards !important;
+}
+
+.animations-disabled .WordleModal .WordleWinBanner,
+.WordleModal .WordleWinBanner {
+    animation: wordle-pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both !important;
+}
+
+.animations-disabled .WordleModal .WordleRow.winner .WordleTile,
+.WordleModal .WordleRow.winner .WordleTile {
+    animation-name: wordle-bounce !important;
+    animation-duration: 0.7s !important;
+    animation-timing-function: ease-in-out !important;
+    animation-iteration-count: 3 !important;
+}
+
+@keyframes wordle-confetti-fall {
+    0% { opacity: 1; margin-top: 0; }
+    100% { opacity: 1; margin-top: 110vh; transform: rotate(720deg); }
+}
+
+@keyframes wordle-pop {
+    0% { transform: scale(0.3); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes wordle-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-14px); }
+}

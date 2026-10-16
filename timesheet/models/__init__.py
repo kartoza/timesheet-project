@@ -7,3 +7,4 @@ from timesheet.models.preferences import *
 from timesheet.models.clock import *
 from timesheet.models.summary import *
 from timesheet.models.department import Department
+from timesheet.models.wordle import WordleGame, WordleGuess

@@ -32,6 +32,7 @@ from timesheet.api_views.erpnext_oauth import (
     ERPNextOAuthLoginInitiateView,
     ERPNextOAuthLoginCallbackView,
 )
+from timesheet.api_views.wordle import WordleStateView, WordleGuessView
 from timesheet.views import ManageView
 from microblog.api_views import (
     MicroblogPostListView,
@@ -110,6 +111,12 @@ urlpatterns = [
     path('api/user-leaderboard/',
          UserLeaderBoard.as_view(),
          name='user-leaderboard'),
+    path('api/wordle/',
+         WordleStateView.as_view(),
+         name='wordle-state'),
+    path('api/wordle/guess/',
+         WordleGuessView.as_view(),
+         name='wordle-guess'),
     path('api/quotes/',
          RandomQuotes.as_view(),
          name='random-quotes'),
