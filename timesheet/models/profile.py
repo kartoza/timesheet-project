@@ -111,6 +111,10 @@ class Profile(models.Model):
         default=ProfileRole.EMPLOYEE,
     )
 
+    points = models.PositiveIntegerField(
+        default=0
+    )
+
     @property
     def token(self):
         if self.api_key and self.api_secret:

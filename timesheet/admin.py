@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django import forms
 from django.db import transaction
+from django.db.models import Count
 from django.template.response import TemplateResponse
 from django.test import Client
 from django.urls import reverse
@@ -11,7 +12,7 @@ from preferences.admin import PreferencesAdmin
 
 from timesheet.models import (
     Timelog, Task, Project, Activity, TimesheetPreferences,
-    SavedSummary, ProjectLink
+    SavedSummary, ProjectLink, WordleGame, WordleGuess
 )
 from timesheet.models.project_member import ProjectMember
 from timesheet.models.clock import Clock
@@ -281,3 +282,48 @@ admin.site.register(UserProject, UserProjectAdmin)
 admin.site.register(TimesheetPreferences, TimesheetPreferencesAdmin)
 admin.site.register(Clock)
 admin.site.register(SavedSummary, SavedSummaryAdmin)
+
+
+class WordleGuessInline(admin.TabularInline):
+    model = WordleGuess
+    extra = 0
+    readonly_fields = ('user', 'guess', 'guess_date', 'created_at')
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(WordleGame)
+class WordleGameAdmin(admin.ModelAdmin):
+    """The word is encrypted and kept hidden until the game is finished, so
+    admins can play without seeing the answer."""
+    list_display = (
+        'id', 'revealed_word', 'is_finished', 'winner', 'guess_count',
+        'created_at', 'finished_at'
+    )
+    list_filter = ('is_finished',)
+    search_fields = ('winner__username', 'winner__first_name')
+    fields = (
+        'revealed_word', 'is_finished', 'winner', 'created_at', 'finished_at'
+    )
+    readonly_fields = (
+        'revealed_word', 'is_finished', 'winner', 'created_at', 'finished_at'
+    )
+    inlines = [WordleGuessInline]
+
+    def has_add_permission(self, request):
+        return False
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(
+            _guess_count=Count('guesses')
+        )
+
+    @admin.display(description='Word')
+    def revealed_word(self, obj):
+        return obj.word if obj.is_finished else '(hidden until finished)'
+
+    @admin.display(description='Guesses', ordering='_guess_count')
+    def guess_count(self, obj):
+        return obj._guess_count
