@@ -1,0 +1,31 @@
+{% extends "admin/base_site.html" %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Home</a> &rsaquo;
+  <a href="{{ changelist_url }}">Connections puzzles</a> &rsaquo;
+  Import CSV
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <p>
+    One puzzle per row, with these columns:
+    <code>category_1, words_1, category_2, words_2, category_3, words_3, category_4, words_4</code>.
+    Groups go from easiest (1) to hardest (4). Put the four words of a group in
+    one cell separated by <code>|</code>, for example
+    <code>APPLE|MANGO|PEACH|LEMON</code>.
+  </p>
+  <p>
+    Rows that are not valid, or puzzles that already exist, are skipped and
+    reported. The easiest way to see the format is
+    <a href="{% url 'admin:timesheet_connectionspuzzle_export_csv' %}">downloading the current puzzles</a>.
+  </p>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" class="default" value="Import">
+  </form>
+</div>
+{% endblock %}

@@ -1,21 +1,21 @@
 {
   "status": "done",
   "assets": {
-    "App.2d5d1744ba39ca678a0f.js": {
-      "name": "App.2d5d1744ba39ca678a0f.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.2d5d1744ba39ca678a0f.js"
+    "App.c0a724beb4ffced8efbe.js": {
+      "name": "App.c0a724beb4ffced8efbe.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.c0a724beb4ffced8efbe.js"
     },
     "Space.504eac9b329549dd5e79.js": {
       "name": "Space.504eac9b329549dd5e79.js",
       "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.504eac9b329549dd5e79.js"
     },
-    "Summary.6210942b010d93cdd93e.js": {
-      "name": "Summary.6210942b010d93cdd93e.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.6210942b010d93cdd93e.js"
+    "Summary.fcd193230b9a1f2c0c4f.js": {
+      "name": "Summary.fcd193230b9a1f2c0c4f.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.fcd193230b9a1f2c0c4f.js"
     },
-    "PublicSummary.dcab3266cd3de9c62e6e.js": {
-      "name": "PublicSummary.dcab3266cd3de9c62e6e.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.dcab3266cd3de9c62e6e.js"
+    "PublicSummary.60751d29e3319429d73a.js": {
+      "name": "PublicSummary.60751d29e3319429d73a.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.60751d29e3319429d73a.js"
     },
     "EmployeeInsight.4e86d83b9bd486c4a20e.js": {
       "name": "EmployeeInsight.4e86d83b9bd486c4a20e.js",
@@ -41,9 +41,9 @@
       "name": "3582.09cc441dd544e2c4e205.js",
       "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/3582.09cc441dd544e2c4e205.js"
     },
-    "9431.286f361817c09d4ad9db.js": {
-      "name": "9431.286f361817c09d4ad9db.js",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/9431.286f361817c09d4ad9db.js"
+    "1005.6cd4bfca6f2c6bb27c5d.js": {
+      "name": "1005.6cd4bfca6f2c6bb27c5d.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/1005.6cd4bfca6f2c6bb27c5d.js"
     },
     "350.b58c303b685d67c4d8ea.js": {
       "name": "350.b58c303b685d67c4d8ea.js",
@@ -189,6 +189,14 @@
       "name": "6294.007fd65035c7d7c0f147.js",
       "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/6294.007fd65035c7d7c0f147.js"
     },
+    "9330.82d1ce662e0cd94f8a68.js": {
+      "name": "9330.82d1ce662e0cd94f8a68.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/9330.82d1ce662e0cd94f8a68.js"
+    },
+    "9403.ef057e302f75506aee76.js": {
+      "name": "9403.ef057e302f75506aee76.js",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/9403.ef057e302f75506aee76.js"
+    },
     "4553.ef03116668d878d5ee61.js": {
       "name": "4553.ef03116668d878d5ee61.js",
       "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/4553.ef03116668d878d5ee61.js"
@@ -241,9 +249,9 @@
       "name": "9418.1f24055f2eac36a4ff43.js.LICENSE.txt",
       "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/9418.1f24055f2eac36a4ff43.js.LICENSE.txt"
     },
-    "App.2d5d1744ba39ca678a0f.js.LICENSE.txt": {
-      "name": "App.2d5d1744ba39ca678a0f.js.LICENSE.txt",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.2d5d1744ba39ca678a0f.js.LICENSE.txt"
+    "App.c0a724beb4ffced8efbe.js.LICENSE.txt": {
+      "name": "App.c0a724beb4ffced8efbe.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/App.c0a724beb4ffced8efbe.js.LICENSE.txt"
     },
     "EmployeeInsight.4e86d83b9bd486c4a20e.js.LICENSE.txt": {
       "name": "EmployeeInsight.4e86d83b9bd486c4a20e.js.LICENSE.txt",
@@ -257,31 +265,31 @@
       "name": "Planner.07f5b3340b4d9bc63797.js.LICENSE.txt",
       "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Planner.07f5b3340b4d9bc63797.js.LICENSE.txt"
     },
-    "PublicSummary.dcab3266cd3de9c62e6e.js.LICENSE.txt": {
-      "name": "PublicSummary.dcab3266cd3de9c62e6e.js.LICENSE.txt",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.dcab3266cd3de9c62e6e.js.LICENSE.txt"
+    "PublicSummary.60751d29e3319429d73a.js.LICENSE.txt": {
+      "name": "PublicSummary.60751d29e3319429d73a.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/PublicSummary.60751d29e3319429d73a.js.LICENSE.txt"
     },
     "Space.504eac9b329549dd5e79.js.LICENSE.txt": {
       "name": "Space.504eac9b329549dd5e79.js.LICENSE.txt",
       "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Space.504eac9b329549dd5e79.js.LICENSE.txt"
     },
-    "Summary.6210942b010d93cdd93e.js.LICENSE.txt": {
-      "name": "Summary.6210942b010d93cdd93e.js.LICENSE.txt",
-      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.6210942b010d93cdd93e.js.LICENSE.txt"
+    "Summary.fcd193230b9a1f2c0c4f.js.LICENSE.txt": {
+      "name": "Summary.fcd193230b9a1f2c0c4f.js.LICENSE.txt",
+      "path": "/Users/user/Documents/Kartoza/timesheet-project/dashboard/assets/webpack_bundles/Summary.fcd193230b9a1f2c0c4f.js.LICENSE.txt"
     }
   },
   "chunks": {
     "App": [
-      "App.2d5d1744ba39ca678a0f.js"
+      "App.c0a724beb4ffced8efbe.js"
     ],
     "Space": [
       "Space.504eac9b329549dd5e79.js"
     ],
     "Summary": [
-      "Summary.6210942b010d93cdd93e.js"
+      "Summary.fcd193230b9a1f2c0c4f.js"
     ],
     "PublicSummary": [
-      "PublicSummary.dcab3266cd3de9c62e6e.js"
+      "PublicSummary.60751d29e3319429d73a.js"
     ],
     "EmployeeInsight": [
       "EmployeeInsight.4e86d83b9bd486c4a20e.js"

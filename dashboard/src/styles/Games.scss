@@ -1,0 +1,75 @@
+.Games {
+    padding-right: 10px;
+    display: flex;
+    .GamesButton {
+        height: 52px;
+    }
+}
+
+.GamesModal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 640px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 2px solid #000;
+    background-color: var(--mui-palette-header-main);
+    padding: 20px;
+    border-radius: 2px;
+
+    .GamesHeader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+
+    .GameCard {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
+        margin-bottom: 8px;
+        padding: 14px 16px;
+        border: 1px solid #888;
+        border-radius: 2px;
+        background: transparent;
+        color: inherit;
+        text-align: left;
+        cursor: pointer;
+
+        &:hover { border-color: #1976d2; }
+
+        .GameCardTitle { font-weight: bold; font-size: 16px; }
+        .GameCardDescription { font-size: 13px; opacity: 0.8; }
+    }
+}
+
+.GameWinBanner {
+    margin-bottom: 12px;
+    padding: 10px 16px;
+    border-radius: 2px;
+    background: #538d4e;
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+}
+
+// Win animations must play even when the user disabled animations
+// (`.animations-disabled *` uses !important, so these need it as well).
+.GameWinBanner,
+.animations-disabled .GameWinBanner,
+.ConnectionsGroup.fresh,
+.animations-disabled .ConnectionsGroup.fresh {
+    animation: game-pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both !important;
+}
+
+@keyframes game-pop {
+    0% { transform: scale(0.3); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}

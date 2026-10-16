@@ -1,25 +1,4 @@
-.Wordle {
-    padding-right: 10px;
-    display: flex;
-    .WordleButton {
-        height: 52px;
-    }
-}
-
-.WordleModal {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 640px;
-    max-width: 95vw;
-    max-height: 90vh;
-    overflow-y: auto;
-    border: 2px solid #000;
-    background-color: var(--mui-palette-header-main);
-    padding: 20px;
-    border-radius: 2px;
-
+.WordleGame {
     .WordleRow {
         display: flex;
         align-items: center;
@@ -144,13 +123,13 @@
     animation-fill-mode: forwards !important;
 }
 
-.animations-disabled .WordleModal .WordleWinBanner,
-.WordleModal .WordleWinBanner {
+.animations-disabled .WordleGame .WordleWinBanner,
+.WordleGame .WordleWinBanner {
     animation: wordle-pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both !important;
 }
 
-.animations-disabled .WordleModal .WordleRow.winner .WordleTile,
-.WordleModal .WordleRow.winner .WordleTile {
+.animations-disabled .WordleGame .WordleRow.winner .WordleTile,
+.WordleGame .WordleRow.winner .WordleTile {
     animation-name: wordle-bounce !important;
     animation-duration: 0.7s !important;
     animation-timing-function: ease-in-out !important;

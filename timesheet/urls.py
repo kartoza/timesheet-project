@@ -33,6 +33,10 @@ from timesheet.api_views.erpnext_oauth import (
     ERPNextOAuthLoginCallbackView,
 )
 from timesheet.api_views.wordle import WordleStateView, WordleGuessView
+from timesheet.api_views.connections import (
+    ConnectionsStateView, ConnectionsPickView
+)
+from timesheet.api_views.games import GamesStatusView
 from timesheet.views import ManageView
 from microblog.api_views import (
     MicroblogPostListView,
@@ -117,6 +121,15 @@ urlpatterns = [
     path('api/wordle/guess/',
          WordleGuessView.as_view(),
          name='wordle-guess'),
+    path('api/games/',
+         GamesStatusView.as_view(),
+         name='games-status'),
+    path('api/connections/',
+         ConnectionsStateView.as_view(),
+         name='connections-state'),
+    path('api/connections/pick/',
+         ConnectionsPickView.as_view(),
+         name='connections-pick'),
     path('api/quotes/',
          RandomQuotes.as_view(),
          name='random-quotes'),
