@@ -1,0 +1,132 @@
+"""Starter puzzles for the team Connections game.
+
+These are only imported once, by migration 0049. After that, puzzles are
+managed in the admin (ConnectionsPuzzle).
+
+Each puzzle has four groups of four words, ordered from easiest to hardest
+(the order sets the group colour: yellow, green, blue, purple). A word must
+only appear once per puzzle.
+"""
+
+CONNECTIONS_PUZZLES = [
+    [
+        ('Git commands', ['COMMIT', 'MERGE', 'REBASE', 'CLONE']),
+        ('Coffee drinks', ['LATTE', 'MOCHA', 'ESPRESSO', 'CORTADO']),
+        ('Snakes', ['COBRA', 'VIPER', 'ADDER', 'MAMBA']),
+        ('Programming languages', ['PYTHON', 'RUBY', 'SWIFT', 'RUST']),
+    ],
+    [
+        ('Fruits', ['MANGO', 'PEACH', 'LEMON', 'APPLE']),
+        ('Car brands', ['TESLA', 'HONDA', 'MAZDA', 'AUDI']),
+        ('Greek letters', ['ALPHA', 'DELTA', 'SIGMA', 'OMEGA']),
+        ('Tech companies', ['ORACLE', 'ADOBE', 'META', 'INTEL']),
+    ],
+    [
+        ('Chemical elements', ['IRON', 'GOLD', 'NEON', 'CARBON']),
+        ('Planets', ['VENUS', 'SATURN', 'EARTH', 'MERCURY']),
+        ('Chocolate bars', ['MARS', 'TWIX', 'SNICKERS', 'BOUNTY']),
+        ('Birds', ['RAVEN', 'EAGLE', 'ROBIN', 'FALCON']),
+    ],
+    [
+        ('Office supplies', ['STAPLER', 'MARKER', 'FOLDER', 'BINDER']),
+        ('Chess pieces', ['ROOK', 'PAWN', 'KNIGHT', 'BISHOP']),
+        ('Agile ceremonies', ['STANDUP', 'RETRO', 'DEMO', 'SPRINT']),
+        ('Found in a timesheet', ['TASK', 'PROJECT', 'ACTIVITY', 'TIMELOG']),
+    ],
+    [
+        ('Units of length', ['INCH', 'MILE', 'YARD', 'FOOT']),
+        ('Currencies', ['DOLLAR', 'POUND', 'RAND', 'EURO']),
+        ('Gemstones', ['OPAL', 'TOPAZ', 'JADE', 'ONYX']),
+        ('Shades of blue', ['NAVY', 'AZURE', 'COBALT', 'TEAL']),
+    ],
+    [
+        ('Web browsers', ['CHROME', 'SAFARI', 'FIREFOX', 'OPERA']),
+        ('HTTP methods', ['GET', 'POST', 'PUT', 'PATCH']),
+        ('Databases', ['MYSQL', 'REDIS', 'MONGO', 'SQLITE']),
+        ('Text editors', ['VIM', 'EMACS', 'NANO', 'ATOM']),
+    ],
+    [
+        ('Musical instruments', ['PIANO', 'CELLO', 'FLUTE', 'OBOE']),
+        ('Pasta', ['PENNE', 'FUSILLI', 'RAVIOLI', 'LASAGNE']),
+        ('Sea creatures', ['SQUID', 'CRAB', 'SHARK', 'WHALE']),
+        ('Dances', ['TANGO', 'WALTZ', 'SALSA', 'SAMBA']),
+    ],
+    [
+        ('Ways to run', ['JOG', 'DASH', 'BOLT', 'SPRINT']),
+        ('Big', ['HUGE', 'GIANT', 'VAST', 'MASSIVE']),
+        ('Happy', ['GLAD', 'JOYFUL', 'CHEERY', 'ELATED']),
+        ('Small', ['TINY', 'MINI', 'PETITE', 'COMPACT']),
+    ],
+    [
+        ('___ball', ['FOOT', 'BASE', 'BASKET', 'SNOW']),
+        ('___board', ['KEY', 'DASH', 'SKATE', 'CARD']),
+        ('___fish', ['GOLD', 'SWORD', 'CAT', 'STAR']),
+        ('___house', ['GREEN', 'LIGHT', 'DOG', 'TREE']),
+    ],
+    [
+        ('Keyboard keys', ['SHIFT', 'ENTER', 'TAB', 'ESCAPE']),
+        ('Data types', ['STRING', 'FLOAT', 'BOOLEAN', 'ARRAY']),
+        ('File formats', ['JSON', 'YAML', 'XML', 'CSV']),
+        ('Terminal commands', ['GREP', 'CHMOD', 'SUDO', 'CURL']),
+    ],
+    [
+        ('African countries', ['KENYA', 'GHANA', 'ANGOLA', 'MALI']),
+        ('European countries', ['SPAIN', 'ITALY', 'NORWAY', 'POLAND']),
+        ('Asian countries', ['JAPAN', 'NEPAL', 'LAOS', 'INDIA']),
+        ('South American countries', ['PERU', 'CHILE', 'BRAZIL', 'BOLIVIA']),
+    ],
+    [
+        ('Playing card ranks', ['KING', 'QUEEN', 'JACK', 'ACE']),
+        ('Card suits', ['HEART', 'SPADE', 'CLUB', 'DIAMOND']),
+        ('Golf scores', ['BIRDIE', 'EAGLE', 'BOGEY', 'PAR']),
+        ('Board games', ['CHESS', 'RISK', 'CLUE', 'SCRABBLE']),
+    ],
+    [
+        ('Kitchen tools', ['SPATULA', 'WHISK', 'LADLE', 'GRATER']),
+        ('Garden tools', ['RAKE', 'HOE', 'SHOVEL', 'TROWEL']),
+        ('Workshop tools', ['HAMMER', 'WRENCH', 'PLIERS', 'DRILL']),
+        ('Eating utensils', ['FORK', 'KNIFE', 'SPOON', 'CHOPSTICK']),
+    ],
+    [
+        ('In space', ['ORBIT', 'COMET', 'NEBULA', 'GALAXY']),
+        ('At the beach', ['TIDE', 'REEF', 'WAVE', 'CORAL']),
+        ('In the mountains', ['PEAK', 'RIDGE', 'SUMMIT', 'CLIFF']),
+        ('In the forest', ['TRAIL', 'MOSS', 'FERN', 'PINE']),
+    ],
+    [
+        ('Japanese food', ['SUSHI', 'RAMEN', 'TEMPURA', 'MISO']),
+        ('Italian food', ['PIZZA', 'RISOTTO', 'GNOCCHI', 'TIRAMISU']),
+        ('Indonesian food', ['SATAY', 'RENDANG', 'SAMBAL', 'TEMPEH']),
+        ('South African food', ['BILTONG', 'BOBOTIE', 'BRAAI', 'BOEREWORS']),
+    ],
+    [
+        ('Racket sports', ['TENNIS', 'SQUASH', 'BADMINTON', 'PADEL']),
+        ('Team sports', ['RUGBY', 'CRICKET', 'HOCKEY', 'NETBALL']),
+        ('Water sports', ['SURFING', 'ROWING', 'DIVING', 'SAILING']),
+        ('Martial arts', ['JUDO', 'BOXING', 'KARATE', 'FENCING']),
+    ],
+    [
+        ('Python libraries', ['DJANGO', 'FLASK', 'NUMPY', 'PANDAS']),
+        ('JavaScript frameworks', ['REACT', 'ANGULAR', 'VUE', 'SVELTE']),
+        ('DevOps tools', ['DOCKER', 'ANSIBLE', 'TERRAFORM', 'JENKINS']),
+        ('GIS software', ['QGIS', 'GEOSERVER', 'POSTGIS', 'GDAL']),
+    ],
+    [
+        ('Compass directions', ['NORTH', 'SOUTH', 'EAST', 'WEST']),
+        ('Parts of a map', ['LEGEND', 'COMPASS', 'SCALE', 'GRID']),
+        ('GIS data types', ['POINT', 'POLYGON', 'RASTER', 'VECTOR']),
+        ('Coordinates', ['LATITUDE', 'LONGITUDE', 'ALTITUDE', 'DATUM']),
+    ],
+    [
+        ('Email folders', ['INBOX', 'DRAFT', 'SPAM', 'OUTBOX']),
+        ('Video call', ['ZOOM', 'WEBCAM', 'HEADSET', 'MUTE']),
+        ('Meeting', ['AGENDA', 'MINUTES', 'INVITE', 'RECAP']),
+        ('Corporate buzzwords', ['SYNERGY', 'PIVOT', 'LEVERAGE', 'BANDWIDTH']),
+    ],
+    [
+        ('Big cats', ['LION', 'TIGER', 'LEOPARD', 'CHEETAH']),
+        ('Dog breeds', ['POODLE', 'BEAGLE', 'HUSKY', 'BOXER']),
+        ('Insects', ['MOTH', 'ANT', 'WASP', 'HORNET']),
+        ('Cars named after animals', ['JAGUAR', 'BEETLE', 'MUSTANG', 'COBRA']),
+    ],
+]

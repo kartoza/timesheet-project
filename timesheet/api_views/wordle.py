@@ -1,7 +1,5 @@
 import random
 
-import pytz
-
 from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
@@ -11,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from timesheet.models.profile import Profile
+from timesheet.utils.games import display_name, user_today
 from timesheet.models.wordle import WordleGame, WordleGuess
 from timesheet.wordle_words import (
     MAX_WORD_LENGTH, MIN_WORD_LENGTH, VALID_GUESSES, WORDLE_WORDS
@@ -35,19 +34,6 @@ def evaluate_guess(guess, word):
             result[i] = 'present'
             remaining[letter] -= 1
     return result
-
-
-def display_name(user):
-    return user.first_name or user.username
-
-
-def user_today(user):
-    """Today's date in the user's own timezone."""
-    try:
-        tz = pytz.timezone(user.profile.timezone)
-    except pytz.UnknownTimeZoneError:
-        tz = pytz.UTC
-    return timezone.now().astimezone(tz).date()
 
 
 def pick_word():
@@ -102,10 +88,6 @@ def build_state(game, user):
     if not active:
         game = last_game
     guesses = list(game.guesses.select_related('user')) if game else []
-    leaderboard = (
-        Profile.objects.filter(user__is_active=True, points__gt=0)
-        .select_related('user').order_by('-points', 'user__username')[:10]
-    )
     profile = Profile.objects.get(user=user)
     today = user_today(user)
     return {
@@ -128,10 +110,6 @@ def build_state(game, user):
             if last_game.winner else None,
         } if last_game else None,
         'points': profile.points,
-        'leaderboard': [
-            {'user': display_name(p.user), 'points': p.points}
-            for p in leaderboard
-        ],
     }
 
 
