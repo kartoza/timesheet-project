@@ -115,6 +115,11 @@ class Profile(models.Model):
         default=0
     )
 
+    # Extra team wordle guesses won by solving the single player wordle.
+    bonus_guesses = models.PositiveIntegerField(
+        default=0
+    )
+
     @property
     def token(self):
         if self.api_key and self.api_secret:

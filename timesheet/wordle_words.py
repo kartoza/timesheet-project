@@ -16,3 +16,12 @@ WORDLE_WORDS = _load('wordle_answer_words.txt')
 
 # Every accepted guess; always a superset of WORDLE_WORDS.
 VALID_GUESSES = frozenset(_load('wordle_valid_words.txt')) | frozenset(WORDLE_WORDS)
+
+
+# Single player wordle: common 5 letter words.
+SOLO_WORDLE_WORDS = sorted(
+    w.upper() for w in _load('single_wordle_answer_words.txt')
+)
+SOLO_VALID_GUESSES = (
+    frozenset(_load('single_wordle_valid_words.txt')) | frozenset(SOLO_WORDLE_WORDS)
+)

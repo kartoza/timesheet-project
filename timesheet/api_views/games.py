@@ -4,9 +4,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from timesheet.api_views import connections, wordle
+from timesheet.api_views import connections, solo_wordle, wordle
 from timesheet.models.profile import Profile
-from timesheet.utils.games import get_leaderboard, user_today
+from timesheet.utils.games import get_leaderboard, get_rank, user_today
 
 
 @extend_schema(exclude=True)
@@ -18,23 +18,39 @@ class GamesStatusView(APIView):
         user = request.user
         with transaction.atomic():
             wordle_game = wordle.get_current_game()
-            wordle_played = wordle_game is None or wordle_game.guesses.filter(
-                user=user, guess_date=user_today(user)
-            ).exists()
+            profile = Profile.objects.get(user=user)
+            wordle_played = wordle_game is None or (
+                wordle_game.guesses.filter(
+                    user=user, guess_date=user_today(user)
+                ).exists() and profile.bonus_guesses == 0
+            )
+            solo_game = solo_wordle.get_game(user)
             connections_game = connections.get_current_game()
             connections_played = connections.has_played_today(
                 connections_game, user
             )
         return Response({
-            'points': Profile.objects.get(user=user).points,
-            'leaderboard': get_leaderboard(),
+            'points': profile.points,
+            'leaderboard': get_leaderboard(user),
+            'rank': get_rank(profile.points) if profile.points else None,
             'games': [
                 {
                     'key': 'wordle',
-                    'title': 'Wordle',
+                    'title': 'Team Wordle',
                     'description': 'Guess the hidden word together.',
                     'played_today': wordle_played,
+                    'bonus_guesses': (
+                        profile.bonus_guesses if wordle_game else 0
+                    ),
                     'solved': wordle_game is None,
+                    'unavailable': False,
+                },
+                {
+                    'key': 'solo_wordle',
+                    'title': 'Solo Wordle',
+                    'description': 'Play on your own. Win for an extra Team Wordle guess.',
+                    'played_today': solo_game.is_finished,
+                    'solved': False,
                     'unavailable': False,
                 },
                 {
