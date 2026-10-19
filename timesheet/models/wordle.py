@@ -70,4 +70,23 @@ class WordleGuess(models.Model):
 
     class Meta:
         ordering = ['id']
-        unique_together = ('game', 'user', 'guess_date')
+
+
+class SoloWordleGame(models.Model):
+    """A user's own wordle for a day. Winning grants no points, only an
+    extra guess in the team wordle."""
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name='solo_wordle_games'
+    )
+    word = EncryptedWordField()
+    play_date = models.DateField()
+    guesses = models.JSONField(default=list)
+    is_finished = models.BooleanField(default=False)
+    won = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-id']
+        unique_together = ('user', 'play_date')

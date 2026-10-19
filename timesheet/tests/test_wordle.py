@@ -85,7 +85,7 @@ class TestWordleViews(TestCase):
         self.assertEqual(third.status_code, 200)
         self.assertEqual(len(third.json()['guesses']), 2)
 
-    def test_win_awards_point_and_waits_until_tomorrow(self):
+    def test_win_awards_two_points_and_waits_until_tomorrow(self):
         game = self._game()
         response = self.client.post(
             reverse('wordle-guess'), {'guess': 'software'}, format='json')
@@ -95,7 +95,7 @@ class TestWordleViews(TestCase):
         self.assertTrue(game.is_finished)
         self.assertEqual(game.winner, self.user)
         self.user.profile.refresh_from_db()
-        self.assertEqual(self.user.profile.points, 1)
+        self.assertEqual(self.user.profile.points, 2)
         # Solved today: no new word until tomorrow.
         self.assertFalse(data['next']['active'])
         self.assertEqual(WordleGame.objects.count(), 1)

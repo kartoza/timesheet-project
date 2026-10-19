@@ -190,8 +190,12 @@ class TestGamesStatus(TestCase):
         data = self.client.get(reverse('games-status')).json()
         self.assertEqual(
             data['leaderboard'],
-            [{'user': 'Sam', 'points': 5}, {'user': 'Alex', 'points': 2}])
+            [
+                {'rank': 1, 'user': 'Sam', 'points': 5, 'is_me': False},
+                {'rank': 2, 'user': 'Alex', 'points': 2, 'is_me': True},
+            ])
         self.assertEqual(data['points'], 2)
+        self.assertEqual(data['rank'], 2)
 
     def test_requires_login(self):
         response = APIClient().get(reverse('games-status'))

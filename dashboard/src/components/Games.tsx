@@ -7,21 +7,31 @@ import '../styles/Games';
 import '../styles/Wordle';
 
 const Wordle = React.lazy(() => import('./Wordle'));
+const SoloWordle = React.lazy(() => import('./SoloWordle'));
 const Connections = React.lazy(() => import('./Connections'));
 
-type GameKey = 'wordle' | 'connections';
+type GameKey = 'wordle' | 'solo_wordle' | 'connections';
+
+interface LeaderboardEntry {
+    rank: number
+    user: string
+    points: number
+    is_me: boolean
+}
 
 interface GameStatus {
     key: GameKey
     title: string
     description: string
     played_today: boolean
+    bonus_guesses?: number
     solved: boolean
     unavailable: boolean
 }
 
 const GAME_COMPONENTS: { [key in GameKey]: React.LazyExoticComponent<() => JSX.Element> } = {
     wordle: Wordle,
+    solo_wordle: SoloWordle,
     connections: Connections,
 };
 
@@ -31,7 +41,8 @@ export default function Games() {
     const [view, setView] = useState<GameKey | null>(null);
     const [games, setGames] = useState<GameStatus[]>([]);
     const [points, setPoints] = useState(0);
-    const [leaderboard, setLeaderboard] = useState<{ user: string, points: number }[]>([]);
+    const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+    const [rank, setRank] = useState<number | null>(null);
     const [error, setError] = useState('');
 
     const loadStatus = () => {
@@ -41,6 +52,7 @@ export default function Games() {
                 setGames(data.games);
                 setPoints(data.points);
                 setLeaderboard(data.leaderboard);
+                setRank(data.rank);
             })
             .catch(() => setError('Failed to load the games.'));
     }
@@ -56,6 +68,10 @@ export default function Games() {
     const statusChip = (game: GameStatus) => {
         if (game.unavailable) {
             return <Chip size="small" variant="outlined" label="Coming soon" />;
+        }
+        if (game.bonus_guesses) {
+            return <Chip size="small" color="warning"
+                label={`${game.bonus_guesses} extra ${game.bonus_guesses === 1 ? 'guess' : 'guesses'}`} />;
         }
         if (game.solved) {
             return <Chip size="small" color="success" label="Solved today" />;
@@ -112,16 +128,31 @@ export default function Games() {
                         {error && (
                             <Typography variant="body2" color="error">{error}</Typography>
                         )}
-                        {leaderboard.length > 0 && (
-                            <Box marginTop={2}>
+                        <div className="GamesLeaderboard">
+                            <div className="GamesLeaderboardTitle">
                                 <Typography variant="subtitle2">Leaderboard</Typography>
-                                {leaderboard.map((entry, i) => (
-                                    <Typography variant="body2" key={i}>
-                                        {i + 1}. {entry.user} - {entry.points}
-                                    </Typography>
-                                ))}
-                            </Box>
-                        )}
+                                {rank && <Typography variant="body2">
+                                    Your rank: <strong>#{rank}</strong>
+                                </Typography>}
+                            </div>
+                            {leaderboard.length === 0 && (
+                                <Typography variant="body2" className="GamesLeaderboardEmpty">
+                                    No points yet. Win a game to get on the board.
+                                </Typography>
+                            )}
+                            {leaderboard.map((entry, i) => (
+                                <div key={i}
+                                    className={`GamesLeaderboardRow ${entry.is_me ? 'me' : ''}`}>
+                                    <span className={`GamesRank rank-${entry.rank}`}>{entry.rank}</span>
+                                    <span className="GamesLeaderboardName">
+                                        {entry.user}{entry.is_me ? ' (you)' : ''}
+                                    </span>
+                                    <span className="GamesLeaderboardPoints">
+                                        {entry.points} {entry.points === 1 ? 'pt' : 'pts'}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
                     </>
                 )}
             </Box>
