@@ -17,11 +17,23 @@ def user_today(user):
     return timezone.now().astimezone(tz).date()
 
 
-def get_leaderboard(limit=10):
-    profiles = (
+def get_rank(points):
+    """Players with the same points share a rank."""
+    return Profile.objects.filter(
+        user__is_active=True, points__gt=points
+    ).count() + 1
+
+
+def get_leaderboard(user, limit=10):
+    profiles = list(
         Profile.objects.filter(user__is_active=True, points__gt=0)
         .select_related('user').order_by('-points', 'user__username')[:limit]
     )
     return [
-        {'user': display_name(p.user), 'points': p.points} for p in profiles
+        {
+            'rank': get_rank(p.points),
+            'user': display_name(p.user),
+            'points': p.points,
+            'is_me': p.user_id == user.id,
+        } for p in profiles
     ]

@@ -37,6 +37,9 @@ from timesheet.api_views.connections import (
     ConnectionsStateView, ConnectionsPickView
 )
 from timesheet.api_views.games import GamesStatusView
+from timesheet.api_views.solo_wordle import (
+    SoloWordleStateView, SoloWordleGuessView
+)
 from timesheet.views import ManageView
 from microblog.api_views import (
     MicroblogPostListView,
@@ -121,6 +124,12 @@ urlpatterns = [
     path('api/wordle/guess/',
          WordleGuessView.as_view(),
          name='wordle-guess'),
+    path('api/solo-wordle/',
+         SoloWordleStateView.as_view(),
+         name='solo-wordle-state'),
+    path('api/solo-wordle/guess/',
+         SoloWordleGuessView.as_view(),
+         name='solo-wordle-guess'),
     path('api/games/',
          GamesStatusView.as_view(),
          name='games-status'),

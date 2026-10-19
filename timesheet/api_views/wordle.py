@@ -16,6 +16,7 @@ from timesheet.wordle_words import (
 )
 
 RECENT_WORDS_EXCLUDED = 20
+WIN_POINTS = 2
 
 
 def evaluate_guess(guess, word):
@@ -101,9 +102,11 @@ def build_state(game, user):
                 'result': evaluate_guess(g.guess, game.word),
             } for g in guesses
         ],
-        'has_guessed': any(
-            g.user_id == user.id and g.guess_date == today for g in guesses
+        'has_guessed': (
+            any(g.user_id == user.id and g.guess_date == today for g in guesses)
+            and profile.bonus_guesses == 0
         ) if active else True,
+        'bonus_guesses': profile.bonus_guesses,
         'last_game': {
             'word': last_game.word,
             'winner': display_name(last_game.winner)
@@ -153,10 +156,16 @@ class WordleGuessView(APIView):
             if game.guesses.filter(
                 user=request.user, guess_date=today
             ).exists():
-                return Response(
-                    {'error': 'You already guessed today. Come back tomorrow.'},
-                    status=400
-                )
+                # Extra guesses are won in the single player wordle.
+                used_bonus = Profile.objects.filter(
+                    user=request.user, bonus_guesses__gt=0
+                ).update(bonus_guesses=F('bonus_guesses') - 1)
+                if not used_bonus:
+                    return Response(
+                        {'error': 'You already guessed today. '
+                                  'Come back tomorrow.'},
+                        status=400
+                    )
             WordleGuess.objects.create(
                 game=game, user=request.user, guess=guess, guess_date=today
             )
@@ -164,7 +173,7 @@ class WordleGuessView(APIView):
                 game.winner = request.user
                 game.is_finished = True
                 Profile.objects.filter(user=request.user).update(
-                    points=F('points') + 1
+                    points=F('points') + WIN_POINTS
                 )
             if game.is_finished:
                 game.finished_at = timezone.now()

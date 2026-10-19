@@ -47,6 +47,60 @@
         .GameCardTitle { font-weight: bold; font-size: 16px; }
         .GameCardDescription { font-size: 13px; opacity: 0.8; }
     }
+
+    .GamesLeaderboard {
+        margin-top: 20px;
+        border-top: 1px solid #888;
+        padding-top: 12px;
+    }
+
+    .GamesLeaderboardTitle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .GamesLeaderboardEmpty { opacity: 0.7; }
+
+    .GamesLeaderboardRow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 8px;
+        border-radius: 2px;
+        font-size: 14px;
+
+        &.me {
+            background: rgba(25, 118, 210, 0.18);
+            font-weight: bold;
+        }
+    }
+
+    .GamesRank {
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        border: 1px solid #888;
+        font-size: 12px;
+
+        &.rank-1 { background: #d4af37; border-color: #d4af37; color: #000; }
+        &.rank-2 { background: #c0c0c0; border-color: #c0c0c0; color: #000; }
+        &.rank-3 { background: #cd7f32; border-color: #cd7f32; color: #000; }
+    }
+
+    .GamesLeaderboardName {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .GamesLeaderboardPoints { opacity: 0.85; }
 }
 
 .GameWinBanner {
