@@ -60,6 +60,22 @@ class TestSoloWordle(TestCase):
         self.assertEqual(
             self.client.post(team, {'guess': 'treasure'}, format='json').status_code, 400)
 
+    def test_only_one_bonus_guess_used_per_day(self):
+        self.user.profile.bonus_guesses = 3
+        self.user.profile.save()
+        self.client.get(reverse('wordle-state'))
+        game = WordleGame.objects.get(is_finished=False)
+        game.word = 'SOFTWARE'
+        game.save()
+        team = reverse('wordle-guess')
+        for guess, status in (('standard', 200), ('solution', 200), ('treasure', 400)):
+            self.assertEqual(
+                self.client.post(team, {'guess': guess}, format='json').status_code,
+                status)
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.bonus_guesses, 2)
+        self.assertTrue(self.client.get(reverse('wordle-state')).json()['has_guessed'])
+
 
 class TestSoloWordleDailyWord(TestCase):
     def test_everyone_gets_the_same_word_each_day(self):

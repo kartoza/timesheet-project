@@ -19,10 +19,12 @@ class GamesStatusView(APIView):
         with transaction.atomic():
             wordle_game = wordle.get_current_game()
             profile = Profile.objects.get(user=user)
+            my_guesses_today = wordle_game.guesses.filter(
+                user=user, guess_date=user_today(user)
+            ).count() if wordle_game else 0
             wordle_played = wordle_game is None or (
-                wordle_game.guesses.filter(
-                    user=user, guess_date=user_today(user)
-                ).exists() and profile.bonus_guesses == 0
+                (my_guesses_today >= 1 and profile.bonus_guesses == 0)
+                or my_guesses_today >= 2
             )
             solo_game = solo_wordle.get_game(user)
             connections_game = connections.get_current_game()

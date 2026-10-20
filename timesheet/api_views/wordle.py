@@ -94,6 +94,9 @@ def build_state(game, user):
     guesses = list(game.guesses.select_related('user')) if game else []
     profile = Profile.objects.get(user=user)
     today = user_today(user)
+    my_guesses_today = sum(
+        1 for g in guesses if g.user_id == user.id and g.guess_date == today
+    )
     return {
         'active': active,
         'word_length': len(game.word) if game and active else 0,
@@ -106,8 +109,8 @@ def build_state(game, user):
             } for g in guesses
         ],
         'has_guessed': (
-            any(g.user_id == user.id and g.guess_date == today for g in guesses)
-            and profile.bonus_guesses == 0
+            (my_guesses_today >= 1 and profile.bonus_guesses == 0)
+            or my_guesses_today >= 2
         ) if active else True,
         'bonus_guesses': profile.bonus_guesses,
         'last_game': {
@@ -156,10 +159,18 @@ class WordleGuessView(APIView):
                     {'error': 'Not a valid English word.'}, status=400
                 )
             today = user_today(request.user)
-            if game.guesses.filter(
+            guesses_today = game.guesses.filter(
                 user=request.user, guess_date=today
-            ).exists():
-                # Extra guesses are won in the single player wordle.
+            ).count()
+            if guesses_today >= 2:
+                return Response(
+                    {'error': 'You already used your extra guess today. '
+                              'Come back tomorrow.'},
+                    status=400
+                )
+            if guesses_today == 1:
+                # Extra guesses are won in the single player wordle and
+                # only one can be used per day.
                 used_bonus = Profile.objects.filter(
                     user=request.user, bonus_guesses__gt=0
                 ).update(bonus_guesses=F('bonus_guesses') - 1)
