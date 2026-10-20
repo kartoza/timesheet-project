@@ -125,6 +125,20 @@ class TestWordleViews(TestCase):
         self.assertEqual(WordleGame.objects.count(), 1)
         self.assertFalse(WordleGame.objects.get().is_finished)
 
+    def test_new_word_starts_when_solved_today_but_created_earlier(self):
+        game = self._game()
+        WordleGame.objects.filter(id=game.id).update(
+            created_at=timezone.now() - datetime.timedelta(days=3))
+        data = self.client.post(
+            reverse('wordle-guess'), {'guess': 'software'}, format='json'
+        ).json()
+        self.assertTrue(data['won'])
+        self.assertTrue(data['next']['active'])
+        self.assertEqual(WordleGame.objects.count(), 2)
+        state = self.client.get(reverse('wordle-state')).json()
+        self.assertTrue(state['active'])
+        self.assertEqual(WordleGame.objects.count(), 2)
+
     def test_stale_game_with_unsupported_length_is_closed(self):
         game = self._game()
         game.word = 'INSURANCES'

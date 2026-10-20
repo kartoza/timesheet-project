@@ -53,7 +53,8 @@ def get_current_game():
 
     Only one word is started per day: a new game is created when there is no
     open game and the last game was not finished today. An unsolved game stays
-    open across days.
+    open across days. A game that was solved today but created on an earlier
+    day doesn't use up today's word, so a new game starts straight away.
 
     Must be called inside a transaction so concurrent requests are serialised
     on the open game row.
@@ -71,9 +72,11 @@ def get_current_game():
         game.is_finished = True
         game.save()
     last_game = WordleGame.objects.filter(finished_at__isnull=False).first()
+    today = timezone.localdate()
     if (
         last_game and
-        timezone.localdate(last_game.finished_at) == timezone.localdate()
+        timezone.localdate(last_game.finished_at) == today and
+        timezone.localdate(last_game.created_at) == today
     ):
         return None
     return WordleGame.objects.create(word=pick_word())
@@ -178,10 +181,10 @@ class WordleGuessView(APIView):
             if game.is_finished:
                 game.finished_at = timezone.now()
                 game.save()
-                # Show the finished round's result; the next word starts
-                # tomorrow, so the follow-up state has no active game.
+                # Show the finished round's result. The next word starts
+                # tomorrow, unless this game was created on an earlier day.
                 state = build_state(game, request.user)
                 state['won'] = game.winner_id == request.user.id
-                state['next'] = build_state(None, request.user)
+                state['next'] = build_state(get_current_game(), request.user)
                 return Response(state)
             return Response(build_state(game, request.user))
