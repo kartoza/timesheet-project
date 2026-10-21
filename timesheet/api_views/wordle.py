@@ -194,6 +194,9 @@ class WordleGuessView(APIView):
                 # tomorrow, unless this game was created on an earlier day.
                 state = build_state(game, request.user)
                 state['won'] = game.winner_id == request.user.id
+                state['points_won'] = (
+                    WIN_POINTS[len(game.word)] if state['won'] else 0
+                )
                 state['next'] = build_state(get_current_game(), request.user)
                 return Response(state)
             return Response(build_state(game, request.user))
