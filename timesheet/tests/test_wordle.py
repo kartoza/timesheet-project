@@ -85,10 +85,27 @@ class TestWordleViews(TestCase):
         self.assertEqual(third.status_code, 200)
         self.assertEqual(len(third.json()['guesses']), 2)
 
-    def test_win_awards_two_points_and_waits_until_tomorrow(self):
+    def _win_points(self, word):
         game = self._game()
+        game.word = word
+        game.save()
+        self.client.post(
+            reverse('wordle-guess'), {'guess': word.lower()}, format='json')
+        self.user.profile.refresh_from_db()
+        return self.user.profile.points
+
+    def test_eight_letter_win_awards_three_points(self):
+        self.assertEqual(self._win_points('SOFTWARE'), 3)
+
+    def test_nine_letter_win_awards_four_points(self):
+        self.assertEqual(self._win_points('STANDARDS'), 4)
+
+    def test_win_awards_points_and_waits_until_tomorrow(self):
+        game = self._game()
+        game.word = 'SOFTWAR'
+        game.save()
         response = self.client.post(
-            reverse('wordle-guess'), {'guess': 'software'}, format='json')
+            reverse('wordle-guess'), {'guess': 'softwar'}, format='json')
         data = response.json()
         self.assertTrue(data['won'])
         game.refresh_from_db()
@@ -101,7 +118,7 @@ class TestWordleViews(TestCase):
         self.assertEqual(WordleGame.objects.count(), 1)
         state = self.client.get(reverse('wordle-state')).json()
         self.assertFalse(state['active'])
-        self.assertEqual(state['last_game']['word'], 'SOFTWARE')
+        self.assertEqual(state['last_game']['word'], 'SOFTWAR')
         again = self.client.post(
             reverse('wordle-guess'), {'guess': 'standard'}, format='json')
         self.assertEqual(again.status_code, 400)

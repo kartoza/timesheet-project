@@ -17,6 +17,15 @@ def user_today(user):
     return timezone.now().astimezone(tz).date()
 
 
+def has_bonus_guess(user):
+    """Winning today's solo wordle earns one extra team wordle guess, valid
+    only for that day."""
+    from timesheet.models.wordle import SoloWordleGame
+    return SoloWordleGame.objects.filter(
+        user=user, play_date=user_today(user), won=True
+    ).exists()
+
+
 def get_rank(points):
     """Players with the same points share a rank."""
     return Profile.objects.filter(

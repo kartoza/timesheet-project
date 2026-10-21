@@ -14,7 +14,6 @@ interface SoloState {
     is_finished: boolean
     won: boolean
     word: string | null
-    bonus_guesses: number
 }
 
 
@@ -145,7 +144,7 @@ export default function SoloWordle() {
         {state?.is_finished && (
             <Typography variant="body2" textAlign="center">
                 {state.won
-                    ? `You got it! You earned an extra Team Wordle guess (you have ${state.bonus_guesses}).`
+                    ? `You got it! You earned an extra Team Wordle guess for today.`
                     : <>The word was <strong>{state.word}</strong>.</>}
                 {' '}Come back tomorrow for a new word.
             </Typography>

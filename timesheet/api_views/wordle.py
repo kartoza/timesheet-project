@@ -9,14 +9,15 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from timesheet.models.profile import Profile
-from timesheet.utils.games import display_name, user_today
+from timesheet.utils.games import display_name, has_bonus_guess, user_today
 from timesheet.models.wordle import WordleGame, WordleGuess
 from timesheet.wordle_words import (
     MAX_WORD_LENGTH, MIN_WORD_LENGTH, VALID_GUESSES, WORDLE_WORDS
 )
 
 RECENT_WORDS_EXCLUDED = 20
-WIN_POINTS = 2
+# Longer words are harder, so they are worth more points.
+WIN_POINTS = {7: 2, 8: 3, 9: 4}
 
 
 def evaluate_guess(guess, word):
@@ -97,6 +98,7 @@ def build_state(game, user):
     my_guesses_today = sum(
         1 for g in guesses if g.user_id == user.id and g.guess_date == today
     )
+    has_bonus = has_bonus_guess(user)
     return {
         'active': active,
         'word_length': len(game.word) if game and active else 0,
@@ -109,10 +111,10 @@ def build_state(game, user):
             } for g in guesses
         ],
         'has_guessed': (
-            (my_guesses_today >= 1 and profile.bonus_guesses == 0)
+            (my_guesses_today >= 1 and not has_bonus)
             or my_guesses_today >= 2
         ) if active else True,
-        'bonus_guesses': profile.bonus_guesses,
+        'bonus_guesses': int(has_bonus and my_guesses_today < 2),
         'last_game': {
             'word': last_game.word,
             'winner': display_name(last_game.winner)
@@ -169,12 +171,8 @@ class WordleGuessView(APIView):
                     status=400
                 )
             if guesses_today == 1:
-                # Extra guesses are won in the single player wordle and
-                # only one can be used per day.
-                used_bonus = Profile.objects.filter(
-                    user=request.user, bonus_guesses__gt=0
-                ).update(bonus_guesses=F('bonus_guesses') - 1)
-                if not used_bonus:
+                # The extra guess is won in today's single player wordle.
+                if not has_bonus_guess(request.user):
                     return Response(
                         {'error': 'You already guessed today. '
                                   'Come back tomorrow.'},
@@ -187,7 +185,7 @@ class WordleGuessView(APIView):
                 game.winner = request.user
                 game.is_finished = True
                 Profile.objects.filter(user=request.user).update(
-                    points=F('points') + WIN_POINTS
+                    points=F('points') + WIN_POINTS[len(game.word)]
                 )
             if game.is_finished:
                 game.finished_at = timezone.now()
