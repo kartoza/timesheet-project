@@ -1,9 +1,13 @@
+import datetime
+from unittest.mock import patch
+
 from django.contrib.auth.models import User
 from django.test import TestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from timesheet.models import SoloWordleGame, WordleGame
+from timesheet.utils.games import has_bonus_guess, user_today
 
 
 class TestSoloWordle(TestCase):
@@ -32,7 +36,7 @@ class TestSoloWordle(TestCase):
         data = self.client.post(self.url, {'guess': 'apple'}, format='json').json()
         self.assertTrue(data['won'])
         self.user.profile.refresh_from_db()
-        self.assertEqual(self.user.profile.bonus_guesses, 1)
+        self.assertTrue(has_bonus_guess(self.user))
         self.assertEqual(self.user.profile.points, 0)
         again = self.client.post(self.url, {'guess': 'apple'}, format='json')
         self.assertEqual(again.status_code, 400)
@@ -43,8 +47,7 @@ class TestSoloWordle(TestCase):
         self.assertTrue(data['is_finished'])
         self.assertFalse(data['won'])
         self.assertEqual(data['word'], 'APPLE')
-        self.user.profile.refresh_from_db()
-        self.assertEqual(self.user.profile.bonus_guesses, 0)
+        self.assertFalse(has_bonus_guess(self.user))
 
     def test_bonus_allows_second_team_guess(self):
         self.client.post(self.url, {'guess': 'apple'}, format='json')
@@ -61,8 +64,9 @@ class TestSoloWordle(TestCase):
             self.client.post(team, {'guess': 'treasure'}, format='json').status_code, 400)
 
     def test_only_one_bonus_guess_used_per_day(self):
-        self.user.profile.bonus_guesses = 3
-        self.user.profile.save()
+        self.game.won = True
+        self.game.is_finished = True
+        self.game.save()
         self.client.get(reverse('wordle-state'))
         game = WordleGame.objects.get(is_finished=False)
         game.word = 'SOFTWARE'
@@ -72,9 +76,19 @@ class TestSoloWordle(TestCase):
             self.assertEqual(
                 self.client.post(team, {'guess': guess}, format='json').status_code,
                 status)
-        self.user.profile.refresh_from_db()
-        self.assertEqual(self.user.profile.bonus_guesses, 2)
         self.assertTrue(self.client.get(reverse('wordle-state')).json()['has_guessed'])
+
+
+class TestBonusGuessExpires(TestCase):
+    def test_bonus_only_valid_on_the_day_it_was_won(self):
+        user = User.objects.create_user('u2', password='pass')
+        SoloWordleGame.objects.create(
+            user=user, word='APPLE', play_date=user_today(user), won=True,
+            is_finished=True)
+        self.assertTrue(has_bonus_guess(user))
+        tomorrow = user_today(user) + datetime.timedelta(days=1)
+        with patch('timesheet.utils.games.user_today', return_value=tomorrow):
+            self.assertFalse(has_bonus_guess(user))
 
 
 class TestSoloWordleDailyWord(TestCase):

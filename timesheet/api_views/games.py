@@ -6,7 +6,9 @@ from rest_framework.views import APIView
 
 from timesheet.api_views import connections, solo_wordle, wordle
 from timesheet.models.profile import Profile
-from timesheet.utils.games import get_leaderboard, get_rank, user_today
+from timesheet.utils.games import (
+    get_leaderboard, get_rank, has_bonus_guess, user_today
+)
 
 
 @extend_schema(exclude=True)
@@ -23,7 +25,7 @@ class GamesStatusView(APIView):
                 user=user, guess_date=user_today(user)
             ).count() if wordle_game else 0
             wordle_played = wordle_game is None or (
-                (my_guesses_today >= 1 and profile.bonus_guesses == 0)
+                (my_guesses_today >= 1 and not has_bonus_guess(user))
                 or my_guesses_today >= 2
             )
             solo_game = solo_wordle.get_game(user)
@@ -42,7 +44,8 @@ class GamesStatusView(APIView):
                     'description': 'Guess the hidden word together.',
                     'played_today': wordle_played,
                     'bonus_guesses': (
-                        profile.bonus_guesses if wordle_game else 0
+                        int(has_bonus_guess(user) and my_guesses_today < 2)
+                        if wordle_game else 0
                     ),
                     'solved': wordle_game is None,
                     'unavailable': False,

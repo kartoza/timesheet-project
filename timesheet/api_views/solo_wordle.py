@@ -1,14 +1,12 @@
 import random
 
 from django.db import transaction
-from django.db.models import F
 from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from timesheet.api_views.wordle import evaluate_guess
-from timesheet.models.profile import Profile
 from timesheet.models.wordle import SoloWordleGame
 from timesheet.utils.games import user_today
 from timesheet.wordle_words import SOLO_VALID_GUESSES, SOLO_WORDLE_WORDS
@@ -46,7 +44,6 @@ def build_state(game, user):
         'won': game.won,
         # Only revealed when the game is over.
         'word': game.word if game.is_finished else None,
-        'bonus_guesses': Profile.objects.get(user=user).bonus_guesses,
     }
 
 
@@ -91,9 +88,6 @@ class SoloWordleGuessView(APIView):
             if guess == game.word:
                 game.won = True
                 game.is_finished = True
-                Profile.objects.filter(user=request.user).update(
-                    bonus_guesses=F('bonus_guesses') + 1
-                )
             elif len(game.guesses) >= SOLO_MAX_GUESSES:
                 game.is_finished = True
             game.save()
