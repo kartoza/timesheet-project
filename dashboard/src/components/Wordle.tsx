@@ -22,6 +22,7 @@ interface WordleState {
     bonus_guesses: number
     last_game: { word: string, winner: string | null } | null
     points: number
+    points_won?: number
 }
 
 
@@ -79,7 +80,7 @@ export default function Wordle() {
                     setCelebrating(!!data.won);
                     setState(data.next);
                     setMessage(data.won
-                        ? 'You got it! +2 points. A new word comes tomorrow.'
+                        ? `You got it! +${data.points_won} points. A new word comes tomorrow.`
                         : 'Round over. A new word comes tomorrow.');
                 } else {
                     setState(data);
@@ -169,7 +170,7 @@ export default function Wordle() {
             </div>
         )}
         {celebrating && (
-            <div className="WordleWinBanner">You won! +2 points</div>
+            <div className="WordleWinBanner">You won! +{finished?.points_won} points</div>
         )}
         <Grid container marginBottom={1}>
             <Grid item xs={6} alignItems={'center'} display={'flex'}>
@@ -189,7 +190,8 @@ export default function Wordle() {
         </Grid>
         <Typography variant="body2" marginBottom={1}>
             Guess the {state?.word_length || '7-9'}-letter word together. Each
-            person gets one guess per day until the word is solved; the first correct guess wins 2 points.
+            person gets one guess per day until the word is solved; the first correct guess wins 2 points
+            for a 7-letter word, 3 for 8 letters and 4 for 9 letters.
             {(state?.bonus_guesses ?? 0) > 0 && <> You have <strong>{state?.bonus_guesses}</strong> extra {state?.bonus_guesses === 1 ? 'guess' : 'guesses'} from Wordle.</>}
         </Typography>
         {lastGame && !finished && (
