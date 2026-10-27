@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from timesheet.api_views import connections, solo_wordle, wordle
 from timesheet.models.profile import Profile
 from timesheet.utils.games import (
-    get_leaderboard, get_rank, has_bonus_guess, user_today
+    get_leaderboard, get_rank, has_bonus_guess
 )
 
 
@@ -21,12 +21,8 @@ class GamesStatusView(APIView):
         with transaction.atomic():
             wordle_game = wordle.get_current_game()
             profile = Profile.objects.get(user=user)
-            my_guesses_today = wordle_game.guesses.filter(
-                user=user, guess_date=user_today(user)
-            ).count() if wordle_game else 0
-            wordle_played = wordle_game is None or (
-                (my_guesses_today >= 1 and not has_bonus_guess(user))
-                or my_guesses_today >= 2
+            wordle_played = (
+                wordle_game is None or wordle.guesses_left_today(user) == 0
             )
             solo_game = solo_wordle.get_game(user)
             connections_game = connections.get_current_game()
@@ -44,8 +40,10 @@ class GamesStatusView(APIView):
                     'description': 'Guess the hidden word together.',
                     'played_today': wordle_played,
                     'bonus_guesses': (
-                        int(has_bonus_guess(user) and my_guesses_today < 2)
-                        if wordle_game else 0
+                        int(
+                            has_bonus_guess(user)
+                            and wordle.guesses_left_today(user) > 0
+                        ) if wordle_game else 0
                     ),
                     'solved': wordle_game is None,
                     'unavailable': False,

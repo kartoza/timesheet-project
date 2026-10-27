@@ -19,6 +19,7 @@ interface WordleState {
     word_length: number
     guesses: WordleGuess[]
     has_guessed: boolean
+    won_today: boolean
     bonus_guesses: number
     last_game: { word: string, winner: string | null } | null
     points: number
@@ -79,9 +80,12 @@ export default function Wordle() {
                     setFinished(data);
                     setCelebrating(!!data.won);
                     setState(data.next);
+                    const nextInfo = data.next.active
+                        ? 'A new word is ready for anyone who has not guessed today.'
+                        : "Both of today's words are solved. New words come tomorrow.";
                     setMessage(data.won
-                        ? `You got it! +${data.points_won} points. A new word comes tomorrow.`
-                        : 'Round over. A new word comes tomorrow.');
+                        ? `You got it! +${data.points_won} points. ${nextInfo}`
+                        : `Round over. ${nextInfo}`);
                 } else {
                     setState(data);
                     setMessage('Guess submitted.');
@@ -189,14 +193,15 @@ export default function Wordle() {
             </Grid>
         </Grid>
         <Typography variant="body2" marginBottom={1}>
-            Guess the {state?.word_length || '7-9'}-letter word together. Each
-            person gets one guess per day until the word is solved; the first correct guess wins 2 points
+            Guess the {state?.word_length || '7-9'}-letter word together. There are
+            two words a day: when one is solved, the next one starts. Each
+            person gets one guess per day over both words; the first correct guess wins 2 points
             for a 7-letter word, 3 for 8 letters and 4 for 9 letters.
             {(state?.bonus_guesses ?? 0) > 0 && <> You have <strong>{state?.bonus_guesses}</strong> extra {state?.bonus_guesses === 1 ? 'guess' : 'guesses'} from Wordle.</>}
         </Typography>
-        {lastGame && !finished && (
+        {lastGame && !finished && !state?.won_today && (
             <Typography variant="body2" marginBottom={1}>
-                {state?.active ? 'Last word' : "Today's word"}: <strong>{lastGame.word}</strong>
+                {state?.active ? 'Last word' : 'Last solved word'}: <strong>{lastGame.word}</strong>
                 {lastGame.winner ? ` - solved by ${lastGame.winner}` : ' - nobody solved it'}
             </Typography>
         )}
@@ -208,7 +213,7 @@ export default function Wordle() {
         <Box marginBottom={2}>
             {board.length === 0 && (
                 <Typography variant="body2" textAlign="center">
-                    No guesses yet. Be the first!
+                    {state && !state.has_guessed ? 'No guesses yet. Be the first!' : 'No guesses yet.'}
                 </Typography>
             )}
             {board.map(renderRow)}
@@ -239,8 +244,10 @@ export default function Wordle() {
         ) : (
             state && <Typography variant="body2" textAlign="center">
                 {state.active
-                    ? 'You already guessed today. Come back tomorrow to guess again if the word is still unsolved.'
-                    : "Today's word is solved. A new word comes tomorrow."}
+                    ? state.won_today
+                        ? 'You solved a word today, well done! Come back tomorrow.'
+                        : 'You already guessed today. Come back tomorrow to guess again if the word is still unsolved.'
+                    : "Today's two words are solved. New words come tomorrow."}
             </Typography>
         )}
         {error && (
