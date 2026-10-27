@@ -3,6 +3,7 @@ import random
 from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
+from preferences import preferences
 from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -12,7 +13,8 @@ from timesheet.models.profile import Profile
 from timesheet.utils.games import display_name, has_bonus_guess, user_today
 from timesheet.models.wordle import WordleGame, WordleGuess
 from timesheet.wordle_words import (
-    MAX_WORD_LENGTH, MIN_WORD_LENGTH, VALID_GUESSES, WORDLE_WORDS
+    MAX_DIFFICULTY, MAX_WORD_LENGTH, MIN_DIFFICULTY, MIN_WORD_LENGTH,
+    VALID_GUESSES, WORDLE_WORDS_BY_LEVEL
 )
 
 RECENT_WORDS_EXCLUDED = 20
@@ -40,13 +42,21 @@ def evaluate_guess(guess, word):
     return result
 
 
+def get_difficulty():
+    """Difficulty level from the site settings, kept within 1 to 5."""
+    level = preferences.TimesheetPreferences.wordle_difficulty
+    return min(max(level, MIN_DIFFICULTY), MAX_DIFFICULTY)
+
+
 def pick_word():
+    """Pick the word of a new game, using the current difficulty setting."""
     recent = list(
         WordleGame.objects.values_list('word', flat=True)[:RECENT_WORDS_EXCLUDED]
     )
+    words = WORDLE_WORDS_BY_LEVEL[get_difficulty()]
     # Pick the length first so 7, 8 and 9 letter words are equally likely.
     length = random.randint(MIN_WORD_LENGTH, MAX_WORD_LENGTH)
-    pool = [w for w in WORDLE_WORDS if len(w) == length]
+    pool = [w for w in words if len(w) == length]
     choices = [w for w in pool if w not in recent] or pool
     return random.choice(choices)
 
