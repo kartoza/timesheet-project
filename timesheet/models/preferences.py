@@ -197,6 +197,14 @@ def validate_pmo_status_config(config):
 
 
 class TimesheetPreferences(Preferences):
+    WORDLE_DIFFICULTY_CHOICES = [
+        (1, '1 - Easy: common words, plurals and verb forms included'),
+        (2, '2 - Fairly easy: common words, no plurals or verb forms'),
+        (3, '3 - Medium: less everyday words'),
+        (4, '4 - Hard: uncommon words'),
+        (5, '5 - Hardest: rare words'),
+    ]
+
     admin_token = models.CharField(
         max_length=200,
         default=''
@@ -214,6 +222,16 @@ class TimesheetPreferences(Preferences):
     map_api_key = models.CharField(
         max_length=200,
         default=''
+    )
+
+    wordle_difficulty = models.PositiveSmallIntegerField(
+        choices=WORDLE_DIFFICULTY_CHOICES,
+        default=1,
+        help_text=(
+            'Difficulty of the team wordle words, 1 (easy) to 5 (hardest). '
+            'It only applies to words that start after the change; the '
+            'current word stays as it is.'
+        )
     )
 
     erp_timezone = models.CharField(

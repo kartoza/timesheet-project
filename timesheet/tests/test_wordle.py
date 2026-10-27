@@ -4,10 +4,13 @@ from unittest.mock import patch
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils import timezone
+from preferences import preferences
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from timesheet.api_views.wordle import evaluate_guess, user_today
+from timesheet.api_views.wordle import (
+    evaluate_guess, get_difficulty, pick_word, user_today
+)
 from timesheet.models import SoloWordleGame, WordleGame
 
 
@@ -325,3 +328,79 @@ class TestEncryptedWord(TestCase):
         response = client.get(
             reverse('admin:timesheet_wordlegame_change', args=[game.pk]))
         self.assertContains(response, 'SOFTWARE')
+
+
+def set_difficulty(level):
+    prefs = preferences.TimesheetPreferences
+    prefs.wordle_difficulty = level
+    prefs.save()
+
+
+class TestWordleDifficulty(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user('u1', password='pass')
+        self.client.login(username='u1', password='pass')
+
+    def test_levels_have_words_of_every_length(self):
+        from timesheet.wordle_words import VALID_GUESSES, WORDLE_WORDS_BY_LEVEL
+        self.assertEqual(sorted(WORDLE_WORDS_BY_LEVEL), [1, 2, 3, 4, 5])
+        for level, words in WORDLE_WORDS_BY_LEVEL.items():
+            with self.subTest(level=level):
+                self.assertEqual({len(w) for w in words}, {7, 8, 9})
+                self.assertGreater(len(words), 1000)
+                self.assertTrue(all(w == w.upper() and w.isalpha() for w in words))
+                self.assertTrue(set(words) <= VALID_GUESSES)
+
+    def test_unsuitable_words_are_not_in_the_pool(self):
+        from timesheet.wordle_words import WORDLE_WORDS
+        unsuitable = ('TERROR', 'MURDER', 'SUICID', 'COCAINE', 'NAKED')
+        self.assertFalse([w for w in WORDLE_WORDS if w.startswith(unsuitable)])
+
+    def test_default_is_the_easiest_level(self):
+        self.assertEqual(get_difficulty(), 1)
+
+    def test_words_come_from_the_selected_level(self):
+        from timesheet.wordle_words import WORDLE_WORDS_BY_LEVEL
+        for level in (2, 5):
+            set_difficulty(level)
+            words = {pick_word() for _ in range(60)}
+            self.assertTrue(words <= set(WORDLE_WORDS_BY_LEVEL[level]), level)
+
+    def test_harder_levels_have_no_plurals_or_verb_forms(self):
+        from timesheet.wordle_words import WORDLE_WORDS_BY_LEVEL
+        easy = set(WORDLE_WORDS_BY_LEVEL[1])
+        for level in (2, 3, 4, 5):
+            words = WORDLE_WORDS_BY_LEVEL[level]
+            share = sum(w.endswith(('ING', 'ED')) for w in words) / len(words)
+            self.assertLess(share, 0.05, level)
+        # Level 1 still allows them.
+        share = sum(w.endswith(('ING', 'ED', 'S')) for w in easy) / len(easy)
+        self.assertGreater(share, 0.2)
+
+    def test_out_of_range_setting_is_kept_within_one_to_five(self):
+        set_difficulty(9)
+        self.assertEqual(get_difficulty(), 5)
+        set_difficulty(0)
+        self.assertEqual(get_difficulty(), 1)
+
+    def test_setting_only_applies_to_the_next_word(self):
+        self.client.get(reverse('wordle-state'))
+        game = WordleGame.objects.get(is_finished=False)
+        word = game.word
+        set_difficulty(5)
+        self.client.get(reverse('wordle-state'))
+        game.refresh_from_db()
+        self.assertEqual(game.word, word)
+        self.assertEqual(WordleGame.objects.count(), 1)
+        # The next game, started once this one is solved, follows the setting.
+        from timesheet.wordle_words import WORDLE_WORDS_BY_LEVEL
+        self.client.post(
+            reverse('wordle-guess'), {'guess': word.lower()}, format='json')
+        new_game = WordleGame.objects.get(is_finished=False)
+        self.assertIn(new_game.word, WORDLE_WORDS_BY_LEVEL[5])
+
+    def test_setting_is_in_the_site_settings_form(self):
+        from timesheet.admin import TimesheetPreferencesForm
+        field = TimesheetPreferencesForm().fields['wordle_difficulty']
+        self.assertEqual([c[0] for c in field.choices], [1, 2, 3, 4, 5])
