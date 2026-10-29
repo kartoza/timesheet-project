@@ -7,7 +7,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from timesheet.models import SoloWordleGame, WordleGame
-from timesheet.utils.games import has_bonus_guess, user_today
+from timesheet.utils.games import has_bonus_guess, is_leader, user_today
 
 
 class TestSoloWordle(TestCase):
@@ -101,3 +101,86 @@ class TestSoloWordleDailyWord(TestCase):
         words = set(SoloWordleGame.objects.values_list('word', flat=True))
         self.assertEqual(SoloWordleGame.objects.count(), 2)
         self.assertEqual(len(words), 1)
+
+
+class TestLeaderGetsNoExtraGuess(TestCase):
+    def setUp(self):
+        self.leader = User.objects.create_user('leader', password='pass')
+        self.second = User.objects.create_user('second', password='pass')
+        self.set_points(self.leader, 10)
+        self.set_points(self.second, 4)
+
+    def set_points(self, user, points):
+        user.profile.points = points
+        user.profile.save()
+
+    def win_solo(self, user):
+        SoloWordleGame.objects.create(
+            user=user, word='APPLE', play_date=user_today(user), won=True,
+            is_finished=True)
+
+    def client_for(self, user):
+        client = APIClient()
+        client.force_authenticate(user)
+        return client
+
+    def test_leader_gets_no_extra_guess_after_winning(self):
+        self.win_solo(self.leader)
+        self.win_solo(self.second)
+        self.assertTrue(is_leader(self.leader))
+        self.assertFalse(has_bonus_guess(self.leader))
+        self.assertTrue(has_bonus_guess(self.second))
+
+    def test_ties_for_first_place_all_miss_out(self):
+        self.set_points(self.second, 10)
+        for user in (self.leader, self.second):
+            self.win_solo(user)
+            self.assertFalse(has_bonus_guess(user))
+
+    def test_nobody_leads_before_points_are_won(self):
+        self.set_points(self.leader, 0)
+        self.set_points(self.second, 0)
+        self.win_solo(self.second)
+        self.assertFalse(is_leader(self.second))
+        self.assertTrue(has_bonus_guess(self.second))
+
+    def test_losing_the_lead_gives_the_extra_guess_back(self):
+        self.win_solo(self.leader)
+        self.assertFalse(has_bonus_guess(self.leader))
+        self.set_points(self.second, 20)
+        self.assertTrue(has_bonus_guess(self.leader))
+
+    def test_solo_state_and_hub_do_not_mention_the_extra_guess_for_the_leader(self):
+        leader = self.client_for(self.leader)
+        second = self.client_for(self.second)
+        self.assertFalse(
+            leader.get(reverse('solo-wordle-state')).json()['earns_extra_guess'])
+        self.assertTrue(
+            second.get(reverse('solo-wordle-state')).json()['earns_extra_guess'])
+
+        def solo_description(client):
+            games = client.get(reverse('games-status')).json()['games']
+            return next(g for g in games if g['key'] == 'solo_wordle')['description']
+
+        self.assertNotIn('extra', solo_description(leader))
+        self.assertIn('extra', solo_description(second))
+
+    def test_leader_has_one_team_guess_and_no_extra_guess_notice(self):
+        self.win_solo(self.leader)
+        client = self.client_for(self.leader)
+        state = client.get(reverse('wordle-state')).json()
+        self.assertEqual(state['bonus_guesses'], 0)
+        game = WordleGame.objects.get(is_finished=False)
+        game.word = 'SOFTWARE'
+        game.save()
+        first = client.post(
+            reverse('wordle-guess'), {'guess': 'standard'}, format='json')
+        self.assertEqual(first.status_code, 200)
+        second = client.post(
+            reverse('wordle-guess'), {'guess': 'solution'}, format='json')
+        self.assertEqual(second.status_code, 400)
+        self.assertIn('already guessed', second.json()['error'])
+        games = {
+            g['key']: g
+            for g in client.get(reverse('games-status')).json()['games']}
+        self.assertEqual(games['wordle']['bonus_guesses'], 0)
