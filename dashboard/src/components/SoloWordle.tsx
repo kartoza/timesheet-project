@@ -13,6 +13,7 @@ interface SoloState {
     guesses: { guess: string, result: string[] }[]
     is_finished: boolean
     won: boolean
+    earns_extra_guess: boolean
     word: string | null
 }
 
@@ -102,7 +103,7 @@ export default function SoloWordle() {
         </Box>
         <Typography variant="body2" marginBottom={2}>
             Guess the {length}-letter word in {state?.max_guesses ?? 6} tries.
-            No points, but winning gives you an extra Team Wordle guess.
+            No points{state?.earns_extra_guess && ', but winning gives you an extra Team Wordle guess'}.
         </Typography>
         <Box marginBottom={2}>
             {state?.guesses.map((row, index) => (
@@ -144,7 +145,9 @@ export default function SoloWordle() {
         {state?.is_finished && (
             <Typography variant="body2" textAlign="center">
                 {state.won
-                    ? `You got it! You earned an extra Team Wordle guess for today.`
+                    ? state.earns_extra_guess
+                        ? `You got it! You earned an extra Team Wordle guess for today.`
+                        : 'You got it!'
                     : <>The word was <strong>{state.word}</strong>.</>}
                 {' '}Come back tomorrow for a new word.
             </Typography>

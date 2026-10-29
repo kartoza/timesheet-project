@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from timesheet.api_views import connections, solo_wordle, wordle
 from timesheet.models.profile import Profile
 from timesheet.utils.games import (
-    get_leaderboard, get_rank, has_bonus_guess
+    get_leaderboard, get_rank, has_bonus_guess, is_leader
 )
 
 
@@ -51,7 +51,11 @@ class GamesStatusView(APIView):
                 {
                     'key': 'solo_wordle',
                     'title': 'Solo Wordle',
-                    'description': 'Play on your own. Win for an extra Team Wordle guess.',
+                    # The leader doesn't get the extra guess, so isn't offered it.
+                    'description': (
+                        'Play on your own.' if is_leader(user)
+                        else 'Play on your own. Win for an extra Team Wordle guess.'
+                    ),
                     'played_today': solo_game.is_finished,
                     'solved': False,
                     'unavailable': False,

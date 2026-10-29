@@ -17,13 +17,20 @@ def user_today(user):
     return timezone.now().astimezone(tz).date()
 
 
+def is_leader(user):
+    """True for whoever is first on the leaderboard (ties share first place).
+    Nobody leads before the first points are won."""
+    points = Profile.objects.get(user=user).points
+    return points > 0 and get_rank(points) == 1
+
+
 def has_bonus_guess(user):
     """Winning today's solo wordle earns one extra team wordle guess, valid
-    only for that day."""
+    only for that day. The leader of the leaderboard doesn't get one."""
     from timesheet.models.wordle import SoloWordleGame
     return SoloWordleGame.objects.filter(
         user=user, play_date=user_today(user), won=True
-    ).exists()
+    ).exists() and not is_leader(user)
 
 
 def get_rank(points):
