@@ -10,7 +10,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from timesheet.models.profile import Profile
-from timesheet.utils.games import display_name, has_bonus_guess, user_today
+from timesheet.utils.games import (
+    display_name, has_bonus_guess, has_wide_lead, is_leader, user_today
+)
 from timesheet.models.wordle import WordleGame, WordleGuess
 from timesheet.wordle_words import (
     MAX_DIFFICULTY, MAX_WORD_LENGTH, MIN_DIFFICULTY, MIN_WORD_LENGTH,
@@ -25,11 +27,15 @@ WIN_POINTS = {7: 2, 8: 3, 9: 4}
 
 
 def evaluate_guess(guess, word):
-    """Standard wordle scoring: correct / present / absent per letter."""
-    result = ['absent'] * len(word)
+    """Standard wordle scoring: correct / present / absent per letter.
+
+    The guess may be longer or shorter than the word (only possible for a
+    player who isn't told the length); letters past the end are absent.
+    """
+    result = ['absent'] * len(guess)
     remaining = {}
     for i, letter in enumerate(word):
-        if guess[i] == letter:
+        if i < len(guess) and guess[i] == letter:
             result[i] = 'correct'
         else:
             remaining[letter] = remaining.get(letter, 0) + 1
@@ -143,9 +149,23 @@ def build_state(game, user):
     guesses = list(game.guesses.select_related('user')) if game else []
     profile = Profile.objects.get(user=user)
     left = guesses_left_today(user)
+    # The leader of the leaderboard plays without the clues of the others, so
+    # only their own guesses are sent while the word is open. Once it is
+    # solved the whole board is shown.
+    clues_hidden = bool(game and not game.is_finished and is_leader(user))
+    if clues_hidden:
+        guesses = [g for g in guesses if g.user_id == user.id]
+    # With at least double the points of the player in second place, the
+    # leader isn't told how long the word is either.
+    length_hidden = bool(
+        active and not game.is_finished and has_wide_lead(user))
     return {
         'active': active,
-        'word_length': len(game.word) if game and active else 0,
+        'clues_hidden': clues_hidden,
+        'length_hidden': length_hidden,
+        'word_length': (
+            len(game.word) if game and active and not length_hidden else 0
+        ),
         'guesses': [
             {
                 'user': display_name(g.user),
@@ -194,7 +214,18 @@ class WordleGuessView(APIView):
                               'New words come tomorrow.'},
                     status=400
                 )
-            if len(guess) != len(game.word):
+            if has_wide_lead(request.user):
+                # Not told the length: any length of a word in the game is
+                # allowed, and a guess of the wrong length is a normal guess
+                # that uses up the day's guess. Rejecting it for free would
+                # let them find the length by trying.
+                if not MIN_WORD_LENGTH <= len(guess) <= MAX_WORD_LENGTH:
+                    return Response(
+                        {'error': f'Guess must be {MIN_WORD_LENGTH} to '
+                                  f'{MAX_WORD_LENGTH} letters.'},
+                        status=400
+                    )
+            elif len(guess) != len(game.word):
                 return Response(
                     {'error': f'Guess must be {len(game.word)} letters.'},
                     status=400

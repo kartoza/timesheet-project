@@ -32,6 +32,13 @@ class TestSoloWordle(TestCase):
         self.game.refresh_from_db()
         self.assertEqual(self.game.guesses, [])
 
+    def test_names_and_nationalities_are_valid_guesses(self):
+        for word in ('asian', 'texas', 'india'):
+            response = self.client.post(self.url, {'guess': word}, format='json')
+            self.assertEqual(response.status_code, 200, word)
+        self.game.refresh_from_db()
+        self.assertEqual(len(self.game.guesses), 3)
+
     def test_win_gives_bonus_guess_and_no_points(self):
         data = self.client.post(self.url, {'guess': 'apple'}, format='json').json()
         self.assertTrue(data['won'])
@@ -184,3 +191,26 @@ class TestLeaderGetsNoExtraGuess(TestCase):
             g['key']: g
             for g in client.get(reverse('games-status')).json()['games']}
         self.assertEqual(games['wordle']['bonus_guesses'], 0)
+
+
+class TestSoloValidGuesses(TestCase):
+    def test_list_is_wide_and_keeps_the_answers(self):
+        from timesheet.wordle_words import SOLO_VALID_GUESSES, SOLO_WORDLE_WORDS
+        self.assertGreater(len(SOLO_VALID_GUESSES), 10000)
+        self.assertTrue(set(SOLO_WORDLE_WORDS) <= SOLO_VALID_GUESSES)
+        self.assertTrue(all(len(w) == 5 for w in SOLO_VALID_GUESSES))
+
+    def test_real_words_names_and_modern_words_are_accepted(self):
+        from timesheet.wordle_words import SOLO_VALID_GUESSES
+        for word in ('APPLE', 'ASIAN', 'TEXAS', 'INDIA', 'EMAIL', 'BLOGS', 'RAMEN'):
+            self.assertIn(word, SOLO_VALID_GUESSES, word)
+
+    def test_gibberish_is_rejected(self):
+        from timesheet.wordle_words import SOLO_VALID_GUESSES
+        for word in ('QQQQQ', 'AISAN', 'XXXXX', 'ZZZZZ'):
+            self.assertNotIn(word, SOLO_VALID_GUESSES, word)
+
+    def test_names_are_never_the_word_of_the_day(self):
+        from timesheet.wordle_words import SOLO_WORDLE_WORDS
+        for word in ('ASIAN', 'TEXAS', 'INDIA', 'BLOGS'):
+            self.assertNotIn(word, SOLO_WORDLE_WORDS, word)

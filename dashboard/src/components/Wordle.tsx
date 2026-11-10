@@ -16,6 +16,8 @@ interface WordleGuess {
 
 interface WordleState {
     active: boolean
+    clues_hidden: boolean
+    length_hidden: boolean
     word_length: number
     guesses: WordleGuess[]
     has_guessed: boolean
@@ -29,6 +31,9 @@ interface WordleState {
 
 const CONFETTI_COLORS = ['#538d4e', '#b59f3b', '#e91e63', '#2196f3', '#ff9800', '#9c27b0'];
 const CELEBRATION_MS = 4500;
+// Shortest and longest word of the game, for players not told the length.
+const MIN_LENGTH = 7;
+const MAX_LENGTH = 9;
 
 
 export default function Wordle() {
@@ -54,7 +59,15 @@ export default function Wordle() {
     }, [])
 
     const submitGuess = () => {
-        if (!state || guess.replace(/ /g, '').length !== state.word_length || guess.length !== state.word_length) {
+        if (!state) {
+            return;
+        }
+        if (state.length_hidden) {
+            // The length isn't known, any word of 7 to 9 letters can be sent.
+            if (guess.length < MIN_LENGTH || guess.length > MAX_LENGTH) {
+                return;
+            }
+        } else if (guess.replace(/ /g, '').length !== state.word_length || guess.length !== state.word_length) {
             return;
         }
         setError('');
@@ -193,7 +206,7 @@ export default function Wordle() {
             </Grid>
         </Grid>
         <Typography variant="body2" marginBottom={1}>
-            Guess the {state?.word_length || '7-9'}-letter word together. There are
+            Guess the {state?.length_hidden ? '' : `${state?.word_length || '7-9'}-letter `}word together. There are
             two words a day: when one is solved, the next one starts. Each
             person gets one guess per day over both words; the first correct guess wins 2 points
             for a 7-letter word, 3 for 8 letters and 4 for 9 letters.
@@ -211,7 +224,18 @@ export default function Wordle() {
             </Typography>
         )}
         <Box marginBottom={2}>
-            {board.length === 0 && (
+            {state?.length_hidden && !finished && (
+                <Typography variant="body2" textAlign="center" marginBottom={1}>
+                    You lead by a wide margin, so the length of the word is hidden from you.
+                    A word of the wrong length still uses up your guess.
+                </Typography>
+            )}
+            {state?.clues_hidden && !finished && (
+                <Typography variant="body2" textAlign="center" marginBottom={1}>
+                    You lead the leaderboard, so other players' clues are hidden from you.
+                </Typography>
+            )}
+            {board.length === 0 && !state?.clues_hidden && (
                 <Typography variant="body2" textAlign="center">
                     {state && !state.has_guessed ? 'No guesses yet. Be the first!' : 'No guesses yet.'}
                 </Typography>
@@ -221,7 +245,26 @@ export default function Wordle() {
         {message && (
             <Typography variant="body2" marginBottom={1}>{message}</Typography>
         )}
-        {state && !state.has_guessed ? (
+        {state && !state.has_guessed && state.length_hidden ? (
+            <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
+                <input
+                    className="WordleFreeInput"
+                    value={guess.trim()}
+                    maxLength={MAX_LENGTH}
+                    placeholder={`A word of ${MIN_LENGTH} to ${MAX_LENGTH} letters`}
+                    autoFocus
+                    autoComplete="off"
+                    onChange={e => {
+                        setError('');
+                        setGuess(e.target.value.replace(/[^a-zA-Z]/g, '').toUpperCase());
+                    }}
+                    onKeyDown={e => { if (e.key === 'Enter') submitGuess(); }}
+                />
+                <TButton variant="contained" className="WordleFreeSubmit"
+                    disabled={guess.length < MIN_LENGTH || guess.length > MAX_LENGTH}
+                    onClick={submitGuess}>Submit</TButton>
+            </Box>
+        ) : state && !state.has_guessed ? (
             <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
                 <div className="WordleRow WordleInput">
                     {Array.from({ length: state.word_length }).map((_, i) => (
