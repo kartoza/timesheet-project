@@ -1,4 +1,4 @@
-authlib==1.6.12
+authlib==1.9.1
 cryptography==50.0.0
 asgiref==3.8.1
 certifi==2024.7.4
