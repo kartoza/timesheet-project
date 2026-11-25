@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('timesheet', '0051_solo_wordle'),
+        ('timesheet', '0053_wordle_difficulty'),
     ]
 
     operations = [
