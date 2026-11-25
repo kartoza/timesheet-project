@@ -14,6 +14,7 @@ export const UI_PROJECT_KEYS = {
   TOTAL_BILLED_AMOUNT: 'Total Billed Amount',
   ACTUAL_PROGRESS: 'Actual Progress',
   BUSINESS_UNIT: 'Business Unit',
+  CUSTOMER: 'Customer',
   SUBTASKS: 'SubTasks',
 } as const;
 
