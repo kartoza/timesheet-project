@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Building2, CheckCircle2, Clock, ListChecks, Loader, RefreshCw, User, Users, X } from 'lucide-react';
+import { Building2, CheckCircle2, Clock, ExternalLink, ListChecks, Loader, RefreshCw, User, Users, X } from 'lucide-react';
 import { UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { UIProjectRow } from '../../types/pmo_dashboard';
 import { formatManagerName } from '../../utils/pmo_dashboard';
@@ -70,7 +70,23 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onCl
                 </span>
               )}
             </div>
-            <h2 className='text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight'>{project.Project}</h2>
+            <h2 className='text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight'>
+              {project._repositoryUrl ? (
+                <a
+                  href={project._repositoryUrl}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  title={project._repositoryUrl}
+                  className='group inline-flex items-center gap-2 rounded-md hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline underline-offset-4 decoration-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900'
+                >
+                  {project.Project}
+                  <ExternalLink size={18} aria-hidden='true' className='shrink-0 text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400' />
+                  <span className='sr-only'>(open on GitHub in a new tab)</span>
+                </a>
+              ) : (
+                project.Project
+              )}
+            </h2>
             <p className='text-xs text-slate-400 dark:text-slate-500 mt-1'>
               {project._lastSyncedAt
                 ? `Last synced: ${new Date(project._lastSyncedAt).toLocaleString()}`

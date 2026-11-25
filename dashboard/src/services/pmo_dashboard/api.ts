@@ -23,6 +23,19 @@ function normalizeProjectType(projectType: string | null | undefined): string {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
+// ERPNext stores this as free text, so values like "github.com/org/repo" are common.
+function toExternalUrl(value?: string | null): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+  const withScheme = /^[a-z][a-z0-9+.-]*:/i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  try {
+    const url = new URL(withScheme);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+
 const UI_PROJECT_MAPPERS: Record<keyof UIProjectRow, (project: ApiProject) => UIProjectRow[keyof UIProjectRow]> = {
   _id: (project) => String(project.id),
   [UI_PROJECT_KEYS.PROJECT]: (project) => project.name,
@@ -45,6 +58,7 @@ const UI_PROJECT_MAPPERS: Record<keyof UIProjectRow, (project: ApiProject) => UI
   _statusReasons: (project) => project.status_reasons || [],
   _riskReason: () => undefined,
   _lastSyncedAt: (project) => project.last_synced_at ?? null,
+  _repositoryUrl: (project) => toExternalUrl(project.repository_url),
 };
 
 function getCookie(name: string): string {

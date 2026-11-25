@@ -213,7 +213,7 @@ class ProjectAdmin(admin.ModelAdmin):
     )
     fieldsets = (
         (None, {
-            'fields': ('name', 'erp_id', 'is_active', 'project_type', 'business_unit', 'customer'),
+            'fields': ('name', 'erp_id', 'is_active', 'project_type', 'business_unit', 'customer', 'repository_url'),
         }),
         ('Team', {
             'fields': ('project_lead', 'relations_manager'),

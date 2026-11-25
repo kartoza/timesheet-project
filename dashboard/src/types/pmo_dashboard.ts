@@ -27,6 +27,7 @@ export type ApiProject = {
   status_reasons?: string[];
   rag: string | null;
   business_unit: string | null;
+  repository_url?: string | null;
   due_date: string | null;
   start_date?: string | null;
   budget_hours: number | null;
@@ -78,6 +79,7 @@ export type UIProjectRow = {
   _statusReasons?: string[];
   _riskReason?: RiskReason[];
   _lastSyncedAt?: string | null;
+  _repositoryUrl?: string | null;
 };
 
 export type UIProjectKey = UIKeyValue;
