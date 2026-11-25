@@ -70,6 +70,7 @@ class Project(models.Model):
         related_name='managed_projects',
     )
     customer = models.CharField(max_length=256, blank=True, default='')
+    repository_url = models.CharField(max_length=512, blank=True, default='')
 
     rag = models.CharField(max_length=20, blank=True, default='')
 

@@ -704,6 +704,7 @@ def pull_projects_only_from_erp(user: get_user_model(), filters: str = '') -> li
                 'project_lead': _user_by_email(project.get('project_lead', '')),
                 'relations_manager': _user_by_email(project.get('custom_project_relations_manager', '')),
                 'customer': project.get('customer') or '',
+                'repository_url': (project.get('custom_github_repo') or '').strip(),
                 'rag': project.get('rag') or '',
                 'expected_time': project.get('expected_time'),
                 'actual_time': project.get('actual_time'),

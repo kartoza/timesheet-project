@@ -89,6 +89,7 @@ ERP_PROJECT_DATA = {
     'project_lead': 'lead@example.com',
     'custom_project_relations_manager': 'rm@example.com',
     'customer': 'ACME Corp',
+    'custom_github_repo': ' https://github.com/kartoza/alpha ',
     'rag': 'GREEN',
     'expected_time': 200.0,
     'actual_time': 80.0,
@@ -134,6 +135,7 @@ class TestPullProjectsFromErp(TestCase):
         self.assertTrue(p.is_active)
         self.assertEqual(p.project_type, 'EXTERNAL')
         self.assertEqual(p.customer, 'ACME Corp')
+        self.assertEqual(p.repository_url, 'https://github.com/kartoza/alpha')
         self.assertEqual(p.rag, 'GREEN')
         self.assertEqual(p.expected_time, 200.0)
         self.assertEqual(p.progress_in_hours, 75.0)
