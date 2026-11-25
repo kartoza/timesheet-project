@@ -4,11 +4,14 @@ from unittest.mock import patch
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils import timezone
+from preferences import preferences
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from timesheet.api_views.wordle import evaluate_guess, user_today
-from timesheet.models import WordleGame
+from timesheet.api_views.wordle import (
+    evaluate_guess, get_difficulty, pick_word, user_today
+)
+from timesheet.models import SoloWordleGame, WordleGame
 
 
 class TestEvaluateGuess(TestCase):
@@ -29,6 +32,23 @@ class TestWordleViews(TestCase):
         self.user = User.objects.create_user('u1', password='pass')
         self.other = User.objects.create_user('u2', password='pass')
         self.client.login(username='u1', password='pass')
+        self.other_client = APIClient()
+        self.other_client.login(username='u2', password='pass')
+
+    def guess(self, client, word):
+        return client.post(
+            reverse('wordle-guess'), {'guess': word}, format='json')
+
+    def give_bonus(self, user):
+        SoloWordleGame.objects.create(
+            user=user, word='APPLE', play_date=user_today(user), won=True,
+            is_finished=True)
+
+    def open_game(self, word='SOFTWARE'):
+        game = WordleGame.objects.get(is_finished=False)
+        game.word = word
+        game.save()
+        return game
 
     def _game(self):
         self.client.get(reverse('wordle-state'))
@@ -85,26 +105,138 @@ class TestWordleViews(TestCase):
         self.assertEqual(third.status_code, 200)
         self.assertEqual(len(third.json()['guesses']), 2)
 
-    def test_win_awards_two_points_and_waits_until_tomorrow(self):
+    def _win_points(self, word):
         game = self._game()
-        response = self.client.post(
-            reverse('wordle-guess'), {'guess': 'software'}, format='json')
-        data = response.json()
+        game.word = word
+        game.save()
+        self.client.post(
+            reverse('wordle-guess'), {'guess': word.lower()}, format='json')
+        self.user.profile.refresh_from_db()
+        return self.user.profile.points
+
+    def test_eight_letter_win_awards_three_points(self):
+        self.assertEqual(self._win_points('SOFTWARE'), 3)
+
+    def test_nine_letter_win_awards_four_points(self):
+        self.assertEqual(self._win_points('STANDARDS'), 4)
+
+    def test_win_awards_points_and_starts_the_second_word(self):
+        game = self._game()
+        game.word = 'SOFTWAR'
+        game.save()
+        data = self.guess(self.client, 'softwar').json()
         self.assertTrue(data['won'])
         game.refresh_from_db()
         self.assertTrue(game.is_finished)
         self.assertEqual(game.winner, self.user)
         self.user.profile.refresh_from_db()
         self.assertEqual(self.user.profile.points, 2)
-        # Solved today: no new word until tomorrow.
+        # Two words a day: the next one starts straight away...
+        self.assertTrue(data['next']['active'])
+        self.assertEqual(WordleGame.objects.count(), 2)
+        # ...but the winner already used their guess today.
+        self.assertTrue(data['next']['has_guessed'])
+        self.assertTrue(data['next']['won_today'])
+        self.open_game('STANDARD')
+        again = self.guess(self.client, 'standard')
+        self.assertEqual(again.status_code, 400)
+        self.assertIn('already won', again.json()['error'])
+
+    def test_only_two_words_are_played_per_day(self):
+        self._game()
+        self.guess(self.client, 'software')
+        self.open_game('STANDARD')
+        data = self.guess(self.other_client, 'standard').json()
+        self.assertTrue(data['won'])
         self.assertFalse(data['next']['active'])
-        self.assertEqual(WordleGame.objects.count(), 1)
+        self.assertEqual(WordleGame.objects.count(), 2)
         state = self.client.get(reverse('wordle-state')).json()
         self.assertFalse(state['active'])
-        self.assertEqual(state['last_game']['word'], 'SOFTWARE')
-        again = self.client.post(
-            reverse('wordle-guess'), {'guess': 'standard'}, format='json')
-        self.assertEqual(again.status_code, 400)
+        self.assertEqual(WordleGame.objects.count(), 2)
+        third = User.objects.create_user('u3', password='pass')
+        client = APIClient()
+        client.login(username='u3', password='pass')
+        self.assertEqual(self.guess(client, 'standard').status_code, 400)
+        # The next day there are two new words again.
+        for game in WordleGame.objects.all():
+            WordleGame.objects.filter(pk=game.pk).update(
+                created_at=timezone.now() - datetime.timedelta(days=1),
+                finished_at=timezone.now() - datetime.timedelta(days=1))
+        self.assertTrue(client.get(reverse('wordle-state')).json()['active'])
+
+    def test_a_guess_on_the_first_word_uses_the_day_s_guess(self):
+        self._game()
+        self.assertEqual(self.guess(self.client, 'standard').status_code, 200)
+        self.guess(self.other_client, 'software')
+        self.open_game('SOLUTION')
+        # u1 guessed the first word without winning: nothing left today.
+        state = self.client.get(reverse('wordle-state')).json()
+        self.assertTrue(state['active'])
+        self.assertTrue(state['has_guessed'])
+        blocked = self.guess(self.client, 'solution')
+        self.assertEqual(blocked.status_code, 400)
+        self.assertEqual(WordleGame.objects.get(is_finished=False).guesses.count(), 0)
+
+    def test_someone_who_missed_the_first_word_can_play_the_second(self):
+        self._game()
+        self.guess(self.other_client, 'software')
+        self.open_game('STANDARD')
+        state = self.client.get(reverse('wordle-state')).json()
+        self.assertFalse(state['has_guessed'])
+        self.assertEqual(self.guess(self.client, 'standard').status_code, 200)
+
+    def test_extra_guess_can_be_used_on_the_second_word_after_a_miss(self):
+        self._game()
+        self.give_bonus(self.user)
+        first = self.guess(self.client, 'standard').json()
+        self.assertFalse(first['has_guessed'])
+        self.guess(self.other_client, 'software')
+        self.open_game('SOLUTION')
+        state = self.client.get(reverse('wordle-state')).json()
+        self.assertFalse(state['has_guessed'])
+        self.assertEqual(state['bonus_guesses'], 1)
+        won = self.guess(self.client, 'solution').json()
+        self.assertTrue(won['won'])
+
+    def test_extra_guess_is_used_up_after_two_guesses(self):
+        self._game()
+        self.give_bonus(self.user)
+        self.guess(self.client, 'standard')
+        self.guess(self.other_client, 'software')
+        self.open_game('SOLUTION')
+        self.assertEqual(self.guess(self.client, 'solutions').status_code, 400)
+        self.assertEqual(self.guess(self.client, 'standard').status_code, 200)
+        self.assertEqual(self.guess(self.client, 'treasure').status_code, 400)
+
+    def test_winner_cannot_play_the_second_word_even_with_an_extra_guess(self):
+        self._game()
+        self.give_bonus(self.user)
+        data = self.guess(self.client, 'software').json()
+        self.assertTrue(data['won'])
+        self.open_game('STANDARD')
+        state = self.client.get(reverse('wordle-state')).json()
+        self.assertTrue(state['has_guessed'])
+        self.assertTrue(state['won_today'])
+        self.assertEqual(state['bonus_guesses'], 0)
+        blocked = self.guess(self.client, 'standard')
+        self.assertEqual(blocked.status_code, 400)
+        self.assertIn('already won', blocked.json()['error'])
+        games = {
+            g['key']: g for g in
+            self.client.get(reverse('games-status')).json()['games']}
+        self.assertTrue(games['wordle']['played_today'])
+        self.assertEqual(games['wordle']['bonus_guesses'], 0)
+
+    def test_winning_does_not_carry_over_to_the_next_day(self):
+        self._game()
+        self.give_bonus(self.user)
+        self.guess(self.client, 'software')
+        tomorrow = user_today(self.user) + datetime.timedelta(days=1)
+        with patch('timesheet.api_views.wordle.user_today',
+                   return_value=tomorrow):
+            state = self.client.get(reverse('wordle-state')).json()
+        self.assertFalse(state['won_today'])
+        self.assertFalse(state['has_guessed'])
 
     def test_new_word_is_created_the_day_after_a_game_finished(self):
         game = self._game()
@@ -124,6 +256,20 @@ class TestWordleViews(TestCase):
         self.client.get(reverse('wordle-state'))
         self.assertEqual(WordleGame.objects.count(), 1)
         self.assertFalse(WordleGame.objects.get().is_finished)
+
+    def test_new_word_starts_when_solved_today_but_created_earlier(self):
+        game = self._game()
+        WordleGame.objects.filter(id=game.id).update(
+            created_at=timezone.now() - datetime.timedelta(days=3))
+        data = self.client.post(
+            reverse('wordle-guess'), {'guess': 'software'}, format='json'
+        ).json()
+        self.assertTrue(data['won'])
+        self.assertTrue(data['next']['active'])
+        self.assertEqual(WordleGame.objects.count(), 2)
+        state = self.client.get(reverse('wordle-state')).json()
+        self.assertTrue(state['active'])
+        self.assertEqual(WordleGame.objects.count(), 2)
 
     def test_stale_game_with_unsupported_length_is_closed(self):
         game = self._game()
@@ -182,3 +328,323 @@ class TestEncryptedWord(TestCase):
         response = client.get(
             reverse('admin:timesheet_wordlegame_change', args=[game.pk]))
         self.assertContains(response, 'SOFTWARE')
+
+
+def set_difficulty(level):
+    prefs = preferences.TimesheetPreferences
+    prefs.wordle_difficulty = level
+    prefs.save()
+
+
+class TestWordleDifficulty(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user('u1', password='pass')
+        self.client.login(username='u1', password='pass')
+
+    def test_levels_have_words_of_every_length(self):
+        from timesheet.wordle_words import VALID_GUESSES, WORDLE_WORDS_BY_LEVEL
+        self.assertEqual(sorted(WORDLE_WORDS_BY_LEVEL), [1, 2, 3, 4, 5])
+        for level, words in WORDLE_WORDS_BY_LEVEL.items():
+            with self.subTest(level=level):
+                self.assertEqual({len(w) for w in words}, {7, 8, 9})
+                self.assertGreater(len(words), 1000)
+                self.assertTrue(all(w == w.upper() and w.isalpha() for w in words))
+                self.assertTrue(set(words) <= VALID_GUESSES)
+
+    def test_unsuitable_words_are_not_in_the_pool(self):
+        from timesheet.wordle_words import WORDLE_WORDS
+        unsuitable = ('TERROR', 'MURDER', 'SUICID', 'COCAINE', 'NAKED')
+        self.assertFalse([w for w in WORDLE_WORDS if w.startswith(unsuitable)])
+
+    def test_default_is_the_easiest_level(self):
+        self.assertEqual(get_difficulty(), 1)
+
+    def test_words_come_from_the_selected_level(self):
+        from timesheet.wordle_words import WORDLE_WORDS_BY_LEVEL
+        for level in (2, 5):
+            set_difficulty(level)
+            words = {pick_word() for _ in range(60)}
+            self.assertTrue(words <= set(WORDLE_WORDS_BY_LEVEL[level]), level)
+
+    def test_harder_levels_have_no_plurals_or_verb_forms(self):
+        from timesheet.wordle_words import WORDLE_WORDS_BY_LEVEL
+        easy = set(WORDLE_WORDS_BY_LEVEL[1])
+        for level in (2, 3, 4, 5):
+            words = WORDLE_WORDS_BY_LEVEL[level]
+            share = sum(w.endswith(('ING', 'ED')) for w in words) / len(words)
+            self.assertLess(share, 0.05, level)
+        # Level 1 still allows them.
+        share = sum(w.endswith(('ING', 'ED', 'S')) for w in easy) / len(easy)
+        self.assertGreater(share, 0.2)
+
+    def test_out_of_range_setting_is_kept_within_one_to_five(self):
+        set_difficulty(9)
+        self.assertEqual(get_difficulty(), 5)
+        set_difficulty(0)
+        self.assertEqual(get_difficulty(), 1)
+
+    def test_setting_only_applies_to_the_next_word(self):
+        self.client.get(reverse('wordle-state'))
+        game = WordleGame.objects.get(is_finished=False)
+        word = game.word
+        set_difficulty(5)
+        self.client.get(reverse('wordle-state'))
+        game.refresh_from_db()
+        self.assertEqual(game.word, word)
+        self.assertEqual(WordleGame.objects.count(), 1)
+        # The next game, started once this one is solved, follows the setting.
+        from timesheet.wordle_words import WORDLE_WORDS_BY_LEVEL
+        self.client.post(
+            reverse('wordle-guess'), {'guess': word.lower()}, format='json')
+        new_game = WordleGame.objects.get(is_finished=False)
+        self.assertIn(new_game.word, WORDLE_WORDS_BY_LEVEL[5])
+
+    def test_setting_is_in_the_site_settings_form(self):
+        from timesheet.admin import TimesheetPreferencesForm
+        field = TimesheetPreferencesForm().fields['wordle_difficulty']
+        self.assertEqual([c[0] for c in field.choices], [1, 2, 3, 4, 5])
+
+
+class TestLeaderCluesHidden(TestCase):
+    def setUp(self):
+        self.leader = User.objects.create_user('leader', password='pass')
+        self.player = User.objects.create_user('player', password='pass')
+        self.leader.profile.points = 10
+        self.leader.profile.save()
+        self.leader_client = APIClient()
+        self.leader_client.force_authenticate(self.leader)
+        self.player_client = APIClient()
+        self.player_client.force_authenticate(self.player)
+        self.player_client.get(reverse('wordle-state'))
+        game = WordleGame.objects.get(is_finished=False)
+        game.word = 'SOFTWARE'
+        game.save()
+
+    def guess(self, client, word):
+        return client.post(
+            reverse('wordle-guess'), {'guess': word}, format='json')
+
+    def board(self, client):
+        data = client.get(reverse('wordle-state')).json()
+        return data, [(g['user'], g['guess']) for g in data['guesses']]
+
+    def test_leader_only_sees_their_own_guesses_on_an_open_word(self):
+        self.guess(self.player_client, 'standard')
+        data, board = self.board(self.leader_client)
+        self.assertEqual(board, [])
+        self.assertTrue(data['clues_hidden'])
+        self.guess(self.leader_client, 'solution')
+        data, board = self.board(self.leader_client)
+        self.assertEqual(board, [('leader', 'SOLUTION')])
+        self.assertTrue(data['guesses'][0]['is_me'])
+        # The leader still gets the colours of their own guess.
+        self.assertEqual(len(data['guesses'][0]['result']), 8)
+
+    def test_other_players_still_see_everything_including_the_leader(self):
+        self.guess(self.leader_client, 'solution')
+        data, board = self.board(self.player_client)
+        self.assertFalse(data['clues_hidden'])
+        self.assertEqual(board, [('leader', 'SOLUTION')])
+        self.guess(self.player_client, 'standard')
+        _, board = self.board(self.player_client)
+        self.assertEqual(len(board), 2)
+
+    def test_the_whole_board_is_shown_once_the_leader_solves_the_word(self):
+        self.guess(self.player_client, 'standard')
+        won = self.guess(self.leader_client, 'software').json()
+        self.assertTrue(won['won'])
+        self.assertFalse(won['clues_hidden'])
+        self.assertEqual(
+            [(g['user'], g['guess']) for g in won['guesses']],
+            [('player', 'STANDARD'),
+             ('leader', 'SOFTWARE')])
+
+    def test_the_hidden_guesses_are_not_leaked_by_the_win_response(self):
+        # Another player solving the word is the end of the round for all.
+        self.guess(self.leader_client, 'solution')
+        won = self.guess(self.player_client, 'software').json()
+        self.assertTrue(won['won'])
+        self.assertEqual(len(won['guesses']), 2)
+
+    def test_nobody_has_hidden_clues_before_points_are_won(self):
+        self.leader.profile.points = 0
+        self.leader.profile.save()
+        self.guess(self.player_client, 'standard')
+        data, board = self.board(self.leader_client)
+        self.assertFalse(data['clues_hidden'])
+        self.assertEqual(board, [('player', 'STANDARD')])
+
+    def test_tied_leaders_both_have_hidden_clues(self):
+        self.player.profile.points = 10
+        self.player.profile.save()
+        self.guess(self.leader_client, 'solution')
+        data, board = self.board(self.player_client)
+        self.assertTrue(data['clues_hidden'])
+        self.assertEqual(board, [])
+
+    def test_losing_the_lead_shows_the_clues_again(self):
+        self.guess(self.player_client, 'standard')
+        self.player.profile.points = 20
+        self.player.profile.save()
+        data, board = self.board(self.leader_client)
+        self.assertFalse(data['clues_hidden'])
+        self.assertEqual(board, [('player', 'STANDARD')])
+
+    def test_other_players_guesses_are_not_anywhere_in_the_leaders_api_responses(self):
+        self.player.first_name = 'Pippa'
+        self.player.save()
+        self.guess(self.player_client, 'standard')
+        responses = [
+            self.leader_client.get(reverse('wordle-state')),
+            self.leader_client.get(reverse('games-status')),
+            # A wrong guess by the leader, and one rejected for its length.
+            self.guess(self.leader_client, 'solution'),
+            self.guess(self.leader_client, 'abc'),
+            self.leader_client.get(reverse('wordle-state')),
+        ]
+        for response in responses:
+            body = response.content.decode()
+            self.assertNotIn('STANDARD', body.upper())
+            self.assertNotIn('Pippa', body)
+        # The leader's own guess is still there.
+        self.assertIn('SOLUTION', responses[-1].content.decode())
+
+
+class TestWordLengthHiddenForWideLead(TestCase):
+    def setUp(self):
+        self.leader = User.objects.create_user('leader', password='pass')
+        self.player = User.objects.create_user('player', password='pass')
+        self.set_points(self.leader, 10)
+        self.set_points(self.player, 4)
+        self.leader_client = APIClient()
+        self.leader_client.force_authenticate(self.leader)
+        self.player_client = APIClient()
+        self.player_client.force_authenticate(self.player)
+        self.player_client.get(reverse('wordle-state'))
+        game = WordleGame.objects.get(is_finished=False)
+        game.word = 'SOFTWARE'
+        game.save()
+
+    def set_points(self, user, points):
+        user.profile.points = points
+        user.profile.save()
+
+    def guess(self, client, word):
+        return client.post(
+            reverse('wordle-guess'), {'guess': word}, format='json')
+
+    def state(self, client):
+        return client.get(reverse('wordle-state')).json()
+
+    def test_lead_threshold(self):
+        from timesheet.utils.games import has_wide_lead
+        self.assertTrue(has_wide_lead(self.leader))      # 10 vs 4
+        self.set_points(self.player, 5)
+        self.assertTrue(has_wide_lead(self.leader))      # exactly double
+        self.set_points(self.player, 6)
+        self.assertFalse(has_wide_lead(self.leader))     # 10 vs 6
+        self.assertFalse(has_wide_lead(self.player))     # not the leader
+        self.set_points(self.player, 10)
+        self.assertFalse(has_wide_lead(self.leader))     # tie for first
+        self.set_points(self.leader, 0)
+        self.set_points(self.player, 0)
+        self.assertFalse(has_wide_lead(self.leader))     # no points yet
+
+    def test_a_lone_scorer_has_a_wide_lead(self):
+        from timesheet.utils.games import has_wide_lead
+        self.set_points(self.player, 0)
+        self.assertTrue(has_wide_lead(self.leader))
+
+    def test_inactive_players_do_not_count_as_second_place(self):
+        from timesheet.utils.games import has_wide_lead
+        self.set_points(self.player, 9)
+        self.assertFalse(has_wide_lead(self.leader))
+        self.player.is_active = False
+        self.player.save()
+        self.assertTrue(has_wide_lead(self.leader))
+
+    def test_the_length_is_hidden_from_the_leader_only(self):
+        data = self.state(self.leader_client)
+        self.assertTrue(data['length_hidden'])
+        self.assertEqual(data['word_length'], 0)
+        other = self.state(self.player_client)
+        self.assertFalse(other['length_hidden'])
+        self.assertEqual(other['word_length'], 8)
+
+    def test_a_smaller_lead_only_hides_the_clues(self):
+        self.set_points(self.player, 6)
+        data = self.state(self.leader_client)
+        self.assertFalse(data['length_hidden'])
+        self.assertEqual(data['word_length'], 8)
+        self.assertTrue(data['clues_hidden'])
+
+    def test_a_guess_of_the_wrong_length_uses_up_the_guess(self):
+        # A valid 9 letter word against an 8 letter answer.
+        response = self.guess(self.leader_client, 'standards')
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['length_hidden'])
+        self.assertEqual(data['word_length'], 0)
+        row = data['guesses'][0]
+        self.assertEqual(row['guess'], 'STANDARDS')
+        self.assertEqual(len(row['result']), 9)
+        # It was a real guess, there is no second try.
+        again = self.guess(self.leader_client, 'solution')
+        self.assertEqual(again.status_code, 400)
+        self.assertIn('already guessed', again.json()['error'])
+
+    def test_a_shorter_guess_is_scored_too(self):
+        data = self.guess(self.leader_client, 'program').json()
+        self.assertEqual(data['guesses'][0]['guess'], 'PROGRAM')
+        self.assertEqual(len(data['guesses'][0]['result']), 7)
+
+    def test_rejections_do_not_reveal_the_length(self):
+        for word in ('abc', 'abcdefghij'):
+            response = self.guess(self.leader_client, word)
+            self.assertEqual(response.status_code, 400)
+            self.assertIn('7 to 9', response.json()['error'])
+        not_a_word = self.guess(self.leader_client, 'qqqqqqqq')
+        self.assertEqual(not_a_word.status_code, 400)
+        self.assertIn('valid English word', not_a_word.json()['error'])
+        # None of that used up the guess.
+        self.assertEqual(self.guess(self.leader_client, 'standard').status_code, 200)
+
+    def test_the_right_length_wins_and_reveals_everything(self):
+        won = self.guess(self.leader_client, 'software').json()
+        self.assertTrue(won['won'])
+        self.assertFalse(won['length_hidden'])
+        self.assertEqual(won['word_length'], 8)
+        self.assertEqual(won['points_won'], 3)
+        self.leader.profile.refresh_from_db()
+        self.assertEqual(self.leader.profile.points, 13)
+
+    def test_other_players_must_still_use_the_exact_length(self):
+        response = self.guess(self.player_client, 'standards')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('8 letters', response.json()['error'])
+
+    def test_the_length_is_not_in_any_response_body_for_the_leader(self):
+        responses = [
+            self.leader_client.get(reverse('wordle-state')),
+            self.leader_client.get(reverse('games-status')),
+            self.guess(self.leader_client, 'abc'),
+            self.guess(self.leader_client, 'standards'),
+            self.guess(self.leader_client, 'standard'),
+        ]
+        for response in responses:
+            body = response.json()
+            if isinstance(body, dict) and 'word_length' in body:
+                self.assertEqual(body['word_length'], 0)
+            self.assertNotIn('8 letters', response.content.decode())
+
+    def test_evaluate_guess_handles_other_lengths(self):
+        self.assertEqual(
+            evaluate_guess('ABCDE', 'ABC'),
+            ['correct', 'correct', 'correct', 'absent', 'absent'])
+        self.assertEqual(
+            evaluate_guess('CAB', 'ABCDE'),
+            ['present', 'present', 'present'])
+        self.assertEqual(
+            evaluate_guess('EEE', 'ABCDE'),
+            ['present', 'absent', 'absent'])

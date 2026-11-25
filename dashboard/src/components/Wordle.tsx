@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Box } from "@mui/system";
 import Cookies from "js-cookie";
 import TButton from "../loadable/Button";
-import { SportsEsportsIcon } from "../loadable/Icon";
+import { RefreshIcon, SportsEsportsIcon } from "../loadable/Icon";
 import '../styles/Wordle';
 
 
@@ -16,17 +16,24 @@ interface WordleGuess {
 
 interface WordleState {
     active: boolean
+    clues_hidden: boolean
+    length_hidden: boolean
     word_length: number
     guesses: WordleGuess[]
     has_guessed: boolean
+    won_today: boolean
     bonus_guesses: number
     last_game: { word: string, winner: string | null } | null
     points: number
+    points_won?: number
 }
 
 
 const CONFETTI_COLORS = ['#538d4e', '#b59f3b', '#e91e63', '#2196f3', '#ff9800', '#9c27b0'];
 const CELEBRATION_MS = 4500;
+// Shortest and longest word of the game, for players not told the length.
+const MIN_LENGTH = 7;
+const MAX_LENGTH = 9;
 
 
 export default function Wordle() {
@@ -52,7 +59,15 @@ export default function Wordle() {
     }, [])
 
     const submitGuess = () => {
-        if (!state || guess.replace(/ /g, '').length !== state.word_length || guess.length !== state.word_length) {
+        if (!state) {
+            return;
+        }
+        if (state.length_hidden) {
+            // The length isn't known, any word of 7 to 9 letters can be sent.
+            if (guess.length < MIN_LENGTH || guess.length > MAX_LENGTH) {
+                return;
+            }
+        } else if (guess.replace(/ /g, '').length !== state.word_length || guess.length !== state.word_length) {
             return;
         }
         setError('');
@@ -78,9 +93,12 @@ export default function Wordle() {
                     setFinished(data);
                     setCelebrating(!!data.won);
                     setState(data.next);
+                    const nextInfo = data.next.active
+                        ? 'A new word is ready for anyone who has not guessed today.'
+                        : "Both of today's words are solved. New words come tomorrow.";
                     setMessage(data.won
-                        ? 'You got it! +2 points. A new word comes tomorrow.'
-                        : 'Round over. A new word comes tomorrow.');
+                        ? `You got it! +${data.points_won} points. ${nextInfo}`
+                        : `Round over. ${nextInfo}`);
                 } else {
                     setState(data);
                     setMessage('Guess submitted.');
@@ -169,7 +187,7 @@ export default function Wordle() {
             </div>
         )}
         {celebrating && (
-            <div className="WordleWinBanner">You won! +2 points</div>
+            <div className="WordleWinBanner">You won! +{finished?.points_won} points</div>
         )}
         <Grid container marginBottom={1}>
             <Grid item xs={6} alignItems={'center'} display={'flex'}>
@@ -180,16 +198,23 @@ export default function Wordle() {
                 <Typography variant="body2">
                     Your points: <strong>{state?.points ?? 0}</strong>
                 </Typography>
+                <TButton size="small" startIcon={<RefreshIcon/>}
+                    title="See if someone has submitted a new guess"
+                    onClick={() => { setMessage(''); setError(''); loadState(); }}>
+                    Refresh
+                </TButton>
             </Grid>
         </Grid>
         <Typography variant="body2" marginBottom={1}>
-            Guess the {state?.word_length || '7-9'}-letter word together. Each
-            person gets one guess per day until the word is solved; the first correct guess wins 2 points.
+            Guess the {state?.length_hidden ? '' : `${state?.word_length || '7-9'}-letter `}word together. There are
+            two words a day: when one is solved, the next one starts. Each
+            person gets one guess per day over both words; the first correct guess wins 2 points
+            for a 7-letter word, 3 for 8 letters and 4 for 9 letters.
             {(state?.bonus_guesses ?? 0) > 0 && <> You have <strong>{state?.bonus_guesses}</strong> extra {state?.bonus_guesses === 1 ? 'guess' : 'guesses'} from Wordle.</>}
         </Typography>
-        {lastGame && !finished && (
+        {lastGame && !finished && !state?.won_today && (
             <Typography variant="body2" marginBottom={1}>
-                {state?.active ? 'Last word' : "Today's word"}: <strong>{lastGame.word}</strong>
+                {state?.active ? 'Last word' : 'Last solved word'}: <strong>{lastGame.word}</strong>
                 {lastGame.winner ? ` - solved by ${lastGame.winner}` : ' - nobody solved it'}
             </Typography>
         )}
@@ -199,9 +224,20 @@ export default function Wordle() {
             </Typography>
         )}
         <Box marginBottom={2}>
-            {board.length === 0 && (
+            {state?.length_hidden && !finished && (
+                <Typography variant="body2" textAlign="center" marginBottom={1}>
+                    You lead by a wide margin, so the length of the word is hidden from you.
+                    A word of the wrong length still uses up your guess.
+                </Typography>
+            )}
+            {state?.clues_hidden && !finished && (
+                <Typography variant="body2" textAlign="center" marginBottom={1}>
+                    You lead the leaderboard, so other players' clues are hidden from you.
+                </Typography>
+            )}
+            {board.length === 0 && !state?.clues_hidden && (
                 <Typography variant="body2" textAlign="center">
-                    No guesses yet. Be the first!
+                    {state && !state.has_guessed ? 'No guesses yet. Be the first!' : 'No guesses yet.'}
                 </Typography>
             )}
             {board.map(renderRow)}
@@ -209,7 +245,26 @@ export default function Wordle() {
         {message && (
             <Typography variant="body2" marginBottom={1}>{message}</Typography>
         )}
-        {state && !state.has_guessed ? (
+        {state && !state.has_guessed && state.length_hidden ? (
+            <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
+                <input
+                    className="WordleFreeInput"
+                    value={guess.trim()}
+                    maxLength={MAX_LENGTH}
+                    placeholder={`A word of ${MIN_LENGTH} to ${MAX_LENGTH} letters`}
+                    autoFocus
+                    autoComplete="off"
+                    onChange={e => {
+                        setError('');
+                        setGuess(e.target.value.replace(/[^a-zA-Z]/g, '').toUpperCase());
+                    }}
+                    onKeyDown={e => { if (e.key === 'Enter') submitGuess(); }}
+                />
+                <TButton variant="contained" className="WordleFreeSubmit"
+                    disabled={guess.length < MIN_LENGTH || guess.length > MAX_LENGTH}
+                    onClick={submitGuess}>Submit</TButton>
+            </Box>
+        ) : state && !state.has_guessed ? (
             <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
                 <div className="WordleRow WordleInput">
                     {Array.from({ length: state.word_length }).map((_, i) => (
@@ -232,8 +287,10 @@ export default function Wordle() {
         ) : (
             state && <Typography variant="body2" textAlign="center">
                 {state.active
-                    ? 'You already guessed today. Come back tomorrow to guess again if the word is still unsolved.'
-                    : "Today's word is solved. A new word comes tomorrow."}
+                    ? state.won_today
+                        ? 'You solved a word today, well done! Come back tomorrow.'
+                        : 'You already guessed today. Come back tomorrow to guess again if the word is still unsolved.'
+                    : "Today's two words are solved. New words come tomorrow."}
             </Typography>
         )}
         {error && (

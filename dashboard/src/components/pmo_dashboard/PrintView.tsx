@@ -2,12 +2,16 @@ import React, { useMemo } from 'react';
 import {
   Bar, BarChart, CartesianGrid, Cell,
   ComposedChart, LabelList, Legend, Line,
-  Pie, PieChart,
+  Pie, PieChart, ReferenceLine,
   ResponsiveContainer, XAxis, YAxis,
 } from 'recharts';
 import { AT_RISK_STATUS_KEYS, UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { UIProjectRow } from '../../types/pmo_dashboard';
 import { formatManagerName } from '../../utils/pmo_dashboard';
+import {
+  AT_RISK_COLOR, CONSUMED_COLOR, HoursChartMode, NORMALISED_LEGEND, PROGRESS_COLOR,
+  normalisedDomainMax, toNormalisedRow,
+} from './HoursConsumptionChart';
 
 const STATUS_COLORS: Record<string, string> = {
   on_track: '#10B981', warning: '#EAB308', at_risk: '#EF4444',
@@ -95,9 +99,9 @@ const makeVerticalLabel = (fmt: (v: number) => string) =>
 
 const MAX_AT_RISK_CARDS = 50;
 
-type PrintViewProps = { filteredData: UIProjectRow[] };
+type PrintViewProps = { filteredData: UIProjectRow[]; hoursChartMode: HoursChartMode };
 
-const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredData }, ref) => {
+const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredData, hoursChartMode }, ref) => {
   const metrics = useMemo(() => {
     const totalSales = filteredData.reduce((s, r) => s + (r[UI_PROJECT_KEYS.TOTAL_SALES_AMOUNT] || 0), 0);
     const totalCost = filteredData.reduce((s, r) => s + (r[UI_PROJECT_KEYS.TOTAL_COSTING] || 0), 0);
@@ -124,6 +128,15 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
       }))
       .sort((a, b) => b['Budget (hrs)'] - a['Budget (hrs)'])
       .slice(0, 15),
+  [filteredData]);
+
+  const normalisedHoursData = useMemo(() =>
+    filteredData
+      .map(toNormalisedRow)
+      .filter(d => d.budget > 0)
+      .sort((a, b) => b.budget - a.budget)
+      .slice(0, 15)
+      .map(d => ({ ...d, name: trunc(d.name, 16) })),
   [filteredData]);
 
   const statusData = useMemo(() => {
@@ -373,29 +386,53 @@ const PrintView = React.forwardRef<HTMLDivElement, PrintViewProps>(({ filteredDa
       <div data-print-page='4' style={PAGE_STYLE}>
         <PageHeader subtitle='Resource Utilisation & Efficiency' />
 
-        <div style={cardStyle}>
-          <div style={sectionTitleStyle}>Time Budget Consumption <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(all projects, sorted by budget)</span></div>
-          <div style={{ height: CHART_H }}>
-            <ResponsiveContainer width='100%' height='100%'>
-              <ComposedChart data={hoursData} margin={{ top: 16, right: 32, left: 0, bottom: 4 }}>
-                <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='#e2e8f0' />
-                <XAxis dataKey='name' tick={{ fill: '#64748b', fontSize: 7 }} interval={0} angle={-35} textAnchor='end' height={56} />
-                <YAxis yAxisId='left' tick={{ fill: '#94a3b8', fontSize: 7 }} width={32} />
-                <YAxis yAxisId='right' orientation='right' tick={{ fill: '#14B8A6', fontSize: 7 }} tickFormatter={v => `${v}%`} width={28} />
-                <Bar yAxisId='left' dataKey='Budget (hrs)' fill='#94a3b8' radius={[2, 2, 0, 0]} maxBarSize={16} isAnimationActive={false}>
-                  <LabelList dataKey='Budget (hrs)' position='top' formatter={(v: any) => fmtHrs(Number(v))} style={lblStyle} />
-                </Bar>
-                <Bar yAxisId='left' dataKey='Consumed (hrs)' fill='#f59e0b' radius={[2, 2, 0, 0]} maxBarSize={16} isAnimationActive={false}>
-                  <LabelList dataKey='Consumed (hrs)' position='top' formatter={(v: any) => fmtHrs(Number(v))} style={lblStyle} />
-                </Bar>
-                <Line yAxisId='right' type='monotone' dataKey='Progress (%)' stroke='#14B8A6' strokeWidth={2} dot={{ r: 2, fill: '#fff', strokeWidth: 2 }} isAnimationActive={false}>
-                  <LabelList dataKey='Progress (%)' position='top' formatter={(v: any) => `${Math.round(v)}%`} style={{ ...lblStyle, fill: '#14B8A6' }} />
-                </Line>
-                <Legend content={renderPrintLegend} />
-              </ComposedChart>
-            </ResponsiveContainer>
+        {hoursChartMode === 'normalised' ? (
+          <div style={cardStyle}>
+            <div style={sectionTitleStyle}>Time Budget Consumption <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(normalised to each project's budget, top 15 by budget)</span></div>
+            <div style={{ height: CHART_H }}>
+              <ResponsiveContainer width='100%' height='100%'>
+                <ComposedChart data={normalisedHoursData} margin={{ top: 16, right: 12, left: 0, bottom: 4 }}>
+                  <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='#e2e8f0' />
+                  <XAxis dataKey='name' tick={{ fill: '#64748b', fontSize: 7 }} interval={0} angle={-35} textAnchor='end' height={56} />
+                  <YAxis tick={{ fill: '#94a3b8', fontSize: 7 }} tickFormatter={v => `${v}%`} domain={[0, normalisedDomainMax]} width={32} />
+                  <ReferenceLine y={100} stroke='#64748b' strokeDasharray='4 3' isFront />
+                  <Bar dataKey='Consumed (% of budget)' fill={CONSUMED_COLOR} radius={[2, 2, 0, 0]} maxBarSize={16} isAnimationActive={false}>
+                    {normalisedHoursData.map((entry, i) => <Cell key={i} fill={entry.isAtRisk ? AT_RISK_COLOR : CONSUMED_COLOR} />)}
+                    <LabelList dataKey='Consumed (% of budget)' position='top' formatter={(v: any) => `${Math.round(v)}%`} style={lblStyle} />
+                  </Bar>
+                  <Bar dataKey='Progress (%)' fill={PROGRESS_COLOR} radius={[2, 2, 0, 0]} maxBarSize={16} isAnimationActive={false}>
+                    <LabelList dataKey='Progress (%)' position='top' formatter={(v: any) => `${Math.round(v)}%`} style={{ ...lblStyle, fill: PROGRESS_COLOR }} />
+                  </Bar>
+                  <Legend payload={NORMALISED_LEGEND} content={renderPrintLegend} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div style={cardStyle}>
+            <div style={sectionTitleStyle}>Time Budget Consumption <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(all projects, sorted by budget)</span></div>
+            <div style={{ height: CHART_H }}>
+              <ResponsiveContainer width='100%' height='100%'>
+                <ComposedChart data={hoursData} margin={{ top: 16, right: 32, left: 0, bottom: 4 }}>
+                  <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='#e2e8f0' />
+                  <XAxis dataKey='name' tick={{ fill: '#64748b', fontSize: 7 }} interval={0} angle={-35} textAnchor='end' height={56} />
+                  <YAxis yAxisId='left' tick={{ fill: '#94a3b8', fontSize: 7 }} width={32} />
+                  <YAxis yAxisId='right' orientation='right' tick={{ fill: '#14B8A6', fontSize: 7 }} tickFormatter={v => `${v}%`} width={28} />
+                  <Bar yAxisId='left' dataKey='Budget (hrs)' fill='#94a3b8' radius={[2, 2, 0, 0]} maxBarSize={16} isAnimationActive={false}>
+                    <LabelList dataKey='Budget (hrs)' position='top' formatter={(v: any) => fmtHrs(Number(v))} style={lblStyle} />
+                  </Bar>
+                  <Bar yAxisId='left' dataKey='Consumed (hrs)' fill='#f59e0b' radius={[2, 2, 0, 0]} maxBarSize={16} isAnimationActive={false}>
+                    <LabelList dataKey='Consumed (hrs)' position='top' formatter={(v: any) => fmtHrs(Number(v))} style={lblStyle} />
+                  </Bar>
+                  <Line yAxisId='right' type='monotone' dataKey='Progress (%)' stroke='#14B8A6' strokeWidth={2} dot={{ r: 2, fill: '#fff', strokeWidth: 2 }} isAnimationActive={false}>
+                    <LabelList dataKey='Progress (%)' position='top' formatter={(v: any) => `${Math.round(v)}%`} style={{ ...lblStyle, fill: '#14B8A6' }} />
+                  </Line>
+                  <Legend content={renderPrintLegend} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
 
         <div style={cardStyle}>
           <div style={sectionTitleStyle}>Project Manager Workload Distribution <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 9 }}>(top 15 by project count)</span></div>

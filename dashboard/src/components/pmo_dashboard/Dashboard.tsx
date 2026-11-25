@@ -18,7 +18,7 @@ import ChartCard from './ChartCard';
 import DashboardFilters, { FilterFieldConfig, FilterFieldKey } from './DashboardFilters';
 import EditableTable from './EditableTable';
 import GanttView from './GanttView';
-import HoursConsumptionChart from './HoursConsumptionChart';
+import HoursConsumptionChart, { HoursChartMode } from './HoursConsumptionChart';
 import ManagerRevenueChart from './ManagerRevenueChart';
 import ManagerWorkloadChart from './ManagerWorkloadChart';
 import ProjectDetailsModal from './ProjectDetailsModal';
@@ -57,6 +57,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [detailSyncError, setDetailSyncError] = useState<string | null>(null);
   const [isRenderingPrintView, setIsRenderingPrintView] = useState(false);
   const [fullscreenChart, setFullscreenChart] = useState<string | null>(null);
+  const [hoursChartMode, setHoursChartMode] = useState<HoursChartMode>('normalised');
   const printRef = useRef<HTMLDivElement>(null);
 
   const setUrlParam = (key: string, value: string | null) => {
@@ -381,11 +382,11 @@ const Dashboard: React.FC<DashboardProps> = ({
             <ChartCard
               id='hours-consumption'
               title='Time Budget Consumption'
-              subtitle='Hour utilization against actual completion rate'
+              subtitle={hoursChartMode === 'normalised' ? 'Hours used as % of budget against actual completion rate' : 'Hour utilization against actual completion rate'}
               isFullscreen={fullscreenChart === 'hours-consumption'}
               onFullscreenChange={(open) => handleChartFullscreen('hours-consumption', open)}
             >
-              <HoursConsumptionChart data={filteredData} />
+              <HoursConsumptionChart data={filteredData} mode={hoursChartMode} onModeChange={setHoursChartMode} />
             </ChartCard>
           </div>
 
@@ -443,7 +444,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               <BillableHoursChart data={filteredData} />
             </ChartCard>
           </div>
-          {isRenderingPrintView && <PrintView ref={printRef} filteredData={filteredData} />}
+          {isRenderingPrintView && <PrintView ref={printRef} filteredData={filteredData} hoursChartMode={hoursChartMode} />}
         </>
       )}
     </div>

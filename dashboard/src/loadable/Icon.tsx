@@ -7,6 +7,7 @@ const MuiDarkModeIcon = React.lazy(() => import('@mui/icons-material/DarkMode'))
 const MuiAnimationIcon = React.lazy(() => import('@mui/icons-material/AutoAwesome'))
 const MuiEmojiPeopleIcon = React.lazy(() => import('@mui/icons-material/EmojiPeople'))
 const MuiSportsEsportsIcon = React.lazy(() => import('@mui/icons-material/SportsEsports'))
+const MuiRefreshIcon = React.lazy(() => import('@mui/icons-material/Refresh'))
 const MuiContentCopyIcon = React.lazy(() => import('@mui/icons-material/ContentCopy'))
 const MuiListIcon = React.lazy(() => import('@mui/icons-material/List'))
 const MuiPlayCircleIcon = React.lazy(() => import('@mui/icons-material/PlayCircle'))
@@ -194,6 +195,14 @@ export function SportsEsportsIcon(props: any) {
     return (
         <Suspense fallback={<IconLoader {...props}/>}>
             <MuiSportsEsportsIcon {...props} />
+        </Suspense>
+    )
+}
+
+export function RefreshIcon(props: any) {
+    return (
+        <Suspense fallback={<IconLoader {...props}/>}>
+            <MuiRefreshIcon {...props} />
         </Suspense>
     )
 }

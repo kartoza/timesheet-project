@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Box } from "@mui/system";
 import Cookies from "js-cookie";
 import TButton from "../loadable/Button";
-import { SportsEsportsIcon } from "../loadable/Icon";
+import { RefreshIcon, SportsEsportsIcon } from "../loadable/Icon";
 import '../styles/Connections';
 
 
@@ -105,6 +105,11 @@ export default function Connections() {
                 <Typography variant="body2">
                     Your points: <strong>{state?.points ?? 0}</strong>
                 </Typography>
+                <TButton size="small" startIcon={<RefreshIcon/>}
+                    title="See if someone has submitted a new guess"
+                    onClick={() => { setMessage(''); setError(''); loadState(); }}>
+                    Refresh
+                </TButton>
             </Grid>
         </Grid>
         <Typography variant="body2" marginBottom={1}>

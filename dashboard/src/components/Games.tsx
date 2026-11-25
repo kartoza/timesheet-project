@@ -1,4 +1,4 @@
-import { Chip, Modal, Typography } from "@mui/material";
+import { Badge, Chip, Modal, Typography } from "@mui/material";
 import React, { Suspense, useEffect, useState } from "react";
 import { Box } from "@mui/system";
 import TButton from "../loadable/Button";
@@ -28,6 +28,9 @@ interface GameStatus {
     solved: boolean
     unavailable: boolean
 }
+
+// How often the badge on the button is refreshed while the page stays open.
+const BADGE_REFRESH_MS = 5 * 60 * 1000;
 
 const GAME_COMPONENTS: { [key in GameKey]: React.LazyExoticComponent<() => JSX.Element> } = {
     wordle: Wordle,
@@ -65,6 +68,24 @@ export default function Games() {
         }
     }, [open, view])
 
+    // Load the status when the page opens, after the dialog is closed (to
+    // pick up games just played) and now and then, so the badge on the
+    // button shows whether there is still something to play.
+    useEffect(() => {
+        if (open) {
+            return;
+        }
+        loadStatus();
+        const timer = setInterval(loadStatus, BADGE_REFRESH_MS);
+        return () => clearInterval(timer);
+    }, [open])
+
+    // Only the team games count; solo wordle is a personal extra.
+    const gamesToPlay = games.filter(
+        game => game.key !== 'solo_wordle'
+            && !game.played_today && !game.solved && !game.unavailable
+    ).length;
+
     const statusChip = (game: GameStatus) => {
         if (game.unavailable) {
             return <Chip size="small" variant="outlined" label="Coming soon" />;
@@ -85,14 +106,18 @@ export default function Games() {
     const GameComponent = view ? GAME_COMPONENTS[view] : null;
 
     return <div className="Games">
-        <TButton
-            onClick={() => { setView(null); setOpen(true); }}
-            className="GamesButton"
-            aria-label="Games"
-            title="Games"
-            variant="outlined" size="large" color='secondary'>
-            <SportsEsportsIcon/>
-        </TButton>
+        <Badge color="error" badgeContent={gamesToPlay}
+            invisible={gamesToPlay === 0}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+            <TButton
+                onClick={() => { setView(null); setOpen(true); }}
+                className="GamesButton"
+                aria-label={gamesToPlay ? `Games, ${gamesToPlay} to play` : 'Games'}
+                title={gamesToPlay ? `Games (${gamesToPlay} to play)` : 'Games'}
+                variant="outlined" size="large" color='secondary'>
+                <SportsEsportsIcon/>
+            </TButton>
+        </Badge>
         <Modal open={open} onClose={() => setOpen(false)}>
             <Box className='GamesModal'>
                 {GameComponent ? (

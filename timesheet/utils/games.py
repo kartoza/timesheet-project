@@ -1,4 +1,5 @@
 import pytz
+from django.db.models import Max
 from django.utils import timezone
 
 from timesheet.models.profile import Profile
@@ -15,6 +16,35 @@ def user_today(user):
     except pytz.UnknownTimeZoneError:
         tz = pytz.UTC
     return timezone.now().astimezone(tz).date()
+
+
+def is_leader(user):
+    """True for whoever is first on the leaderboard (ties share first place).
+    Nobody leads before the first points are won."""
+    points = Profile.objects.get(user=user).points
+    return points > 0 and get_rank(points) == 1
+
+
+def has_wide_lead(user):
+    """True when the user has at least double the points of the player in
+    second place. Someone who leads that far, even alone while everybody else
+    is still on zero, qualifies; a tie for first place never does."""
+    points = Profile.objects.get(user=user).points
+    if points <= 0:
+        return False
+    second = Profile.objects.filter(user__is_active=True).exclude(
+        user=user
+    ).aggregate(best=Max('points'))['best'] or 0
+    return points >= 2 * second
+
+
+def has_bonus_guess(user):
+    """Winning today's solo wordle earns one extra team wordle guess, valid
+    only for that day. The leader of the leaderboard doesn't get one."""
+    from timesheet.models.wordle import SoloWordleGame
+    return SoloWordleGame.objects.filter(
+        user=user, play_date=user_today(user), won=True
+    ).exists() and not is_leader(user)
 
 
 def get_rank(points):

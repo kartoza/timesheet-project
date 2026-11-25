@@ -83,6 +83,38 @@
         }
     }
 
+    // Text box for the leader who isn't told the length of the word.
+    .WordleFreeInput {
+        flex: 1;
+        min-width: 0;
+        max-width: 420px;
+        height: 60px;
+        padding: 0 16px;
+        border: 3px solid #888;
+        border-radius: 2px;
+        background: transparent;
+        color: inherit;
+        font-size: 28px;
+        font-weight: bold;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        outline: none;
+
+        &::placeholder {
+            font-size: 15px;
+            font-weight: normal;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+        &:focus { border-color: #1976d2; }
+    }
+
+    .WordleFreeSubmit {
+        height: 60px;
+        padding: 0 28px;
+        font-size: 16px;
+    }
+
     .WordleInput .WordleTile {
         width: 40px;
         height: 40px;

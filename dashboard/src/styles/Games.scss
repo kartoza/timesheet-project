@@ -1,6 +1,9 @@
 .Games {
     padding-right: 10px;
     display: flex;
+    .MuiBadge-badge {
+        pointer-events: none;
+    }
     .GamesButton {
         height: 52px;
     }
