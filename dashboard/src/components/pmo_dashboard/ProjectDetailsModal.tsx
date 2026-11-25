@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Building2, CheckCircle2, Clock, ListChecks, Loader, RefreshCw, User, Users, X } from 'lucide-react';
+import { Briefcase, Building2, CheckCircle2, Clock, ListChecks, Loader, RefreshCw, User, Users, X } from 'lucide-react';
 import { UI_PROJECT_KEYS } from '../../constants/pmo_dashboard';
 import { UIProjectRow } from '../../types/pmo_dashboard';
 import { formatManagerName } from '../../utils/pmo_dashboard';
@@ -140,6 +140,12 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, onCl
                   <div className='font-bold text-slate-800 dark:text-white'>{formatManagerName(project[UI_PROJECT_KEYS.PROJECT_MANAGER] || '') || 'Not Assigned'}</div>
                   <div className='text-xs text-slate-500 dark:text-slate-400 font-medium'>Lead Project Manager</div>
                 </div>
+              </div>
+              <h3 className='text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-5 mb-2 flex items-center gap-2'>
+                <Briefcase size={14} className='text-indigo-600 dark:text-indigo-400' /> Customer
+              </h3>
+              <div className={`font-bold ${project[UI_PROJECT_KEYS.CUSTOMER] ? 'text-slate-800 dark:text-white' : 'text-slate-400 dark:text-slate-500 italic'}`}>
+                {project[UI_PROJECT_KEYS.CUSTOMER] || 'Not set'}
               </div>
             </div>
             <div>
